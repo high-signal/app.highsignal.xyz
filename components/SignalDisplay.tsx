@@ -5,7 +5,99 @@ import SignalBox from "./SignalBox"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 
-export default function SignalDisplay() {
+const operatorData = {
+    eridian: {
+        name: "Eridian",
+        operatorNumber: "10",
+        operatorImage: "/static/operator-10.png",
+        signalValue: 87,
+        signalColor: "blue.500",
+        peakSignals: [
+            {
+                imageSrc: "/static/testnet-pioneer.png",
+                imageAlt: "Testnet Pioneer",
+                title: "Testnet Pioneer",
+                value: "+10",
+            },
+            {
+                imageSrc: "/static/keen-bean.png",
+                imageAlt: "Day 1 Keen Bean",
+                title: "Day 1 Keen Bean",
+                value: "+20",
+            },
+            {
+                imageSrc: "/static/one-month-participant.png",
+                imageAlt: "1 Month Running",
+                title: "1 Month Running",
+                value: "+5",
+            },
+        ],
+        metrics: {
+            validatorCount: {
+                value: "+25",
+                percentage: "30%",
+            },
+            lidoForumEngagement: {
+                value: "+37",
+                percentage: "70%",
+            },
+            xEngagement: {
+                value: "-10",
+                percentage: "15%",
+                color: "red.600",
+                warning: "Low quality spam posts",
+            },
+        },
+    },
+    enti: {
+        name: "Enti",
+        operatorNumber: "99",
+        operatorImage: "/static/operator-10.png",
+        signalValue: 68,
+        signalColor: "green.500",
+        peakSignals: [
+            {
+                imageSrc: "/static/testnet-pioneer.png",
+                imageAlt: "Testnet Pioneer",
+                title: "Testnet Pioneer",
+                value: "+10",
+            },
+            {
+                imageSrc: "/static/keen-bean.png",
+                imageAlt: "Day 1 Keen Bean",
+                title: "Day 1 Keen Bean",
+                value: "+20",
+            },
+            {
+                imageSrc: "/static/one-month-participant.png",
+                imageAlt: "1 Month Running",
+                title: "1 Month Running",
+                value: "+5",
+            },
+        ],
+        metrics: {
+            validatorCount: {
+                value: "+40",
+                percentage: "50%",
+            },
+            lidoForumEngagement: {
+                value: "+62",
+                percentage: "90%",
+            },
+            xEngagement: {
+                value: "-20",
+                percentage: "15%",
+                color: "red.600",
+                warning: "Low quality spam posts",
+            },
+        },
+    },
+}
+
+export default function SignalDisplay({ username }: { username: string }) {
+    const data = operatorData[username as keyof typeof operatorData]
+    if (!data) return <Text>{username} not found</Text>
+
     return (
         <Box w="100%" maxW="600px" borderRadius="20px" p={6} zIndex={10}>
             {/* Title and Signal Amount */}
@@ -29,10 +121,10 @@ export default function SignalDisplay() {
                         borderColor="gray.500"
                     >
                         <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">
-                            <Image src="/static/operator-10.png" alt="Operator 10" layout="fill" />
+                            <Image src={data.operatorImage} alt={`Operator ${data.operatorNumber}`} layout="fill" />
                         </Box>
                         <Text fontSize="xl" fontWeight={"bold"}>
-                            Eridian
+                            {data.name}
                         </Text>
                     </HStack>
                     <HStack
@@ -45,7 +137,7 @@ export default function SignalDisplay() {
                         h={"60px"}
                     >
                         <Text fontSize="xl" fontWeight={"bold"}>
-                            Lido CSM - Operator 10
+                            Lido CSM - Operator {data.operatorNumber}
                         </Text>
                     </HStack>
                 </HStack>
@@ -59,10 +151,10 @@ export default function SignalDisplay() {
                     pb={2}
                 >
                     <Text textAlign={"center"}>
-                        <Span color="blue.500">High</Span> Signal
+                        <Span color={data.signalColor}>High</Span> Signal
                     </Text>
-                    <Text px={4} py={0} border={"5px solid"} borderRadius="25px" borderColor="blue.500">
-                        87
+                    <Text px={4} py={0} border={"5px solid"} borderRadius="25px" borderColor={data.signalColor}>
+                        {data.signalValue}
                     </Text>
                 </HStack>
 
@@ -78,7 +170,7 @@ export default function SignalDisplay() {
                         <Text fontSize="20px" w={"35%"} textAlign="center">
                             Strong
                         </Text>
-                        <Text fontSize="20px" w={"15%"} textAlign="center" fontWeight="bold" color="blue.500">
+                        <Text fontSize="20px" w={"15%"} textAlign="center" fontWeight="bold" color={data.signalColor}>
                             High
                         </Text>
                     </HStack>
@@ -94,11 +186,11 @@ export default function SignalDisplay() {
                     >
                         <Box
                             bg="gray.800"
-                            w={"87%"}
+                            w={`${data.signalValue}%`}
                             h={"100%"}
                             textAlign="center"
                             borderRight={"3px solid"}
-                            borderColor="blue.600"
+                            borderColor={data.signalColor}
                         />
                         <Box
                             position="absolute"
@@ -133,24 +225,15 @@ export default function SignalDisplay() {
                 </Text>
 
                 <SimpleGrid columns={3} gap={4} mb={8}>
-                    <SignalBox
-                        imageSrc="/static/testnet-pioneer.png"
-                        imageAlt="Testnet Pioneer"
-                        title="Testnet Pioneer"
-                        value="+10"
-                    />
-                    <SignalBox
-                        imageSrc="/static/keen-bean.png"
-                        imageAlt="Day 1 Keen Bean"
-                        title="Day 1 Keen Bean"
-                        value="+20"
-                    />
-                    <SignalBox
-                        imageSrc="/static/one-month-participant.png"
-                        imageAlt="1 Month Running"
-                        title="1 Month Running"
-                        value="+5"
-                    />
+                    {data.peakSignals.map((signal, index) => (
+                        <SignalBox
+                            key={index}
+                            imageSrc={signal.imageSrc}
+                            imageAlt={signal.imageAlt}
+                            title={signal.title}
+                            value={signal.value}
+                        />
+                    ))}
                 </SimpleGrid>
 
                 {/* Signal Strength Section */}
@@ -164,11 +247,11 @@ export default function SignalDisplay() {
                         <HStack alignItems={"baseline"}>
                             <Text fontSize="lg">Validator Count</Text>
                             <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px">
-                                +25
+                                {data.metrics.validatorCount.value}
                             </Text>
                         </HStack>
                         <Box w="100%" h="20px" bg="gray.800" borderRadius="md" overflow="hidden">
-                            <Box w="30%" h="100%" bg="blue.500" />
+                            <Box w={data.metrics.validatorCount.percentage} h="100%" bg="blue.500" />
                         </Box>
                     </VStack>
 
@@ -177,11 +260,11 @@ export default function SignalDisplay() {
                         <HStack alignItems={"baseline"}>
                             <Text fontSize="lg">Lido Forum Engagement</Text>
                             <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px">
-                                +37
+                                {data.metrics.lidoForumEngagement.value}
                             </Text>
                         </HStack>
                         <Box w="100%" h="20px" bg="gray.800" borderRadius="md" overflow="hidden">
-                            <Box w="70%" h="100%" bg="blue.500" />
+                            <Box w={data.metrics.lidoForumEngagement.percentage} h="100%" bg="blue.500" />
                         </Box>
                     </VStack>
 
@@ -191,20 +274,20 @@ export default function SignalDisplay() {
                             <HStack alignItems={"baseline"} gap={{ base: 0, sm: 4 }} wrap={"wrap"}>
                                 <HStack alignItems={"baseline"}>
                                     <Text fontSize="lg">X Engagement</Text>
-                                    <Text bg={"red.600"} fontSize="xl" px={2} borderRadius="8px">
-                                        -10
+                                    <Text bg={data.metrics.xEngagement.color} fontSize="xl" px={2} borderRadius="8px">
+                                        {data.metrics.xEngagement.value}
                                     </Text>
                                 </HStack>
                                 <HStack gap={1} color="yellow.400" alignItems={"baseline"}>
                                     <Box fontSize="xl">
                                         <FontAwesomeIcon icon={faExclamationTriangle} />
                                     </Box>
-                                    <Text>Low quality spam posts</Text>
+                                    <Text>{data.metrics.xEngagement.warning}</Text>
                                 </HStack>
                             </HStack>
                         </HStack>
                         <Box w="100%" h="20px" bg="gray.800" borderRadius="md" overflow="hidden">
-                            <Box w="15%" h="100%" bg="red.700" />
+                            <Box w={data.metrics.xEngagement.percentage} h="100%" bg="red.700" />
                         </Box>
                     </VStack>
 

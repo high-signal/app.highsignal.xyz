@@ -1,0 +1,17 @@
+import ContentContainer from "../../components/layout/ContentContainer"
+import SignalDisplay from "../../components/SignalDisplay"
+interface ProfilePageProps {
+    params: {
+        username: string
+    }
+}
+
+export default async function ProfilePage({ params }: ProfilePageProps) {
+    const { username } = params
+
+    return (
+        <ContentContainer>
+            <SignalDisplay username={username} />
+        </ContentContainer>
+    )
+}
