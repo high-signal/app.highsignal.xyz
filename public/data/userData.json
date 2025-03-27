@@ -1,0 +1,88 @@
+{
+    "eridian": {
+        "name": "Eridian",
+        "operatorNumber": "10",
+        "operatorImage": "/static/operator-10.png",
+        "signalValue": 87,
+        "signalColor": "blue.500",
+        "peakSignals": [
+            {
+                "imageSrc": "/static/testnet-pioneer.png",
+                "imageAlt": "Testnet Pioneer",
+                "title": "Testnet Pioneer",
+                "value": "+10"
+            },
+            {
+                "imageSrc": "/static/keen-bean.png",
+                "imageAlt": "Day 1 Keen Bean",
+                "title": "Day 1 Keen Bean",
+                "value": "+20"
+            },
+            {
+                "imageSrc": "/static/one-month-participant.png",
+                "imageAlt": "1 Month Running",
+                "title": "1 Month Running",
+                "value": "+5"
+            }
+        ],
+        "metrics": {
+            "validatorCount": {
+                "value": "+25",
+                "percentage": "30%"
+            },
+            "lidoForumEngagement": {
+                "value": "+37",
+                "percentage": "70%"
+            },
+            "xEngagement": {
+                "value": "-10",
+                "percentage": "15%",
+                "color": "red.600",
+                "warning": "Low quality spam posts"
+            }
+        }
+    },
+    "enti": {
+        "name": "Enti",
+        "operatorNumber": "99",
+        "operatorImage": "/static/operator-10.png",
+        "signalValue": 68,
+        "signalColor": "green.500",
+        "peakSignals": [
+            {
+                "imageSrc": "/static/testnet-pioneer.png",
+                "imageAlt": "Testnet Pioneer",
+                "title": "Testnet Pioneer",
+                "value": "+10"
+            },
+            {
+                "imageSrc": "/static/keen-bean.png",
+                "imageAlt": "Day 1 Keen Bean",
+                "title": "Day 1 Keen Bean",
+                "value": "+20"
+            },
+            {
+                "imageSrc": "/static/one-month-participant.png",
+                "imageAlt": "1 Month Running",
+                "title": "1 Month Running",
+                "value": "+5"
+            }
+        ],
+        "metrics": {
+            "validatorCount": {
+                "value": "+40",
+                "percentage": "50%"
+            },
+            "lidoForumEngagement": {
+                "value": "+62",
+                "percentage": "90%"
+            },
+            "xEngagement": {
+                "value": "-20",
+                "percentage": "15%",
+                "color": "red.600",
+                "warning": "Low quality spam posts"
+            }
+        }
+    }
+}

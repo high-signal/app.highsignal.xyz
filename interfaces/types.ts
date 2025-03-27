@@ -1,23 +1,38 @@
-export type DataItem = {
-    date: string
-    value: number
+interface PeakSignal {
+    imageSrc: string
+    imageAlt: string
+    title: string
+    value: string
 }
 
-export type ConfigItem = {
-    title: {
-        text: string
-        emoji: string
+interface Metrics {
+    validatorCount: {
+        value: string
+        percentage: string
     }
-    link: string
-    emoji: string
-    type: string
-    data: DataItem[]
+    lidoForumEngagement: {
+        value: string
+        percentage: string
+    }
+    xEngagement: {
+        value: string
+        percentage: string
+        color: string
+        warning: string
+    }
 }
 
-export type DataStructure = {
-    [key: string]: ConfigItem[]
+interface UserData {
+    name: string
+    operatorNumber: string
+    operatorImage: string
+    signalValue: number
+    signalColor: string
+    peakSignals: PeakSignal[]
+    metrics: Metrics
 }
 
-export type DateRangeItem = {
-    date: string
+declare module "*/userData.json" {
+    const value: Record<string, UserData>
+    export default value
 }
