@@ -1,13 +1,19 @@
+"use client"
+
+import { useRouter } from "next/navigation"
+
 import { VStack, HStack, Text, Box, Button, SimpleGrid, Span } from "@chakra-ui/react"
 
 import Image from "next/image"
 import SignalBox from "./SignalBox"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
+import { faArrowLeft, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 
 import operatorData from "../public/data/userData.json"
 
 export default function SignalDisplay({ username }: { username: string }) {
+    const router = useRouter()
+
     const data = operatorData[username as keyof typeof operatorData]
     if (!data) return <Text>{username} not found</Text>
 
@@ -24,22 +30,31 @@ export default function SignalDisplay({ username }: { username: string }) {
                     pb={5}
                     wrap={"wrap"}
                 >
-                    <HStack
-                        bg="gray.800"
-                        py={2}
-                        pl={2}
-                        pr={4}
-                        borderRadius="12px"
-                        border={"2px solid"}
-                        borderColor="gray.500"
-                    >
-                        <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">
-                            <Image src={data.operatorImage} alt={`Operator ${data.operatorNumber}`} layout="fill" />
-                        </Box>
-                        <Text fontSize="xl" fontWeight={"bold"}>
-                            {data.name}
-                        </Text>
+                    <HStack>
+                        <Button size="sm" borderRadius="8px" onClick={() => router.back()}>
+                            <HStack gap={2}>
+                                <FontAwesomeIcon icon={faArrowLeft} />
+                                <Text>Back</Text>
+                            </HStack>
+                        </Button>
+                        <HStack
+                            bg="gray.800"
+                            py={2}
+                            pl={2}
+                            pr={4}
+                            borderRadius="12px"
+                            border={"2px solid"}
+                            borderColor="gray.500"
+                        >
+                            <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">
+                                <Image src={data.operatorImage} alt={`Operator ${data.operatorNumber}`} layout="fill" />
+                            </Box>
+                            <Text fontSize="xl" fontWeight={"bold"}>
+                                {data.name}
+                            </Text>
+                        </HStack>
                     </HStack>
+
                     <HStack
                         bg="gray.800"
                         py={2}
@@ -50,7 +65,7 @@ export default function SignalDisplay({ username }: { username: string }) {
                         h={"60px"}
                     >
                         <Text fontSize="xl" fontWeight={"bold"}>
-                            Lido CSM - Operator {data.operatorNumber}
+                            Lido CSM Operator {data.operatorNumber}
                         </Text>
                     </HStack>
                 </HStack>
