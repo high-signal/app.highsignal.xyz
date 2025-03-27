@@ -147,8 +147,8 @@ export default function SignalDisplay() {
                     />
                     <SignalBox
                         imageSrc="/static/one-month-participant.png"
-                        imageAlt="1 month participant"
-                        title="1 month Running"
+                        imageAlt="1 Month Running"
+                        title="1 Month Running"
                         value="+5"
                     />
                 </SimpleGrid>
