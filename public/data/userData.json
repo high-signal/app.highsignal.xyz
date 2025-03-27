@@ -1,6 +1,7 @@
 {
     "eridian": {
         "name": "Eridian",
+        "signal": "High",
         "operatorNumber": "10",
         "operatorImage": "/static/operator-10.png",
         "signalValue": 87,
@@ -44,6 +45,7 @@
     },
     "enti": {
         "name": "Enti",
+        "signal": "Strong",
         "operatorNumber": "99",
         "operatorImage": "/static/operator-10.png",
         "signalValue": 68,

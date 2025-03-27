@@ -78,7 +78,7 @@ export default function SignalDisplay({ username }: { username: string }) {
                     pb={2}
                 >
                     <Text textAlign={"center"}>
-                        <Span color={data.signalColor}>High</Span> Signal
+                        <Span color={data.signalColor}>{data.signal}</Span> Signal
                     </Text>
                     <Text px={4} py={0} border={"5px solid"} borderRadius="25px" borderColor={data.signalColor}>
                         {data.signalValue}

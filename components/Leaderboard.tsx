@@ -89,20 +89,23 @@ export default function Leaderboard() {
                                 </Table.Cell>
                                 <Table.Cell borderBottom="none">
                                     <HStack justifyContent="center" alignItems="center" fontSize="xl" fontWeight="bold">
-                                        <Text color={data.signalColor}>High</Text>
+                                        <Text color={data.signalColor}>{data.signal}</Text>
                                     </HStack>
                                 </Table.Cell>
                                 <Table.Cell borderBottom="none" textAlign="center">
-                                    <Text
-                                        px={4}
-                                        py={0}
-                                        border="5px solid"
-                                        borderRadius="25px"
-                                        borderColor={data.signalColor}
-                                        color="white"
-                                    >
-                                        {data.signalValue}
-                                    </Text>
+                                    <HStack justifyContent="center" alignItems="center">
+                                        <Text
+                                            px={3}
+                                            py={1}
+                                            border="3px solid"
+                                            borderRadius="15px"
+                                            borderColor={data.signalColor}
+                                            color="white"
+                                            w="fit-content"
+                                        >
+                                            {data.signalValue}
+                                        </Text>
+                                    </HStack>
                                 </Table.Cell>
                                 <Table.Cell borderBottom="none">
                                     <HStack justify="center" gap={2}>
