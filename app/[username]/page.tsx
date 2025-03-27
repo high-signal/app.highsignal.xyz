@@ -1,9 +1,10 @@
 import ContentContainer from "../../components/layout/ContentContainer"
 import SignalDisplay from "../../components/SignalDisplay"
+
 interface ProfilePageProps {
-    params: {
+    params: Promise<{
         username: string
-    }
+    }>
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
