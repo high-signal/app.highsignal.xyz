@@ -10,7 +10,15 @@ export default function SignalDisplay() {
         <Box w="100%" maxW="600px" borderRadius="20px" p={6} zIndex={10}>
             {/* Title and Signal Amount */}
             <VStack align="stretch" gap={3}>
-                <HStack justify="center" gap={2} w={"100%"} justifyContent={"space-between"} pb={5}>
+                <HStack
+                    justify="center"
+                    gap={5}
+                    w={"100%"}
+                    justifyContent={{ base: "center", sm: "space-between" }}
+                    alignItems="center"
+                    pb={5}
+                    wrap={"wrap"}
+                >
                     <HStack
                         bg="gray.800"
                         py={2}
@@ -46,7 +54,7 @@ export default function SignalDisplay() {
                     justifyContent={"center"}
                     alignItems={"center"}
                     gap={5}
-                    fontSize="50px"
+                    fontSize={{ base: "40px", sm: "50px" }}
                     fontWeight="bold"
                     pb={2}
                 >
@@ -89,8 +97,8 @@ export default function SignalDisplay() {
                             w={"87%"}
                             h={"100%"}
                             textAlign="center"
-                            borderRight={"2px solid"}
-                            borderColor="gray.600"
+                            borderRight={"3px solid"}
+                            borderColor="blue.600"
                         />
                         <Box
                             position="absolute"
@@ -180,10 +188,10 @@ export default function SignalDisplay() {
                     {/* X Engagement */}
                     <VStack alignItems={"start"} gap={0} w={"100%"}>
                         <HStack>
-                            <HStack alignItems={"baseline"} gap={4}>
+                            <HStack alignItems={"baseline"} gap={{ base: 0, sm: 4 }} wrap={"wrap"}>
                                 <HStack alignItems={"baseline"}>
                                     <Text fontSize="lg">X Engagement</Text>
-                                    <Text bg={"red.600"} fontSize="xl" px={2} borderRadius="8px" mb={3}>
+                                    <Text bg={"red.600"} fontSize="xl" px={2} borderRadius="8px">
                                         -10
                                     </Text>
                                 </HStack>
