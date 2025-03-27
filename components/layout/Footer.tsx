@@ -7,7 +7,13 @@ export default function Footer() {
         <Flex direction={"column"} alignItems={"center"} pb={5} px={3} gap={1}>
             <Text fontWeight={"bold"}>
                 Built with ❤️ by{" "}
-                <Link as={NextLink} href={"https://eridian.xyz"} color={"blue"} textDecoration={"underline"} target="_blank">
+                <Link
+                    as={NextLink}
+                    href={"https://eridian.xyz"}
+                    color={"blue.500"}
+                    textDecoration={"underline"}
+                    target="_blank"
+                >
                     Eridian
                 </Link>
             </Text>

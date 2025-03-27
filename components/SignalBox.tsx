@@ -12,7 +12,7 @@ export default function SignalBox({ imageSrc, imageAlt, title, value }: SignalBo
     return (
         <Box
             border={"3px solid"}
-            borderColor="blue.600"
+            borderColor="gray.600"
             borderTopRadius="20px"
             borderBottomRadius="100px"
             textAlign="center"

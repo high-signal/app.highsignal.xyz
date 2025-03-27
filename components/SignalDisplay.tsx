@@ -1,16 +1,25 @@
-import { VStack, HStack, Text, Box, Button, SimpleGrid, Icon } from "@chakra-ui/react"
-import { BsMegaphone } from "react-icons/bs"
-import { FaExclamationTriangle } from "react-icons/fa"
+import { VStack, HStack, Text, Box, Button, SimpleGrid, Span } from "@chakra-ui/react"
+
 import Image from "next/image"
 import SignalBox from "./SignalBox"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 
 export default function SignalDisplay() {
     return (
-        <Box w="100%" maxW="600px" bg="contentBackground" borderRadius="20px" p={6} zIndex={10}>
+        <Box w="100%" maxW="600px" borderRadius="20px" p={6} zIndex={10}>
             {/* Title and Signal Amount */}
             <VStack align="stretch" gap={3}>
                 <HStack justify="center" gap={2} w={"100%"} justifyContent={"space-between"} pb={5}>
-                    <HStack bg="blue.800" py={2} pl={2} pr={4} borderRadius="12px">
+                    <HStack
+                        bg="gray.800"
+                        py={2}
+                        pl={2}
+                        pr={4}
+                        borderRadius="12px"
+                        border={"2px solid"}
+                        borderColor="gray.500"
+                    >
                         <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">
                             <Image src="/static/operator-10.png" alt="Operator 10" layout="fill" />
                         </Box>
@@ -18,7 +27,15 @@ export default function SignalDisplay() {
                             Eridian
                         </Text>
                     </HStack>
-                    <HStack bg="blue.800" py={2} px={3} borderRadius="12px">
+                    <HStack
+                        bg="gray.800"
+                        py={2}
+                        px={3}
+                        borderRadius="12px"
+                        border={"2px solid"}
+                        borderColor="gray.500"
+                        h={"60px"}
+                    >
                         <Text fontSize="xl" fontWeight={"bold"}>
                             Lido CSM - Operator 10
                         </Text>
@@ -33,8 +50,10 @@ export default function SignalDisplay() {
                     fontWeight="bold"
                     pb={2}
                 >
-                    <Text textAlign={"center"}>High Signal</Text>
-                    <Text px={4} py={0} border={"5px solid"} borderRadius="25px" borderColor="gold.500">
+                    <Text textAlign={"center"}>
+                        <Span color="blue.500">High</Span> Signal
+                    </Text>
+                    <Text px={4} py={0} border={"5px solid"} borderRadius="25px" borderColor="blue.500">
                         87
                     </Text>
                 </HStack>
@@ -51,7 +70,7 @@ export default function SignalDisplay() {
                         <Text fontSize="20px" w={"35%"} textAlign="center">
                             Strong
                         </Text>
-                        <Text fontSize="20px" w={"15%"} textAlign="center" fontWeight="bold">
+                        <Text fontSize="20px" w={"15%"} textAlign="center" fontWeight="bold" color="blue.500">
                             High
                         </Text>
                     </HStack>
@@ -61,18 +80,25 @@ export default function SignalDisplay() {
                         w={"100%"}
                         border={"3px solid"}
                         borderRadius={"10px"}
-                        borderColor={"blue.600"}
+                        borderColor={"gray.600"}
                         overflow={"hidden"}
                         position="relative"
                     >
-                        <Box bg="blue.900" w={"87%"} h={"100%"} textAlign="center" />
+                        <Box
+                            bg="gray.800"
+                            w={"87%"}
+                            h={"100%"}
+                            textAlign="center"
+                            borderRight={"2px solid"}
+                            borderColor="gray.600"
+                        />
                         <Box
                             position="absolute"
                             left="20%"
                             top="0"
                             bottom="0"
                             borderLeft="2px dashed"
-                            borderColor="blue.600"
+                            borderColor="gray.600"
                         />
                         <Box
                             position="absolute"
@@ -80,7 +106,7 @@ export default function SignalDisplay() {
                             top="0"
                             bottom="0"
                             borderLeft="2px dashed"
-                            borderColor="blue.600"
+                            borderColor="gray.600"
                         />
                         <Box
                             position="absolute"
@@ -88,7 +114,7 @@ export default function SignalDisplay() {
                             top="0"
                             bottom="0"
                             borderLeft="2px dashed"
-                            borderColor="blue.600"
+                            borderColor="gray.600"
                         />
                     </HStack>
                 </VStack>
@@ -121,36 +147,21 @@ export default function SignalDisplay() {
 
                 {/* Signal Strength Section */}
                 <Text fontSize="xl" fontWeight={"bold"}>
-                    Signal Strength (Past 30 days)
+                    Signal Strength
                 </Text>
 
                 <VStack gap={10} alignItems={"start"} w={"100%"}>
                     {/* Validator Count */}
                     <VStack alignItems={"start"} gap={0} w={"100%"}>
                         <HStack alignItems={"baseline"}>
-                            <Text fontSize="lg">Highest Validator Count</Text>
+                            <Text fontSize="lg">Validator Count</Text>
                             <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" mb={3}>
                                 +25
                             </Text>
                         </HStack>
-                        <HStack gap={2}>
-                            {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-                                <Box
-                                    key={num}
-                                    // bg="blue.600"
-                                    border={"3px solid"}
-                                    borderColor="blue.600"
-                                    w="30px"
-                                    h="30px"
-                                    borderRadius="full"
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                >
-                                    {num}
-                                </Box>
-                            ))}
-                        </HStack>
+                        <Box w="100%" h="20px" bg="gray.800" borderRadius="md" overflow="hidden">
+                            <Box w="30%" h="100%" bg="blue.500" />
+                        </Box>
                     </VStack>
 
                     {/* Lido Forum Engagement */}
@@ -161,7 +172,7 @@ export default function SignalDisplay() {
                                 +37
                             </Text>
                         </HStack>
-                        <Box w="100%" h="20px" bg="blue.900" borderRadius="md" overflow="hidden">
+                        <Box w="100%" h="20px" bg="gray.800" borderRadius="md" overflow="hidden">
                             <Box w="70%" h="100%" bg="blue.500" />
                         </Box>
                     </VStack>
@@ -169,31 +180,40 @@ export default function SignalDisplay() {
                     {/* X Engagement */}
                     <VStack alignItems={"start"} gap={0} w={"100%"}>
                         <HStack>
-                            <HStack alignItems={"baseline"}>
-                                <Text fontSize="lg">X Engagement</Text>
-                                <Text bg={"red.500"} fontSize="xl" px={2} borderRadius="8px" mb={3}>
-                                    -10
-                                </Text>
-                                <Icon as={FaExclamationTriangle} color="yellow.400" />
-                                <Text color="yellow.400" fontSize="sm">
-                                    Low quality spam posts
-                                </Text>
+                            <HStack alignItems={"baseline"} gap={4}>
+                                <HStack alignItems={"baseline"}>
+                                    <Text fontSize="lg">X Engagement</Text>
+                                    <Text bg={"red.600"} fontSize="xl" px={2} borderRadius="8px" mb={3}>
+                                        -10
+                                    </Text>
+                                </HStack>
+                                <HStack gap={1} color="yellow.400" alignItems={"baseline"}>
+                                    <Box fontSize="xl">
+                                        <FontAwesomeIcon icon={faExclamationTriangle} />
+                                    </Box>
+                                    <Text>Low quality spam posts</Text>
+                                </HStack>
                             </HStack>
                         </HStack>
-                        <Box w="100%" h="20px" bg="blue.900" borderRadius="md" overflow="hidden">
-                            <Box w="15%" h="100%" bg="red.800" />
+                        <Box w="100%" h="20px" bg="gray.800" borderRadius="md" overflow="hidden">
+                            <Box w="15%" h="100%" bg="red.700" />
                         </Box>
                     </VStack>
 
                     {/* Farcaster Engagement */}
                     <VStack alignItems={"start"} w={"100%"}>
-                        <HStack>
-                            <Text fontSize="lg">Farcaster Engagement</Text>
+                        <HStack justifyContent={"space-between"} alignItems={"baseline"} w={"100%"}>
+                            <HStack alignItems={"baseline"}>
+                                <Text fontSize="lg">Farcaster Engagement</Text>
+                                <Text bg={"gray.800"} fontSize="xl" px={2} borderRadius="8px">
+                                    0
+                                </Text>
+                            </HStack>
                             <Button size="sm" borderRadius="8px">
                                 Connect
                             </Button>
                         </HStack>
-                        <Box w="100%" h="20px" bg="blue.900" borderRadius="md" />
+                        <Box w="100%" h="20px" bg="gray.800" borderRadius="md" />
                     </VStack>
                 </VStack>
             </VStack>

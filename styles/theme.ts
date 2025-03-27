@@ -71,7 +71,7 @@ export const customConfig = createSystem(defaultConfig, {
                     value: { _light: "black", _dark: "#EDEEF0" },
                 },
                 pageBackground: {
-                    value: { _light: "#FFFFFF", _dark: "#131827" },
+                    value: { _light: "#FFFFFF", _dark: "#000000" },
                 },
                 contentBackground: {
                     value: { _light: "#EDF2F7", _dark: "#041524" },
@@ -91,7 +91,7 @@ export const customConfig = createSystem(defaultConfig, {
     globalCss: {
         "html, body": {
             backgroundColor: "{colors.contentBackground}",
-            backgroundImage: "linear-gradient(45deg, {colors.pageBackground} 20%,rgb(20, 87, 131) 120%)",
+            backgroundImage: "linear-gradient(45deg, {colors.pageBackground} 20%,hsl(210, 3.20%, 24.30%) 120%)",
             fontFamily: "fonts.body",
         },
     },
