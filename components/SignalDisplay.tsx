@@ -160,10 +160,10 @@ export default function SignalDisplay() {
 
                 <VStack gap={10} alignItems={"start"} w={"100%"}>
                     {/* Validator Count */}
-                    <VStack alignItems={"start"} gap={0} w={"100%"}>
+                    <VStack alignItems={"start"} gap={3} w={"100%"}>
                         <HStack alignItems={"baseline"}>
                             <Text fontSize="lg">Validator Count</Text>
-                            <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" mb={3}>
+                            <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px">
                                 +25
                             </Text>
                         </HStack>
@@ -173,10 +173,10 @@ export default function SignalDisplay() {
                     </VStack>
 
                     {/* Lido Forum Engagement */}
-                    <VStack alignItems={"start"} gap={0} w={"100%"}>
+                    <VStack alignItems={"start"} gap={3} w={"100%"}>
                         <HStack alignItems={"baseline"}>
                             <Text fontSize="lg">Lido Forum Engagement</Text>
-                            <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" mb={3}>
+                            <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px">
                                 +37
                             </Text>
                         </HStack>
@@ -186,7 +186,7 @@ export default function SignalDisplay() {
                     </VStack>
 
                     {/* X Engagement */}
-                    <VStack alignItems={"start"} gap={0} w={"100%"}>
+                    <VStack alignItems={"start"} gap={3} w={"100%"}>
                         <HStack>
                             <HStack alignItems={"baseline"} gap={{ base: 0, sm: 4 }} wrap={"wrap"}>
                                 <HStack alignItems={"baseline"}>
