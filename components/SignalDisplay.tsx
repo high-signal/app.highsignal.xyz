@@ -2,6 +2,7 @@ import { VStack, HStack, Text, Box, Button, SimpleGrid, Icon } from "@chakra-ui/
 import { BsMegaphone } from "react-icons/bs"
 import { FaExclamationTriangle } from "react-icons/fa"
 import Image from "next/image"
+import SignalBox from "./SignalBox"
 
 export default function SignalDisplay() {
     return (
@@ -64,7 +65,7 @@ export default function SignalDisplay() {
                         overflow={"hidden"}
                         position="relative"
                     >
-                        <Box bg="blue.800" w={"87%"} h={"100%"} textAlign="center" />
+                        <Box bg="blue.900" w={"87%"} h={"100%"} textAlign="center" />
                         <Box
                             position="absolute"
                             left="20%"
@@ -93,122 +94,107 @@ export default function SignalDisplay() {
                 </VStack>
 
                 {/* High Signals Section */}
-                <Text fontSize="xl" fontWeight={"bold"} pl={3}>
+                <Text fontSize="xl" fontWeight={"bold"}>
                     Peak Signals
                 </Text>
 
-                <SimpleGrid columns={3} gap={4}>
-                    <Box
-                        border={"3px solid"}
-                        borderColor="blue.600"
-                        borderTopRadius="20px"
-                        borderBottomRadius="100px"
-                        textAlign="center"
-                        overflow="hidden"
-                    >
-                        <VStack>
-                            <Box position="relative" w="100%" h="0" pb="100%">
-                                <Image
-                                    src="/static/testnet-pioneer.png"
-                                    alt="Testnet Pioneer"
-                                    layout="fill"
-                                    objectFit="cover"
-                                />
-                            </Box>
-                            <Text fontWeight={"bold"}>Testnet Pioneer</Text>
-                            <Text bg="green.500" fontSize="xl" px={2} borderRadius="8px" mb={3}>
-                                +5
-                            </Text>
-                        </VStack>
-                    </Box>
-                    <Box bg="blue.800" p={4} borderRadius="md" textAlign="center">
-                        <VStack>
-                            <Box position="relative" w="40px" h="40px">
-                                <Image src="/static/keen-bean.png" alt="Day 1 Keen Bean" layout="fill" />
-                            </Box>
-                            <Text color="green.400">+0.2</Text>
-                            <Text fontSize="sm">Day 1 Keen Bean</Text>
-                        </VStack>
-                    </Box>
-                    <Box bg="blue.800" p={4} borderRadius="md" textAlign="center">
-                        <VStack>
-                            <Box position="relative" w="40px" h="40px">
-                                <Image
-                                    src="/static/one-month-participant.png"
-                                    alt="1 month participant"
-                                    layout="fill"
-                                />
-                            </Box>
-                            <Text color="green.400">+0.05</Text>
-                            <Text fontSize="sm">1 month participant</Text>
-                        </VStack>
-                    </Box>
+                <SimpleGrid columns={3} gap={4} mb={8}>
+                    <SignalBox
+                        imageSrc="/static/testnet-pioneer.png"
+                        imageAlt="Testnet Pioneer"
+                        title="Testnet Pioneer"
+                        value="+10"
+                    />
+                    <SignalBox
+                        imageSrc="/static/keen-bean.png"
+                        imageAlt="Day 1 Keen Bean"
+                        title="Day 1 Keen Bean"
+                        value="+20"
+                    />
+                    <SignalBox
+                        imageSrc="/static/one-month-participant.png"
+                        imageAlt="1 month participant"
+                        title="1 month Running"
+                        value="+5"
+                    />
                 </SimpleGrid>
 
                 {/* Signal Strength Section */}
-                <Text fontSize="xl" color="pink.300">
+                <Text fontSize="xl" fontWeight={"bold"}>
                     Signal Strength (Past 30 days)
                 </Text>
 
-                {/* Validator Count */}
-                <VStack align="stretch" gap={2}>
-                    <Text color="blue.300">Highest Validator Count</Text>
-                    <HStack gap={2}>
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-                            <Box
-                                key={num}
-                                bg="blue.600"
-                                w="30px"
-                                h="30px"
-                                borderRadius="full"
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                            >
-                                {num}
-                            </Box>
-                        ))}
-                        <Text color="green.400">+0.1</Text>
-                    </HStack>
-                </VStack>
+                <VStack gap={10} alignItems={"start"} w={"100%"}>
+                    {/* Validator Count */}
+                    <VStack alignItems={"start"} gap={0} w={"100%"}>
+                        <HStack alignItems={"baseline"}>
+                            <Text fontSize="lg">Highest Validator Count</Text>
+                            <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" mb={3}>
+                                +25
+                            </Text>
+                        </HStack>
+                        <HStack gap={2}>
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                                <Box
+                                    key={num}
+                                    // bg="blue.600"
+                                    border={"3px solid"}
+                                    borderColor="blue.600"
+                                    w="30px"
+                                    h="30px"
+                                    borderRadius="full"
+                                    display="flex"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                >
+                                    {num}
+                                </Box>
+                            ))}
+                        </HStack>
+                    </VStack>
 
-                {/* Lido Forum Engagement */}
-                <VStack align="stretch" gap={2}>
-                    <Text color="blue.300">Lido Forum Engagement</Text>
-                    <HStack>
-                        <Box w="100%" h="8px" bg="blue.900" borderRadius="md" overflow="hidden">
+                    {/* Lido Forum Engagement */}
+                    <VStack alignItems={"start"} gap={0} w={"100%"}>
+                        <HStack alignItems={"baseline"}>
+                            <Text fontSize="lg">Lido Forum Engagement</Text>
+                            <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" mb={3}>
+                                +37
+                            </Text>
+                        </HStack>
+                        <Box w="100%" h="20px" bg="blue.900" borderRadius="md" overflow="hidden">
                             <Box w="70%" h="100%" bg="blue.500" />
                         </Box>
-                        <Text color="green.400">+0.2</Text>
-                    </HStack>
-                </VStack>
+                    </VStack>
 
-                {/* X Engagement */}
-                <VStack align="stretch" gap={2}>
-                    <HStack>
-                        <Text color="blue.300">X Engagement</Text>
-                        <Icon as={FaExclamationTriangle} color="yellow.400" />
-                        <Text color="yellow.400" fontSize="sm">
-                            Low quality spam posts
-                        </Text>
-                    </HStack>
-                    <HStack>
-                        <Box w="100%" h="8px" bg="blue.900" borderRadius="md" overflow="hidden">
-                            <Box w="85%" h="100%" bg="blue.500" />
+                    {/* X Engagement */}
+                    <VStack alignItems={"start"} gap={0} w={"100%"}>
+                        <HStack>
+                            <HStack alignItems={"baseline"}>
+                                <Text fontSize="lg">X Engagement</Text>
+                                <Text bg={"red.500"} fontSize="xl" px={2} borderRadius="8px" mb={3}>
+                                    -10
+                                </Text>
+                                <Icon as={FaExclamationTriangle} color="yellow.400" />
+                                <Text color="yellow.400" fontSize="sm">
+                                    Low quality spam posts
+                                </Text>
+                            </HStack>
+                        </HStack>
+                        <Box w="100%" h="20px" bg="blue.900" borderRadius="md" overflow="hidden">
+                            <Box w="15%" h="100%" bg="red.800" />
                         </Box>
-                        <Text color="orange.400">-0.5</Text>
-                    </HStack>
-                </VStack>
+                    </VStack>
 
-                {/* Farcaster Engagement */}
-                <VStack align="stretch" gap={2}>
-                    <Text color="blue.300">Farcaster Engagement</Text>
-                    <HStack>
-                        <Box w="100%" h="8px" bg="blue.900" borderRadius="md" />
-                        <Button size="sm" colorScheme="blue">
-                            Connect
-                        </Button>
-                    </HStack>
+                    {/* Farcaster Engagement */}
+                    <VStack alignItems={"start"} w={"100%"}>
+                        <HStack>
+                            <Text fontSize="lg">Farcaster Engagement</Text>
+                            <Button size="sm" borderRadius="8px">
+                                Connect
+                            </Button>
+                        </HStack>
+                        <Box w="100%" h="20px" bg="blue.900" borderRadius="md" />
+                    </VStack>
                 </VStack>
             </VStack>
         </Box>
