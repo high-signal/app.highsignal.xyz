@@ -60,12 +60,6 @@
                 "imageAlt": "Day 1 Keen Bean",
                 "title": "Day 1 Keen Bean",
                 "value": "+20"
-            },
-            {
-                "imageSrc": "/static/one-month-participant.png",
-                "imageAlt": "1 Month Running",
-                "title": "1 Month Running",
-                "value": "+5"
             }
         ],
         "metrics": {
