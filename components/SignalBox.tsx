@@ -1,5 +1,4 @@
-import { Box, VStack, Text } from "@chakra-ui/react"
-import Image from "next/image"
+import { Box, VStack, Text, Image } from "@chakra-ui/react"
 
 interface SignalBoxProps {
     imageSrc: string
@@ -19,8 +18,8 @@ export default function SignalBox({ imageSrc, imageAlt, title, value }: SignalBo
             overflow="hidden"
         >
             <VStack>
-                <Box position="relative" w="100%" h="0" pb="100%">
-                    <Image src={imageSrc} alt={imageAlt} layout="fill" objectFit="cover" />
+                <Box position="relative" w="100%" h="165px">
+                    <Image src={imageSrc} alt={imageAlt} objectFit="cover" w="100%" h="100%" />
                 </Box>
                 <Text fontWeight={"bold"}>{title}</Text>
                 <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" mb={3}>

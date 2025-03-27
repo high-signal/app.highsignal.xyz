@@ -1,7 +1,6 @@
 "use client"
 
-import { VStack, HStack, Text, Box, Table } from "@chakra-ui/react"
-import Image from "next/image"
+import { VStack, HStack, Text, Box, Table, Image } from "@chakra-ui/react"
 import Link from "next/link"
 import SignalBox from "./SignalBox"
 import operatorData from "../public/data/userData.json"
@@ -80,7 +79,7 @@ export default function Leaderboard() {
                                             <Image
                                                 src={data.operatorImage}
                                                 alt={`Operator ${data.operatorNumber}`}
-                                                layout="fill"
+                                                fit="cover"
                                             />
                                         </Box>
                                         <Text fontSize="lg" color="white">

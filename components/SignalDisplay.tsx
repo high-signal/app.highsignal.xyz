@@ -2,9 +2,8 @@
 
 import { useRouter } from "next/navigation"
 
-import { VStack, HStack, Text, Box, Button, SimpleGrid, Span } from "@chakra-ui/react"
+import { VStack, HStack, Text, Box, Button, SimpleGrid, Span, Image } from "@chakra-ui/react"
 
-import Image from "next/image"
 import SignalBox from "./SignalBox"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
@@ -47,7 +46,7 @@ export default function SignalDisplay({ username }: { username: string }) {
                             borderColor="gray.500"
                         >
                             <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">
-                                <Image src={data.operatorImage} alt={`Operator ${data.operatorNumber}`} layout="fill" />
+                                <Image src={data.operatorImage} alt={`Operator ${data.operatorNumber}`} fit="cover" />
                             </Box>
                             <Text fontSize="xl" fontWeight={"bold"}>
                                 {data.name}
