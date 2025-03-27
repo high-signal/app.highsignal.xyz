@@ -111,8 +111,9 @@ export default function Leaderboard() {
                                                 key={index}
                                                 src={badge.imageSrc}
                                                 alt={badge.imageAlt}
-                                                width={24}
-                                                height={24}
+                                                width={10}
+                                                height={10}
+                                                borderRadius="5px"
                                             />
                                         ))}
                                     </HStack>
