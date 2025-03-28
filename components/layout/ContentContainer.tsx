@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, Box } from "@chakra-ui/react"
+import { VStack, Box, Text } from "@chakra-ui/react"
 import { ReactNode } from "react"
 
 import Header from "../layout/Header"
@@ -14,6 +14,9 @@ export default function ContentContainer({ children }: ContentContainerProps) {
     return (
         <VStack minH="100dvh" gap={0} overflow={"hidden"}>
             <Header />
+            <Text fontWeight="bold" textAlign="center" py={0} px={2} bg={"pink.800"} w={"100%"} mt={2}>
+                Alpha Testing - Demo Data
+            </Text>
             <VStack
                 alignItems={"center"}
                 justifyContent={"center"}
