@@ -20,54 +20,51 @@ export default function SignalDisplay({ username }: { username: string }) {
         <Box w="100%" maxW="600px" borderRadius="20px" p={6} zIndex={10}>
             {/* Title and Signal Amount */}
             <VStack align="stretch" gap={3}>
-                <HStack
-                    justify="center"
-                    gap={5}
-                    w={"100%"}
-                    justifyContent={{ base: "center", sm: "space-between" }}
-                    alignItems="center"
-                    pb={5}
-                    wrap={"wrap"}
-                >
-                    <HStack>
-                        <Button size="sm" borderRadius="8px" onClick={() => router.back()}>
-                            <HStack gap={2}>
-                                <FontAwesomeIcon icon={faArrowLeft} />
-                                <Text>Back</Text>
-                            </HStack>
-                        </Button>
+                <VStack justify="center" gap={10} w={"100%"} alignItems="center" wrap={"wrap"}>
+                    <HStack justifyContent={"space-between"} w={"100%"}>
                         <HStack
-                            bg="gray.800"
+                            gap={2}
+                            bg={{ base: "gray.700", md: "gray.800" }}
+                            borderRadius="full"
+                            px={3}
                             py={2}
-                            pl={2}
-                            pr={4}
-                            borderRadius="12px"
-                            border={"2px solid"}
-                            borderColor="gray.500"
+                            cursor="pointer"
+                            _hover={{ bg: { base: "gray.600", md: "gray.700" } }}
+                            onClick={() => router.back()}
+                            alignItems={"center"}
                         >
-                            <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">
+                            <FontAwesomeIcon icon={faArrowLeft} />
+                        </HStack>
+
+                        <Text fontSize="2xl">Lido CSM - Operator {data.operatorNumber}</Text>
+                    </HStack>
+                    <HStack justifyContent={"center"} w={"100%"}>
+                        <HStack
+                            bg={{ base: "gray.900", md: "gray.800" }}
+                            py={2}
+                            // pl={2}
+                            // pr={4}
+                            // px={20}
+                            w={"100%"}
+                            justifyContent={"center"}
+                            borderRadius="full"
+                            gap={4}
+                            // border={"5px solid"}
+                            // borderColor="gray.800"
+                        >
+                            <Box position="relative" boxSize="60px" borderRadius="full" overflow="hidden">
                                 <Image src={data.operatorImage} alt={`Operator ${data.operatorNumber}`} fit="cover" />
                             </Box>
-                            <Text fontSize="xl" fontWeight={"bold"}>
+                            <Text
+                                fontSize={
+                                    data.name.length > 15 ? { base: "2xl", md: "3xl" } : { base: "3xl", md: "3xl" }
+                                }
+                            >
                                 {data.name}
                             </Text>
                         </HStack>
                     </HStack>
-
-                    <HStack
-                        bg="gray.800"
-                        py={2}
-                        px={3}
-                        borderRadius="12px"
-                        border={"2px solid"}
-                        borderColor="gray.500"
-                        h={"60px"}
-                    >
-                        <Text fontSize="xl" fontWeight={"bold"}>
-                            Lido CSM Operator {data.operatorNumber}
-                        </Text>
-                    </HStack>
-                </HStack>
+                </VStack>
 
                 <HStack
                     justifyContent={"center"}

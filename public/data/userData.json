@@ -82,7 +82,7 @@
         }
     },
     "user3": {
-        "name": "User3",
+        "name": "User3 Longer Name",
         "signal": "Low",
         "operatorNumber": "99",
         "operatorImage": "/static/user3.png",
