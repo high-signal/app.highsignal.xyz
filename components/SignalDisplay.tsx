@@ -38,19 +38,14 @@ export default function SignalDisplay({ username }: { username: string }) {
 
                         <Text fontSize="2xl">Lido CSM - Operator {data.operatorNumber}</Text>
                     </HStack>
-                    <HStack justifyContent={"center"} w={"100%"}>
+                    <HStack justifyContent={"center"} w={"100%"} pb={2}>
                         <HStack
                             bg={{ base: "gray.900", md: "gray.800" }}
                             py={2}
-                            // pl={2}
-                            // pr={4}
-                            // px={20}
                             w={"100%"}
                             justifyContent={"center"}
                             borderRadius="full"
                             gap={4}
-                            // border={"5px solid"}
-                            // borderColor="gray.800"
                         >
                             <Box position="relative" boxSize="60px" borderRadius="full" overflow="hidden">
                                 <Image src={data.operatorImage} alt={`Operator ${data.operatorNumber}`} fit="cover" />
@@ -85,16 +80,13 @@ export default function SignalDisplay({ username }: { username: string }) {
                 {/* Current Signal */}
                 <VStack align="stretch" gap={1} pb={8}>
                     <HStack gap={0} h={"30px"} w={"100%"}>
-                        <Text fontSize="20px" w={"20%"} textAlign="center">
+                        <Text fontSize="20px" w={"30%"} textAlign="center">
                             Low
                         </Text>
-                        <Text fontSize="20px" w={"30%"} textAlign="center">
+                        <Text fontSize="20px" w={"40%"} textAlign="center">
                             Mid
                         </Text>
-                        <Text fontSize="20px" w={"35%"} textAlign="center">
-                            Strong
-                        </Text>
-                        <Text fontSize="20px" w={"15%"} textAlign="center" fontWeight="bold" color={data.signalColor}>
+                        <Text fontSize="20px" w={"30%"} textAlign="center" fontWeight="bold" color={data.signalColor}>
                             High
                         </Text>
                     </HStack>
@@ -118,7 +110,7 @@ export default function SignalDisplay({ username }: { username: string }) {
                         />
                         <Box
                             position="absolute"
-                            left="20%"
+                            left="30%"
                             top="0"
                             bottom="0"
                             borderLeft="2px dashed"
@@ -126,15 +118,7 @@ export default function SignalDisplay({ username }: { username: string }) {
                         />
                         <Box
                             position="absolute"
-                            left="50%"
-                            top="0"
-                            bottom="0"
-                            borderLeft="2px dashed"
-                            borderColor="gray.600"
-                        />
-                        <Box
-                            position="absolute"
-                            left="85%"
+                            left="70%"
                             top="0"
                             bottom="0"
                             borderLeft="2px dashed"
@@ -144,21 +128,25 @@ export default function SignalDisplay({ username }: { username: string }) {
                 </VStack>
 
                 {/* High Signals Section */}
-                <Text fontSize="xl" fontWeight={"bold"}>
-                    Peak Signals
-                </Text>
+                {data.peakSignals.length > 0 && (
+                    <>
+                        <Text fontSize="xl" fontWeight={"bold"}>
+                            Peak Signals
+                        </Text>
 
-                <SimpleGrid columns={3} gap={4} mb={8}>
-                    {data.peakSignals.map((signal, index) => (
-                        <SignalBox
-                            key={index}
-                            imageSrc={signal.imageSrc}
-                            imageAlt={signal.imageAlt}
-                            title={signal.title}
-                            value={signal.value}
-                        />
-                    ))}
-                </SimpleGrid>
+                        <SimpleGrid columns={{ base: 2, sm: 3 }} gap={4} mb={8}>
+                            {data.peakSignals.map((signal, index) => (
+                                <SignalBox
+                                    key={index}
+                                    imageSrc={signal.imageSrc}
+                                    imageAlt={signal.imageAlt}
+                                    title={signal.title}
+                                    value={signal.value}
+                                />
+                            ))}
+                        </SimpleGrid>
+                    </>
+                )}
 
                 {/* Signal Strength Section */}
                 <Text fontSize="xl" fontWeight={"bold"}>
@@ -242,8 +230,8 @@ export default function SignalDisplay({ username }: { username: string }) {
                                     0
                                 </Text>
                             </HStack>
-                            <Button size="sm" borderRadius="8px">
-                                Connect
+                            <Button size="sm" borderRadius="8px" disabled>
+                                Connect - Coming Soon!
                             </Button>
                         </HStack>
                         <Box w="100%" h="20px" bg="gray.800" borderRadius="md" />
