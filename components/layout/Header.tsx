@@ -1,6 +1,7 @@
 "use client"
 
 import { HStack, VStack, IconButton, Image, Button, Text, Box } from "@chakra-ui/react"
+import { useRouter } from "next/navigation"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDiscord, faGithub, faTelegram, faXTwitter, IconDefinition } from "@fortawesome/free-brands-svg-icons"
@@ -33,6 +34,8 @@ const IconLinkButton = ({ href, label, icon }: { href: string; label: string; ic
 }
 
 export default function Header({}) {
+    const router = useRouter()
+
     return (
         <HStack
             w="100%"
@@ -45,7 +48,7 @@ export default function Header({}) {
             px={3}
             zIndex={2}
         >
-            <Link href={process.env.NEXT_PUBLIC_SITE_URL || "/"}>
+            <Box onClick={() => router.push("/")} cursor="pointer">
                 <HStack gap={2}>
                     <Text mt={"-5px"} fontSize={"3xl"}>
                         <Image src="/static/logo/logo-coin.png" alt="Logo" boxSize={"50px"} borderRadius="full" />
@@ -54,7 +57,7 @@ export default function Header({}) {
                         {process.env.NEXT_PUBLIC_SITE_NAME}
                     </Text>
                 </HStack>
-            </Link>
+            </Box>
             <HStack gap={{ base: 2, md: 6 }} alignItems={"top"}>
                 {/* <HStack direction="row" wrap="wrap" gap={2} justifyContent="right" pr={{ base: 0, md: 2 }}>
                     {socialLinks.map((link, index) => (
