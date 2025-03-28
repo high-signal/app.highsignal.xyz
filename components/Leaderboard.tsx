@@ -1,8 +1,7 @@
 "use client"
 
 import { VStack, HStack, Text, Box, Table, Image } from "@chakra-ui/react"
-import Link from "next/link"
-import SignalBox from "./SignalBox"
+import { useRouter } from "next/navigation"
 import operatorData from "../public/data/userData.json"
 
 const TableHeader = ({
@@ -27,9 +26,11 @@ const TableHeader = ({
 )
 
 export default function Leaderboard() {
+    const router = useRouter()
+
     return (
         <VStack gap={10} w="100%" maxW="800px" borderRadius="20px">
-            <VStack fontSize="3xl" fontWeight="bold" px={6} w="100%" textAlign="center">
+            <VStack fontSize="3xl" fontWeight="bold" px={6} pt={6} w="100%" textAlign="center">
                 <Text>Leaderboard</Text>
             </VStack>
 
@@ -53,7 +54,7 @@ export default function Leaderboard() {
                                 bg="transparent"
                                 _hover={{ bg: "gray.800" }}
                                 transition="background-color 0.2s"
-                                onClick={() => (window.location.href = `/${username}`)}
+                                onClick={() => router.push(`/${username}`)}
                                 borderBottom="1px solid"
                                 borderColor="gray.500"
                             >
