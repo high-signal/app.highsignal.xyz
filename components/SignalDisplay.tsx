@@ -24,7 +24,7 @@ export default function SignalDisplay({ username }: { username: string }) {
                     <HStack justifyContent={"space-between"} w={"100%"}>
                         <HStack
                             gap={2}
-                            bg={{ base: "gray.700", md: "gray.800" }}
+                            bg={"gray.800"}
                             borderRadius="full"
                             px={3}
                             py={2}
@@ -39,14 +39,7 @@ export default function SignalDisplay({ username }: { username: string }) {
                         <Text fontSize="2xl">Lido CSM - Operator {data.operatorNumber}</Text>
                     </HStack>
                     <HStack justifyContent={"center"} w={"100%"} pb={2}>
-                        <HStack
-                            bg={{ base: "gray.900", md: "gray.800" }}
-                            py={2}
-                            w={"100%"}
-                            justifyContent={"center"}
-                            borderRadius="full"
-                            gap={4}
-                        >
+                        <HStack bg={"gray.800"} py={2} w={"100%"} justifyContent={"center"} borderRadius="full" gap={4}>
                             <Box position="relative" boxSize="60px" borderRadius="full" overflow="hidden">
                                 <Image src={data.operatorImage} alt={`Operator ${data.operatorNumber}`} fit="cover" />
                             </Box>
