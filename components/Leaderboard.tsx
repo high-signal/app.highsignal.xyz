@@ -12,15 +12,14 @@ export default function Leaderboard() {
                 Leaderboard
             </Text>
 
-            <Box bg="gray.800" borderRadius="12px" border="2px solid" borderColor="gray.500" overflow="hidden">
+            <Box bg="gray.800" borderRadius="20px" overflow="hidden">
                 <Table.Root variant="line" size="lg">
                     <Table.Header>
                         <Table.Row>
                             <Table.ColumnHeader
                                 bg="gray.800"
-                                color="white"
+                                color="gray.300"
                                 fontSize="lg"
-                                fontWeight="bold"
                                 borderBottom="2px solid"
                                 borderColor="gray.500"
                             >
@@ -28,9 +27,8 @@ export default function Leaderboard() {
                             </Table.ColumnHeader>
                             <Table.ColumnHeader
                                 bg="gray.800"
-                                color="white"
+                                color="gray.300"
                                 fontSize="lg"
-                                fontWeight="bold"
                                 borderBottom="2px solid"
                                 borderColor="gray.500"
                                 textAlign="center"
@@ -39,9 +37,8 @@ export default function Leaderboard() {
                             </Table.ColumnHeader>
                             <Table.ColumnHeader
                                 bg="gray.800"
-                                color="white"
+                                color="gray.300"
                                 fontSize="lg"
-                                fontWeight="bold"
                                 borderBottom="2px solid"
                                 borderColor="gray.500"
                                 textAlign="center"
@@ -50,9 +47,8 @@ export default function Leaderboard() {
                             </Table.ColumnHeader>
                             <Table.ColumnHeader
                                 bg="gray.800"
-                                color="white"
+                                color="gray.300"
                                 fontSize="lg"
-                                fontWeight="bold"
                                 borderBottom="2px solid"
                                 borderColor="gray.500"
                                 textAlign="center"
@@ -62,14 +58,12 @@ export default function Leaderboard() {
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
-                        {Object.entries(operatorData).map(([username, data]) => (
+                        {Object.entries(operatorData).map(([username, data], index) => (
                             <Table.Row
                                 key={username}
-                                borderBottom="1px solid"
-                                borderColor="gray.500"
                                 cursor="pointer"
-                                bg="gray.800"
-                                _hover={{ bg: "gray.700" }}
+                                bg={index % 2 === 0 ? "gray.800" : "gray.900"}
+                                _hover={{ bg: "gray.600" }}
                                 transition="background-color 0.2s"
                                 onClick={() => (window.location.href = `/${username}`)}
                             >

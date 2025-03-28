@@ -13,7 +13,7 @@ export default function Head() {
             <meta name="theme-color" content={"#13334F"} media="(prefers-color-scheme: dark)" />
 
             {/* Favicon & Icons */}
-            <link rel="icon" href="/static/favicon.svg" sizes="any" />
+            <link rel="icon" href="/static/logo/favicon.ico" sizes="any" />
 
             {/* Google Fonts */}
             <link rel="preconnect" href="https://fonts.googleapis.com" />

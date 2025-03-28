@@ -5,7 +5,7 @@
         "operatorNumber": "10",
         "operatorImage": "/static/operator-10.png",
         "signalValue": 87,
-        "signalColor": "blue.500",
+        "signalColor": "orange.500",
         "peakSignals": [
             {
                 "imageSrc": "/static/testnet-pioneer.png",
@@ -45,11 +45,49 @@
     },
     "enti": {
         "name": "Enti",
-        "signal": "Strong",
+        "signal": "Mid",
         "operatorNumber": "99",
         "operatorImage": "/static/operator-10.png",
         "signalValue": 68,
-        "signalColor": "green.500",
+        "signalColor": "blue.400",
+        "peakSignals": [
+            {
+                "imageSrc": "/static/testnet-pioneer.png",
+                "imageAlt": "Testnet Pioneer",
+                "title": "Testnet Pioneer",
+                "value": "+10"
+            },
+            {
+                "imageSrc": "/static/keen-bean.png",
+                "imageAlt": "Day 1 Keen Bean",
+                "title": "Day 1 Keen Bean",
+                "value": "+20"
+            }
+        ],
+        "metrics": {
+            "validatorCount": {
+                "value": "+40",
+                "percentage": "50%"
+            },
+            "lidoForumEngagement": {
+                "value": "+62",
+                "percentage": "90%"
+            },
+            "xEngagement": {
+                "value": "-20",
+                "percentage": "15%",
+                "color": "red.600",
+                "warning": "Low quality spam posts"
+            }
+        }
+    },
+    "user3": {
+        "name": "User3",
+        "signal": "Low",
+        "operatorNumber": "99",
+        "operatorImage": "/static/operator-10.png",
+        "signalValue": 68,
+        "signalColor": "gray.400",
         "peakSignals": [
             {
                 "imageSrc": "/static/testnet-pioneer.png",
