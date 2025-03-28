@@ -44,7 +44,7 @@
         }
     },
     "user2": {
-        "name": "User2",
+        "name": "0xFish",
         "signal": "Mid",
         "operatorNumber": "99",
         "operatorImage": "/static/user2.png",
@@ -82,11 +82,11 @@
         }
     },
     "user3": {
-        "name": "User3 Longer Name",
+        "name": "0xParrotSeaBird",
         "signal": "Low",
-        "operatorNumber": "99",
+        "operatorNumber": "147",
         "operatorImage": "/static/user3.png",
-        "signalValue": 68,
+        "signalValue": 22,
         "signalColor": "gray.400",
         "peakSignals": [],
         "metrics": {

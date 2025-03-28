@@ -80,15 +80,18 @@ export default function SignalDisplay({ username }: { username: string }) {
                 {/* Current Signal */}
                 <VStack align="stretch" gap={1} pb={8}>
                     <HStack gap={0} h={"30px"} w={"100%"}>
-                        <Text fontSize="20px" w={"30%"} textAlign="center">
-                            Low
-                        </Text>
-                        <Text fontSize="20px" w={"40%"} textAlign="center">
-                            Mid
-                        </Text>
-                        <Text fontSize="20px" w={"30%"} textAlign="center" fontWeight="bold" color={data.signalColor}>
-                            High
-                        </Text>
+                        {["Low", "Mid", "High"].map((level, index) => (
+                            <Text
+                                key={level}
+                                fontSize="20px"
+                                w={index === 1 ? "40%" : "30%"}
+                                textAlign="center"
+                                fontWeight={data.signal === level ? "bold" : "normal"}
+                                color={data.signal === level ? data.signalColor : "inherit"}
+                            >
+                                {level}
+                            </Text>
+                        ))}
                     </HStack>
                     <HStack
                         gap={0}
