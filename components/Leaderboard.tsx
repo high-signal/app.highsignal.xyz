@@ -5,56 +5,44 @@ import Link from "next/link"
 import SignalBox from "./SignalBox"
 import operatorData from "../public/data/userData.json"
 
+const TableHeader = ({
+    children,
+    textAlign = "left",
+    display = { base: "table-cell", md: "table-cell" },
+}: {
+    children: React.ReactNode
+    textAlign?: "left" | "center"
+    display?: { base: string; md: string }
+}) => (
+    <Table.ColumnHeader
+        color="gray.200"
+        fontSize="lg"
+        borderBottom="2px solid"
+        borderColor="gray.500"
+        textAlign={textAlign}
+        display={display}
+    >
+        {children}
+    </Table.ColumnHeader>
+)
+
 export default function Leaderboard() {
     return (
-        <Box w="100%" maxW="800px" borderRadius="20px" p={6} zIndex={10}>
-            <Text fontSize="3xl" fontWeight="bold" mb={6} w="100%" textAlign="center">
-                Leaderboard
-            </Text>
+        <VStack gap={10} w="100%" maxW="800px" borderRadius="20px">
+            <VStack fontSize="3xl" fontWeight="bold" px={6} w="100%" textAlign="center">
+                <Text>Leaderboard</Text>
+            </VStack>
 
-            <Box bg="gray.800" borderRadius="20px" overflow="hidden">
-                <Table.Root variant="line" size="lg">
+            <Box w={"100%"} px={{ base: 3, md: 6 }}>
+                <Table.Root>
                     <Table.Header>
-                        <Table.Row>
-                            <Table.ColumnHeader
-                                bg="gray.800"
-                                color="gray.300"
-                                fontSize="lg"
-                                borderBottom="2px solid"
-                                borderColor="gray.500"
-                            >
-                                User
-                            </Table.ColumnHeader>
-                            <Table.ColumnHeader
-                                bg="gray.800"
-                                color="gray.300"
-                                fontSize="lg"
-                                borderBottom="2px solid"
-                                borderColor="gray.500"
-                                textAlign="center"
-                            >
-                                Signal
-                            </Table.ColumnHeader>
-                            <Table.ColumnHeader
-                                bg="gray.800"
-                                color="gray.300"
-                                fontSize="lg"
-                                borderBottom="2px solid"
-                                borderColor="gray.500"
-                                textAlign="center"
-                            >
-                                Score
-                            </Table.ColumnHeader>
-                            <Table.ColumnHeader
-                                bg="gray.800"
-                                color="gray.300"
-                                fontSize="lg"
-                                borderBottom="2px solid"
-                                borderColor="gray.500"
-                                textAlign="center"
-                            >
-                                Badges
-                            </Table.ColumnHeader>
+                        <Table.Row bg="transparent">
+                            <TableHeader>Lido CSM</TableHeader>
+                            <TableHeader textAlign="center">Signal</TableHeader>
+                            <TableHeader textAlign="center">Score</TableHeader>
+                            <TableHeader textAlign="center" display={{ base: "none", md: "table-cell" }}>
+                                Peak Signals
+                            </TableHeader>
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
@@ -62,12 +50,14 @@ export default function Leaderboard() {
                             <Table.Row
                                 key={username}
                                 cursor="pointer"
-                                bg={index % 2 === 0 ? "gray.800" : "gray.900"}
-                                _hover={{ bg: "gray.600" }}
+                                bg="transparent"
+                                _hover={{ bg: "gray.800" }}
                                 transition="background-color 0.2s"
                                 onClick={() => (window.location.href = `/${username}`)}
+                                borderBottom="1px solid"
+                                borderColor="gray.500"
                             >
-                                <Table.Cell borderBottom="none">
+                                <Table.Cell borderBottom="none" py={"6px"}>
                                     <HStack gap={3}>
                                         <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">
                                             <Image
@@ -81,27 +71,28 @@ export default function Leaderboard() {
                                         </Text>
                                     </HStack>
                                 </Table.Cell>
-                                <Table.Cell borderBottom="none">
+                                <Table.Cell borderBottom="none" py={0}>
                                     <HStack justifyContent="center" alignItems="center" fontSize="xl" fontWeight="bold">
                                         <Text color={data.signalColor}>{data.signal}</Text>
                                     </HStack>
                                 </Table.Cell>
-                                <Table.Cell borderBottom="none" textAlign="center">
+                                <Table.Cell borderBottom="none" textAlign="center" py={0}>
                                     <HStack justifyContent="center" alignItems="center">
                                         <Text
-                                            px={3}
+                                            px={2}
                                             py={1}
                                             border="3px solid"
                                             borderRadius="15px"
                                             borderColor={data.signalColor}
                                             color="white"
                                             w="fit-content"
+                                            fontSize="lg"
                                         >
                                             {data.signalValue}
                                         </Text>
                                     </HStack>
                                 </Table.Cell>
-                                <Table.Cell borderBottom="none">
+                                <Table.Cell borderBottom="none" py={0} display={{ base: "none", md: "table-cell" }}>
                                     <HStack justify="center" gap={2}>
                                         {data.peakSignals.map((badge, index) => (
                                             <Image
@@ -120,6 +111,6 @@ export default function Leaderboard() {
                     </Table.Body>
                 </Table.Root>
             </Box>
-        </Box>
+        </VStack>
     )
 }

@@ -43,11 +43,11 @@
             }
         }
     },
-    "enti": {
-        "name": "Enti",
+    "user2": {
+        "name": "User2",
         "signal": "Mid",
         "operatorNumber": "99",
-        "operatorImage": "/static/operator-10.png",
+        "operatorImage": "/static/user2.png",
         "signalValue": 68,
         "signalColor": "blue.400",
         "peakSignals": [
@@ -85,23 +85,10 @@
         "name": "User3",
         "signal": "Low",
         "operatorNumber": "99",
-        "operatorImage": "/static/operator-10.png",
+        "operatorImage": "/static/user3.png",
         "signalValue": 68,
         "signalColor": "gray.400",
-        "peakSignals": [
-            {
-                "imageSrc": "/static/testnet-pioneer.png",
-                "imageAlt": "Testnet Pioneer",
-                "title": "Testnet Pioneer",
-                "value": "+10"
-            },
-            {
-                "imageSrc": "/static/keen-bean.png",
-                "imageAlt": "Day 1 Keen Bean",
-                "title": "Day 1 Keen Bean",
-                "value": "+20"
-            }
-        ],
+        "peakSignals": [],
         "metrics": {
             "validatorCount": {
                 "value": "+40",
