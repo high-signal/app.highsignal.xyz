@@ -22,7 +22,7 @@ export default function SignalBox({ imageSrc, imageAlt, title, value }: SignalBo
                     <Image src={imageSrc} alt={imageAlt} objectFit="cover" w="100%" h="100%" />
                 </Box>
                 <Text fontWeight={"bold"}>{title}</Text>
-                <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" mb={3}>
+                <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" mb={3} color="#029E03">
                     {value}
                 </Text>
             </VStack>
