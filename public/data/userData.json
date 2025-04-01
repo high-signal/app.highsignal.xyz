@@ -9,25 +9,25 @@
         "peakSignals": [
             {
                 "imageSrc": "/static/testnet-pioneer.png",
-                "imageAlt": "Testnet Pioneer",
-                "title": "Testnet Pioneer",
+                "imageAlt": "CSM: Testnet Pioneer",
+                "title": "CSM: Testnet Pioneer",
                 "value": "+10"
             },
             {
                 "imageSrc": "/static/keen-bean.png",
-                "imageAlt": "Day 1 Keen Bean",
-                "title": "Day 1 Keen Bean",
+                "imageAlt": "CSM: Day 1 Keen Bean",
+                "title": "CSM: Day 1 Keen Bean",
                 "value": "+20"
             },
             {
                 "imageSrc": "/static/one-month-participant.png",
-                "imageAlt": "1 Month Running",
-                "title": "1 Month Running",
+                "imageAlt": "CSM: 1 Month Running",
+                "title": "CSM: 1 Month Running",
                 "value": "+5"
             }
         ],
         "metrics": {
-            "validatorCount": {
+            "lidoProtocolEngagement": {
                 "value": "+25",
                 "percentage": "30%"
             },
@@ -53,19 +53,19 @@
         "peakSignals": [
             {
                 "imageSrc": "/static/testnet-pioneer.png",
-                "imageAlt": "Testnet Pioneer",
-                "title": "Testnet Pioneer",
+                "imageAlt": "CSM: Testnet Pioneer",
+                "title": "CSM: Testnet Pioneer",
                 "value": "+10"
             },
             {
                 "imageSrc": "/static/keen-bean.png",
-                "imageAlt": "Day 1 Keen Bean",
-                "title": "Day 1 Keen Bean",
+                "imageAlt": "CSM: Day 1 Keen Bean",
+                "title": "CSM: Day 1 Keen Bean",
                 "value": "+20"
             }
         ],
         "metrics": {
-            "validatorCount": {
+            "lidoProtocolEngagement": {
                 "value": "+40",
                 "percentage": "50%"
             },
@@ -90,7 +90,7 @@
         "signalColor": "gray.400",
         "peakSignals": [],
         "metrics": {
-            "validatorCount": {
+            "lidoProtocolEngagement": {
                 "value": "+40",
                 "percentage": "50%"
             },

@@ -39,7 +39,7 @@ export default function SignalDisplay({ username }: { username: string }) {
                             <FontAwesomeIcon icon={faArrowLeft} />
                         </HStack>
                         <Text fontSize="4xl" pl="50px" w="100%" textAlign="center" fontWeight={"bold"}>
-                            💧 Lido
+                            💧 Lido Signal
                         </Text>
                         <Box w="60px" />
                     </HStack>
@@ -102,12 +102,23 @@ export default function SignalDisplay({ username }: { username: string }) {
                         position="relative"
                     >
                         <Box
-                            bg="gray.800"
+                            position="relative"
                             w={`${data.signalValue}%`}
                             h={"100%"}
                             textAlign="center"
                             borderRight={"3px solid"}
                             borderColor={data.signalColor}
+                            _before={{
+                                content: '""',
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                bg: data.signalColor,
+                                opacity: 0.3,
+                                zIndex: -1,
+                            }}
                         />
                         <Box
                             position="absolute"
@@ -132,7 +143,7 @@ export default function SignalDisplay({ username }: { username: string }) {
                 {data.peakSignals.length > 0 && (
                     <>
                         <Text fontSize="xl" fontWeight={"bold"}>
-                            Peak Signals
+                            💧 Lido Peak Signals
                         </Text>
 
                         <SimpleGrid columns={{ base: 2, sm: 3 }} gap={4} mb={8}>
@@ -151,21 +162,21 @@ export default function SignalDisplay({ username }: { username: string }) {
 
                 {/* Signal Strength Section */}
                 <Text fontSize="xl" fontWeight={"bold"}>
-                    Signal Strength
+                    💧 Lido Signal Strength
                 </Text>
 
                 <VStack gap={10} alignItems={"start"} w={"100%"}>
-                    {/* Validator Count */}
+                    {/* Protocol Engagement */}
                     <VStack alignItems={"start"} gap={3} w={"100%"}>
                         <HStack alignItems={"baseline"}>
-                            <Text fontSize="lg">Validator Count</Text>
+                            <Text fontSize="lg">Protocol Engagement</Text>
                             <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" color="#029E03">
-                                {data.metrics.validatorCount.value}
+                                {data.metrics.lidoProtocolEngagement.value}
                             </Text>
                         </HStack>
                         <Box w="100%" h="26px" bg="gray.800" borderRadius="md" overflow="hidden">
                             <Box
-                                w={data.metrics.validatorCount.percentage}
+                                w={data.metrics.lidoProtocolEngagement.percentage}
                                 h="100%"
                                 bg="green.500"
                                 borderRight={"2px solid"}
@@ -174,10 +185,10 @@ export default function SignalDisplay({ username }: { username: string }) {
                         </Box>
                     </VStack>
 
-                    {/* Lido Forum Engagement */}
+                    {/* Forum Engagement */}
                     <VStack alignItems={"start"} gap={3} w={"100%"}>
                         <HStack alignItems={"baseline"}>
-                            <Text fontSize="lg">Lido Forum Engagement</Text>
+                            <Text fontSize="lg">Forum Engagement</Text>
                             <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" color="#029E03">
                                 {data.metrics.lidoForumEngagement.value}
                             </Text>
