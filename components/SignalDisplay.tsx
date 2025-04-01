@@ -20,8 +20,8 @@ export default function SignalDisplay({ username }: { username: string }) {
         <Box w="100%" maxW="600px" borderRadius="20px" p={6} zIndex={10}>
             {/* Title and Signal Amount */}
             <VStack align="stretch" gap={3}>
-                <VStack justify="center" gap={10} w={"100%"} alignItems="center" wrap={"wrap"}>
-                    <HStack justifyContent={"space-between"} w={"100%"}>
+                <VStack justify="center" gap={6} w={"100%"} alignItems="center" wrap={"wrap"}>
+                    <HStack justifyContent={"space-between"} w={"100%"} position="relative">
                         <HStack
                             gap={2}
                             bg={"gray.800"}
@@ -32,11 +32,16 @@ export default function SignalDisplay({ username }: { username: string }) {
                             _hover={{ bg: { base: "gray.600", md: "gray.700" } }}
                             onClick={() => router.back()}
                             alignItems={"center"}
+                            position="absolute"
+                            left={0}
+                            fontSize="xl"
                         >
                             <FontAwesomeIcon icon={faArrowLeft} />
                         </HStack>
-
-                        <Text fontSize="2xl">Lido CSM - Operator {data.operatorNumber}</Text>
+                        <Text fontSize="4xl" pl="50px" w="100%" textAlign="center" fontWeight={"bold"}>
+                            💧 Lido
+                        </Text>
+                        <Box w="60px" />
                     </HStack>
                     <HStack justifyContent={"center"} w={"100%"} pb={2}>
                         <HStack bg={"gray.800"} py={2} w={"100%"} justifyContent={"center"} borderRadius="full" gap={4}>
