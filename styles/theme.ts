@@ -107,7 +107,7 @@ export const customConfig = createSystem(defaultConfig, {
             backgroundAttachment: "fixed",
             backgroundSize: "100% 100%",
             backgroundPosition: "center",
-            height: "100vh",
+            height: "100dvh",
             width: "100vw",
             overflowX: "hidden",
             fontFamily: "fonts.body",
