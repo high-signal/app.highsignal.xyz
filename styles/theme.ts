@@ -103,7 +103,7 @@ export const customConfig = createSystem(defaultConfig, {
     globalCss: {
         "html, body": {
             backgroundColor: "{colors.contentBackground}",
-            backgroundImage: "linear-gradient(45deg, {colors.pageBackground} 20%,hsl(210, 3.20%, 24.30%) 120%)",
+            backgroundImage: "linear-gradient(45deg, {colors.pageBackground} 40%,hsl(210, 3.20%, 24.30%) 100%)",
             backgroundAttachment: "fixed",
             fontFamily: "fonts.body",
         },

@@ -38,7 +38,13 @@ export default function SignalDisplay({ username }: { username: string }) {
                         >
                             <FontAwesomeIcon icon={faArrowLeft} />
                         </HStack>
-                        <Text fontSize="4xl" pl="50px" w="100%" textAlign="center" fontWeight={"bold"}>
+                        <Text
+                            fontSize={{ base: "3xl", md: "4xl" }}
+                            pl="50px"
+                            w="100%"
+                            textAlign="center"
+                            fontWeight={"bold"}
+                        >
                             💧 Lido Signal
                         </Text>
                         <Box w="60px" />
