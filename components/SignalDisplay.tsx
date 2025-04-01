@@ -143,7 +143,7 @@ export default function SignalDisplay({ username }: { username: string }) {
                 {data.peakSignals.length > 0 && (
                     <>
                         <Text fontSize="xl" fontWeight={"bold"}>
-                            💧 Lido Peak Signals
+                            🏔️ Peak Signals
                         </Text>
 
                         <SimpleGrid columns={{ base: 2, sm: 3 }} gap={4} mb={8}>
@@ -162,7 +162,7 @@ export default function SignalDisplay({ username }: { username: string }) {
 
                 {/* Signal Strength Section */}
                 <Text fontSize="xl" fontWeight={"bold"}>
-                    💧 Lido Signal Strength
+                    📶 Signal Strength
                 </Text>
 
                 <VStack gap={10} alignItems={"start"} w={"100%"}>
