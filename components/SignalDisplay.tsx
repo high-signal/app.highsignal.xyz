@@ -47,7 +47,6 @@ export default function SignalDisplay({ username }: { username: string }) {
                         >
                             💧 Lido Signal
                         </Text>
-                        <Box w="60px" />
                     </HStack>
                     <HStack justifyContent={"center"} w={"100%"} pb={2}>
                         <HStack bg={"gray.800"} py={2} w={"100%"} justifyContent={"center"} borderRadius="full" gap={4}>
