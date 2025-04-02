@@ -1,5 +1,5 @@
 import ContentContainer from "../../components/layout/ContentContainer"
-import SignalDisplay from "../../components/SignalDisplay"
+import SignalDisplayContainer from "../../components/signal-display/SignalDisplayContainer"
 
 interface ProfilePageProps {
     params: Promise<{
@@ -12,7 +12,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
     return (
         <ContentContainer>
-            <SignalDisplay username={username} />
+            <SignalDisplayContainer username={username} />
         </ContentContainer>
     )
 }

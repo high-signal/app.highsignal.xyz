@@ -10,7 +10,7 @@ interface PeakSignalsProps {
 }
 
 interface Metrics {
-    validatorCount: {
+    lidoProtocolEngagement: {
         value: string
         percentage: string
     }
@@ -30,6 +30,7 @@ interface UserData {
     name: string
     operatorNumber: string
     operatorImage: string
+    signal: string
     signalValue: number
     signalColor: string
     peakSignals: PeakSignal[]
@@ -41,6 +42,16 @@ interface SignalBoxProps {
     imageAlt: string
     title: string
     value: string
+}
+
+interface CurrentSignalProps {
+    signal: string
+    signalValue: number
+    signalColor: string
+}
+
+interface SignalStrengthContainerProps {
+    metrics: Metrics
 }
 
 declare module "*/userData.json" {
