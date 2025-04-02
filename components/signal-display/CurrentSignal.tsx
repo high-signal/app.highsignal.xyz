@@ -69,7 +69,7 @@ export default function CurrentSignal({ signal, signalValue, signalColor }: Curr
                         top="0"
                         bottom="0"
                         borderLeft="2px dashed"
-                        borderColor="gray.600"
+                        borderColor="gray.800"
                     />
                     <Box
                         position="absolute"
@@ -77,7 +77,7 @@ export default function CurrentSignal({ signal, signalValue, signalColor }: Curr
                         top="0"
                         bottom="0"
                         borderLeft="2px dashed"
-                        borderColor="gray.600"
+                        borderColor="gray.800"
                     />
                 </HStack>
             </VStack>
