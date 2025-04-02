@@ -5,7 +5,7 @@ import Title from "./Title"
 import UserInfo from "./UserInfo"
 import CurrentSignal from "./CurrentSignal"
 import PeakSignalsContainer from "./peak-signals/PeakSignalsContainer"
-import SignalStrengthContainer from "./SignalStrengthContainer"
+import SignalStrengthContainer from "./signal-strength/SignalStrengthContainer"
 
 import operatorData from "/public/data/userData.json"
 
