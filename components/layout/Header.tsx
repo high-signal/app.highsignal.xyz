@@ -51,7 +51,7 @@ export default function Header({}) {
             <Box onClick={() => router.push("/")} cursor="pointer">
                 <HStack gap={2}>
                     <Text mt={"-5px"} fontSize={"3xl"}>
-                        <Image src="/static/logo/logo-coin.png" alt="Logo" boxSize={"50px"} borderRadius="full" />
+                        <Image src="/static/logo/logo-coin.png" alt="Logo" boxSize={"40px"} borderRadius="full" />
                     </Text>
                     <Text minW="80px" fontWeight="bold" fontSize="xl" whiteSpace={"nowrap"} mt={"-6px"}>
                         {process.env.NEXT_PUBLIC_SITE_NAME}
