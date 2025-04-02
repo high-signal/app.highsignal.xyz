@@ -1,5 +1,11 @@
 import { VStack, HStack, Text, Box, Span } from "@chakra-ui/react"
 
+interface CurrentSignalProps {
+    signal: string
+    signalValue: number
+    signalColor: string
+}
+
 export default function CurrentSignal({ signal, signalValue, signalColor }: CurrentSignalProps) {
     return (
         <>

@@ -2,6 +2,28 @@ import { VStack, HStack, Text, Box, Button } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 
+import SignalStrength from "./SignalStrength"
+interface Metrics {
+    lidoProtocolEngagement: {
+        value: string
+        percentage: string
+    }
+    lidoForumEngagement: {
+        value: string
+        percentage: string
+    }
+    xEngagement: {
+        value: string
+        percentage: string
+        color: string
+        warning: string
+    }
+}
+
+interface SignalStrengthContainerProps {
+    metrics: Metrics
+}
+
 export default function SignalStrengthContainer({ metrics }: SignalStrengthContainerProps) {
     return (
         <VStack gap={3} w="100%" alignItems={"start"}>
@@ -10,6 +32,8 @@ export default function SignalStrengthContainer({ metrics }: SignalStrengthConta
             </Text>
 
             <VStack gap={10} alignItems={"start"} w={"100%"}>
+                <SignalStrength metrics={metrics} />
+
                 {/* Protocol Engagement */}
                 <VStack alignItems={"start"} gap={3} w={"100%"}>
                     <HStack alignItems={"baseline"}>

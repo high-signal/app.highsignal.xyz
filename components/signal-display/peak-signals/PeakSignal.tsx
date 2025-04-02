@@ -1,5 +1,12 @@
 import { Box, VStack, Text, Image } from "@chakra-ui/react"
 
+interface SignalBoxProps {
+    imageSrc: string
+    imageAlt: string
+    title: string
+    value: string
+}
+
 export default function PeakSignal({ imageSrc, imageAlt, title, value }: SignalBoxProps) {
     return (
         <Box

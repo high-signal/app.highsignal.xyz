@@ -29,17 +29,22 @@
         "metrics": {
             "lidoProtocolEngagement": {
                 "value": "+25",
-                "percentage": "30%"
+                "percentage": "30%",
+                "heading": "High quality posts",
+                "description": "This operator has high quality interactions with the Lido Protocol. This is good for the community and the protocol."
             },
             "lidoForumEngagement": {
                 "value": "+37",
-                "percentage": "70%"
+                "percentage": "70%",
+                "heading": "High quality posts",
+                "description": "This operator has posted high quality posts on the Lido Forum. This is good for the community and the protocol."
             },
             "xEngagement": {
                 "value": "-10",
                 "percentage": "15%",
                 "color": "red.600",
-                "warning": "Low quality spam posts"
+                "heading": "Low quality spam posts",
+                "description": "This operator has posted low quality spam posts on X. This is not good for the community and the protocol."
             }
         }
     },

@@ -7,7 +7,7 @@ import CurrentSignal from "./CurrentSignal"
 import PeakSignalsContainer from "./peak-signals/PeakSignalsContainer"
 import SignalStrengthContainer from "./signal-strength/SignalStrengthContainer"
 
-import operatorData from "/public/data/userData.json"
+import operatorData from "../../public/data/userData.json"
 
 export default function SignalDisplayContainer({ username }: { username: string }) {
     const data = operatorData[username as keyof typeof operatorData]

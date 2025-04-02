@@ -1,6 +1,15 @@
 import { VStack, Text, SimpleGrid } from "@chakra-ui/react"
 import PeakSignal from "./PeakSignal"
 
+interface PeakSignalsProps {
+    peakSignals: {
+        imageSrc: string
+        imageAlt: string
+        title: string
+        value: string
+    }[]
+}
+
 export default function PeakSignalsContainer({ peakSignals }: PeakSignalsProps) {
     if (peakSignals.length === 0) return null
 
