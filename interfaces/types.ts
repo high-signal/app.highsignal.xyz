@@ -5,6 +5,10 @@ interface PeakSignal {
     value: string
 }
 
+interface PeakSignalsProps {
+    peakSignals: PeakSignal[]
+}
+
 interface Metrics {
     validatorCount: {
         value: string
@@ -30,6 +34,13 @@ interface UserData {
     signalColor: string
     peakSignals: PeakSignal[]
     metrics: Metrics
+}
+
+interface SignalBoxProps {
+    imageSrc: string
+    imageAlt: string
+    title: string
+    value: string
 }
 
 declare module "*/userData.json" {

@@ -1,17 +1,10 @@
 import { Box, VStack, Text, Image } from "@chakra-ui/react"
 
-interface SignalBoxProps {
-    imageSrc: string
-    imageAlt: string
-    title: string
-    value: string
-}
-
-export default function SignalBox({ imageSrc, imageAlt, title, value }: SignalBoxProps) {
+export default function PeakSignal({ imageSrc, imageAlt, title, value }: SignalBoxProps) {
     return (
         <Box
             border={"3px solid"}
-            borderColor="gray.600"
+            borderColor="gray.800"
             borderTopRadius="20px"
             borderBottomRadius="100px"
             textAlign="center"

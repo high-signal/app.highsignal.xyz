@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 
 import { VStack, HStack, Text, Box, Button, SimpleGrid, Span, Image } from "@chakra-ui/react"
 
-import SignalBox from "./SignalBox"
+import PeakSignalsContainer from "./peak-signals/PeakSignalsContainer"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 
@@ -41,6 +41,7 @@ export default function SignalDisplay({ username }: { username: string }) {
                         <Text
                             fontSize={{ base: "3xl", md: "4xl" }}
                             pl="50px"
+                            pr={{ base: "0px", md: "50px" }}
                             w="100%"
                             textAlign="center"
                             fontWeight={"bold"}
@@ -102,7 +103,7 @@ export default function SignalDisplay({ username }: { username: string }) {
                         w={"100%"}
                         border={"3px solid"}
                         borderRadius={"10px"}
-                        borderColor={"gray.600"}
+                        borderColor={"gray.800"}
                         overflow={"hidden"}
                         position="relative"
                     >
@@ -144,26 +145,8 @@ export default function SignalDisplay({ username }: { username: string }) {
                     </HStack>
                 </VStack>
 
-                {/* High Signals Section */}
-                {data.peakSignals.length > 0 && (
-                    <>
-                        <Text fontSize="xl" fontWeight={"bold"}>
-                            🏔️ Peak Signals
-                        </Text>
-
-                        <SimpleGrid columns={{ base: 2, sm: 3 }} gap={4} mb={8}>
-                            {data.peakSignals.map((signal, index) => (
-                                <SignalBox
-                                    key={index}
-                                    imageSrc={signal.imageSrc}
-                                    imageAlt={signal.imageAlt}
-                                    title={signal.title}
-                                    value={signal.value}
-                                />
-                            ))}
-                        </SimpleGrid>
-                    </>
-                )}
+                {/* Peak Signals Section */}
+                <PeakSignalsContainer peakSignals={data.peakSignals} />
 
                 {/* Signal Strength Section */}
                 <Text fontSize="xl" fontWeight={"bold"}>
