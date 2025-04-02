@@ -10,7 +10,7 @@ export default function UserInfo({ operatorImage, operatorNumber, name }: UserIn
     return (
         <HStack justifyContent={"center"} w={"100%"} pb={2}>
             <HStack
-                border={"3px solid"}
+                border={"4px solid"}
                 borderColor={"gray.800"}
                 py={0}
                 pr={6}
@@ -18,6 +18,7 @@ export default function UserInfo({ operatorImage, operatorNumber, name }: UserIn
                 justifyContent={"start"}
                 borderRadius="full"
                 gap={4}
+                position="relative"
             >
                 <Box position="relative" boxSize="100px" borderRadius="full" overflow="hidden">
                     <Image src={operatorImage} alt={`Operator ${operatorNumber}`} fit="cover" />
