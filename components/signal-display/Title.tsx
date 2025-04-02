@@ -7,30 +7,31 @@ export default function Title() {
     const router = useRouter()
 
     return (
-        <HStack justifyContent={"space-between"} w={"100%"} position="relative">
+        <HStack position="relative" justifyContent="space-between" w="100%" pb={3}>
             <HStack
+                position="absolute"
+                left={0}
                 gap={2}
-                bg={"gray.800"}
-                borderRadius="full"
                 px={3}
                 py={2}
+                w="auto"
+                bg="gray.800"
+                borderRadius="full"
                 cursor="pointer"
                 _hover={{ bg: { base: "gray.600", md: "gray.700" } }}
                 onClick={() => router.back()}
-                alignItems={"center"}
-                position="absolute"
-                left={0}
+                alignItems="center"
                 fontSize="xl"
             >
                 <FontAwesomeIcon icon={faArrowLeft} />
             </HStack>
             <Text
-                fontSize={{ base: "3xl", md: "4xl" }}
+                w="100%"
                 pl="50px"
                 pr={{ base: "0px", md: "50px" }}
-                w="100%"
+                fontSize={{ base: "3xl", md: "4xl" }}
                 textAlign="center"
-                fontWeight={"bold"}
+                fontWeight="bold"
             >
                 💧 Lido Signal
             </Text>

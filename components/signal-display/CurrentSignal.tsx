@@ -10,6 +10,7 @@ export default function CurrentSignal({ signal, signalValue, signalColor }: Curr
                 fontSize={{ base: "40px", sm: "50px" }}
                 fontWeight="bold"
                 pb={2}
+                w={"100%"}
             >
                 <Text textAlign={"center"}>
                     <Span color={signalColor}>{signal}</Span> Signal
@@ -18,7 +19,7 @@ export default function CurrentSignal({ signal, signalValue, signalColor }: Curr
                     {signalValue}
                 </Text>
             </HStack>
-            <VStack align="stretch" gap={1} pb={8}>
+            <VStack align="stretch" gap={1} pb={8} w={"100%"}>
                 <HStack gap={0} h={"30px"} w={"100%"}>
                     {["Low", "Mid", "High"].map((level, index) => (
                         <Text

@@ -4,7 +4,7 @@ import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 
 export default function SignalStrengthContainer({ metrics }: SignalStrengthContainerProps) {
     return (
-        <>
+        <VStack gap={3} w="100%" alignItems={"start"}>
             <Text fontSize="xl" fontWeight={"bold"}>
                 📶 Signal Strength
             </Text>
@@ -37,7 +37,7 @@ export default function SignalStrengthContainer({ metrics }: SignalStrengthConta
                             {metrics.lidoForumEngagement.value}
                         </Text>
                     </HStack>
-                    <Box w="100%" h="20px" bg="gray.800" borderRadius="md" overflow="hidden">
+                    <Box w="100%" h="26px" bg="gray.800" borderRadius="md" overflow="hidden">
                         <Box
                             w={metrics.lidoForumEngagement.percentage}
                             h="100%"
@@ -66,7 +66,7 @@ export default function SignalStrengthContainer({ metrics }: SignalStrengthConta
                             </HStack>
                         </HStack>
                     </HStack>
-                    <Box w="100%" h="20px" bg="gray.800" borderRadius="md" overflow="hidden">
+                    <Box w="100%" h="26px" bg="gray.800" borderRadius="md" overflow="hidden">
                         <Box
                             w={metrics.xEngagement.percentage}
                             h="100%"
@@ -90,9 +90,9 @@ export default function SignalStrengthContainer({ metrics }: SignalStrengthConta
                             Connect - Coming Soon!
                         </Button>
                     </HStack>
-                    <Box w="100%" h="20px" bg="gray.800" borderRadius="md" />
+                    <Box w="100%" h="26px" bg="gray.800" borderRadius="md" />
                 </VStack>
             </VStack>
-        </>
+        </VStack>
     )
 }
