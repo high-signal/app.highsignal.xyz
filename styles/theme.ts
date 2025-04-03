@@ -94,8 +94,16 @@ export const customConfig = createSystem(defaultConfig, {
                 contentBorder: {
                     value: { _light: "#EDF2F7", _dark: "#008C8B" },
                 },
-                particleColor: {
-                    value: { _light: "#0da6d8", _dark: "#25B8FF" },
+                scoreColor: {
+                    high: {
+                        value: { _light: "{colors.orange.500}", _dark: "{colors.orange.500}" },
+                    },
+                    mid: {
+                        value: { _light: "{colors.blue.400}", _dark: "{colors.blue.400}" },
+                    },
+                    low: {
+                        value: { _light: "{colors.gray.400}", _dark: "{colors.gray.400}" },
+                    },
                 },
             },
         },

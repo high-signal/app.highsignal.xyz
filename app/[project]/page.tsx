@@ -1,5 +1,5 @@
 import ContentContainer from "../../components/layout/ContentContainer"
-import Leaderboard from "../../components/Leaderboard"
+import Leaderboard from "../../components/leaderboard/Leaderboard"
 
 export default async function ProjectLeaderboardPage({
     params,
