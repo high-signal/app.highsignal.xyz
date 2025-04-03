@@ -43,7 +43,7 @@ export default function Leaderboard({ project }: { project: string }) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(`/api/leaderboard?project=${project}`)
+                const response = await fetch(`/api/users?project=${project}`)
                 if (!response.ok) {
                     throw new Error("Failed to fetch data")
                 }
