@@ -83,7 +83,7 @@ export const customConfig = createSystem(defaultConfig, {
                     value: { _light: "black", _dark: "#EDEEF0" },
                 },
                 pageBackground: {
-                    value: { _light: "#FFFFFF", _dark: "#000000" },
+                    value: { _light: "#FFFFFF", _dark: "#0B0C0C" },
                 },
                 contentBackground: {
                     value: { _light: "#EDF2F7", _dark: "#041524" },
@@ -102,8 +102,10 @@ export const customConfig = createSystem(defaultConfig, {
     },
     globalCss: {
         "html, body": {
-            backgroundColor: "{colors.contentBackground}",
-            backgroundImage: "linear-gradient(45deg, {colors.pageBackground} 40%,hsl(210, 3.20%, 24.30%) 100%)",
+            backgroundColor: "{colors.pageBackground}",
+            "@media screen and (min-width: 480px)": {
+                backgroundImage: "linear-gradient(45deg, {colors.pageBackground} 40%,hsl(210, 3.20%, 24.30%) 100%)",
+            },
             backgroundAttachment: "fixed",
             backgroundSize: "100% 100%",
             backgroundPosition: "center",

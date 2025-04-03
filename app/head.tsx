@@ -10,7 +10,7 @@ export default function Head() {
 
             {/* Mobile browser header color */}
             <meta name="theme-color" content={"#000000"} media="(prefers-color-scheme: light)" />
-            <meta name="theme-color" content={"#000000"} media="(prefers-color-scheme: dark)" />
+            <meta name="theme-color" content={"#0B0C0C"} media="(prefers-color-scheme: dark)" />
 
             {/* Favicon & Icons */}
             <link rel="icon" href="/static/logo/favicon.ico" sizes="any" />
