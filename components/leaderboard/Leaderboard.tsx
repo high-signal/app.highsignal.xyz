@@ -2,16 +2,7 @@
 
 import { VStack, HStack, Text, Box, Table, Image, Spinner } from "@chakra-ui/react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-
-interface UserScore {
-    userId: string
-    score: number
-    username: string
-    displayName: string
-    profileImageUrl: string
-    signal: string
-}
+import { useGetUsers } from "../../hooks/useGetUsers"
 
 const TableHeader = ({
     children,
@@ -36,32 +27,11 @@ const TableHeader = ({
 
 export default function Leaderboard({ project }: { project: string }) {
     const router = useRouter()
-    const [users, setUsers] = useState<UserScore[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch(`/api/users?project=${project}`)
-                if (!response.ok) {
-                    throw new Error("Failed to fetch data")
-                }
-                const data = await response.json()
-                setUsers(data)
-            } catch (err) {
-                setError(err instanceof Error ? err.message : "An error occurred")
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchData()
-    }, [project])
+    const { users, loading, error } = useGetUsers(project)
 
     if (loading) {
         return (
-            <VStack gap={10} w="100%" maxW="800px" borderRadius="20px">
+            <VStack gap={10} w="100%" h="100%" justifyContent="center" alignItems="center" borderRadius="20px">
                 <Spinner size="lg" />
             </VStack>
         )
@@ -138,8 +108,8 @@ export default function Leaderboard({ project }: { project: string }) {
                                 </HStack>
                             </Table.Cell>
                             <Table.Cell borderBottom="none" py={0} display={{ base: "none", md: "table-cell" }}>
-                                {/* <HStack justify="center" gap={2}>
-                                    {data.peakSignals.map((badge, index) => (
+                                <HStack justify="center" gap={2}>
+                                    {user.peakSignals.map((badge, index) => (
                                         <Image
                                             key={index}
                                             src={badge.imageSrc}
@@ -149,7 +119,7 @@ export default function Leaderboard({ project }: { project: string }) {
                                             borderRadius="5px"
                                         />
                                     ))}
-                                </HStack> */}
+                                </HStack>
                             </Table.Cell>
                         </Table.Row>
                     ))}

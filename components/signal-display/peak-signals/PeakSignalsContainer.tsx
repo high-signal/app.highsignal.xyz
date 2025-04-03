@@ -3,10 +3,11 @@ import PeakSignal from "./PeakSignal"
 
 interface PeakSignalsProps {
     peakSignals: {
+        name: string
         imageSrc: string
         imageAlt: string
-        title: string
-        value: string
+        value: number
+        projectId: string
     }[]
 }
 
@@ -24,7 +25,7 @@ export default function PeakSignalsContainer({ peakSignals }: PeakSignalsProps) 
                         key={index}
                         imageSrc={signal.imageSrc}
                         imageAlt={signal.imageAlt}
-                        title={signal.title}
+                        name={signal.name}
                         value={signal.value}
                     />
                 ))}

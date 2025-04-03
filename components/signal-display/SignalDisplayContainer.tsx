@@ -1,24 +1,40 @@
 "use client"
 
-import { VStack, Text } from "@chakra-ui/react"
+import { VStack, Text, Spinner } from "@chakra-ui/react"
 import Title from "./Title"
 import UserInfo from "./UserInfo"
 import CurrentSignal from "./CurrentSignal"
 import PeakSignalsContainer from "./peak-signals/PeakSignalsContainer"
 import SignalStrengthContainer from "./signal-strength/SignalStrengthContainer"
 
-import operatorData from "../../public/data/userData.json"
+import { useGetUsers } from "../../hooks/useGetUsers"
 
 export default function SignalDisplayContainer({ project, username }: { project: string; username: string }) {
-    const data = operatorData[username as keyof typeof operatorData]
-    if (!data) return <Text>{username} not found</Text>
+    const { users, loading, error } = useGetUsers(project, username)
+    const currentUser = users[0]
+
+    if (loading) {
+        return (
+            <VStack gap={10} w="100%" minH="300px" justifyContent="center" alignItems="center" borderRadius="20px">
+                <Spinner size="lg" />
+            </VStack>
+        )
+    }
+
+    if (error) {
+        return (
+            <VStack gap={10} w="100%" maxW="800px" borderRadius="20px">
+                <Text color="red.500">Error: {error}</Text>
+            </VStack>
+        )
+    }
 
     return (
         <VStack gap={3} w="100%" maxW="600px" borderRadius="20px" p={6} zIndex={10}>
             <Title />
-            <UserInfo operatorImage={data.operatorImage} operatorNumber={data.operatorNumber} name={data.name} />
-            <CurrentSignal signal={data.signal} signalValue={data.signalValue} signalColor={data.signalColor} />
-            <PeakSignalsContainer peakSignals={data.peakSignals} />
+            <UserInfo profileImageUrl={currentUser.profileImageUrl} name={currentUser.displayName} />
+            <CurrentSignal signal={currentUser.signal} signalValue={currentUser.score} />
+            <PeakSignalsContainer peakSignals={currentUser.peakSignals} />
             {/* <SignalStrengthContainer metrics={data.metrics} /> */}
         </VStack>
     )

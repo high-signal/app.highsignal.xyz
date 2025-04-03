@@ -34,6 +34,7 @@ type User = {
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const projectSlug = searchParams.get("project")
+    const username = searchParams.get("user")
 
     if (!projectSlug) {
         return NextResponse.json({ error: "Project slug is required" }, { status: 400 })
@@ -42,8 +43,8 @@ export async function GET(request: Request) {
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
     try {
-        // First get the  user project scores
-        const { data: userScores, error: scoresError } = await supabase
+        // First get the user project scores
+        let projectScoresQuery = supabase
             .from("user_project_scores")
             .select(
                 `
@@ -51,12 +52,22 @@ export async function GET(request: Request) {
                 score,
                 projects!inner (
                     id
+                ),
+                users!inner (
+                    username
                 )
             `,
             )
             .eq("projects.url_slug", projectSlug)
             .order("score", { ascending: false })
             .limit(10)
+
+        // If username is provided, filter by username
+        if (username) {
+            projectScoresQuery = projectScoresQuery.eq("users.username", username)
+        }
+
+        const { data: userScores, error: scoresError } = await projectScoresQuery
 
         if (scoresError) {
             console.error("scoresError", scoresError)
@@ -69,7 +80,7 @@ export async function GET(request: Request) {
 
         // Then get the user details and peak signals for these users
         const userIds = userScores.map((score) => score.user_id)
-        const { data: users, error: usersError } = await supabase
+        let userDetailsQuery = supabase
             .from("users")
             .select(
                 `
@@ -90,6 +101,8 @@ export async function GET(request: Request) {
             `,
             )
             .in("id", userIds)
+
+        const { data: users, error: usersError } = await userDetailsQuery
 
         if (usersError) {
             console.error("usersError", usersError)
@@ -116,8 +129,6 @@ export async function GET(request: Request) {
                     })) || [],
             }
         })
-
-        console.log("formattedUsers", formattedUsers[0])
 
         return NextResponse.json(formattedUsers)
     } catch (error) {
