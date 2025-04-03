@@ -25,7 +25,7 @@ const TableHeader = ({
     </Table.ColumnHeader>
 )
 
-export default function Leaderboard() {
+export default function Leaderboard({ project }: { project: string }) {
     const router = useRouter()
 
     return (
@@ -54,7 +54,7 @@ export default function Leaderboard() {
                                 bg="transparent"
                                 _hover={{ bg: "gray.800" }}
                                 transition="background-color 0.2s"
-                                onClick={() => router.push(`/${username}`)}
+                                onClick={() => router.push(`/${project}/${username}`)}
                                 borderBottom="1px solid"
                                 borderColor="gray.500"
                             >

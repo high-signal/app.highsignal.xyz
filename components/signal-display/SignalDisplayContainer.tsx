@@ -9,7 +9,7 @@ import SignalStrengthContainer from "./signal-strength/SignalStrengthContainer"
 
 import operatorData from "../../public/data/userData.json"
 
-export default function SignalDisplayContainer({ username }: { username: string }) {
+export default function SignalDisplayContainer({ project, username }: { project: string; username: string }) {
     const data = operatorData[username as keyof typeof operatorData]
     if (!data) return <Text>{username} not found</Text>
 
@@ -19,7 +19,7 @@ export default function SignalDisplayContainer({ username }: { username: string 
             <UserInfo operatorImage={data.operatorImage} operatorNumber={data.operatorNumber} name={data.name} />
             <CurrentSignal signal={data.signal} signalValue={data.signalValue} signalColor={data.signalColor} />
             <PeakSignalsContainer peakSignals={data.peakSignals} />
-            <SignalStrengthContainer metrics={data.metrics} />
+            {/* <SignalStrengthContainer metrics={data.metrics} /> */}
         </VStack>
     )
 }
