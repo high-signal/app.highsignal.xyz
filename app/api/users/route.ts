@@ -10,59 +10,38 @@ type UserProjectScore = {
     }
 }
 
-type PeakSignal = {
-    name: string
-    image_src: string
-    image_alt: string
-    value: number
-    project_id: string
-}
-
-type UserPeakSignal = {
-    peak_signal_id: string
-    peak_signals: PeakSignal
-}
-
-type SignalStrength = {
-    id: string
-    name: string
-    display_name: string
-    project_signal_strengths: Array<{
-        max_value: number
-        enabled: boolean
-        display_order_index: number
-    }>
-}
-
-type ProjectSignalStrength = {
-    signal_strength_id: string
-    project_id: string
-    enabled: boolean
-    display_order_index: number
-    max_value: number
-}
-
-type UserSignalStrength = {
-    signal_strength_id: string
-    project_id: string
-    value: number
-    summary: string
-    description: string
-    signal_strengths: SignalStrength
-    project_signal_strengths: {
-        max_value: number
-        enabled: boolean
-        display_order_index: number
-    }
-}
-
 type User = {
     id: string
     username: string
     display_name: string
     profile_image_url: string
-    user_peak_signals: UserPeakSignal[]
-    user_signal_strengths: UserSignalStrength[]
+    user_peak_signals: Array<{
+        peak_signal_id: string
+        peak_signals: {
+            name: string
+            image_src: string
+            image_alt: string
+            value: number
+            project_id: string
+        }
+    }>
+    user_signal_strengths: Array<{
+        signal_strength_id: string
+        project_id: string
+        value: number
+        summary: string
+        description: string
+        signal_strengths: {
+            id: string
+            name: string
+            display_name: string
+            project_signal_strengths: Array<{
+                max_value: number
+                enabled: boolean
+                display_order_index: number
+            }>
+        }
+    }>
 }
 
 export async function GET(request: Request) {
@@ -157,7 +136,7 @@ export async function GET(request: Request) {
             .in("id", userIds)
 
         // Execute the query
-        const { data: users, error: usersError } = await userDetailsQuery
+        const { data: userDetails, error: usersError } = await userDetailsQuery
 
         // If there is an error, return it
         if (usersError) {
@@ -167,7 +146,7 @@ export async function GET(request: Request) {
 
         // Combine the data
         const formattedUsers = (userProjectScores as unknown as UserProjectScore[]).map((score) => {
-            const user = (users as unknown as User[])?.find((u) => u.id === score.user_id)
+            const user = (userDetails as unknown as User[])?.find((u) => u.id === score.user_id)
             return {
                 userId: score.user_id,
                 score: score.score,
@@ -185,13 +164,6 @@ export async function GET(request: Request) {
                     })) || [],
                 signalStrengths:
                     user?.user_signal_strengths?.map((uss) => {
-                        // Get the first project signal strength or use default values
-                        const projectSignalStrength = uss.signal_strengths.project_signal_strengths?.[0] || {
-                            max_value: 0,
-                            enabled: false,
-                            display_order_index: 0,
-                        }
-
                         return {
                             name: uss.signal_strengths.name,
                             displayName: uss.signal_strengths.display_name,
@@ -199,9 +171,9 @@ export async function GET(request: Request) {
                             summary: uss.summary,
                             description: uss.description,
                             projectId: uss.project_id,
-                            maxValue: projectSignalStrength.max_value,
-                            enabled: projectSignalStrength.enabled,
-                            displayOrderIndex: projectSignalStrength.display_order_index,
+                            maxValue: uss.signal_strengths.project_signal_strengths?.[0].max_value,
+                            enabled: uss.signal_strengths.project_signal_strengths?.[0].enabled,
+                            displayOrderIndex: uss.signal_strengths.project_signal_strengths?.[0].display_order_index,
                         }
                     }) || [],
             }
