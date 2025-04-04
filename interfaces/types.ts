@@ -18,6 +18,9 @@ interface PeakSignal {
 }
 
 interface SignalStrengthData {
+    displayName: string
     value: string
-    percentage: string
+    maxValue: string
+    summary: string
+    description: string
 }
