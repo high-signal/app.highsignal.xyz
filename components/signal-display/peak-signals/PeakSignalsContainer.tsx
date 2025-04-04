@@ -1,17 +1,7 @@
 import { VStack, Text, SimpleGrid } from "@chakra-ui/react"
 import PeakSignal from "./PeakSignal"
 
-interface PeakSignalsProps {
-    peakSignals: {
-        name: string
-        imageSrc: string
-        imageAlt: string
-        value: number
-        projectId: string
-    }[]
-}
-
-export default function PeakSignalsContainer({ peakSignals }: PeakSignalsProps) {
+export default function PeakSignalsContainer({ peakSignals }: { peakSignals: PeakSignal[] }) {
     if (peakSignals.length === 0) return null
 
     return (
@@ -20,14 +10,8 @@ export default function PeakSignalsContainer({ peakSignals }: PeakSignalsProps) 
                 🏔️ Peak Signals
             </Text>
             <SimpleGrid columns={{ base: 2, sm: 3 }} gap={4} mb={8}>
-                {peakSignals.map((signal, index) => (
-                    <PeakSignal
-                        key={index}
-                        imageSrc={signal.imageSrc}
-                        imageAlt={signal.imageAlt}
-                        name={signal.name}
-                        value={signal.value}
-                    />
+                {peakSignals.map((peakSignal, index) => (
+                    <PeakSignal key={index} peakSignal={peakSignal} />
                 ))}
             </SimpleGrid>
         </VStack>

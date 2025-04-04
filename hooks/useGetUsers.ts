@@ -1,23 +1,7 @@
 import { useState, useEffect } from "react"
 
-export type UserScore = {
-    userId: string
-    score: number
-    username: string
-    displayName: string
-    profileImageUrl: string
-    signal: string
-    peakSignals: {
-        name: string
-        imageSrc: string
-        imageAlt: string
-        value: number
-        projectId: string
-    }[]
-}
-
 export const useGetUsers = (project: string, username?: string) => {
-    const [users, setUsers] = useState<UserScore[]>([])
+    const [users, setUsers] = useState<UserData[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 

@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import { calculateSignal } from "../../../utils/calculateSignal"
 
-type UserScore = {
+type UserData = {
     user_id: string
     score: number
     projects: {
@@ -67,19 +67,19 @@ export async function GET(request: Request) {
             projectScoresQuery = projectScoresQuery.eq("users.username", username)
         }
 
-        const { data: userScores, error: scoresError } = await projectScoresQuery
+        const { data: userData, error: scoresError } = await projectScoresQuery
 
         if (scoresError) {
             console.error("scoresError", scoresError)
             return NextResponse.json({ error: "Error fetching user scores" }, { status: 500 })
         }
 
-        if (!userScores || userScores.length === 0) {
+        if (!userData || userData.length === 0) {
             return NextResponse.json([])
         }
 
         // Then get the user details and peak signals for these users
-        const userIds = userScores.map((score) => score.user_id)
+        const userIds = userData.map((score) => score.user_id)
         let userDetailsQuery = supabase
             .from("users")
             .select(
@@ -110,7 +110,7 @@ export async function GET(request: Request) {
         }
 
         // Combine the data
-        const formattedUsers = (userScores as unknown as UserScore[]).map((score) => {
+        const formattedUsers = (userData as unknown as UserData[]).map((score) => {
             const user = (users as unknown as User[])?.find((u) => u.id === score.user_id)
             return {
                 userId: score.user_id,
