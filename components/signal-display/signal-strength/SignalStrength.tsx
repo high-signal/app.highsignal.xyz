@@ -7,7 +7,7 @@ export default function SignalStrength({ data }: { data: SignalStrengthData }) {
     return (
         <VStack alignItems={"start"} gap={3} w={"100%"}>
             <HStack alignItems={"baseline"}>
-                <Text fontSize="lg">Protocol Engagement</Text>
+                <Text fontSize="lg">{data.displayName}</Text>
                 <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" color="#029E03">
                     {data.value}
                 </Text>
