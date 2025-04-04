@@ -148,7 +148,6 @@ export async function GET(request: Request) {
         const formattedUsers = (userProjectScores as unknown as UserProjectScore[]).map((score) => {
             const user = (userDetails as unknown as User[])?.find((u) => u.id === score.user_id)
             return {
-                userId: score.user_id,
                 score: score.score,
                 username: user?.username || "",
                 displayName: user?.display_name || "",

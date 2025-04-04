@@ -1,5 +1,4 @@
 interface UserData {
-    userId: string
     score: number
     username: string
     displayName: string

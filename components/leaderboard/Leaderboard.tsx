@@ -59,9 +59,9 @@ export default function Leaderboard({ project }: { project: string }) {
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                    {users.map((user) => (
+                    {users.map((user, index) => (
                         <Table.Row
-                            key={user.userId}
+                            key={index}
                             cursor="pointer"
                             bg="transparent"
                             _hover={{ bg: "gray.800" }}
