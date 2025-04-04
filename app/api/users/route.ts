@@ -19,6 +19,7 @@ type User = {
         peak_signal_id: string
         peak_signals: {
             name: string
+            display_name: string
             image_src: string
             image_alt: string
             value: number
@@ -108,6 +109,7 @@ export async function GET(request: Request) {
                     peak_signal_id,
                     peak_signals!inner (
                         name,
+                        display_name,
                         image_src,
                         image_alt,
                         value,
@@ -148,18 +150,18 @@ export async function GET(request: Request) {
         const formattedUsers = (userProjectScores as unknown as UserProjectScore[]).map((score) => {
             const user = (userDetails as unknown as User[])?.find((u) => u.id === score.user_id)
             return {
-                score: score.score,
                 username: user?.username || "",
                 displayName: user?.display_name || "",
                 profileImageUrl: user?.profile_image_url || "",
+                score: score.score,
                 signal: calculateSignal(score.score),
                 peakSignals:
                     user?.user_peak_signals?.map((ups) => ({
                         name: ups.peak_signals.name,
+                        displayName: ups.peak_signals.display_name,
                         imageSrc: ups.peak_signals.image_src,
                         imageAlt: ups.peak_signals.image_alt,
                         value: ups.peak_signals.value,
-                        projectId: ups.peak_signals.project_id,
                     })) || [],
                 signalStrengths:
                     user?.user_signal_strengths?.map((uss) => {
@@ -169,7 +171,6 @@ export async function GET(request: Request) {
                             value: uss.value,
                             summary: uss.summary,
                             description: uss.description,
-                            projectId: uss.project_id,
                             maxValue: uss.signal_strengths.project_signal_strengths?.[0].max_value,
                             enabled: uss.signal_strengths.project_signal_strengths?.[0].enabled,
                             displayOrderIndex: uss.signal_strengths.project_signal_strengths?.[0].display_order_index,

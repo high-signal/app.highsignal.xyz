@@ -10,13 +10,14 @@ interface UserData {
 
 interface PeakSignal {
     name: string
+    displayName: string
+    value: number
     imageSrc: string
     imageAlt: string
-    value: number
-    projectId: string
 }
 
 interface SignalStrengthData {
+    name: string
     displayName: string
     value: string
     maxValue: string
