@@ -14,7 +14,9 @@ export default function PeakSignal({ peakSignal }: { peakSignal: PeakSignal }) {
                 <Box position="relative" w="100%" h="165px">
                     <Image src={peakSignal.imageSrc} alt={peakSignal.imageAlt} objectFit="cover" w="100%" h="100%" />
                 </Box>
-                <Text fontWeight={"bold"}>{peakSignal.displayName}</Text>
+                <Text fontWeight={"bold"} px={1}>
+                    {peakSignal.displayName}
+                </Text>
                 <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" mb={3} color="#029E03">
                     {peakSignal.value}
                 </Text>

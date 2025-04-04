@@ -3,7 +3,7 @@ import SignalStrength from "./SignalStrength"
 
 export default function SignalStrengthContainer({ signalStrengths }: { signalStrengths: SignalStrengthData[] }) {
     return (
-        <VStack gap={3} w="100%" alignItems={"start"}>
+        <VStack gap={3} w="100%" alignItems={"start"} pb={"500px"}>
             <Text fontSize="xl" fontWeight={"bold"}>
                 📶 Signal Strength
             </Text>

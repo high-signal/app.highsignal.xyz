@@ -80,13 +80,13 @@ export const customConfig = createSystem(defaultConfig, {
         semanticTokens: {
             colors: {
                 textColor: {
-                    value: { _light: "black", _dark: "#EDEEF0" },
+                    value: { _light: "black", _dark: "#A6A6A6" },
                 },
                 pageBackground: {
-                    value: { _light: "#FFFFFF", _dark: "#0B0C0C" },
+                    value: { _light: "#FFFFFF", _dark: "#0A0A0A" },
                 },
                 contentBackground: {
-                    value: { _light: "#EDF2F7", _dark: "#041524" },
+                    value: { _light: "#EDF2F7", _dark: "#141414" },
                 },
                 contentBackgroundHover: {
                     value: { _light: "#E2E8F0", _dark: "#2D3748" },
@@ -111,9 +111,9 @@ export const customConfig = createSystem(defaultConfig, {
     globalCss: {
         "html, body": {
             backgroundColor: "{colors.pageBackground}",
-            "@media screen and (min-width: 480px)": {
-                backgroundImage: "linear-gradient(45deg, {colors.pageBackground} 40%,hsl(210, 3.20%, 24.30%) 100%)",
-            },
+            // "@media screen and (min-width: 480px)": {
+            //     backgroundImage: "linear-gradient(45deg, {colors.pageBackground} 40%,hsl(210, 3.20%, 24.30%) 100%)",
+            // },
             backgroundAttachment: "fixed",
             backgroundSize: "100% 100%",
             backgroundPosition: "center",
