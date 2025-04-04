@@ -11,7 +11,7 @@ export function calculateSignal(score: number): string {
 
     if (score >= highThreshold) {
         return "high"
-    } else if (score >= midThreshold) {
+    } else if (score >= lowThreshold) {
         return "mid"
     } else {
         return "low"
