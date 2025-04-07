@@ -6,10 +6,10 @@ import { useState } from "react"
 export default function SignalStrength({ data }: { data: SignalStrengthData }) {
     const percentageCompleted = (Number(data.value) / Number(data.maxValue)) * 100
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
-    const [isOpen, setIsOpen] = useState(true)
+    const [isOpen, setIsOpen] = useState(false)
 
     return (
-        <VStack alignItems={"center"} gap={3} w={"100%"} bg="gray.900" py={3} px={3} borderRadius={"16px"}>
+        <VStack alignItems={"center"} gap={4} w={"100%"} bg="gray.900" py={3} px={3} borderRadius={"16px"}>
             <HStack
                 alignItems={"baseline"}
                 py={2}
@@ -36,7 +36,7 @@ export default function SignalStrength({ data }: { data: SignalStrengthData }) {
                 color={"gray.400"}
             >
                 <Text>0</Text>
-                <Box w="100%" h="26px" bg="gray.800" borderRadius="md" overflow="hidden">
+                <Box w="100%" h="30px" bg="gray.800" borderRadius="md" overflow="hidden">
                     <Box
                         w={completedBarWidth}
                         h="100%"

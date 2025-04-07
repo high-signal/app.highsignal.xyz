@@ -30,10 +30,12 @@ export default function SignalDisplayContainer({ project, username }: { project:
     }
 
     return (
-        <VStack gap={3} w="100%" maxW="600px" borderRadius="20px" py={6} px={3} zIndex={10}>
-            <Title />
-            <UserInfo profileImageUrl={currentUser.profileImageUrl} name={currentUser.displayName} />
-            <CurrentSignal signal={currentUser.signal} signalValue={currentUser.score} />
+        <VStack gap={6} w="100%" maxW="800px" py={6} px={3} zIndex={10}>
+            <VStack gap={3} w="100%" maxW="600px" px={3}>
+                <Title />
+                <UserInfo profileImageUrl={currentUser.profileImageUrl} name={currentUser.displayName} />
+                <CurrentSignal signal={currentUser.signal} signalValue={currentUser.score} />
+            </VStack>
             <PeakSignalsContainer peakSignals={currentUser.peakSignals} />
             <SignalStrengthContainer signalStrengths={currentUser.signalStrengths} />
         </VStack>

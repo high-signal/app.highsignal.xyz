@@ -7,7 +7,7 @@ export default function Title() {
     const router = useRouter()
 
     return (
-        <HStack position="relative" justifyContent="space-between" w="100%" pb={3}>
+        <HStack position="relative" justifyContent="space-between" w="100%" maxW="600px" pb={3}>
             <HStack
                 position="absolute"
                 left={0}
@@ -25,13 +25,7 @@ export default function Title() {
             >
                 <FontAwesomeIcon icon={faArrowLeft} />
             </HStack>
-            <Text
-                w="100%"
-                pr={{ base: "0px", md: "50px" }}
-                fontSize={{ base: "3xl", md: "4xl" }}
-                textAlign="center"
-                fontWeight="bold"
-            >
+            <Text w="100%" fontSize={{ base: "3xl", md: "4xl" }} textAlign="center" fontWeight="bold">
                 💧 Lido Signal
             </Text>
         </HStack>

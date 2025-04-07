@@ -1,26 +1,55 @@
-import { Box, VStack, Text, Image } from "@chakra-ui/react"
+import { Box, Text, Image, HStack, VStack } from "@chakra-ui/react"
 
 export default function PeakSignal({ peakSignal }: { peakSignal: PeakSignal }) {
     return (
-        <Box
+        <HStack
             border={"3px solid"}
             borderColor="gray.800"
-            borderTopRadius="20px"
-            borderBottomRadius="100px"
+            borderRadius="full"
             textAlign="center"
             overflow="hidden"
+            maxW="100%"
+            gap={3}
+            w={{ base: "100%", sm: "auto" }}
         >
-            <VStack>
-                <Box position="relative" w="100%" h="165px">
-                    <Image src={peakSignal.imageSrc} alt={peakSignal.imageAlt} objectFit="cover" w="100%" h="100%" />
-                </Box>
-                <Text fontWeight={"bold"} px={1}>
+            <Box
+                position="relative"
+                minW={"80px"}
+                maxW={"80px"}
+                minH={"80px"}
+                maxH={"80px"}
+                borderRadius="full"
+                overflow="hidden"
+            >
+                <Image
+                    src={peakSignal.imageSrc}
+                    alt={peakSignal.imageAlt}
+                    objectFit="cover"
+                    w="100%"
+                    h="100%"
+                    position="absolute"
+                    top="0"
+                    left="0"
+                    right="0"
+                    bottom="0"
+                />
+            </Box>
+            <VStack
+                w="100%"
+                justifyContent={"space-between"}
+                alignItems={"center"}
+                pr={5}
+                gap={2}
+                maxW="100%"
+                overflow="hidden"
+            >
+                <Text fontSize={"lg"} px={1} whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis" width="100%">
                     {peakSignal.displayName}
                 </Text>
-                <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" mb={3} color="#029E03">
+                <Text bg={"green.500"} fontSize="xl" px={3} borderRadius="full" color="#029E03">
                     {peakSignal.value}
                 </Text>
             </VStack>
-        </Box>
+        </HStack>
     )
 }

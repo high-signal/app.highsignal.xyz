@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, HStack, Text, Box, Table, Image, Spinner } from "@chakra-ui/react"
+import { VStack, HStack, Text, Box, Table, Image, Spinner, Input } from "@chakra-ui/react"
 import { useRouter } from "next/navigation"
 import { useGetUsers } from "../../hooks/useGetUsers"
 
@@ -50,7 +50,22 @@ export default function Leaderboard({ project }: { project: string }) {
             <Table.Root>
                 <Table.Header>
                     <Table.Row bg="transparent">
-                        <TableHeader> </TableHeader>
+                        <TableHeader>
+                            <Box>
+                                <Input
+                                    type="text"
+                                    placeholder="Search (Coming soon...)"
+                                    borderRadius="full"
+                                    border={"2px solid"}
+                                    borderColor="gray.800"
+                                    _focus={{
+                                        borderColor: "gray.500",
+                                        boxShadow: "none",
+                                        outline: "none",
+                                    }}
+                                />
+                            </Box>
+                        </TableHeader>
                         <TableHeader textAlign="center">Signal</TableHeader>
                         <TableHeader textAlign="center">Score</TableHeader>
                         <TableHeader textAlign="center" display={{ base: "none", md: "table-cell" }}>

@@ -7,7 +7,7 @@ interface UserInfoProps {
 
 export default function UserInfo({ profileImageUrl, name }: UserInfoProps) {
     return (
-        <HStack justifyContent={"center"} w={"100%"} pb={2}>
+        <HStack justifyContent={"center"} w={"100%"} maxW="600px" pb={2}>
             <HStack
                 border={"4px solid"}
                 borderColor={"gray.800"}
@@ -29,3 +29,4 @@ export default function UserInfo({ profileImageUrl, name }: UserInfoProps) {
         </HStack>
     )
 }
+;``
