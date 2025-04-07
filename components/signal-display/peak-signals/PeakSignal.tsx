@@ -1,6 +1,6 @@
 import { Box, VStack, Text, Image } from "@chakra-ui/react"
 
-export default function PeakSignal({ imageSrc, imageAlt, title, value }: SignalBoxProps) {
+export default function PeakSignal({ peakSignal }: { peakSignal: PeakSignal }) {
     return (
         <Box
             border={"3px solid"}
@@ -12,11 +12,13 @@ export default function PeakSignal({ imageSrc, imageAlt, title, value }: SignalB
         >
             <VStack>
                 <Box position="relative" w="100%" h="165px">
-                    <Image src={imageSrc} alt={imageAlt} objectFit="cover" w="100%" h="100%" />
+                    <Image src={peakSignal.imageSrc} alt={peakSignal.imageAlt} objectFit="cover" w="100%" h="100%" />
                 </Box>
-                <Text fontWeight={"bold"}>{title}</Text>
+                <Text fontWeight={"bold"} px={1}>
+                    {peakSignal.displayName}
+                </Text>
                 <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" mb={3} color="#029E03">
-                    {value}
+                    {peakSignal.value}
                 </Text>
             </VStack>
         </Box>

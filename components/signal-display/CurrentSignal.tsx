@@ -1,6 +1,11 @@
 import { VStack, HStack, Text, Box, Span } from "@chakra-ui/react"
 
-export default function CurrentSignal({ signal, signalValue, signalColor }: CurrentSignalProps) {
+interface CurrentSignalProps {
+    signal: string
+    signalValue: number
+}
+
+export default function CurrentSignal({ signal, signalValue }: CurrentSignalProps) {
     return (
         <>
             <HStack
@@ -13,9 +18,10 @@ export default function CurrentSignal({ signal, signalValue, signalColor }: Curr
                 w={"100%"}
             >
                 <Text textAlign={"center"}>
-                    <Span color={signalColor}>{signal}</Span> Signal
+                    <Span color={`scoreColor.${signal}`}>{signal.charAt(0).toUpperCase() + signal.slice(1)}</Span>{" "}
+                    Signal
                 </Text>
-                <Text px={4} py={0} border={"5px solid"} borderRadius="25px" borderColor={signalColor}>
+                <Text px={4} py={0} border={"5px solid"} borderRadius="25px" borderColor={`scoreColor.${signal}`}>
                     {signalValue}
                 </Text>
             </HStack>
@@ -28,7 +34,7 @@ export default function CurrentSignal({ signal, signalValue, signalColor }: Curr
                             w={index === 1 ? "40%" : "30%"}
                             textAlign="center"
                             fontWeight={signal === level ? "bold" : "normal"}
-                            color={signal === level ? signalColor : "inherit"}
+                            color={signal === level ? `scoreColor.${signal}` : "inherit"}
                         >
                             {level}
                         </Text>
@@ -50,7 +56,7 @@ export default function CurrentSignal({ signal, signalValue, signalColor }: Curr
                         h={"100%"}
                         textAlign="center"
                         borderRight={"3px solid"}
-                        borderColor={signalColor}
+                        borderColor={`scoreColor.${signal}`}
                         _before={{
                             content: '""',
                             position: "absolute",
@@ -58,7 +64,7 @@ export default function CurrentSignal({ signal, signalValue, signalColor }: Curr
                             left: 0,
                             right: 0,
                             bottom: 0,
-                            bg: signalColor,
+                            bg: `scoreColor.${signal}`,
                             opacity: 0.3,
                             zIndex: -1,
                         }}

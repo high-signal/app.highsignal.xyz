@@ -1,5 +1,5 @@
 import ContentContainer from "../components/layout/ContentContainer"
-import Leaderboard from "../components/Leaderboard"
+import LeaderboardContainer from "../components/leaderboard/LeaderboardContainer"
 import EarlyAccessInput from "../components/EarlyAccessInput"
 
 interface PageProps {
@@ -10,5 +10,13 @@ export default async function Page({ searchParams }: PageProps) {
     const params = await searchParams
     const earlyAccessCode = params.earlyAccessCode
 
-    return <ContentContainer>{earlyAccessCode === "higher" ? <Leaderboard /> : <EarlyAccessInput />}</ContentContainer>
+    return (
+        <ContentContainer>
+            {process.env.NODE_ENV === "development" || earlyAccessCode === "higher" ? (
+                <LeaderboardContainer project="lido" />
+            ) : (
+                <EarlyAccessInput />
+            )}
+        </ContentContainer>
+    )
 }

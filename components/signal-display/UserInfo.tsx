@@ -1,12 +1,11 @@
 import { HStack, Text, Box, Image } from "@chakra-ui/react"
 
 interface UserInfoProps {
-    operatorImage: string
-    operatorNumber: string
+    profileImageUrl: string
     name: string
 }
 
-export default function UserInfo({ operatorImage, operatorNumber, name }: UserInfoProps) {
+export default function UserInfo({ profileImageUrl, name }: UserInfoProps) {
     return (
         <HStack justifyContent={"center"} w={"100%"} pb={2}>
             <HStack
@@ -21,7 +20,7 @@ export default function UserInfo({ operatorImage, operatorNumber, name }: UserIn
                 position="relative"
             >
                 <Box position="relative" boxSize="100px" borderRadius="full" overflow="hidden">
-                    <Image src={operatorImage} alt={`Operator ${operatorNumber}`} fit="cover" />
+                    <Image src={profileImageUrl} alt={`${name} Profile Image`} fit="cover" />
                 </Box>
                 <Text fontSize={name.length > 15 ? { base: "2xl", md: "3xl" } : { base: "3xl", md: "3xl" }}>
                     {name}
