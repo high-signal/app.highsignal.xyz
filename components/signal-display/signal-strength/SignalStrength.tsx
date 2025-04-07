@@ -9,7 +9,7 @@ export default function SignalStrength({ data }: { data: SignalStrengthData }) {
     const [isOpen, setIsOpen] = useState(true)
 
     return (
-        <VStack alignItems={"center"} gap={3} w={"100%"} bg="contentBackground" py={3} px={3} borderRadius={"16px"}>
+        <VStack alignItems={"center"} gap={3} w={"100%"} bg="gray.900" py={3} px={3} borderRadius={"16px"}>
             <HStack
                 alignItems={"baseline"}
                 py={2}

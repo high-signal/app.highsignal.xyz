@@ -5,8 +5,12 @@ export default function SignalStrengthContainer({ signalStrengths }: { signalStr
     return (
         <VStack gap={3} w="100%" alignItems={"start"} pb={"500px"}>
             <Text fontSize="xl" fontWeight={"bold"}>
-                📶 Signal Strength
+                📡 Signal Strength
             </Text>
+
+            {signalStrengths.length === 0 && (
+                <Text color="textColor">No signal strength data available for this user.</Text>
+            )}
 
             <VStack gap={10} alignItems={"start"} w={"100%"}>
                 {signalStrengths.map((signalStrength, index) => (
