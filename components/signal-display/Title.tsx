@@ -18,7 +18,7 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
                 bg="gray.800"
                 borderRadius="full"
                 cursor="pointer"
-                _hover={{ bg: { base: "gray.600", md: "gray.700" } }}
+                _hover={{ bg: { base: "gray.600", sm: "gray.700" } }}
                 onClick={() => router.back()}
                 alignItems="center"
                 fontSize="xl"
@@ -27,7 +27,7 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
             </HStack>
             <HStack w="100%" justifyContent="center" gap={3}>
                 <Image src={projectData.imageUrl} alt={projectData.displayName} boxSize="50px" borderRadius="full" />
-                <Text fontSize={{ base: "3xl", md: "4xl" }} textAlign="center" fontWeight="bold">
+                <Text fontSize={{ base: "3xl", sm: "4xl" }} textAlign="center" fontWeight="bold">
                     {projectData.displayName}
                 </Text>
             </HStack>

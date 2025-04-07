@@ -22,7 +22,7 @@ export default function UserInfo({ profileImageUrl, name }: UserInfoProps) {
                 <Box position="relative" boxSize="100px" borderRadius="full" overflow="hidden">
                     <Image src={profileImageUrl} alt={`${name} Profile Image`} fit="cover" />
                 </Box>
-                <Text fontSize={name.length > 15 ? { base: "2xl", md: "3xl" } : { base: "3xl", md: "3xl" }}>
+                <Text fontSize={name.length > 15 ? { base: "2xl", sm: "3xl" } : { base: "3xl", sm: "3xl" }}>
                     {name}
                 </Text>
             </HStack>

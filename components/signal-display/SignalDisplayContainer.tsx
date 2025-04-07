@@ -41,7 +41,9 @@ export default function SignalDisplayContainer({ project, username }: { project:
                 <CurrentSignal signal={currentUser.signal} signalValue={currentUser.score} />
             </VStack>
             <PeakSignalsContainer peakSignals={currentUser.peakSignals} />
-            <SignalStrengthContainer signalStrengths={currentUser.signalStrengths} />
+            <VStack gap={3} w="100%" maxW="600px">
+                <SignalStrengthContainer signalStrengths={currentUser.signalStrengths} />
+            </VStack>
         </VStack>
     )
 }

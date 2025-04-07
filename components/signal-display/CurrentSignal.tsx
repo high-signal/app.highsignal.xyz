@@ -42,7 +42,7 @@ export default function CurrentSignal({ signal, signalValue }: CurrentSignalProp
                 </HStack>
                 <HStack
                     gap={0}
-                    h={"35px"}
+                    h={"40px"}
                     w={"100%"}
                     border={"3px solid"}
                     borderRadius={"10px"}

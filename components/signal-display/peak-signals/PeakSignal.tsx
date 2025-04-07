@@ -3,6 +3,7 @@ import { Box, Text, Image, HStack, VStack } from "@chakra-ui/react"
 export default function PeakSignal({ peakSignal }: { peakSignal: PeakSignalUserData }) {
     return (
         <HStack
+            bg={"pageBackground"}
             border={"3px solid"}
             borderColor="gray.800"
             borderRadius="full"

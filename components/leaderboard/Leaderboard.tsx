@@ -7,11 +7,11 @@ import { useGetUsers } from "../../hooks/useGetUsers"
 const TableHeader = ({
     children,
     textAlign = "left",
-    display = { base: "table-cell", md: "table-cell" },
+    display = { base: "table-cell", sm: "table-cell" },
 }: {
     children: React.ReactNode
     textAlign?: "left" | "center"
-    display?: { base: string; md: string }
+    display?: { base: string; sm: string }
 }) => (
     <Table.ColumnHeader
         color="gray.200"
@@ -46,7 +46,7 @@ export default function Leaderboard({ project }: { project: string }) {
     }
 
     return (
-        <Box w={"100%"} px={{ base: 3, md: 6 }}>
+        <Box w={"100%"} px={{ base: 3, sm: 6 }}>
             <Table.Root>
                 <Table.Header>
                     <Table.Row bg="transparent">
@@ -68,7 +68,7 @@ export default function Leaderboard({ project }: { project: string }) {
                         </TableHeader>
                         <TableHeader textAlign="center">Signal</TableHeader>
                         <TableHeader textAlign="center">Score</TableHeader>
-                        <TableHeader textAlign="center" display={{ base: "none", md: "table-cell" }}>
+                        <TableHeader textAlign="center" display={{ base: "none", sm: "table-cell" }}>
                             Peak Signals
                         </TableHeader>
                     </Table.Row>
@@ -122,7 +122,7 @@ export default function Leaderboard({ project }: { project: string }) {
                                     </Text>
                                 </HStack>
                             </Table.Cell>
-                            <Table.Cell borderBottom="none" py={0} display={{ base: "none", md: "table-cell" }}>
+                            <Table.Cell borderBottom="none" py={0} display={{ base: "none", sm: "table-cell" }}>
                                 <HStack justify="center" gap={2}>
                                     {user.peakSignals.map((badge, index) => (
                                         <Image
