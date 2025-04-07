@@ -1,9 +1,9 @@
-import { HStack, Text } from "@chakra-ui/react"
+import { HStack, Text, Image } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"
 import { useRouter } from "next/navigation"
 
-export default function Title() {
+export default function Title({ projectData }: { projectData: ProjectData }) {
     const router = useRouter()
 
     return (
@@ -25,9 +25,12 @@ export default function Title() {
             >
                 <FontAwesomeIcon icon={faArrowLeft} />
             </HStack>
-            <Text w="100%" fontSize={{ base: "3xl", md: "4xl" }} textAlign="center" fontWeight="bold">
-                💧 Lido Signal
-            </Text>
+            <HStack w="100%" justifyContent="center" gap={3}>
+                <Image src={projectData.imageUrl} alt={projectData.displayName} boxSize="50px" borderRadius="full" />
+                <Text fontSize={{ base: "3xl", md: "4xl" }} textAlign="center" fontWeight="bold">
+                    {projectData.displayName}
+                </Text>
+            </HStack>
         </HStack>
     )
 }

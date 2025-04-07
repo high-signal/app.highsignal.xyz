@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
 import { useState } from "react"
 
-export default function SignalStrength({ data }: { data: SignalStrengthData }) {
+export default function SignalStrength({ data }: { data: SignalStrengthUserData }) {
     const percentageCompleted = (Number(data.value) / Number(data.maxValue)) * 100
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
     const [isOpen, setIsOpen] = useState(false)

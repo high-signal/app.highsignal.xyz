@@ -1,6 +1,6 @@
 import { Box, Text, Image, HStack, VStack } from "@chakra-ui/react"
 
-export default function PeakSignal({ peakSignal }: { peakSignal: PeakSignal }) {
+export default function PeakSignal({ peakSignal }: { peakSignal: PeakSignalUserData }) {
     return (
         <HStack
             border={"3px solid"}

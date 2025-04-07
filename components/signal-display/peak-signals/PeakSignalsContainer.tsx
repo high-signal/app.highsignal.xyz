@@ -1,7 +1,7 @@
 import { VStack, Text, HStack } from "@chakra-ui/react"
 import PeakSignal from "./PeakSignal"
 
-export default function PeakSignalsContainer({ peakSignals }: { peakSignals: PeakSignal[] }) {
+export default function PeakSignalsContainer({ peakSignals }: { peakSignals: PeakSignalUserData[] }) {
     return (
         <VStack gap={3} w="100%" alignItems={"center"} pb={5} justifyContent={"center"}>
             <Text fontSize="2xl" fontWeight={"bold"}>

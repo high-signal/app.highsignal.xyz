@@ -4,11 +4,12 @@ interface UserData {
     displayName: string
     profileImageUrl: string
     signal: string
-    peakSignals: PeakSignal[]
-    signalStrengths: SignalStrengthData[]
+    projectData: ProjectData
+    peakSignals: PeakSignalUserData[]
+    signalStrengths: SignalStrengthUserData[]
 }
 
-interface PeakSignal {
+interface PeakSignalUserData {
     name: string
     displayName: string
     value: number
@@ -16,11 +17,16 @@ interface PeakSignal {
     imageAlt: string
 }
 
-interface SignalStrengthData {
+interface SignalStrengthUserData {
     name: string
     displayName: string
     value: string
     maxValue: string
     summary: string
     description: string
+}
+
+interface ProjectData {
+    displayName: string
+    imageUrl: string
 }

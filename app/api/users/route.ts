@@ -2,14 +2,6 @@ import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import { calculateSignal } from "../../../utils/calculateSignal"
 
-type UserProjectScore = {
-    user_id: string
-    score: number
-    projects: {
-        id: string
-    }
-}
-
 type User = {
     id: string
     username: string
@@ -147,7 +139,7 @@ export async function GET(request: Request) {
         }
 
         // Combine the data
-        const formattedUsers = (userProjectScores as unknown as UserProjectScore[]).map((score) => {
+        const formattedUsers = userProjectScores.map((score) => {
             const user = (userDetails as unknown as User[])?.find((u) => u.id === score.user_id)
             return {
                 username: user?.username || "",
