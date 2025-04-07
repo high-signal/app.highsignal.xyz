@@ -27,7 +27,6 @@ export default function Title() {
             </HStack>
             <Text
                 w="100%"
-                pl="40px"
                 pr={{ base: "0px", md: "50px" }}
                 fontSize={{ base: "3xl", md: "4xl" }}
                 textAlign="center"

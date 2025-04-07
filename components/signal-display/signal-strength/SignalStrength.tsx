@@ -15,10 +15,14 @@ export default function SignalStrength({ data }: { data: SignalStrengthData }) {
                 py={2}
                 px={3}
                 justifyContent={"center"}
-                bg={"pageBackground"}
+                border={"5px solid"}
+                borderColor={"pageBackground"}
                 borderRadius={"12px"}
+                w={"100%"}
             >
-                <Text fontSize="lg">{data.displayName}</Text>
+                <Text fontSize="lg" fontWeight={"bold"}>
+                    {data.displayName}
+                </Text>
                 <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" color="#029E03">
                     {data.value}
                 </Text>
