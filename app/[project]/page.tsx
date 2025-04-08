@@ -1,5 +1,5 @@
 import ContentContainer from "../../components/layout/ContentContainer"
-import Leaderboard from "../../components/leaderboard/Leaderboard"
+import LeaderboardContainer from "../../components/leaderboard/LeaderboardContainer"
 
 export default async function ProjectLeaderboardPage({
     params,
@@ -12,7 +12,7 @@ export default async function ProjectLeaderboardPage({
 
     return (
         <ContentContainer>
-            <Leaderboard project={project} />
+            <LeaderboardContainer project={project} />
         </ContentContainer>
     )
 }
