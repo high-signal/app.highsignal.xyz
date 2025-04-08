@@ -15,7 +15,7 @@ export default function PeakSignalsContainer({ peakSignals }: { peakSignals: Pea
                     py={{ base: 2, sm: 4 }}
                     px={2}
                     mb={8}
-                    justify="center"
+                    justifyContent={"center"}
                     maxW="100%"
                     w="fit-content"
                     bg={"gray.900"}

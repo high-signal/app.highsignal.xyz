@@ -41,7 +41,9 @@ export default function SignalStrength({ data }: { data: SignalStrengthUserData 
                         w={completedBarWidth}
                         h="100%"
                         bg="green.500"
-                        borderRight={"2px solid"}
+                        border={completedBarWidth === "100%" ? "2px solid" : "none"}
+                        borderRight={completedBarWidth === "100%" ? "2px solid" : "3px solid"}
+                        borderRadius={completedBarWidth === "100%" ? "md" : "none"}
                         borderColor="#029E03"
                     />
                 </Box>

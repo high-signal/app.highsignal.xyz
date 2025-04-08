@@ -16,6 +16,7 @@ export default function CurrentSignal({ signal, signalValue }: CurrentSignalProp
                 fontWeight="bold"
                 pb={2}
                 w={"100%"}
+                flexWrap={"wrap"}
             >
                 <Text textAlign={"center"}>
                     <Span color={`scoreColor.${signal}`}>{signal.charAt(0).toUpperCase() + signal.slice(1)}</Span>{" "}
@@ -55,7 +56,10 @@ export default function CurrentSignal({ signal, signalValue }: CurrentSignalProp
                         w={`${signalValue}%`}
                         h={"100%"}
                         textAlign="center"
-                        borderRight={"3px solid"}
+                        // borderRight={"3px solid"}
+                        border={signalValue === 100 ? "2px solid" : "none"}
+                        borderRight={signalValue === 100 ? "2px solid" : "3px solid"}
+                        borderRadius={signalValue === 100 ? "md" : "none"}
                         borderColor={`scoreColor.${signal}`}
                         _before={{
                             content: '""',
