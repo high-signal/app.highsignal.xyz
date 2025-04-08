@@ -22,7 +22,13 @@ export default function SignalStrength({ data }: { data: SignalStrengthUserData 
                 w="100%"
             >
                 <Text fontSize="xl">{data.displayName}</Text>
-                <Text bg={"green.500"} fontSize="xl" px={2} borderRadius="8px" color="#029E03">
+                <Text
+                    bg={completedBarWidth !== "0%" ? "green.500" : "gray.800"}
+                    fontSize="xl"
+                    px={2}
+                    borderRadius="8px"
+                    color={completedBarWidth !== "0%" ? "#029E03" : "gray.400"}
+                >
                     {data.value}
                 </Text>
             </HStack>
@@ -41,8 +47,16 @@ export default function SignalStrength({ data }: { data: SignalStrengthUserData 
                         w={completedBarWidth}
                         h="100%"
                         bg="green.500"
-                        border={completedBarWidth === "100%" ? "2px solid" : "none"}
-                        borderRight={completedBarWidth === "100%" ? "2px solid" : "3px solid"}
+                        border={
+                            completedBarWidth === "100%" ? "2px solid" : completedBarWidth === "0%" ? "none" : "none"
+                        }
+                        borderRight={
+                            completedBarWidth === "100%"
+                                ? "2px solid"
+                                : completedBarWidth === "0%"
+                                  ? "none"
+                                  : "3px solid"
+                        }
                         borderRadius={completedBarWidth === "100%" ? "md" : "none"}
                         borderColor="#029E03"
                     />
