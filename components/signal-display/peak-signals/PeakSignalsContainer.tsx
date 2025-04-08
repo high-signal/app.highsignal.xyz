@@ -21,9 +21,11 @@ export default function PeakSignalsContainer({ peakSignals }: { peakSignals: Pea
                     bg={"gray.900"}
                     borderRadius={"50px"}
                 >
-                    {peakSignals.map((peakSignal, index) => (
-                        <PeakSignal key={index} peakSignal={peakSignal} />
-                    ))}
+                    {[...peakSignals]
+                        .sort((a, b) => b.value - a.value)
+                        .map((peakSignal, index) => (
+                            <PeakSignal key={index} peakSignal={peakSignal} />
+                        ))}
                 </HStack>
             )}
         </VStack>

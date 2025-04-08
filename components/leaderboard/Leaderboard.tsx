@@ -124,16 +124,19 @@ export default function Leaderboard({ project }: { project: string }) {
                             </Table.Cell>
                             <Table.Cell borderBottom="none" py={0} display={{ base: "none", sm: "table-cell" }}>
                                 <HStack justify="center" gap={2}>
-                                    {user.peakSignals.map((badge, index) => (
-                                        <Image
-                                            key={index}
-                                            src={badge.imageSrc}
-                                            alt={badge.imageAlt}
-                                            width={10}
-                                            height={10}
-                                            borderRadius="5px"
-                                        />
-                                    ))}
+                                    {[...user.peakSignals]
+                                        .sort((a, b) => b.value - a.value)
+                                        .slice(0, 5)
+                                        .map((badge, index) => (
+                                            <Image
+                                                key={index}
+                                                src={badge.imageSrc}
+                                                alt={badge.imageAlt}
+                                                width={10}
+                                                height={10}
+                                                borderRadius="full"
+                                            />
+                                        ))}
                                 </HStack>
                             </Table.Cell>
                         </Table.Row>

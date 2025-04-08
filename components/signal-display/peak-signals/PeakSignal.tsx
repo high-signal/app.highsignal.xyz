@@ -15,10 +15,10 @@ export default function PeakSignal({ peakSignal }: { peakSignal: PeakSignalUserD
         >
             <Box
                 position="relative"
-                minW={"80px"}
-                maxW={"80px"}
-                minH={"80px"}
-                maxH={"80px"}
+                minW={"90px"}
+                maxW={"90px"}
+                minH={"90px"}
+                maxH={"90px"}
                 borderRadius="full"
                 overflow="hidden"
             >
