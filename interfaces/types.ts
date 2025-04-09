@@ -19,15 +19,23 @@ interface PeakSignalUserData {
 
 interface SignalStrengthUserData {
     name: string
-    displayName: string
     value: string
-    maxValue: string
     summary: string
     description: string
     improvements: string
 }
 
 interface ProjectData {
+    projectSlug: string
     displayName: string
     imageUrl: string
+    signalStrengths: SignalStrengthProjectData[]
+}
+
+interface SignalStrengthProjectData {
+    name: string
+    displayName: string
+    maxValue: number
+    enabled: boolean
+    displayOrderIndex: number
 }

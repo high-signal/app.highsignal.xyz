@@ -1,6 +1,25 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 
+type ProjectSignalStrength = {
+    signal_strengths: {
+        name: string
+        display_name: string
+        project_signal_strengths: Array<{
+            max_value: number
+            enabled: boolean
+            display_order_index: number
+        }>
+    }
+}
+
+type Project = {
+    url_slug: string
+    display_name: string
+    project_logo_url: string
+    project_signal_strengths: ProjectSignalStrength[]
+}
+
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const projectSlug = searchParams.get("project")
@@ -15,7 +34,18 @@ export async function GET(request: Request) {
                 `
                 url_slug,
                 display_name,
-                project_logo_url
+                project_logo_url,
+                project_signal_strengths (
+                    signal_strengths (
+                        name,
+                        display_name,
+                        project_signal_strengths (
+                            max_value,
+                            enabled,
+                            display_order_index
+                        )
+                    )
+                )
             `,
             )
             .order("id", { ascending: true })
@@ -41,11 +71,19 @@ export async function GET(request: Request) {
         }
 
         // Format the projects to match UI naming conventions
-        const formattedProjects = projects.map((project) => {
+        const formattedProjects = (projects as unknown as Project[]).map((project) => {
             return {
                 projectSlug: project.url_slug,
                 displayName: project.display_name,
                 imageUrl: project.project_logo_url,
+                signalStrengths:
+                    project.project_signal_strengths?.map((ps) => ({
+                        name: ps.signal_strengths.name,
+                        displayName: ps.signal_strengths.display_name,
+                        maxValue: ps.signal_strengths.project_signal_strengths[0]?.max_value,
+                        enabled: ps.signal_strengths.project_signal_strengths[0]?.enabled,
+                        displayOrderIndex: ps.signal_strengths.project_signal_strengths[0]?.display_order_index,
+                    })) || [],
             }
         })
 

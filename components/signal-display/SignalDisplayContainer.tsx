@@ -33,6 +33,9 @@ export default function SignalDisplayContainer({ project, username }: { project:
         )
     }
 
+    // Filter out signal strengths that are not enabled
+    const enabledSignalStrengths = currentProject.signalStrengths.filter((signalStrength) => signalStrength.enabled)
+
     return (
         <VStack gap={6} w="100%" maxW="800px" py={6} px={3} zIndex={10}>
             <VStack gap={3} w="100%" maxW="600px" px={3}>
@@ -42,7 +45,10 @@ export default function SignalDisplayContainer({ project, username }: { project:
             </VStack>
             <PeakSignalsContainer peakSignals={currentUser.peakSignals} />
             <VStack gap={3} w="100%" maxW="600px">
-                <SignalStrengthContainer signalStrengths={currentUser.signalStrengths} />
+                <SignalStrengthContainer
+                    userSignalStrengths={currentUser.signalStrengths}
+                    projectSignalStrengths={enabledSignalStrengths}
+                />
             </VStack>
         </VStack>
     )

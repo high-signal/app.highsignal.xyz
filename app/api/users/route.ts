@@ -28,12 +28,6 @@ type User = {
         signal_strengths: {
             id: string
             name: string
-            display_name: string
-            project_signal_strengths: Array<{
-                max_value: number
-                enabled: boolean
-                display_order_index: number
-            }>
         }
     }>
 }
@@ -118,13 +112,7 @@ export async function GET(request: Request) {
                     improvements,
                     signal_strengths!inner (
                         id,
-                        name,
-                        display_name,
-                        project_signal_strengths!inner (
-                            max_value,
-                            enabled,
-                            display_order_index
-                        )
+                        name
                     )
                 )
             `,
@@ -161,14 +149,10 @@ export async function GET(request: Request) {
                     user?.user_signal_strengths?.map((uss) => {
                         return {
                             name: uss.signal_strengths.name,
-                            displayName: uss.signal_strengths.display_name,
                             value: uss.value,
                             summary: uss.summary,
                             description: uss.description,
                             improvements: uss.improvements,
-                            maxValue: uss.signal_strengths.project_signal_strengths?.[0].max_value,
-                            enabled: uss.signal_strengths.project_signal_strengths?.[0].enabled,
-                            displayOrderIndex: uss.signal_strengths.project_signal_strengths?.[0].display_order_index,
                         }
                     }) || [],
             }
