@@ -17,6 +17,9 @@ export default function SignalStrength({
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
     const [isOpen, setIsOpen] = useState(false)
 
+    // Check if the box should be openable
+    const hasContent = Boolean(userData.description || userData.improvements)
+
     return (
         <VStack alignItems={"center"} gap={4} w={"100%"} bg="gray.900" py={3} px={3} borderRadius={"16px"}>
             <HStack
@@ -85,7 +88,7 @@ export default function SignalStrength({
                 <VStack w="100%" gap={0} alignItems={"start"}>
                     <HStack
                         alignItems={"start"}
-                        cursor="pointer"
+                        cursor={hasContent ? "pointer" : "default"}
                         py={2}
                         pl={3}
                         pr={4}
@@ -94,28 +97,44 @@ export default function SignalStrength({
                         bg={"pageBackground"}
                         borderRadius={"10px"}
                         borderBottomRadius={isOpen ? "none" : "10px"}
-                        onClick={() => setIsOpen(!isOpen)}
-                        _hover={{ bg: "gray.800" }}
+                        onClick={hasContent ? () => setIsOpen(!isOpen) : undefined}
+                        _hover={hasContent ? { bg: "gray.800" } : undefined}
                     >
-                        <Box transform={isOpen ? "rotate(90deg)" : "rotate(0deg)"} transition="transform 0.2s">
-                            <FontAwesomeIcon icon={faChevronRight} />
-                        </Box>
-                        <Text>{userData.summary}</Text>
+                        {hasContent && (
+                            <Box transform={isOpen ? "rotate(90deg)" : "rotate(0deg)"} transition="transform 0.2s">
+                                <FontAwesomeIcon icon={faChevronRight} />
+                            </Box>
+                        )}
+                        <Text>{userData.summary ? userData.summary : "No summary available"}</Text>
                     </HStack>
-                    {isOpen && (
-                        <VStack w="100%" gap={5} px={4} pt={2} pb={3} bg="pageBackground" borderBottomRadius="md">
-                            <Text color="textColor">
-                                {userData.description.charAt(0).toUpperCase() + userData.description.slice(1)}
-                            </Text>
-                            <VStack alignItems={"start"}>
-                                <HStack gap={2}>
-                                    <FontAwesomeIcon icon={faLightbulb} size="lg" />
-                                    <Text fontWeight={"bold"}>Suggestions on how to improve</Text>
-                                </HStack>
+                    {isOpen && hasContent && (
+                        <VStack
+                            w="100%"
+                            gap={5}
+                            px={4}
+                            pt={2}
+                            pb={3}
+                            bg="pageBackground"
+                            borderBottomRadius="md"
+                            justifyContent={"start"}
+                            alignItems={"start"}
+                        >
+                            {userData.description && (
                                 <Text color="textColor">
-                                    {userData.improvements.charAt(0).toUpperCase() + userData.improvements.slice(1)}
+                                    {userData.description?.charAt(0).toUpperCase() + userData.description?.slice(1)}
                                 </Text>
-                            </VStack>
+                            )}
+                            {userData.improvements && (
+                                <VStack alignItems={"start"}>
+                                    <HStack gap={2}>
+                                        <FontAwesomeIcon icon={faLightbulb} size="lg" />
+                                        <Text fontWeight={"bold"}>Suggestions on how to improve</Text>
+                                    </HStack>
+                                    <Text color="textColor">
+                                        {userData.improvements.charAt(0).toUpperCase() + userData.improvements.slice(1)}
+                                    </Text>
+                                </VStack>
+                            )}
                         </VStack>
                     )}
                 </VStack>
