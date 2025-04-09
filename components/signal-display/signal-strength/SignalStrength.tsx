@@ -1,6 +1,7 @@
 import { HStack, VStack, Box, Text } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
+import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
 import { useState } from "react"
 
 export default function SignalStrength({ data }: { data: SignalStrengthUserData }) {
@@ -65,6 +66,7 @@ export default function SignalStrength({ data }: { data: SignalStrengthUserData 
             </HStack>
             <VStack w="100%" gap={0} alignItems={"start"}>
                 <HStack
+                    alignItems={"start"}
                     cursor="pointer"
                     py={2}
                     pl={3}
@@ -83,9 +85,20 @@ export default function SignalStrength({ data }: { data: SignalStrengthUserData 
                     <Text>{data.summary}</Text>
                 </HStack>
                 {isOpen && (
-                    <Box w="100%" px={4} pt={2} pb={3} bg="pageBackground" borderBottomRadius="md">
-                        <Text color="textColor">{data.description}</Text>
-                    </Box>
+                    <VStack w="100%" gap={5} px={4} pt={2} pb={3} bg="pageBackground" borderBottomRadius="md">
+                        <Text color="textColor">
+                            {data.description.charAt(0).toUpperCase() + data.description.slice(1)}
+                        </Text>
+                        <VStack alignItems={"start"}>
+                            <HStack gap={2}>
+                                <FontAwesomeIcon icon={faLightbulb} size="lg" />
+                                <Text fontWeight={"bold"}>Suggestions on how to improve</Text>
+                            </HStack>
+                            <Text color="textColor">
+                                {data.improvements.charAt(0).toUpperCase() + data.improvements.slice(1)}
+                            </Text>
+                        </VStack>
+                    </VStack>
                 )}
             </VStack>
         </VStack>

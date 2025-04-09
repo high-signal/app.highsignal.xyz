@@ -24,6 +24,7 @@ interface SignalStrengthUserData {
     maxValue: string
     summary: string
     description: string
+    improvements: string
 }
 
 interface ProjectData {

@@ -24,6 +24,7 @@ type User = {
         value: number
         summary: string
         description: string
+        improvements: string
         signal_strengths: {
             id: string
             name: string
@@ -114,6 +115,7 @@ export async function GET(request: Request) {
                     value,
                     summary,
                     description,
+                    improvements,
                     signal_strengths!inner (
                         id,
                         name,
@@ -163,6 +165,7 @@ export async function GET(request: Request) {
                             value: uss.value,
                             summary: uss.summary,
                             description: uss.description,
+                            improvements: uss.improvements,
                             maxValue: uss.signal_strengths.project_signal_strengths?.[0].max_value,
                             enabled: uss.signal_strengths.project_signal_strengths?.[0].enabled,
                             displayOrderIndex: uss.signal_strengths.project_signal_strengths?.[0].display_order_index,
