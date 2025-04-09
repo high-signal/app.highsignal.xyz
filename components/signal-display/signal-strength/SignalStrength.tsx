@@ -1,6 +1,6 @@
 import { HStack, VStack, Box, Text } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
+import { faChevronRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
 import { useState } from "react"
 
@@ -87,7 +87,8 @@ export default function SignalStrength({
             {isUserConnected && (
                 <VStack w="100%" gap={0} alignItems={"start"}>
                     <HStack
-                        alignItems={"start"}
+                        alignItems={"center"}
+                        justifyContent={"start"}
                         cursor={hasContent ? "pointer" : "default"}
                         py={2}
                         pl={3}
@@ -100,9 +101,13 @@ export default function SignalStrength({
                         onClick={hasContent ? () => setIsOpen(!isOpen) : undefined}
                         _hover={hasContent ? { bg: "gray.800" } : undefined}
                     >
-                        {hasContent && (
+                        {hasContent ? (
                             <Box transform={isOpen ? "rotate(90deg)" : "rotate(0deg)"} transition="transform 0.2s">
                                 <FontAwesomeIcon icon={faChevronRight} />
+                            </Box>
+                        ) : (
+                            <Box color="gray.400">
+                                <FontAwesomeIcon icon={faInfoCircle} size="lg" />
                             </Box>
                         )}
                         <Text>{userData.summary ? userData.summary : "No summary available"}</Text>
