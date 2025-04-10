@@ -4,15 +4,19 @@ import { VStack, HStack, Text, Box, Table, Image, Spinner, Input } from "@chakra
 import { useRouter, useSearchParams } from "next/navigation"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { useState, useEffect } from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCircleXmark } from "@fortawesome/free-solid-svg-icons"
 
 const TableHeader = ({
     children,
     textAlign = "left",
     display = { base: "table-cell", sm: "table-cell" },
+    maxW,
 }: {
     children: React.ReactNode
     textAlign?: "left" | "center"
     display?: { base: string; sm: string }
+    maxW?: { base: string; sm: string }
 }) => (
     <Table.ColumnHeader
         color="gray.200"
@@ -21,6 +25,8 @@ const TableHeader = ({
         borderColor="gray.500"
         textAlign={textAlign}
         display={display}
+        maxW={maxW}
+        px={{ base: 2, sm: 4 }}
     >
         {children}
     </Table.ColumnHeader>
@@ -75,9 +81,14 @@ export default function Leaderboard({ project }: { project: string }) {
             <Table.Root>
                 <Table.Header>
                     <Table.Row bg="transparent">
-                        <TableHeader textAlign="center">Rank</TableHeader>
+                        <TableHeader textAlign="center" maxW={{ base: "50px", sm: "auto" }}>
+                            <HStack justifyContent="center">
+                                <Text display={{ base: "block", sm: "none" }}>#</Text>
+                                <Text display={{ base: "none", sm: "block" }}>Rank</Text>
+                            </HStack>
+                        </TableHeader>
                         <TableHeader>
-                            <Box>
+                            <Box position="relative">
                                 <Input
                                     type="text"
                                     fontSize="md"
@@ -92,8 +103,28 @@ export default function Leaderboard({ project }: { project: string }) {
                                         boxShadow: "none",
                                         outline: "none",
                                     }}
+                                    _selection={{
+                                        bg: "gray.600",
+                                        color: "white",
+                                    }}
                                     bg={searchTerm ? "gray.800" : "transparent"}
+                                    pr="40px"
+                                    h="35px"
                                 />
+                                {searchTerm && (
+                                    <Box
+                                        position="absolute"
+                                        right="10px"
+                                        top="50%"
+                                        transform="translateY(-50%)"
+                                        cursor="pointer"
+                                        onClick={() => setSearchTerm("")}
+                                        color="gray.200"
+                                        _hover={{ color: "white" }}
+                                    >
+                                        <FontAwesomeIcon icon={faCircleXmark} size="lg" />
+                                    </Box>
+                                )}
                             </Box>
                         </TableHeader>
                         <TableHeader textAlign="center">Signal</TableHeader>
@@ -122,12 +153,12 @@ export default function Leaderboard({ project }: { project: string }) {
                                 borderBottom="1px solid"
                                 borderColor="gray.500"
                             >
-                                <Table.Cell borderBottom="none" py={"6px"} textAlign="center">
+                                <Table.Cell borderBottom="none" py={"6px"} px={{ base: 0, sm: 4 }} textAlign="center">
                                     <Text fontSize="lg" fontWeight="bold" color="white">
                                         {user.rank}
                                     </Text>
                                 </Table.Cell>
-                                <Table.Cell borderBottom="none" py={"6px"}>
+                                <Table.Cell borderBottom="none" py={"6px"} maxW={{ base: "180px", sm: "auto" }}>
                                     <HStack gap={3}>
                                         <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">
                                             <Image
@@ -136,12 +167,12 @@ export default function Leaderboard({ project }: { project: string }) {
                                                 fit="cover"
                                             />
                                         </Box>
-                                        <Text fontSize="lg" color="white">
+                                        <Text fontSize="lg" color="white" truncate>
                                             {user.displayName}
                                         </Text>
                                     </HStack>
                                 </Table.Cell>
-                                <Table.Cell borderBottom="none" py={0}>
+                                <Table.Cell borderBottom="none" py={0} px={{ base: 4, sm: 4 }}>
                                     <HStack justifyContent="center" alignItems="center" fontSize="xl" fontWeight="bold">
                                         <Text color={`scoreColor.${user.signal}`}>
                                             {user.signal.charAt(0).toUpperCase() + user.signal.slice(1)}
