@@ -37,5 +37,5 @@ interface SignalStrengthProjectData {
     displayName: string
     maxValue: number
     enabled: boolean
-    displayOrderIndex: number
+    previousDays: number
 }

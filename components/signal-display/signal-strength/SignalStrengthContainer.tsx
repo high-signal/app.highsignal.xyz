@@ -8,13 +8,8 @@ export default function SignalStrengthContainer({
     userSignalStrengths: SignalStrengthUserData[]
     projectSignalStrengths: SignalStrengthProjectData[]
 }) {
-    // Sort project signal strengths by displayOrderIndex
-    const sortedProjectSignalStrengths = [...projectSignalStrengths].sort(
-        (a, b) => a.displayOrderIndex - b.displayOrderIndex,
-    )
-
     // Match user signal strengths with project signal strengths by name
-    const matchedSignalStrengths = sortedProjectSignalStrengths.map((projectStrength) => {
+    const matchedSignalStrengths = projectSignalStrengths.map((projectStrength) => {
         const matchingUserStrength = userSignalStrengths.find(
             (userStrength) => userStrength.name === projectStrength.name,
         )
@@ -22,6 +17,21 @@ export default function SignalStrengthContainer({
             projectData: projectStrength,
             userData: matchingUserStrength,
         }
+    })
+
+    // Sort matched signal strengths first by user data value, then by project data maxValue
+    const sortedMatchedSignalStrengths = [...matchedSignalStrengths].sort((a, b) => {
+        // Get user values, defaulting to "0" if not available
+        const userValueA = a.userData ? parseFloat(a.userData.value) : 0
+        const userValueB = b.userData ? parseFloat(b.userData.value) : 0
+
+        // If user values are different, sort by user value (descending)
+        if (userValueA !== userValueB) {
+            return userValueB - userValueA
+        }
+
+        // If user values are the same, sort by project maxValue (descending)
+        return b.projectData.maxValue - a.projectData.maxValue
     })
 
     return (
@@ -35,7 +45,7 @@ export default function SignalStrengthContainer({
             )}
 
             <VStack gap={10} alignItems={"start"} w={"100%"}>
-                {matchedSignalStrengths.map(({ projectData, userData }, index) => (
+                {sortedMatchedSignalStrengths.map(({ projectData, userData }, index) => (
                     <SignalStrength
                         key={index}
                         userData={

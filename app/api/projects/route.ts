@@ -8,7 +8,7 @@ type ProjectSignalStrength = {
         project_signal_strengths: Array<{
             max_value: number
             enabled: boolean
-            display_order_index: number
+            previous_days: number
         }>
     }
 }
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
                         project_signal_strengths (
                             max_value,
                             enabled,
-                            display_order_index
+                            previous_days
                         )
                     )
                 )
@@ -82,7 +82,7 @@ export async function GET(request: Request) {
                         displayName: ps.signal_strengths.display_name,
                         maxValue: ps.signal_strengths.project_signal_strengths[0]?.max_value,
                         enabled: ps.signal_strengths.project_signal_strengths[0]?.enabled,
-                        displayOrderIndex: ps.signal_strengths.project_signal_strengths[0]?.display_order_index,
+                        previousDays: ps.signal_strengths.project_signal_strengths[0]?.previous_days,
                     })) || [],
             }
         })
