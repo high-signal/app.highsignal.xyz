@@ -43,8 +43,12 @@ export default function SignalDisplayContainer({ project, username }: { project:
                 <UserInfo profileImageUrl={currentUser.profileImageUrl} name={currentUser.displayName} />
                 <CurrentSignal signal={currentUser.signal} signalValue={currentUser.score} />
             </VStack>
-            <PeakSignalsContainer peakSignals={currentUser.peakSignals} />
+            <PeakSignalsContainer
+                currentUserDisplayName={currentUser.displayName}
+                peakSignals={currentUser.peakSignals}
+            />
             <SignalStrengthContainer
+                currentUserDisplayName={currentUser.displayName}
                 userSignalStrengths={currentUser.signalStrengths}
                 projectSignalStrengths={enabledSignalStrengths}
             />

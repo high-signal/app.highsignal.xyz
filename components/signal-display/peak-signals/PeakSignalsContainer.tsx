@@ -1,13 +1,21 @@
 import { VStack, Text, HStack } from "@chakra-ui/react"
 import PeakSignal from "./PeakSignal"
 
-export default function PeakSignalsContainer({ peakSignals }: { peakSignals: PeakSignalUserData[] }) {
+export default function PeakSignalsContainer({
+    currentUserDisplayName,
+    peakSignals,
+}: {
+    currentUserDisplayName: string
+    peakSignals: PeakSignalUserData[]
+}) {
     return (
         <VStack gap={3} w={"100%"} alignItems={"center"} pb={5} px={3} justifyContent={"center"}>
             <Text fontSize="2xl" fontWeight={"bold"}>
                 🏔️ Peak Signals
             </Text>
-            {peakSignals.length === 0 && <Text color="textColor">No peak signals data available for this user.</Text>}
+            {peakSignals.length === 0 && (
+                <Text color="textColor">{currentUserDisplayName} has no peak signals yet.</Text>
+            )}
             {peakSignals.length > 0 && (
                 <VStack
                     flexWrap="wrap"

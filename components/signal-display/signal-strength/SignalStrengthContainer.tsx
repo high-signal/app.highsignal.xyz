@@ -2,9 +2,11 @@ import { VStack, Text } from "@chakra-ui/react"
 import SignalStrength from "./SignalStrength"
 
 export default function SignalStrengthContainer({
+    currentUserDisplayName,
     userSignalStrengths,
     projectSignalStrengths,
 }: {
+    currentUserDisplayName: string
     userSignalStrengths: SignalStrengthUserData[]
     projectSignalStrengths: SignalStrengthProjectData[]
 }) {
@@ -39,11 +41,6 @@ export default function SignalStrengthContainer({
             <Text fontSize="2xl" fontWeight={"bold"}>
                 📡 Signal Strength
             </Text>
-
-            {userSignalStrengths.length === 0 && (
-                <Text color="textColor">No signal strength data available for this user.</Text>
-            )}
-
             <VStack gap={10} alignItems={"start"} w={"100%"}>
                 {sortedMatchedSignalStrengths.map(({ projectData, userData }, index) => (
                     <SignalStrength
