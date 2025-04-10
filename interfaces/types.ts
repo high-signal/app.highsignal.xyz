@@ -35,6 +35,7 @@ interface ProjectData {
 interface SignalStrengthProjectData {
     name: string
     displayName: string
+    status: string
     maxValue: number
     enabled: boolean
     previousDays: number

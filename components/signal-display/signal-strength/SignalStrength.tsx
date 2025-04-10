@@ -15,7 +15,7 @@ export default function SignalStrength({
 }) {
     const percentageCompleted = (Number(userData.value) / Number(projectData.maxValue)) * 100
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
-    const [isOpen, setIsOpen] = useState(false)
+    const [isOpen, setIsOpen] = useState(true)
 
     // Check if the box should be openable
     const hasContent = Boolean(userData.description || userData.improvements)
@@ -34,15 +34,17 @@ export default function SignalStrength({
                 w="100%"
             >
                 <Text fontSize="xl">{projectData.displayName}</Text>
-                <Text
-                    bg={completedBarWidth !== "0%" ? "green.500" : "gray.800"}
-                    fontSize="xl"
-                    px={2}
-                    borderRadius="8px"
-                    color={completedBarWidth !== "0%" ? "#029E03" : "gray.400"}
-                >
-                    {userData.value}
-                </Text>
+                {projectData.status === "active" && (
+                    <Text
+                        bg={completedBarWidth !== "0%" ? "green.500" : "gray.800"}
+                        fontSize="xl"
+                        px={2}
+                        borderRadius="8px"
+                        color={completedBarWidth !== "0%" ? "#029E03" : "gray.400"}
+                    >
+                        {userData.value}
+                    </Text>
+                )}
             </HStack>
             <HStack
                 w="100%"
@@ -54,10 +56,16 @@ export default function SignalStrength({
             >
                 <Text fontFamily={"monospace"}>0</Text>
                 <HStack w="100%" h="30px" bg="gray.800" borderRadius="md" overflow="hidden">
-                    {!isUserConnected ? (
+                    {projectData.status === "active" && !isUserConnected ? (
                         <Text color="gray.400" w={"100%"} textAlign={"center"} fontSize={"md"}>
                             Account not connected
                         </Text>
+                    ) : projectData.status === "dev" ? (
+                        <HStack gap={3} color={"gray.400"} w={"100%"} justifyContent={"center"} fontSize={"md"}>
+                            <Text>🏗️</Text>
+                            <Text>Coming soon</Text>
+                            <Text>🏗️</Text>
+                        </HStack>
                     ) : (
                         <Box
                             w={completedBarWidth}
@@ -144,8 +152,8 @@ export default function SignalStrength({
                     )}
                 </VStack>
             )}
-            {!isUserConnected && (
-                <HStack w={"100%"} justifyContent={"center"}>
+            {projectData.status === "active" && !isUserConnected && (
+                <HStack w={"100%"} justifyContent={"center"} cursor={"disabled"}>
                     <Text
                         color={"gray.900"}
                         justifyContent={"start"}
@@ -154,7 +162,7 @@ export default function SignalStrength({
                         px={3}
                         py={1}
                     >
-                        Connect your account
+                        Connect your account (coming soon)
                     </Text>
                 </HStack>
             )}

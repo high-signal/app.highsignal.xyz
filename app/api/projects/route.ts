@@ -5,6 +5,7 @@ type ProjectSignalStrength = {
     signal_strengths: {
         name: string
         display_name: string
+        status: string
         project_signal_strengths: Array<{
             max_value: number
             enabled: boolean
@@ -39,6 +40,7 @@ export async function GET(request: Request) {
                     signal_strengths (
                         name,
                         display_name,
+                        status,
                         project_signal_strengths (
                             max_value,
                             enabled,
@@ -80,6 +82,7 @@ export async function GET(request: Request) {
                     project.project_signal_strengths?.map((ps) => ({
                         name: ps.signal_strengths.name,
                         displayName: ps.signal_strengths.display_name,
+                        status: ps.signal_strengths.status,
                         maxValue: ps.signal_strengths.project_signal_strengths[0]?.max_value,
                         enabled: ps.signal_strengths.project_signal_strengths[0]?.enabled,
                         previousDays: ps.signal_strengths.project_signal_strengths[0]?.previous_days,

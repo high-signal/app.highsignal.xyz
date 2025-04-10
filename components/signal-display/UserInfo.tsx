@@ -17,14 +17,19 @@ export default function UserInfo({ profileImageUrl, name }: UserInfoProps) {
                 justifyContent={"start"}
                 borderRadius="full"
                 gap={4}
-                position="relative"
+                minW="250px"
             >
-                <Box position="relative" boxSize="100px" borderRadius="full" overflow="hidden">
+                <Box boxSize="100px" minW="100px" borderRadius="full" overflow="hidden" flexGrow={0}>
                     <Image src={profileImageUrl} alt={`${name} Profile Image`} fit="cover" />
                 </Box>
-                <Text fontSize={name.length > 15 ? { base: "2xl", sm: "3xl" } : { base: "3xl", sm: "3xl" }}>
-                    {name}
-                </Text>
+                <HStack justifyContent={"center"} flexGrow={1}>
+                    <Text
+                        textAlign={"center"}
+                        fontSize={name.length >= 15 ? { base: "2xl", sm: "3xl" } : { base: "3xl", sm: "3xl" }}
+                    >
+                        {name}
+                    </Text>
+                </HStack>
             </HStack>
         </HStack>
     )
