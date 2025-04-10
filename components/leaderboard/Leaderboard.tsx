@@ -50,6 +50,7 @@ export default function Leaderboard({ project }: { project: string }) {
             <Table.Root>
                 <Table.Header>
                     <Table.Row bg="transparent">
+                        <TableHeader textAlign="center">Rank</TableHeader>
                         <TableHeader>
                             <Box>
                                 <Input
@@ -85,6 +86,11 @@ export default function Leaderboard({ project }: { project: string }) {
                             borderBottom="1px solid"
                             borderColor="gray.500"
                         >
+                            <Table.Cell borderBottom="none" py={"6px"} textAlign="center">
+                                <Text fontSize="lg" fontWeight="bold" color="white">
+                                    {user.rank}
+                                </Text>
+                            </Table.Cell>
                             <Table.Cell borderBottom="none" py={"6px"}>
                                 <HStack gap={3}>
                                     <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">

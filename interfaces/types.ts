@@ -1,5 +1,6 @@
 interface UserData {
     score: number
+    rank: number
     username: string
     displayName: string
     profileImageUrl: string

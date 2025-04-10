@@ -37,6 +37,13 @@ export async function GET(request: Request) {
     const projectSlug = searchParams.get("project")
     const username = searchParams.get("user")
 
+    // Pagination
+    const page = parseInt(searchParams.get("page") || "1")
+    const resultsPerPage = 10
+    const rankOffset = (page - 1) * resultsPerPage
+    const from = rankOffset
+    const to = from + resultsPerPage - 1
+
     if (!projectSlug) {
         return NextResponse.json({ error: "Project slug is required" }, { status: 400 })
     }
@@ -51,6 +58,7 @@ export async function GET(request: Request) {
                 `
                 user_id,
                 score,
+                last_activity,
                 projects!inner (
                     id
                 ),
@@ -61,7 +69,8 @@ export async function GET(request: Request) {
             )
             .eq("projects.url_slug", projectSlug)
             .order("score", { ascending: false })
-            .limit(10)
+            .order("last_activity", { ascending: false, nullsFirst: false })
+            .range(from, to)
 
         // If username is provided, add username filter to the query
         if (username) {
@@ -129,7 +138,7 @@ export async function GET(request: Request) {
         }
 
         // Combine the data
-        const formattedUsers = userProjectScores.map((score) => {
+        const formattedUsers = userProjectScores.map((score, index) => {
             const user = (userDetails as unknown as User[])?.find((u) => u.id === score.user_id)
             return {
                 username: user?.username || "",
@@ -137,6 +146,7 @@ export async function GET(request: Request) {
                 profileImageUrl: user?.profile_image_url || "",
                 score: score.score,
                 signal: calculateSignal(score.score),
+                rank: rankOffset + index + 1,
                 peakSignals:
                     user?.user_peak_signals?.map((ups) => ({
                         name: ups.peak_signals.name,
