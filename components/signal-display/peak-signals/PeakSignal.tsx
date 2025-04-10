@@ -9,9 +9,9 @@ export default function PeakSignal({ peakSignal }: { peakSignal: PeakSignalUserD
             borderRadius="full"
             textAlign="center"
             overflow="hidden"
-            maxW="100%"
-            gap={3}
             w="100%"
+            maxW={{ base: "100%", md: "350px" }}
+            gap={3}
         >
             <Box
                 position="relative"
