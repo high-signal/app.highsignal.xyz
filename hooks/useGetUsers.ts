@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 
-export const useGetUsers = (project: string, username?: string) => {
+export const useGetUsers = (project: string, username?: string, fuzzy: boolean = false) => {
     const [users, setUsers] = useState<UserData[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -12,6 +12,9 @@ export const useGetUsers = (project: string, username?: string) => {
                 url.searchParams.append("project", project)
                 if (username) {
                     url.searchParams.append("user", username)
+                    if (fuzzy) {
+                        url.searchParams.append("fuzzy", "true")
+                    }
                 }
 
                 const response = await fetch(url.toString())
@@ -28,7 +31,7 @@ export const useGetUsers = (project: string, username?: string) => {
         }
 
         fetchData()
-    }, [project, username])
+    }, [project, username, fuzzy])
 
     return { users, loading, error }
 }

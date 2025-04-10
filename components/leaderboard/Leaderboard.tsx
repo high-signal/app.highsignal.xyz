@@ -3,6 +3,7 @@
 import { VStack, HStack, Text, Box, Table, Image, Spinner, Input } from "@chakra-ui/react"
 import { useRouter } from "next/navigation"
 import { useGetUsers } from "../../hooks/useGetUsers"
+import { useState, useEffect } from "react"
 
 const TableHeader = ({
     children,
@@ -27,7 +28,20 @@ const TableHeader = ({
 
 export default function Leaderboard({ project }: { project: string }) {
     const router = useRouter()
-    const { users, loading, error } = useGetUsers(project)
+    const [searchTerm, setSearchTerm] = useState("")
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
+
+    // Use the fuzzy search when there's a search term
+    const { users, loading, error } = useGetUsers(project, debouncedSearchTerm, debouncedSearchTerm.length > 0)
+
+    // Debounce the search term to avoid too many API calls
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm)
+        }, 300) // 300ms debounce
+
+        return () => clearTimeout(timer)
+    }, [searchTerm])
 
     if (loading) {
         return (
@@ -55,15 +69,19 @@ export default function Leaderboard({ project }: { project: string }) {
                             <Box>
                                 <Input
                                     type="text"
-                                    placeholder="Search (Coming soon...)"
+                                    fontSize="md"
+                                    placeholder="Search users..."
                                     borderRadius="full"
                                     border={"2px solid"}
                                     borderColor="gray.800"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
                                     _focus={{
-                                        borderColor: "gray.500",
+                                        borderColor: "gray.300",
                                         boxShadow: "none",
                                         outline: "none",
                                     }}
+                                    bg={searchTerm ? "gray.800" : "transparent"}
                                 />
                             </Box>
                         </TableHeader>
@@ -75,78 +93,86 @@ export default function Leaderboard({ project }: { project: string }) {
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                    {users.map((user, index) => (
-                        <Table.Row
-                            key={index}
-                            cursor="pointer"
-                            bg="transparent"
-                            _hover={{ bg: "gray.800" }}
-                            transition="background-color 0.2s"
-                            onClick={() => router.push(`/${project}/${user.username}`)}
-                            borderBottom="1px solid"
-                            borderColor="gray.500"
-                        >
-                            <Table.Cell borderBottom="none" py={"6px"} textAlign="center">
-                                <Text fontSize="lg" fontWeight="bold" color="white">
-                                    {user.rank}
-                                </Text>
-                            </Table.Cell>
-                            <Table.Cell borderBottom="none" py={"6px"}>
-                                <HStack gap={3}>
-                                    <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">
-                                        <Image
-                                            src={user.profileImageUrl}
-                                            alt={`Operator ${user.profileImageUrl}`}
-                                            fit="cover"
-                                        />
-                                    </Box>
-                                    <Text fontSize="lg" color="white">
-                                        {user.displayName}
-                                    </Text>
-                                </HStack>
-                            </Table.Cell>
-                            <Table.Cell borderBottom="none" py={0}>
-                                <HStack justifyContent="center" alignItems="center" fontSize="xl" fontWeight="bold">
-                                    <Text color={`scoreColor.${user.signal}`}>
-                                        {user.signal.charAt(0).toUpperCase() + user.signal.slice(1)}
-                                    </Text>
-                                </HStack>
-                            </Table.Cell>
-                            <Table.Cell borderBottom="none" textAlign="center" py={0}>
-                                <HStack justifyContent="center" alignItems="center">
-                                    <Text
-                                        px={2}
-                                        py={1}
-                                        border="3px solid"
-                                        borderRadius="15px"
-                                        borderColor={`scoreColor.${user.signal}`}
-                                        color="white"
-                                        w="fit-content"
-                                        fontSize="lg"
-                                    >
-                                        {user.score}
-                                    </Text>
-                                </HStack>
-                            </Table.Cell>
-                            <Table.Cell borderBottom="none" py={0} display={{ base: "none", sm: "table-cell" }}>
-                                <HStack justify="center" gap={2}>
-                                    {[...user.peakSignals]
-                                        .sort((a, b) => b.value - a.value)
-                                        .slice(0, 5)
-                                        .map((badge, index) => (
-                                            <Image
-                                                key={index}
-                                                src={badge.imageSrc}
-                                                alt={badge.imageAlt}
-                                                width={10}
-                                                height={10}
-                                                borderRadius="full"
-                                            />
-                                        ))}
-                                </HStack>
+                    {users.length === 0 ? (
+                        <Table.Row>
+                            <Table.Cell colSpan={5} textAlign="center" py={10}>
+                                <Text color="gray.400">No users found</Text>
                             </Table.Cell>
                         </Table.Row>
-                    ))}
+                    ) : (
+                        users.map((user, index) => (
+                            <Table.Row
+                                key={index}
+                                cursor="pointer"
+                                bg="transparent"
+                                _hover={{ bg: "gray.800" }}
+                                transition="background-color 0.2s"
+                                onClick={() => router.push(`/${project}/${user.username}`)}
+                                borderBottom="1px solid"
+                                borderColor="gray.500"
+                            >
+                                <Table.Cell borderBottom="none" py={"6px"} textAlign="center">
+                                    <Text fontSize="lg" fontWeight="bold" color="white">
+                                        {user.rank}
+                                    </Text>
+                                </Table.Cell>
+                                <Table.Cell borderBottom="none" py={"6px"}>
+                                    <HStack gap={3}>
+                                        <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">
+                                            <Image
+                                                src={user.profileImageUrl}
+                                                alt={`Operator ${user.profileImageUrl}`}
+                                                fit="cover"
+                                            />
+                                        </Box>
+                                        <Text fontSize="lg" color="white">
+                                            {user.displayName}
+                                        </Text>
+                                    </HStack>
+                                </Table.Cell>
+                                <Table.Cell borderBottom="none" py={0}>
+                                    <HStack justifyContent="center" alignItems="center" fontSize="xl" fontWeight="bold">
+                                        <Text color={`scoreColor.${user.signal}`}>
+                                            {user.signal.charAt(0).toUpperCase() + user.signal.slice(1)}
+                                        </Text>
+                                    </HStack>
+                                </Table.Cell>
+                                <Table.Cell borderBottom="none" textAlign="center" py={0}>
+                                    <HStack justifyContent="center" alignItems="center">
+                                        <Text
+                                            px={2}
+                                            py={1}
+                                            border="3px solid"
+                                            borderRadius="15px"
+                                            borderColor={`scoreColor.${user.signal}`}
+                                            color="white"
+                                            w="fit-content"
+                                            fontSize="lg"
+                                        >
+                                            {user.score}
+                                        </Text>
+                                    </HStack>
+                                </Table.Cell>
+                                <Table.Cell borderBottom="none" py={0} display={{ base: "none", sm: "table-cell" }}>
+                                    <HStack justify="center" gap={2}>
+                                        {[...user.peakSignals]
+                                            .sort((a, b) => b.value - a.value)
+                                            .slice(0, 5)
+                                            .map((badge, index) => (
+                                                <Image
+                                                    key={index}
+                                                    src={badge.imageSrc}
+                                                    alt={badge.imageAlt}
+                                                    width={10}
+                                                    height={10}
+                                                    borderRadius="full"
+                                                />
+                                            ))}
+                                    </HStack>
+                                </Table.Cell>
+                            </Table.Row>
+                        ))
+                    )}
                 </Table.Body>
             </Table.Root>
         </Box>

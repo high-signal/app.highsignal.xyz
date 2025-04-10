@@ -36,6 +36,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const projectSlug = searchParams.get("project")
     const username = searchParams.get("user")
+    const fuzzy = searchParams.get("fuzzy") === "true"
 
     // Pagination
     const page = parseInt(searchParams.get("page") || "1")
@@ -53,28 +54,35 @@ export async function GET(request: Request) {
     try {
         // Create the initial query to get the user project scores
         let projectScoresQuery = supabase
-            .from("user_project_scores")
+            .from("user_project_scores_ranked")
             .select(
                 `
-                user_id,
-                score,
-                last_activity,
-                projects!inner (
-                    id
-                ),
-                users!inner (
-                    username
-                )
-            `,
+                    user_id,
+                    score,
+                    rank,
+                    projects!inner (
+                        id,
+                        url_slug
+                    ),
+                    users!inner (
+                        username,
+                        display_name
+                    )
+                `,
             )
             .eq("projects.url_slug", projectSlug)
-            .order("score", { ascending: false })
-            .order("last_activity", { ascending: false, nullsFirst: false })
+            .order("rank", { ascending: true })
             .range(from, to)
 
         // If username is provided, add username filter to the query
         if (username) {
-            projectScoresQuery = projectScoresQuery.eq("users.username", username)
+            if (fuzzy) {
+                // Use ILIKE for fuzzy matching on display_name only
+                projectScoresQuery = projectScoresQuery.ilike("users.display_name", `%${username}%`)
+            } else {
+                // Use exact match for username
+                projectScoresQuery = projectScoresQuery.eq("users.username", username)
+            }
         }
 
         // Execute the query
@@ -144,9 +152,9 @@ export async function GET(request: Request) {
                 username: user?.username || "",
                 displayName: user?.display_name || "",
                 profileImageUrl: user?.profile_image_url || "",
+                rank: score.rank,
                 score: score.score,
                 signal: calculateSignal(score.score),
-                rank: rankOffset + index + 1,
                 peakSignals:
                     user?.user_peak_signals?.map((ups) => ({
                         name: ups.peak_signals.name,
