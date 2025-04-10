@@ -1,7 +1,7 @@
 "use client"
 
 import { VStack, HStack, Text, Box, Table, Image, Spinner, Input } from "@chakra-ui/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { useState, useEffect } from "react"
 
@@ -28,20 +28,31 @@ const TableHeader = ({
 
 export default function Leaderboard({ project }: { project: string }) {
     const router = useRouter()
-    const [searchTerm, setSearchTerm] = useState("")
-    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
+    const searchParams = useSearchParams()
+    const initialSearchTerm = searchParams.get("search") || ""
+    const [searchTerm, setSearchTerm] = useState(initialSearchTerm)
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialSearchTerm)
 
-    // Use the fuzzy search when there's a search term
+    // Use the fuzzy search when there is a search term
     const { users, loading, error } = useGetUsers(project, debouncedSearchTerm, debouncedSearchTerm.length > 0)
 
     // Debounce the search term to avoid too many API calls
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearchTerm(searchTerm)
+
+            // Update URL with search parameter
+            const url = new URL(window.location.href)
+            if (searchTerm) {
+                url.searchParams.set("search", searchTerm)
+            } else {
+                url.searchParams.delete("search")
+            }
+            router.replace(url.pathname + url.search, { scroll: false })
         }, 300) // 300ms debounce
 
         return () => clearTimeout(timer)
-    }, [searchTerm])
+    }, [searchTerm, router])
 
     if (loading) {
         return (
