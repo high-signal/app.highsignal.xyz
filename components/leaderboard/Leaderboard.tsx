@@ -12,7 +12,7 @@ const TableHeader = ({
     textAlign = "left",
     display = { base: "table-cell", sm: "table-cell" },
     maxW,
-    px = { base: 2, sm: 4 },
+    px = { base: 0, sm: 2 },
 }: {
     children: React.ReactNode
     textAlign?: "left" | "center"
@@ -91,8 +91,8 @@ export default function Leaderboard({ project }: { project: string }) {
 
     const rankColumnWidth = { base: "20px", sm: "50px" }
     const displayNameColumnWidth = { base: "120px", sm: "auto" }
-    const signalColumnWidth = { base: "50px", sm: "80px" }
-    const scoreColumnWidth = { base: "50px", sm: "80px" }
+    const signalColumnWidth = { base: "40px", sm: "40px" }
+    const scoreColumnWidth = { base: "40px", sm: "40px" }
     const peakSignalsColumnWidth = { base: "100px", sm: "100px" }
 
     return (
@@ -133,7 +133,7 @@ export default function Leaderboard({ project }: { project: string }) {
                                 {searchTerm && (
                                     <Box
                                         position="absolute"
-                                        right="5px"
+                                        right="6px"
                                         top="50%"
                                         transform="translateY(-50%)"
                                         cursor="pointer"
@@ -209,14 +209,20 @@ export default function Leaderboard({ project }: { project: string }) {
                                         </Text>
                                     </HStack>
                                 </Table.Cell>
-                                <Table.Cell borderBottom="none" py={0} maxW={signalColumnWidth}>
+                                <Table.Cell borderBottom="none" py={0} px={0} maxW={signalColumnWidth}>
                                     <HStack justifyContent="center" alignItems="center" fontSize="xl" fontWeight="bold">
                                         <Text color={`scoreColor.${user.signal}`}>
                                             {user.signal.charAt(0).toUpperCase() + user.signal.slice(1)}
                                         </Text>
                                     </HStack>
                                 </Table.Cell>
-                                <Table.Cell borderBottom="none" textAlign="center" py={0} maxW={scoreColumnWidth}>
+                                <Table.Cell
+                                    borderBottom="none"
+                                    textAlign="center"
+                                    py={0}
+                                    px={0}
+                                    maxW={scoreColumnWidth}
+                                >
                                     <HStack justifyContent="center" alignItems="center">
                                         <Text
                                             px={2}
