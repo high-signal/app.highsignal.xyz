@@ -38,6 +38,7 @@ export default function Leaderboard({ project }: { project: string }) {
     const initialSearchTerm = searchParams.get("search") || ""
     const [searchTerm, setSearchTerm] = useState(initialSearchTerm)
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialSearchTerm)
+    const [isSearching, setIsSearching] = useState(false)
 
     // Use the fuzzy search when there is a search term
     const { users, loading, error } = useGetUsers(project, debouncedSearchTerm, debouncedSearchTerm.length > 0)
@@ -60,12 +61,21 @@ export default function Leaderboard({ project }: { project: string }) {
         return () => clearTimeout(timer)
     }, [searchTerm, router])
 
-    if (loading) {
-        return (
-            <VStack gap={10} w="100%" h="100%" justifyContent="center" alignItems="center" borderRadius="20px">
-                <Spinner size="lg" />
-            </VStack>
-        )
+    // Set isSearching to false when loading completes
+    useEffect(() => {
+        if (!loading) {
+            setIsSearching(false)
+        }
+    }, [loading])
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value)
+        setIsSearching(true)
+    }
+
+    const handleClearSearch = () => {
+        setSearchTerm("")
+        setIsSearching(true)
     }
 
     if (error) {
@@ -97,7 +107,7 @@ export default function Leaderboard({ project }: { project: string }) {
                                     border={"2px solid"}
                                     borderColor="gray.800"
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onChange={handleSearchChange}
                                     _focus={{
                                         borderColor: "gray.300",
                                         boxShadow: "none",
@@ -118,7 +128,7 @@ export default function Leaderboard({ project }: { project: string }) {
                                         top="50%"
                                         transform="translateY(-50%)"
                                         cursor="pointer"
-                                        onClick={() => setSearchTerm("")}
+                                        onClick={handleClearSearch}
                                         color="gray.200"
                                         _hover={{ color: "white" }}
                                     >
@@ -135,7 +145,13 @@ export default function Leaderboard({ project }: { project: string }) {
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                    {users.length === 0 ? (
+                    {loading || isSearching ? (
+                        <Table.Row>
+                            <Table.Cell colSpan={5} textAlign="center" py={10}>
+                                <Spinner size="md" />
+                            </Table.Cell>
+                        </Table.Row>
+                    ) : users.length === 0 ? (
                         <Table.Row>
                             <Table.Cell colSpan={5} textAlign="center" py={10}>
                                 <Text color="gray.400">No users found</Text>

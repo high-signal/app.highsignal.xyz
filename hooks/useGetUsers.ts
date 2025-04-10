@@ -8,6 +8,8 @@ export const useGetUsers = (project: string, username?: string, fuzzy: boolean =
     useEffect(() => {
         const fetchData = async () => {
             try {
+                setLoading(true)
+
                 const url = new URL("/api/users", window.location.origin)
                 url.searchParams.append("project", project)
                 if (username) {
