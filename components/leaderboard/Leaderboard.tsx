@@ -49,17 +49,19 @@ export default function Leaderboard({ project }: { project: string }) {
     // Debounce the search term to avoid too many API calls
     useEffect(() => {
         const timer = setTimeout(() => {
-            setDebouncedSearchTerm(searchTerm)
+            // Trim whitespace from the search term
+            const trimmedSearchTerm = searchTerm.trim()
+            setDebouncedSearchTerm(trimmedSearchTerm)
 
             // Update URL with search parameter
             const url = new URL(window.location.href)
-            if (searchTerm) {
-                url.searchParams.set("search", searchTerm)
+            if (trimmedSearchTerm) {
+                url.searchParams.set("search", trimmedSearchTerm)
             } else {
                 url.searchParams.delete("search")
             }
             router.replace(url.pathname + url.search, { scroll: false })
-        }, 300) // 300ms debounce
+        }, 500) // 500ms debounce
 
         return () => clearTimeout(timer)
     }, [searchTerm, router])
@@ -106,7 +108,7 @@ export default function Leaderboard({ project }: { project: string }) {
                                 <Text display={{ base: "none", sm: "block" }}>Rank</Text>
                             </HStack>
                         </TableHeader>
-                        <TableHeader maxW={displayNameColumnWidth} px={{ base: 2, sm: 4 }}>
+                        <TableHeader maxW={displayNameColumnWidth} px={{ base: 2, sm: 2 }}>
                             <Box position="relative">
                                 <Input
                                     type="text"
