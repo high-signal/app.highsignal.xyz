@@ -3,7 +3,7 @@ import PeakSignal from "./PeakSignal"
 
 export default function PeakSignalsContainer({ peakSignals }: { peakSignals: PeakSignalUserData[] }) {
     return (
-        <VStack gap={3} w={"100%"} alignItems={"center"} pb={5} justifyContent={"center"}>
+        <VStack gap={3} w={"100%"} alignItems={"center"} pb={5} px={3} justifyContent={"center"}>
             <Text fontSize="2xl" fontWeight={"bold"}>
                 🏔️ Peak Signals
             </Text>

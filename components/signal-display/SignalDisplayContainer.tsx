@@ -37,19 +37,17 @@ export default function SignalDisplayContainer({ project, username }: { project:
     const enabledSignalStrengths = currentProject.signalStrengths.filter((signalStrength) => signalStrength.enabled)
 
     return (
-        <VStack gap={6} w="100%" maxW="800px" py={6} px={3} zIndex={10}>
+        <VStack gap={6} w="100%" maxW="800px" py={6} zIndex={10}>
             <VStack gap={3} w="100%" maxW="600px" px={3}>
                 <Title projectData={currentProject} />
                 <UserInfo profileImageUrl={currentUser.profileImageUrl} name={currentUser.displayName} />
                 <CurrentSignal signal={currentUser.signal} signalValue={currentUser.score} />
             </VStack>
             <PeakSignalsContainer peakSignals={currentUser.peakSignals} />
-            <VStack gap={3} w="100%" maxW="600px">
-                <SignalStrengthContainer
-                    userSignalStrengths={currentUser.signalStrengths}
-                    projectSignalStrengths={enabledSignalStrengths}
-                />
-            </VStack>
+            <SignalStrengthContainer
+                userSignalStrengths={currentUser.signalStrengths}
+                projectSignalStrengths={enabledSignalStrengths}
+            />
         </VStack>
     )
 }
