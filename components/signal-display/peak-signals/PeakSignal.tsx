@@ -11,7 +11,7 @@ export default function PeakSignal({ peakSignal }: { peakSignal: PeakSignalUserD
             overflow="hidden"
             maxW="100%"
             gap={3}
-            w={{ base: "100%", sm: "auto" }}
+            w="100%"
         >
             <Box
                 position="relative"

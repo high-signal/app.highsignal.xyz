@@ -9,15 +9,13 @@ export default function PeakSignalsContainer({ peakSignals }: { peakSignals: Pea
             </Text>
             {peakSignals.length === 0 && <Text color="textColor">No peak signals data available for this user.</Text>}
             {peakSignals.length > 0 && (
-                <HStack
+                <VStack
                     flexWrap="wrap"
                     gap={4}
                     py={{ base: 2, sm: 4 }}
-                    px={2}
+                    px={{ base: 2, sm: 4 }}
                     mb={8}
                     justifyContent={"center"}
-                    maxW="100%"
-                    w="fit-content"
                     bg={"gray.900"}
                     borderRadius={"50px"}
                 >
@@ -26,7 +24,7 @@ export default function PeakSignalsContainer({ peakSignals }: { peakSignals: Pea
                         .map((peakSignal, index) => (
                             <PeakSignal key={index} peakSignal={peakSignal} />
                         ))}
-                </HStack>
+                </VStack>
             )}
         </VStack>
     )
