@@ -89,7 +89,7 @@ export default function Leaderboard({ project }: { project: string }) {
         )
     }
 
-    const rankColumnWidth = { base: "20px", sm: "30px" }
+    const rankColumnWidth = { base: "20px", sm: "50px" }
     const displayNameColumnWidth = { base: "120px", sm: "auto" }
     const signalColumnWidth = { base: "50px", sm: "80px" }
     const scoreColumnWidth = { base: "50px", sm: "80px" }
@@ -106,7 +106,7 @@ export default function Leaderboard({ project }: { project: string }) {
                                 <Text display={{ base: "none", sm: "block" }}>Rank</Text>
                             </HStack>
                         </TableHeader>
-                        <TableHeader maxW={displayNameColumnWidth} px={{ base: 2, sm: 2 }}>
+                        <TableHeader maxW={displayNameColumnWidth} px={{ base: 2, sm: 4 }}>
                             <Box position="relative">
                                 <Input
                                     type="text"
@@ -127,13 +127,13 @@ export default function Leaderboard({ project }: { project: string }) {
                                         color: "white",
                                     }}
                                     bg={searchTerm ? "gray.800" : "transparent"}
-                                    pr="40px"
+                                    pr="30px"
                                     h="35px"
                                 />
                                 {searchTerm && (
                                     <Box
                                         position="absolute"
-                                        right="10px"
+                                        right="5px"
                                         top="50%"
                                         transform="translateY(-50%)"
                                         cursor="pointer"
@@ -164,14 +164,18 @@ export default function Leaderboard({ project }: { project: string }) {
                 <Table.Body>
                     {loading || isSearching ? (
                         <Table.Row>
-                            <Table.Cell colSpan={5} textAlign="center" py={10}>
-                                <Spinner size="md" />
+                            <Table.Cell colSpan={5} py={0} h={"50vh"}>
+                                <VStack gap={2} h={"100%"} justifyContent="start" py={10}>
+                                    <Spinner size="md" />
+                                </VStack>
                             </Table.Cell>
                         </Table.Row>
                     ) : users.length === 0 ? (
                         <Table.Row>
                             <Table.Cell colSpan={5} textAlign="center" py={10}>
-                                <Text color="gray.400">No users found</Text>
+                                <Text color="gray.400">
+                                    {searchTerm ? `No users found with the name "${searchTerm}"` : "No users found"}
+                                </Text>
                             </Table.Cell>
                         </Table.Row>
                     ) : (
