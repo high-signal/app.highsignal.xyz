@@ -39,7 +39,7 @@ export default function Header({}) {
     return (
         <HStack
             w="100%"
-            maxW="1400px"
+            maxW="1800px"
             h={"fit-content"}
             pt={4}
             pb={2}

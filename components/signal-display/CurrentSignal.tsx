@@ -7,7 +7,7 @@ interface CurrentSignalProps {
 
 export default function CurrentSignal({ signal, signalValue }: CurrentSignalProps) {
     return (
-        <VStack w="100%" maxW="600px" gap={3}>
+        <VStack w="100%" maxW="600px" gap={1}>
             <HStack
                 justifyContent={"center"}
                 alignItems={"center"}

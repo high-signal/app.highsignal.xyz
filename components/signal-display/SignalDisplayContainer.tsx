@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, Text, Spinner } from "@chakra-ui/react"
+import { VStack, Text, Spinner, Box } from "@chakra-ui/react"
 import Title from "./Title"
 import UserInfo from "./UserInfo"
 import CurrentSignal from "./CurrentSignal"
@@ -37,10 +37,12 @@ export default function SignalDisplayContainer({ project, username }: { project:
     const enabledSignalStrengths = currentProject.signalStrengths.filter((signalStrength) => signalStrength.enabled)
 
     return (
-        <VStack gap={6} w="100%" maxW="700px" py={6} zIndex={10}>
-            <VStack gap={3} w="100%" maxW="600px" px={3}>
+        <VStack gap={8} w="100%" maxW="700px" py={6} zIndex={10}>
+            <VStack gap={0} w="100%" maxW="600px" px={3}>
                 <Title projectData={currentProject} />
+                <Box w="100%" h="10px" />
                 <UserInfo profileImageUrl={currentUser.profileImageUrl} name={currentUser.displayName} />
+                <Box w="100%" h="50px" />
                 <CurrentSignal signal={currentUser.signal} signalValue={currentUser.score} />
             </VStack>
             <PeakSignalsContainer
