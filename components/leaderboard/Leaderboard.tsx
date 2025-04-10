@@ -12,11 +12,13 @@ const TableHeader = ({
     textAlign = "left",
     display = { base: "table-cell", sm: "table-cell" },
     maxW,
+    px = { base: 2, sm: 4 },
 }: {
     children: React.ReactNode
     textAlign?: "left" | "center"
     display?: { base: string; sm: string }
     maxW?: { base: string; sm: string }
+    px?: { base: number; sm: number }
 }) => (
     <Table.ColumnHeader
         color="gray.200"
@@ -25,8 +27,9 @@ const TableHeader = ({
         borderColor="gray.500"
         textAlign={textAlign}
         display={display}
+        minW={maxW}
         maxW={maxW}
-        px={{ base: 2, sm: 4 }}
+        px={px}
     >
         {children}
     </Table.ColumnHeader>
@@ -86,18 +89,24 @@ export default function Leaderboard({ project }: { project: string }) {
         )
     }
 
+    const rankColumnWidth = { base: "20px", sm: "30px" }
+    const displayNameColumnWidth = { base: "120px", sm: "auto" }
+    const signalColumnWidth = { base: "50px", sm: "80px" }
+    const scoreColumnWidth = { base: "50px", sm: "80px" }
+    const peakSignalsColumnWidth = { base: "100px", sm: "100px" }
+
     return (
         <Box w={"100%"} px={{ base: 3, sm: 6 }}>
             <Table.Root>
                 <Table.Header>
                     <Table.Row bg="transparent">
-                        <TableHeader textAlign="center" maxW={{ base: "50px", sm: "auto" }}>
+                        <TableHeader textAlign="center" maxW={rankColumnWidth}>
                             <HStack justifyContent="center">
                                 <Text display={{ base: "block", sm: "none" }}>#</Text>
                                 <Text display={{ base: "none", sm: "block" }}>Rank</Text>
                             </HStack>
                         </TableHeader>
-                        <TableHeader>
+                        <TableHeader maxW={displayNameColumnWidth} px={{ base: 2, sm: 2 }}>
                             <Box position="relative">
                                 <Input
                                     type="text"
@@ -137,9 +146,17 @@ export default function Leaderboard({ project }: { project: string }) {
                                 )}
                             </Box>
                         </TableHeader>
-                        <TableHeader textAlign="center">Signal</TableHeader>
-                        <TableHeader textAlign="center">Score</TableHeader>
-                        <TableHeader textAlign="center" display={{ base: "none", sm: "table-cell" }}>
+                        <TableHeader textAlign="center" maxW={signalColumnWidth}>
+                            Signal
+                        </TableHeader>
+                        <TableHeader textAlign="center" maxW={scoreColumnWidth}>
+                            Score
+                        </TableHeader>
+                        <TableHeader
+                            textAlign="center"
+                            maxW={peakSignalsColumnWidth}
+                            display={{ base: "none", sm: "table-cell" }}
+                        >
                             Peak Signals
                         </TableHeader>
                     </Table.Row>
@@ -174,7 +191,7 @@ export default function Leaderboard({ project }: { project: string }) {
                                         {user.rank}
                                     </Text>
                                 </Table.Cell>
-                                <Table.Cell borderBottom="none" py={"6px"} maxW={{ base: "180px", sm: "auto" }}>
+                                <Table.Cell borderBottom="none" py={"6px"} maxW={displayNameColumnWidth}>
                                     <HStack gap={3}>
                                         <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">
                                             <Image
@@ -188,14 +205,14 @@ export default function Leaderboard({ project }: { project: string }) {
                                         </Text>
                                     </HStack>
                                 </Table.Cell>
-                                <Table.Cell borderBottom="none" py={0} px={{ base: 4, sm: 4 }}>
+                                <Table.Cell borderBottom="none" py={0} maxW={signalColumnWidth}>
                                     <HStack justifyContent="center" alignItems="center" fontSize="xl" fontWeight="bold">
                                         <Text color={`scoreColor.${user.signal}`}>
                                             {user.signal.charAt(0).toUpperCase() + user.signal.slice(1)}
                                         </Text>
                                     </HStack>
                                 </Table.Cell>
-                                <Table.Cell borderBottom="none" textAlign="center" py={0}>
+                                <Table.Cell borderBottom="none" textAlign="center" py={0} maxW={scoreColumnWidth}>
                                     <HStack justifyContent="center" alignItems="center">
                                         <Text
                                             px={2}
@@ -211,7 +228,12 @@ export default function Leaderboard({ project }: { project: string }) {
                                         </Text>
                                     </HStack>
                                 </Table.Cell>
-                                <Table.Cell borderBottom="none" py={0} display={{ base: "none", sm: "table-cell" }}>
+                                <Table.Cell
+                                    borderBottom="none"
+                                    py={0}
+                                    maxW={peakSignalsColumnWidth}
+                                    display={{ base: "none", sm: "table-cell" }}
+                                >
                                     <HStack justify="center" gap={2}>
                                         {[...user.peakSignals]
                                             .sort((a, b) => b.value - a.value)
