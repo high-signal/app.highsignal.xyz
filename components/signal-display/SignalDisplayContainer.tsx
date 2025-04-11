@@ -55,14 +55,14 @@ export default function SignalDisplayContainer({ project, username }: { project:
                 </HStack>
             </VStack>
             <PeakSignalsContainer
-                currentUserDisplayName={currentUser.displayName}
+                currentUser={currentUser}
                 peakSignals={currentUser.peakSignals}
                 projectData={currentProject}
             />
             <SignalStrengthContainer
-                currentUserDisplayName={currentUser.displayName}
                 userSignalStrengths={currentUser.signalStrengths}
                 projectSignalStrengths={enabledSignalStrengths}
+                projectData={currentProject}
             />
         </VStack>
     )

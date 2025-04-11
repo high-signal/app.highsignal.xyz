@@ -1,6 +1,8 @@
 interface UserData {
-    score: number
     rank: number
+    score: number
+    peakSignalScore: number
+    signalStrengthScore: number
     username: string
     displayName: string
     profileImageUrl: string

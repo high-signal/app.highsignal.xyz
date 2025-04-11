@@ -48,7 +48,6 @@ export default function PeakSignal({ peakSignal }: { peakSignal: PeakSignalUserD
                     {peakSignal.displayName}
                 </Text>
                 <HStack gap={"2px"} bg={"green.500"} fontSize="xl" px={3} borderRadius="full" color="#029E03">
-                    {/* <Text>+ </Text> */}
                     <Text>{peakSignal.value}</Text>
                 </HStack>
             </VStack>

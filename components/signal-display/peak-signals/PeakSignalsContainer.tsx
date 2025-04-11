@@ -2,11 +2,11 @@ import { VStack, Text, Grid, GridItem, HStack, Box } from "@chakra-ui/react"
 import PeakSignal from "./PeakSignal"
 
 export default function PeakSignalsContainer({
-    currentUserDisplayName,
+    currentUser,
     peakSignals,
     projectData,
 }: {
-    currentUserDisplayName: string
+    currentUser: UserData
     peakSignals: PeakSignalUserData[]
     projectData: ProjectData
 }) {
@@ -14,10 +14,7 @@ export default function PeakSignalsContainer({
     const isOddCount = sortedSignals.length % 2 !== 0
     const isLastItem = (index: number) => index === sortedSignals.length - 1
 
-    // TODO: Get from DB
-    const userPeakSignalScore = 30
-
-    const percentageCompleted = (Number(userPeakSignalScore) / Number(projectData.peakSignalsMaxValue)) * 100
+    const percentageCompleted = (Number(currentUser.peakSignalScore) / Number(projectData.peakSignalsMaxValue)) * 100
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
 
     return (
@@ -35,7 +32,7 @@ export default function PeakSignalsContainer({
                     color={completedBarWidth !== "0%" ? "#029E03" : "gray.400"}
                 >
                     {completedBarWidth !== "0%" && <Text>+</Text>}
-                    <Text>{userPeakSignalScore}</Text>
+                    <Text>{currentUser.peakSignalScore}</Text>
                 </HStack>
             </HStack>
             <HStack
@@ -70,11 +67,11 @@ export default function PeakSignalsContainer({
                 <Text fontFamily={"monospace"}>{projectData.peakSignalsMaxValue}</Text>
             </HStack>
             <Text color="textColor" textAlign={"center"} px={2}>
-                Peak signals are awarded for being an active member of the {projectData.displayName} community.
+                Peak signals highlight achievements in the {projectData.displayName} community.
             </Text>
             {peakSignals.length === 0 && (
                 <Text color="textColor" bg={"gray.900"} borderRadius={{ base: "50px", md: "60px" }} py={2} px={4}>
-                    {currentUserDisplayName} has no peak signals yet
+                    {currentUser.displayName} has no peak signals yet
                 </Text>
             )}
             {peakSignals.length > 0 && (

@@ -154,7 +154,7 @@ export default function SignalStrength({
                     )}
                 </VStack>
             )}
-            {projectData.status === "active" && !isUserConnected && (
+            {/* {projectData.status === "active" && !isUserConnected && (
                 <HStack w={"100%"} justifyContent={"center"} cursor={"disabled"}>
                     <Text
                         color={"gray.900"}
@@ -167,7 +167,7 @@ export default function SignalStrength({
                         Connect your account (coming soon)
                     </Text>
                 </HStack>
-            )}
+            )} */}
         </VStack>
     )
 }

@@ -2,13 +2,13 @@ import { VStack, Text } from "@chakra-ui/react"
 import SignalStrength from "./SignalStrength"
 
 export default function SignalStrengthContainer({
-    currentUserDisplayName,
     userSignalStrengths,
     projectSignalStrengths,
+    projectData,
 }: {
-    currentUserDisplayName: string
     userSignalStrengths: SignalStrengthUserData[]
     projectSignalStrengths: SignalStrengthProjectData[]
+    projectData: ProjectData
 }) {
     // Match user signal strengths with project signal strengths by name
     const matchedSignalStrengths = projectSignalStrengths.map((projectStrength) => {
@@ -40,6 +40,9 @@ export default function SignalStrengthContainer({
         <VStack gap={3} px={3} w="100%" maxW="600px" alignItems={"center"} pb={"50px"}>
             <Text fontSize="2xl" fontWeight={"bold"}>
                 📡 Signal Strength
+            </Text>
+            <Text color="textColor" textAlign={"center"} px={2}>
+                Signal strengths are live measures of engagement in the {projectData.displayName} community.
             </Text>
             <VStack gap={10} alignItems={"start"} w={"100%"}>
                 {sortedMatchedSignalStrengths.map(({ projectData, userData }, index) => (
