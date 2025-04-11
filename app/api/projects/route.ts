@@ -19,6 +19,7 @@ type Project = {
     display_name: string
     project_logo_url: string
     project_signal_strengths: ProjectSignalStrength[]
+    peak_signals_max_value: number
 }
 
 export async function GET(request: Request) {
@@ -36,6 +37,7 @@ export async function GET(request: Request) {
                 url_slug,
                 display_name,
                 project_logo_url,
+                peak_signals_max_value,
                 project_signal_strengths (
                     signal_strengths (
                         name,
@@ -78,6 +80,7 @@ export async function GET(request: Request) {
                 projectSlug: project.url_slug,
                 displayName: project.display_name,
                 imageUrl: project.project_logo_url,
+                peakSignalsMaxValue: project.peak_signals_max_value,
                 signalStrengths:
                     project.project_signal_strengths?.map((ps) => ({
                         name: ps.signal_strengths.name,

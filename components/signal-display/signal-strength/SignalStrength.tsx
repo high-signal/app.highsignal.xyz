@@ -35,15 +35,17 @@ export default function SignalStrength({
             >
                 <Text fontSize="xl">{projectData.displayName}</Text>
                 {projectData.status === "active" && (
-                    <Text
+                    <HStack
+                        gap={"2px"}
                         bg={completedBarWidth !== "0%" ? "green.500" : "gray.800"}
                         fontSize="xl"
                         px={2}
                         borderRadius="8px"
                         color={completedBarWidth !== "0%" ? "#029E03" : "gray.400"}
                     >
-                        {userData.value}
-                    </Text>
+                        {completedBarWidth !== "0%" && <Text>+</Text>}
+                        <Text>{userData.value}</Text>
+                    </HStack>
                 )}
             </HStack>
             <HStack
@@ -105,7 +107,7 @@ export default function SignalStrength({
                         w={"100%"}
                         bg={"pageBackground"}
                         borderRadius={"10px"}
-                        borderBottomRadius={isOpen ? "none" : "10px"}
+                        borderBottomRadius={hasContent ? (isOpen ? "none" : "10px") : "10px"}
                         onClick={hasContent ? () => setIsOpen(!isOpen) : undefined}
                         _hover={hasContent ? { bg: "gray.800" } : undefined}
                     >

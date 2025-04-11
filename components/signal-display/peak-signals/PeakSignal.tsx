@@ -47,9 +47,10 @@ export default function PeakSignal({ peakSignal }: { peakSignal: PeakSignalUserD
                 <Text fontSize={"lg"} px={1} whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis" width="100%">
                     {peakSignal.displayName}
                 </Text>
-                <Text bg={"green.500"} fontSize="xl" px={3} borderRadius="full" color="#029E03">
-                    {peakSignal.value}
-                </Text>
+                <HStack gap={"2px"} bg={"green.500"} fontSize="xl" px={3} borderRadius="full" color="#029E03">
+                    {/* <Text>+ </Text> */}
+                    <Text>{peakSignal.value}</Text>
+                </HStack>
             </VStack>
         </HStack>
     )

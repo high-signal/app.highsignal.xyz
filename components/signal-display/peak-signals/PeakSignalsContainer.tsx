@@ -1,24 +1,81 @@
-import { VStack, Text, Grid, GridItem } from "@chakra-ui/react"
+import { VStack, Text, Grid, GridItem, HStack, Box } from "@chakra-ui/react"
 import PeakSignal from "./PeakSignal"
 
 export default function PeakSignalsContainer({
     currentUserDisplayName,
     peakSignals,
+    projectData,
 }: {
     currentUserDisplayName: string
     peakSignals: PeakSignalUserData[]
+    projectData: ProjectData
 }) {
     const sortedSignals = [...peakSignals].sort((a, b) => b.value - a.value)
     const isOddCount = sortedSignals.length % 2 !== 0
     const isLastItem = (index: number) => index === sortedSignals.length - 1
 
+    // TODO: Get from DB
+    const userPeakSignalScore = 30
+
+    const percentageCompleted = (Number(userPeakSignalScore) / Number(projectData.peakSignalsMaxValue)) * 100
+    const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
+
     return (
-        <VStack gap={3} w={"100%"} alignItems={"center"} pb={5} px={3} justifyContent={"center"}>
-            <Text fontSize="2xl" fontWeight={"bold"}>
-                🏔️ Peak Signals
+        <VStack gap={3} w={"100%"} alignItems={"center"} px={3} justifyContent={"center"}>
+            <HStack w="100%" justifyContent={"center"} gap={3}>
+                <Text fontSize="2xl" fontWeight={"bold"}>
+                    🏔️ Peak Signals
+                </Text>
+                <HStack
+                    gap={"2px"}
+                    bg={completedBarWidth !== "0%" ? "green.500" : "gray.800"}
+                    fontSize="xl"
+                    px={2}
+                    borderRadius="8px"
+                    color={completedBarWidth !== "0%" ? "#029E03" : "gray.400"}
+                >
+                    {completedBarWidth !== "0%" && <Text>+</Text>}
+                    <Text>{userPeakSignalScore}</Text>
+                </HStack>
+            </HStack>
+            <HStack
+                w="100%"
+                maxW="550px"
+                justifyContent={"space-between"}
+                alignItems={"center"}
+                fontSize={"lg"}
+                color={"gray.400"}
+                px={1}
+            >
+                <Text fontFamily={"monospace"}>0</Text>
+                <HStack w="100%" h="30px" bg="gray.800" borderRadius="md" overflow="hidden">
+                    <Box
+                        w={completedBarWidth}
+                        h="100%"
+                        bg="green.500"
+                        border={
+                            completedBarWidth === "100%" ? "2px solid" : completedBarWidth === "0%" ? "none" : "none"
+                        }
+                        borderRight={
+                            completedBarWidth === "100%"
+                                ? "2px solid"
+                                : completedBarWidth === "0%"
+                                  ? "none"
+                                  : "3px solid"
+                        }
+                        borderRadius={completedBarWidth === "100%" ? "md" : "none"}
+                        borderColor="#029E03"
+                    />
+                </HStack>
+                <Text fontFamily={"monospace"}>{projectData.peakSignalsMaxValue}</Text>
+            </HStack>
+            <Text color="textColor" textAlign={"center"} px={2}>
+                Peak signals are awarded for being an active member of the {projectData.displayName} community.
             </Text>
             {peakSignals.length === 0 && (
-                <Text color="textColor">{currentUserDisplayName} has no peak signals yet.</Text>
+                <Text color="textColor" bg={"gray.900"} borderRadius={{ base: "50px", md: "60px" }} py={2} px={4}>
+                    {currentUserDisplayName} has no peak signals yet
+                </Text>
             )}
             {peakSignals.length > 0 && (
                 <Grid
@@ -28,7 +85,6 @@ export default function PeakSignalsContainer({
                     gap={4}
                     py={{ base: 2, md: 4 }}
                     px={{ base: 2, md: 4 }}
-                    mb={8}
                     bg={"gray.900"}
                     borderRadius={{ base: "50px", md: "60px" }}
                     w={{ base: "100%", md: peakSignals.length === 1 ? "fit-content" : "100%" }}

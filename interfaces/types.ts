@@ -30,6 +30,7 @@ interface ProjectData {
     projectSlug: string
     displayName: string
     imageUrl: string
+    peakSignalsMaxValue: number
     signalStrengths: SignalStrengthProjectData[]
 }
 
