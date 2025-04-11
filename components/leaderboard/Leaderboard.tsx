@@ -83,6 +83,13 @@ export default function Leaderboard({ project }: { project: string }) {
         setIsSearching(true)
     }
 
+    // const handleRowClick = (username: string) => {
+    //     // Navigate immediately but with a small delay to allow the active state to be visible
+    //     setTimeout(() => {
+    //         router.push(`/${project}/${username}`)
+    //     }, 100)
+    // }
+
     if (error) {
         return (
             <VStack gap={10} w="100%" maxW="800px" borderRadius="20px">
@@ -186,8 +193,13 @@ export default function Leaderboard({ project }: { project: string }) {
                                 key={index}
                                 cursor="pointer"
                                 bg="transparent"
-                                _hover={{ bg: "gray.800" }}
-                                transition="background-color 0.2s"
+                                // Needs both to work on mobile and desktop
+                                _hover={{
+                                    bg: "gray.800",
+                                    _active: { bg: "gray.700" },
+                                }}
+                                _active={{ bg: "gray.700" }}
+                                transition="all 0.1s ease"
                                 onClick={() => router.push(`/${project}/${user.username}`)}
                                 borderBottom="1px solid"
                                 borderColor="gray.500"

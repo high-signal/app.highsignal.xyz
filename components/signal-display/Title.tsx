@@ -18,7 +18,12 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
                 bg="gray.800"
                 borderRadius="full"
                 cursor="pointer"
-                _hover={{ bg: { base: "gray.600", sm: "gray.700" } }}
+                _hover={{
+                    bg: "gray.700",
+                    _active: { bg: "gray.600" },
+                }}
+                _active={{ bg: "gray.600" }}
+                transition="all 0.1s ease"
                 onClick={() => router.back()}
                 alignItems="center"
                 fontSize="xl"
