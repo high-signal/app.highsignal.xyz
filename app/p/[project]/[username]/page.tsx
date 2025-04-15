@@ -1,7 +1,7 @@
 import ContentContainer from "../../../../components/layout/ContentContainer"
 import SignalDisplayContainer from "../../../../components/signal-display/SignalDisplayContainer"
 
-export default async function ProfilePage({
+export default async function ProjectUserPage({
     params,
 }: {
     params: Promise<{

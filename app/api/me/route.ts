@@ -1,34 +1,16 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
-import { PrivyClient } from "@privy-io/server-auth"
+
+import { verifyAuth } from "../../../utils/verifyAuth"
 
 export async function GET(request: Request) {
     try {
-        // Extract the access token from the Authorization header
+        // Check if the user is authenticated
         const authHeader = request.headers.get("Authorization")
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return NextResponse.json({ error: "Missing or invalid Authorization header" }, { status: 401 })
-        }
+        const authResult = await verifyAuth(authHeader)
 
-        const accessToken = authHeader.substring(7) // Remove "Bearer " prefix
-
-        // Initialize Privy client
-        const privy = new PrivyClient(process.env.NEXT_PUBLIC_PRIVY_APP_ID!, process.env.PRIVY_APP_SECRET!)
-
-        // Verify the access token
-        let verifiedClaims
-        try {
-            verifiedClaims = await privy.verifyAuthToken(accessToken)
-        } catch (error) {
-            console.error("Token verification failed:", error)
-            return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 })
-        }
-
-        // Extract the user's Privy DID from the verified claims
-        const privyId = verifiedClaims.userId
-        if (!privyId) {
-            return NextResponse.json({ error: "User ID not found in token" }, { status: 401 })
-        }
+        // If the user is not authenticated or there is an error, return the error
+        if (authResult instanceof NextResponse) return authResult
 
         // Query Supabase for the user data
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -36,7 +18,7 @@ export async function GET(request: Request) {
         const { data: userData, error } = await supabase
             .from("users")
             .select("id, username, display_name, profile_image_url")
-            .eq("privy_id", privyId)
+            .eq("privy_id", authResult.privyId)
             .single()
 
         if (error) {

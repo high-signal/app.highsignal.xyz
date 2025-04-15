@@ -1,12 +1,13 @@
 "use client"
 
-import { HStack, VStack, IconButton, Image, Button, Text, Box, Avatar, Menu } from "@chakra-ui/react"
+import { HStack, VStack, IconButton, Image, Button, Text, Box, Avatar, Menu, Portal, Spinner } from "@chakra-ui/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faDiscord, faGithub, faTelegram, faXTwitter, IconDefinition } from "@fortawesome/free-brands-svg-icons"
-import { faBook, faGlobe } from "@fortawesome/free-solid-svg-icons"
+import { faXTwitter, IconDefinition } from "@fortawesome/free-brands-svg-icons"
+import { faGear, faSignOut } from "@fortawesome/free-solid-svg-icons"
+import { faCircleUser } from "@fortawesome/free-regular-svg-icons"
 
 import { ColorModeToggle } from "../color-mode/ColorModeToggle"
 import { usePrivy } from "@privy-io/react-auth"
@@ -15,7 +16,7 @@ import SignUpDialog from "../auth/SignUpDialog"
 
 import Link from "next/link"
 
-// const socialLinks = [{ href: "https://x.com/airdrip_club", label: "AirDrip X", icon: faXTwitter }]
+// const socialLinks = [{ href: "https://x.com/highsignalxyz", label: "High Signal X", icon: faXTwitter }]
 
 const IconLinkButton = ({ href, label, icon }: { href: string; label: string; icon: IconDefinition }) => {
     return (
@@ -39,13 +40,10 @@ const IconLinkButton = ({ href, label, icon }: { href: string; label: string; ic
 
 export default function Header({}) {
     const router = useRouter()
-    const { login, authenticated, logout, ready } = usePrivy()
+    const { login, authenticated, logout, ready: privyReady } = usePrivy()
     const { user, isLoading } = useUser()
     const [isSignUpDialogOpen, setIsSignUpDialogOpen] = useState(false)
-
-    const handleLogin = () => {
-        login()
-    }
+    const [isMenuOpen, setIsMenuOpen] = useState(false)
 
     const handleLogout = () => {
         logout()
@@ -90,39 +88,135 @@ export default function Header({}) {
                     </HStack> */}
                     {/* <ColorModeToggle /> */}
 
-                    {ready && (
-                        <>
-                            {authenticated && user ? (
-                                <Menu.Root>
-                                    <Menu.Trigger asChild>
-                                        <Button variant="outline" size="sm">
-                                            <HStack>
-                                                {/* <Avatar.Root>
-                                                    <Avatar.Image src="" alt={user.display_name} />
-                                                    <Avatar.Fallback>{user.display_name.charAt(0)}</Avatar.Fallback>
-                                                </Avatar.Root> */}
-                                                <Text>{user.display_name}</Text>
-                                            </HStack>
-                                        </Button>
-                                    </Menu.Trigger>
-                                    <Menu.Content>
+                    {isLoading ? (
+                        <HStack
+                            border={"2px solid"}
+                            borderColor={"gray.800"}
+                            boxSize="40px"
+                            borderRadius="full"
+                            overflow="hidden"
+                            mt={"-6px"}
+                            justifyContent={"center"}
+                        >
+                            <Spinner />
+                        </HStack>
+                    ) : privyReady && authenticated && user ? (
+                        <Menu.Root onOpenChange={(details) => setIsMenuOpen(details.open)}>
+                            <Menu.Trigger asChild>
+                                <HStack
+                                    border={"2px solid"}
+                                    borderColor={"gray.800"}
+                                    cursor={"pointer"}
+                                    boxSize="40px"
+                                    borderRadius="full"
+                                    overflow="hidden"
+                                    mt={"-6px"}
+                                >
+                                    <Image
+                                        src={
+                                            !user.profile_image_url || user.profile_image_url === ""
+                                                ? "/static/default-profile-image.png"
+                                                : user.profile_image_url
+                                        }
+                                        alt={`User ${user.display_name} Profile Image`}
+                                        fit="cover"
+                                    />
+                                </HStack>
+                            </Menu.Trigger>
+                            <Portal>
+                                {isMenuOpen && (
+                                    <Box
+                                        position="fixed"
+                                        top={0}
+                                        left={0}
+                                        right={0}
+                                        bottom={0}
+                                        bg="rgba(0, 0, 0, 0.4)"
+                                        backdropFilter="blur(4px)"
+                                        zIndex={1}
+                                    />
+                                )}
+                                <Menu.Positioner>
+                                    <Menu.Content borderRadius={"16px"} p={0}>
                                         <Menu.Item
-                                            value="profile"
-                                            onClick={() => router.push(`/profile/${user.username}`)}
+                                            py={3}
+                                            pl={4}
+                                            value="username"
+                                            disabled
+                                            opacity={0.8}
+                                            fontWeight="bold"
+                                            cursor="default"
+                                            borderBottom={"1px solid"}
+                                            borderRadius={"0px"}
+                                            fontSize={"md"}
                                         >
-                                            Profile
+                                            {user.display_name}
                                         </Menu.Item>
-                                        <Menu.Item value="logout" onClick={handleLogout}>
-                                            Logout
+                                        <Menu.Item
+                                            py={3}
+                                            pl={4}
+                                            cursor={"pointer"}
+                                            fontSize={"md"}
+                                            value="profile"
+                                            onClick={() => router.push(`/u/${user.username}`)}
+                                        >
+                                            <HStack>
+                                                <Box w="20px">
+                                                    <FontAwesomeIcon icon={faCircleUser} />
+                                                </Box>
+                                                <Text>Profile</Text>
+                                            </HStack>
+                                        </Menu.Item>
+                                        <Menu.Item
+                                            pl={4}
+                                            py={3}
+                                            cursor={"pointer"}
+                                            fontSize={"md"}
+                                            value="settings"
+                                            onClick={() => router.push(`/u/${user.username}/settings`)}
+                                        >
+                                            <HStack>
+                                                <Box w="20px">
+                                                    <FontAwesomeIcon icon={faGear} />
+                                                </Box>
+                                                <Text>Settings</Text>
+                                            </HStack>
+                                        </Menu.Item>
+                                        <Menu.Item
+                                            pl={4}
+                                            py={3}
+                                            cursor={"pointer"}
+                                            fontSize={"md"}
+                                            value="logout"
+                                            onClick={handleLogout}
+                                        >
+                                            <HStack>
+                                                <Box w="20px">
+                                                    <FontAwesomeIcon icon={faSignOut} />
+                                                </Box>
+                                                <Text>Logout</Text>
+                                            </HStack>
                                         </Menu.Item>
                                     </Menu.Content>
-                                </Menu.Root>
-                            ) : (
-                                <Button variant="outline" size="sm" onClick={handleSignUp} loading={isLoading}>
-                                    {authenticated ? "Complete Profile" : "Sign Up"}
-                                </Button>
-                            )}
-                        </>
+                                </Menu.Positioner>
+                            </Portal>
+                        </Menu.Root>
+                    ) : (
+                        <HStack
+                            border={"2px solid"}
+                            borderColor={"gray.800"}
+                            cursor={"pointer"}
+                            w="80px"
+                            h="40px"
+                            borderRadius="full"
+                            overflow="hidden"
+                            mt={"-6px"}
+                            justifyContent={"center"}
+                            fontWeight={"bold"}
+                            onClick={handleSignUp}
+                        >
+                            <Text>Log in</Text>
+                        </HStack>
                     )}
                 </HStack>
             </HStack>
