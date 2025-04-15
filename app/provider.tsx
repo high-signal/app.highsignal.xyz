@@ -7,12 +7,18 @@ import GoogleAnalytics from "../components/analytics/GoogleAnalytics"
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
 import { customConfig } from "../styles/theme"
+import PrivyProvider from "../components/auth/PrivyProvider"
+import { UserProvider } from "../contexts/UserContext"
 
 export function Provider(props: ColorModeProviderProps) {
     return (
         <ChakraProvider value={customConfig}>
             <GoogleAnalytics />
-            <ColorModeProvider {...props} />
+            <PrivyProvider>
+                <UserProvider>
+                    <ColorModeProvider {...props} />
+                </UserProvider>
+            </PrivyProvider>
         </ChakraProvider>
     )
 }

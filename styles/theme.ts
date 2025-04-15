@@ -111,12 +111,6 @@ export const customConfig = createSystem(defaultConfig, {
     globalCss: {
         "html, body": {
             backgroundColor: "{colors.pageBackground}",
-            // "@media screen and (min-width: 480px)": {
-            //     backgroundImage: "linear-gradient(45deg, {colors.pageBackground} 40%,hsl(210, 3.20%, 24.30%) 100%)",
-            // },
-            backgroundAttachment: "fixed",
-            backgroundSize: "100% 100%",
-            backgroundPosition: "center",
             height: "100dvh",
             width: "100vw",
             overflowX: "hidden",

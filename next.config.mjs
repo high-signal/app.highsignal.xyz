@@ -5,4 +5,9 @@ export default {
     experimental: {
         optimizePackageImports: ["@chakra-ui/react"], // Optimizes Chakra UI imports to reduce bundle size
     },
+    webpack: (config) => {
+        // ...
+        config.externals["@solana/web3.js"] = "commonjs @solana/web3.js"
+        return config
+    },
 }

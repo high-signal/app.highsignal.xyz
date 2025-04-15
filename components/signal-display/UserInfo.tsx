@@ -20,7 +20,15 @@ export default function UserInfo({ profileImageUrl, name }: UserInfoProps) {
                 minW="250px"
             >
                 <Box boxSize="100px" minW="100px" borderRadius="full" overflow="hidden" flexGrow={0}>
-                    <Image src={profileImageUrl} alt={`${name} Profile Image`} fit="cover" />
+                    <Image
+                        src={
+                            !profileImageUrl || profileImageUrl === ""
+                                ? "/static/default-profile-image.png"
+                                : profileImageUrl
+                        }
+                        alt={`User ${name} Profile Image`}
+                        fit="cover"
+                    />
                 </Box>
                 <HStack justifyContent={"center"} flexGrow={1}>
                     <Text

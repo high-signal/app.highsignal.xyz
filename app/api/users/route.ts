@@ -165,11 +165,94 @@ export async function GET(request: Request) {
                         })) || [],
                 }
             })
-            .filter(Boolean) // Remove nulls if any usernames didn’t match filter
+            .filter(Boolean) // Remove nulls if any usernames didn't match filter
 
         return NextResponse.json(formattedUsers)
     } catch (error) {
         console.error("Unhandled error", error)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}
+
+export async function POST(request: Request) {
+    try {
+        const body = await request.json()
+        const { privy_id, username, display_name } = body
+
+        // Validate required fields
+        if (!privy_id || !username || !display_name) {
+            return NextResponse.json(
+                { error: "Missing required fields: privy_id, username, display_name" },
+                { status: 400 },
+            )
+        }
+
+        // Validate username format (alphanumeric, underscores, hyphens)
+        const usernameRegex = /^[a-zA-Z0-9_-]+$/
+        if (!usernameRegex.test(username)) {
+            return NextResponse.json(
+                { error: "Username can only contain letters, numbers, underscores, and hyphens" },
+                { status: 400 },
+            )
+        }
+
+        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+        // Check if username already exists
+        const { data: existingUser, error: checkError } = await supabase
+            .from("users")
+            .select("id")
+            .eq("username", username)
+            .single()
+
+        if (checkError && checkError.code !== "PGRST116") {
+            // PGRST116 is "no rows returned"
+            console.error("Error checking username:", checkError)
+            return NextResponse.json({ error: "Error checking username availability" }, { status: 500 })
+        }
+
+        if (existingUser) {
+            return NextResponse.json({ error: "Username already taken" }, { status: 409 })
+        }
+
+        // Check if privy_id already exists
+        const { data: existingPrivyUser, error: privyCheckError } = await supabase
+            .from("users")
+            .select("id")
+            .eq("privy_id", privy_id)
+            .single()
+
+        if (privyCheckError && privyCheckError.code !== "PGRST116") {
+            console.error("Error checking privy_id:", privyCheckError)
+            return NextResponse.json({ error: "Error checking privy_id" }, { status: 500 })
+        }
+
+        if (existingPrivyUser) {
+            return NextResponse.json({ error: "User already exists with this Privy ID" }, { status: 409 })
+        }
+
+        // Create new user
+        const { data: newUser, error: insertError } = await supabase
+            .from("users")
+            .insert([
+                {
+                    privy_id,
+                    username,
+                    display_name,
+                    profile_image_url: "", // Default empty profile image
+                },
+            ])
+            .select()
+            .single()
+
+        if (insertError) {
+            console.error("Error creating user:", insertError)
+            return NextResponse.json({ error: "Error creating user" }, { status: 500 })
+        }
+
+        return NextResponse.json(newUser, { status: 201 })
+    } catch (error) {
+        console.error("Unhandled error in user creation:", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }

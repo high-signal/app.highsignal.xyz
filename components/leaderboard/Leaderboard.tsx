@@ -200,7 +200,7 @@ export default function Leaderboard({ project }: { project: string }) {
                                 }}
                                 _active={{ bg: "gray.700" }}
                                 transition="all 0.1s ease"
-                                onClick={() => router.push(`/${project}/${user.username}`)}
+                                onClick={() => router.push(`project/${project}/${user.username}`)}
                                 borderBottom="1px solid"
                                 borderColor="gray.500"
                             >
@@ -213,8 +213,12 @@ export default function Leaderboard({ project }: { project: string }) {
                                     <HStack gap={3}>
                                         <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">
                                             <Image
-                                                src={user.profileImageUrl}
-                                                alt={`Operator ${user.profileImageUrl}`}
+                                                src={
+                                                    !user.profileImageUrl || user.profileImageUrl === ""
+                                                        ? "/static/default-profile-image.png"
+                                                        : user.profileImageUrl
+                                                }
+                                                alt={`User ${user.username} Profile Image`}
                                                 fit="cover"
                                             />
                                         </Box>

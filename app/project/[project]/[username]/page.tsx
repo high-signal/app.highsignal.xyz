@@ -1,5 +1,5 @@
-import ContentContainer from "../../../components/layout/ContentContainer"
-import SignalDisplayContainer from "../../../components/signal-display/SignalDisplayContainer"
+import ContentContainer from "../../../../components/layout/ContentContainer"
+import SignalDisplayContainer from "../../../../components/signal-display/SignalDisplayContainer"
 
 export default async function ProfilePage({
     params,
