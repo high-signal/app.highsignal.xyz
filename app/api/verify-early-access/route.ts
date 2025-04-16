@@ -10,7 +10,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Access code is required" }, { status: 400 })
         }
 
-        if (code === VALID_ACCESS_CODE) {
+        if (code.toLowerCase() === VALID_ACCESS_CODE.toLowerCase()) {
             return NextResponse.json({ success: true })
         }
 
