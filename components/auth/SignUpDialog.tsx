@@ -22,7 +22,7 @@ interface SignUpDialogProps {
 }
 
 export default function SignUpDialog({ isOpen, onClose }: SignUpDialogProps) {
-    const { user: privyUser } = usePrivy()
+    const { user: privyUser, getAccessToken } = usePrivy()
     const { refreshUser } = useUser()
     const [username, setUsername] = useState("")
     const [displayName, setDisplayName] = useState("")
@@ -41,10 +41,14 @@ export default function SignUpDialog({ isOpen, onClose }: SignUpDialogProps) {
         setError(null)
 
         try {
+            // Get the Privy token
+            const token = await getAccessToken()
+
             const response = await fetch("/api/users", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     privy_id: privyUser.id,
@@ -68,7 +72,7 @@ export default function SignUpDialog({ isOpen, onClose }: SignUpDialogProps) {
             console.error("Error creating account:", err)
             setError(err instanceof Error ? err.message : "An unknown error occurred")
         } finally {
-            setIsLoading(false)
+            false
         }
     }
 

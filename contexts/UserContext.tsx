@@ -13,6 +13,7 @@ interface User {
 interface UserContextType {
     user: User | null
     isLoading: boolean
+    userCreated: string
     error: string | null
     refreshUser: () => Promise<void>
 }
@@ -20,6 +21,7 @@ interface UserContextType {
 const UserContext = createContext<UserContextType>({
     user: null,
     isLoading: true,
+    userCreated: "",
     error: null,
     refreshUser: async () => {},
 })
@@ -31,17 +33,53 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [missingUser, setMissingUser] = useState(false)
+    const [userCreated, setUserCreated] = useState("")
+
+    // If user is authenticated with Privy, but not in the database, create a new user in the database
+    // This is to ensure that the user is always in the database even if the DB user creation fails
+    // the first time the user logs in for any reason. Otherwise, the user will be authenticated, but not
+    // have a user profile in the database, and will not be able to access the app.
+    useEffect(() => {
+        if (authenticated && missingUser) {
+            const createUser = async () => {
+                const token = await getAccessToken()
+
+                console.log("Creating user in database...")
+
+                const response = await fetch("/api/users", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                })
+                if (response.ok) {
+                    console.log("User created successfully")
+                    setMissingUser(false)
+                    fetchUser()
+
+                    const newUser = await response.json()
+                    setUserCreated(newUser.username)
+                } else {
+                    console.error("Failed to create user")
+                    // TODO: Show an error message to the user asking them to try again later
+                }
+            }
+
+            createUser()
+        }
+    }, [authenticated, getAccessToken, missingUser])
 
     const fetchUser = async () => {
-        if (!authenticated || !privyUser) {
-            setUser(null)
+        if (ready && !authenticated) {
             setIsLoading(false)
+            setUser(null)
             return
         }
 
         try {
             setIsLoading(true)
-
             const accessToken = await getAccessToken()
 
             const response = await fetch(`/api/me`, {
@@ -52,16 +90,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
             })
 
             if (!response.ok) {
-                throw new Error("Failed to fetch user")
+                console.log("User not found in database - Creating user")
+                setMissingUser(true)
+                return
             }
 
-            const userData = await response.json()
-            setUser(userData)
-            setError(null)
+            if (response.status === 200) {
+                const userData = await response.json()
+                setUser(userData)
+                setError(null)
+                setIsLoading(false)
+            }
         } catch (err) {
             console.error("Error fetching user:", err)
             setError(err instanceof Error ? err.message : "Unknown error")
-        } finally {
             setIsLoading(false)
         }
     }
@@ -76,5 +118,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
         await fetchUser()
     }
 
-    return <UserContext.Provider value={{ user, isLoading, error, refreshUser }}>{children}</UserContext.Provider>
+    return (
+        <UserContext.Provider value={{ user, isLoading, userCreated, error, refreshUser }}>
+            {children}
+        </UserContext.Provider>
+    )
 }

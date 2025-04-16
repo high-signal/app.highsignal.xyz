@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import { calculateSignal } from "../../../utils/calculateSignal"
+import { verifyAuth } from "../../../utils/verifyAuth"
 
 type User = {
     id: string
@@ -174,52 +175,58 @@ export async function GET(request: Request) {
     }
 }
 
+// Function to generate a random 6-digit number (excluding 0)
+function generateRandomNumber(): number {
+    // Generate a random number between 100000 and 999999
+    return Math.floor(Math.random() * 900000) + 100000
+}
+
+// Function to check if a username exists in the database
+async function usernameExists(supabase: any, username: string): Promise<boolean> {
+    const { data, error } = await supabase.from("users").select("id").eq("username", username).single()
+
+    // If error is PGRST116 (no rows returned), the username doesn't exist
+    if (error && error.code === "PGRST116") {
+        return false
+    }
+
+    // If there's another error or data exists, the username exists
+    return true
+}
+
+// Function to generate a unique username with retries
+async function generateUniqueUsername(supabase: any, maxAttempts = 3): Promise<string | null> {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const username = `user_${generateRandomNumber()}`
+        const exists = await usernameExists(supabase, username)
+
+        if (!exists) {
+            return username
+        }
+    }
+
+    return null // All attempts failed
+}
+
 export async function POST(request: Request) {
     try {
-        const body = await request.json()
-        const { privy_id, username, display_name } = body
+        // Check auth token
+        const authHeader = request.headers.get("Authorization")
+        const authResult = await verifyAuth(authHeader)
+        if (authResult instanceof NextResponse) return authResult
 
-        // Validate required fields
-        if (!privy_id || !username || !display_name) {
-            return NextResponse.json(
-                { error: "Missing required fields: privy_id, username, display_name" },
-                { status: 400 },
-            )
-        }
-
-        // Validate username format (alphanumeric, underscores, hyphens)
-        const usernameRegex = /^[a-zA-Z0-9_-]+$/
-        if (!usernameRegex.test(username)) {
-            return NextResponse.json(
-                { error: "Username can only contain letters, numbers, underscores, and hyphens" },
-                { status: 400 },
-            )
+        // If not authenticated, return an error
+        if (!authResult.isAuthenticated) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-
-        // Check if username already exists
-        const { data: existingUser, error: checkError } = await supabase
-            .from("users")
-            .select("id")
-            .eq("username", username)
-            .single()
-
-        if (checkError && checkError.code !== "PGRST116") {
-            // PGRST116 is "no rows returned"
-            console.error("Error checking username:", checkError)
-            return NextResponse.json({ error: "Error checking username availability" }, { status: 500 })
-        }
-
-        if (existingUser) {
-            return NextResponse.json({ error: "Username already taken" }, { status: 409 })
-        }
 
         // Check if privy_id already exists
         const { data: existingPrivyUser, error: privyCheckError } = await supabase
             .from("users")
             .select("id")
-            .eq("privy_id", privy_id)
+            .eq("privy_id", authResult.privyId)
             .single()
 
         if (privyCheckError && privyCheckError.code !== "PGRST116") {
@@ -231,15 +238,27 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "User already exists with this Privy ID" }, { status: 409 })
         }
 
+        // Generate a unique username
+        const username = await generateUniqueUsername(supabase)
+
+        if (!username) {
+            return NextResponse.json(
+                { error: "Failed to generate a unique username after multiple attempts" },
+                { status: 500 },
+            )
+        }
+
+        // Create display name from username (e.g., "User 849124")
+        const displayName = `User ${username.split("_")[1]}`
+
         // Create new user
         const { data: newUser, error: insertError } = await supabase
             .from("users")
             .insert([
                 {
-                    privy_id,
-                    username,
-                    display_name,
-                    profile_image_url: "", // Default empty profile image
+                    privy_id: authResult.privyId,
+                    username: username,
+                    display_name: displayName,
                 },
             ])
             .select()
