@@ -12,10 +12,14 @@ export default function PrivyProvider({ children }: PrivyProviderProps) {
         <PrivyAuthProvider
             appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
             config={{
-                loginMethods: ["email", "wallet"],
+                loginMethods: ["email", "wallet", "twitter", "discord", "google", "github", "farcaster", "passkey"],
                 appearance: {
+                    // logo: "/static/logo/logo.png",
+                    landingHeader: "High Signal",
+                    loginMessage: "Sign in or create an account",
                     theme: "dark",
-                    accentColor: "#141414",
+                    accentColor: "#A6A6A6",
+                    walletChainType: "ethereum-only",
                 },
             }}
         >
