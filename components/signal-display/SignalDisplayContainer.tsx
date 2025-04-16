@@ -33,6 +33,14 @@ export default function SignalDisplayContainer({ project, username }: { project:
         )
     }
 
+    if (!currentUser || !currentProject) {
+        return (
+            <VStack gap={10} w="100%" maxW="800px" borderRadius="20px">
+                <Text>Error: No user or project found</Text>
+            </VStack>
+        )
+    }
+
     // Filter out signal strengths that are not enabled
     const enabledSignalStrengths = currentProject.signalStrengths.filter((signalStrength) => signalStrength.enabled)
 
