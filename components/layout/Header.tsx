@@ -169,7 +169,7 @@ export default function Header({}) {
                                         cursor={"pointer"}
                                         fontSize={"md"}
                                         value="settings"
-                                        onClick={() => router.push(`/u/${user.username}/settings`)}
+                                        onClick={() => router.push(`/settings/u/${user.username}`)}
                                     >
                                         <HStack>
                                             <Box w="20px">
