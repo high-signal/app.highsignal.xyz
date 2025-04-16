@@ -38,6 +38,7 @@ export default function ContentContainer({ children }: ContentContainerProps) {
         setIsEarlyAccessCodeAuthorized(true)
     }
 
+    // This causes a flash of blank content when the page loads, but it is very minor on prod builds
     if (isEarlyAccessCodeLoading || !isEarlyAccessCodeAuthorized) {
         return (
             <VStack minH="100dvh" gap={0} overflow={"hidden"}>
@@ -49,7 +50,7 @@ export default function ContentContainer({ children }: ContentContainerProps) {
                     maxW="1400px"
                     pt={{ base: 0, sm: 5 }}
                 >
-                    {isEarlyAccessCodeLoading ? <Spinner /> : <EarlyAccessInput onSuccess={handleEarlyAccessSuccess} />}
+                    {isEarlyAccessCodeLoading ? <></> : <EarlyAccessInput onSuccess={handleEarlyAccessSuccess} />}
                 </VStack>
                 <Box flexGrow={1} minH={"100px"} />
                 <Footer />
