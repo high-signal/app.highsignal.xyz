@@ -38,7 +38,20 @@ if ! psql -h localhost -p 54322 -U postgres -d postgres <"$DUMP_FILE" >/dev/null
     unset PGPASSWORD
     exit 1
 fi
+
+# Update admin user privy_id
+echo "Updating admin user's privy_id..."
+: "${ADMIN_USERNAME:?ADMIN_USERNAME is not set in .env.dev}"
+: "${ADMIN_PRIVY_ID:?ADMIN_PRIVY_ID is not set in .env.dev}"
+
+psql -h localhost -p 54322 -U postgres -d postgres <<EOF
+UPDATE users
+SET privy_id = '${ADMIN_PRIVY_ID}'
+WHERE username = '${ADMIN_USERNAME}';
+EOF
+
 unset PGPASSWORD
+
 rm -f "$DUMP_FILE"
 
 echo "Done ✅ Prod DB imported into Local Supabase dev environment"
