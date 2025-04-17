@@ -12,7 +12,7 @@ export default function EarlyAccessInput() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        if (code.toLowerCase() === "higher") {
+        if (code === "higher") {
             const params = new URLSearchParams(searchParams)
             params.set("earlyAccessCode", code)
             router.push(`?${params.toString()}`)
@@ -35,7 +35,7 @@ export default function EarlyAccessInput() {
                     <Input
                         placeholder="Enter access code"
                         value={code}
-                        onChange={(e) => setCode(e.target.value)}
+                        onChange={(e) => setCode(e.target.value.toLowerCase())}
                         onKeyDown={handleKeyDown}
                         size="lg"
                         bg="gray.700"
