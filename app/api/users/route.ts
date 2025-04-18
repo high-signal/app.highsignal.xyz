@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import { calculateSignal } from "../../../utils/calculateSignal"
 import { verifyAuth } from "../../../utils/verifyAuth"
+import { validateUsername, validateDisplayName } from "../../../utils/userValidation"
 
 type User = {
     id: string
@@ -175,39 +176,6 @@ export async function GET(request: Request) {
     }
 }
 
-// Function to generate a random 6-digit number (excluding 0)
-function generateRandomNumber(): number {
-    // Generate a random number between 100000 and 999999
-    return Math.floor(Math.random() * 900000) + 100000
-}
-
-// Function to check if a username exists in the database
-async function usernameExists(supabase: any, username: string): Promise<boolean> {
-    const { data, error } = await supabase.from("users").select("id").eq("username", username).single()
-
-    // If error is PGRST116 (no rows returned), the username doesn't exist
-    if (error && error.code === "PGRST116") {
-        return false
-    }
-
-    // If there's another error or data exists, the username exists
-    return true
-}
-
-// Function to generate a unique username with retries
-async function generateUniqueUsername(supabase: any, maxAttempts = 3): Promise<string | null> {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        const username = `user_${generateRandomNumber()}`
-        const exists = await usernameExists(supabase, username)
-
-        if (!exists) {
-            return username
-        }
-    }
-
-    return null // All attempts failed
-}
-
 export async function POST(request: Request) {
     try {
         // Check auth token
@@ -236,6 +204,39 @@ export async function POST(request: Request) {
 
         if (existingPrivyUser) {
             return NextResponse.json({ error: "User already exists with this Privy ID" }, { status: 409 })
+        }
+
+        // Function to generate a random 6-digit number (excluding 0)
+        function generateRandomNumber(): number {
+            // Generate a random number between 100000 and 999999
+            return Math.floor(Math.random() * 900000) + 100000
+        }
+
+        // Function to check if a username exists in the database
+        async function usernameExists(supabase: any, username: string): Promise<boolean> {
+            const { data, error } = await supabase.from("users").select("id").eq("username", username).single()
+
+            // If error is PGRST116 (no rows returned), the username doesn't exist
+            if (error && error.code === "PGRST116") {
+                return false
+            }
+
+            // If there's another error or data exists, the username exists
+            return true
+        }
+
+        // Function to generate a unique username with retries
+        async function generateUniqueUsername(supabase: any, maxAttempts = 3): Promise<string | null> {
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                const username = `user_${generateRandomNumber()}`
+                const exists = await usernameExists(supabase, username)
+
+                if (!exists) {
+                    return username
+                }
+            }
+
+            return null // All attempts failed
         }
 
         // Generate a unique username
@@ -272,6 +273,98 @@ export async function POST(request: Request) {
         return NextResponse.json(newUser, { status: 201 })
     } catch (error) {
         console.error("Unhandled error in user creation:", error)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}
+
+export async function PATCH(request: Request) {
+    try {
+        // Check auth token
+        const authHeader = request.headers.get("Authorization")
+        const authResult = await verifyAuth(authHeader)
+        if (authResult instanceof NextResponse) return authResult
+
+        // If not authenticated, return an error
+        if (!authResult.isAuthenticated) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+        // Get the current user
+        const { data: currentUser, error: userError } = await supabase
+            .from("users")
+            .select("id, privy_id")
+            .eq("privy_id", authResult.privyId)
+            .single()
+
+        if (userError) {
+            console.error("Error fetching user:", userError)
+            return NextResponse.json({ error: "Error fetching user" }, { status: 500 })
+        }
+
+        if (!currentUser) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 })
+        }
+
+        // Parse the request body
+        const body = await request.json()
+        const { username, display_name } = body
+
+        // Validate username if provided
+        if (username) {
+            const usernameError = validateUsername(username)
+            if (usernameError) {
+                return NextResponse.json({ error: usernameError }, { status: 400 })
+            }
+
+            // Check if username is already taken by another user
+            const { data: existingUser, error: existingUserError } = await supabase
+                .from("users")
+                .select("id")
+                .eq("username", username)
+                .neq("id", currentUser.id)
+                .single()
+
+            if (existingUserError && existingUserError.code !== "PGRST116") {
+                console.error("Error checking username:", existingUserError)
+                return NextResponse.json({ error: "Error checking username" }, { status: 500 })
+            }
+
+            if (existingUser) {
+                return NextResponse.json({ error: "Username is already taken" }, { status: 409 })
+            }
+        }
+
+        // Validate display name if provided
+        if (display_name) {
+            const displayNameError = validateDisplayName(display_name)
+            if (displayNameError) {
+                return NextResponse.json({ error: displayNameError }, { status: 400 })
+            }
+        }
+
+        // Prepare update data
+        const updateData: Record<string, any> = {}
+        if (username) updateData.username = username
+        if (display_name) updateData.display_name = display_name
+
+        // Update user
+        const { data: updatedUser, error: updateError } = await supabase
+            .from("users")
+            .update(updateData)
+            .eq("id", currentUser.id)
+            .select()
+            .single()
+
+        if (updateError) {
+            console.error("Error updating user:", updateError)
+            return NextResponse.json({ error: "Error updating user" }, { status: 500 })
+        }
+
+        return NextResponse.json(updatedUser)
+    } catch (error) {
+        console.error("Unhandled error in user update:", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }
