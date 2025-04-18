@@ -10,4 +10,47 @@ export default {
         config.externals["@solana/web3.js"] = "commonjs @solana/web3.js"
         return config
     },
+
+    // Add Content Security Policy headers
+    async headers() {
+        // Get the site URL from environment variables
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+        // Extract the domain and protocol from the URL
+        const url = new URL(siteUrl)
+        const domain = url.hostname
+        const protocol = url.protocol.replace(":", "")
+
+        return [
+            {
+                source: "/:path*",
+                headers: [
+                    {
+                        key: "Content-Security-Policy",
+                        value: `
+                            default-src 'self';
+                            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com ${protocol}://*.${domain};
+                            style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+                            img-src 'self' data: blob:;
+                            font-src 'self' https://fonts.gstatic.com;
+                            object-src 'none';
+                            base-uri 'self';
+                            form-action 'self';
+                            frame-ancestors 'none';
+                            child-src https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org;
+                            frame-src https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org https://challenges.cloudflare.com;
+                            connect-src 'self' https://auth.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems ${protocol}://*.${domain} https://explorer-api.walletconnect.com https://pulse.walletconnect.org https://api.web3modal.org https://*.web3modal.org https://*.walletconnect.org https://*.walletconnect.com;
+                            worker-src 'self';
+                            manifest-src 'self'
+                        `
+                            .replace(/\s+/g, " ")
+                            .trim(),
+                    },
+                    {
+                        key: "X-Frame-Options",
+                        value: "DENY",
+                    },
+                ],
+            },
+        ]
+    },
 }
