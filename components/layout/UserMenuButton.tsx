@@ -65,11 +65,11 @@ export default function UserMenuButton() {
                     >
                         <Image
                             src={
-                                !user.profile_image_url || user.profile_image_url === ""
+                                !user.profileImageUrl || user.profileImageUrl === ""
                                     ? "/static/default-profile-image.png"
-                                    : user.profile_image_url
+                                    : user.profileImageUrl
                             }
-                            alt={`User ${user.display_name} Profile Image`}
+                            alt={`User ${user.displayName} Profile Image`}
                             fit="cover"
                             transition="transform 0.2s ease-in-out"
                         />
@@ -102,7 +102,7 @@ export default function UserMenuButton() {
                                 borderRadius={"0px"}
                                 fontSize={"md"}
                             >
-                                {user.display_name}
+                                {user.displayName}
                             </Menu.Item>
                             <Menu.Item
                                 py={3}

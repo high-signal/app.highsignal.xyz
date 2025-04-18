@@ -6,8 +6,9 @@ import { usePrivy } from "@privy-io/react-auth"
 interface User {
     id: string
     username: string
-    display_name: string
-    profile_image_url?: string
+    displayName: string
+    profileImageUrl?: string
+    isSuperAdmin: boolean
 }
 
 interface UserContextType {

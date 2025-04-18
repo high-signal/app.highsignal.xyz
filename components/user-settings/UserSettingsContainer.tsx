@@ -22,9 +22,10 @@ export default function UserSettingsContainer() {
 
     // Initialize form with user data
     useEffect(() => {
-        if (user) {
-            setUsername(user.username)
-            setDisplayName(user.display_name)
+        if (user?.username || user?.isSuperAdmin === true) {
+            //fetchUser()
+        } else {
+            //show404()
         }
     }, [user])
 
@@ -41,7 +42,7 @@ export default function UserSettingsContainer() {
         const newValue = e.target.value
         setDisplayName(newValue)
         setDisplayNameError(validateDisplayName(newValue))
-        setIsDisplayNameChanged(newValue !== user?.display_name)
+        setIsDisplayNameChanged(newValue !== user?.displayName)
     }
 
     // Generic save function for updating user fields
@@ -93,7 +94,7 @@ export default function UserSettingsContainer() {
 
     // Save display name
     const saveDisplayName = () => {
-        saveField("display_name", displayName, displayNameError, setIsDisplayNameChanged)
+        saveField("displayName", displayName, displayNameError, setIsDisplayNameChanged)
     }
 
     if (!user) {

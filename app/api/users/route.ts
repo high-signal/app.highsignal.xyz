@@ -309,7 +309,7 @@ export async function PATCH(request: Request) {
 
         // Parse the request body
         const body = await request.json()
-        const { username, display_name } = body
+        const { username, displayName } = body
 
         // Validate username if provided
         if (username) {
@@ -337,8 +337,8 @@ export async function PATCH(request: Request) {
         }
 
         // Validate display name if provided
-        if (display_name) {
-            const displayNameError = validateDisplayName(display_name)
+        if (displayName) {
+            const displayNameError = validateDisplayName(displayName)
             if (displayNameError) {
                 return NextResponse.json({ error: displayNameError }, { status: 400 })
             }
@@ -347,7 +347,7 @@ export async function PATCH(request: Request) {
         // Prepare update data
         const updateData: Record<string, any> = {}
         if (username) updateData.username = username
-        if (display_name) updateData.display_name = display_name
+        if (displayName) updateData.display_name = displayName
 
         // Update user
         const { data: updatedUser, error: updateError } = await supabase

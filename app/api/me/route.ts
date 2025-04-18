@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
         const { data: userData, error } = await supabase
             .from("users")
-            .select("id, username, display_name, profile_image_url")
+            .select("id, username, display_name, profile_image_url, is_super_admin")
             .eq("privy_id", authResult.privyId)
             .single()
 
@@ -30,7 +30,15 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: "Error fetching user" }, { status: 500 })
         }
 
-        return NextResponse.json(userData)
+        const formattedUserData = {
+            id: userData.id,
+            username: userData.username,
+            displayName: userData.display_name,
+            profileImageUrl: userData.profile_image_url,
+            isSuperAdmin: userData.is_super_admin,
+        }
+
+        return NextResponse.json(formattedUserData)
     } catch (error) {
         console.error("Unhandled error:", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
