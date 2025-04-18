@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { calculateSignal } from "../../../utils/calculateSignal"
 import { verifyAuth } from "../../../utils/verifyAuth"
 import { validateUsername, validateDisplayName } from "../../../utils/userValidation"
+import { sanitize } from "../../../utils/sanitize"
 
 type User = {
     id: string
@@ -344,10 +345,12 @@ export async function PATCH(request: Request) {
             }
         }
 
-        // Prepare update data
+        // ************************************************
+        // SANITIZE USER INPUTS BEFORE STORING IN DATABASE
+        // ************************************************
         const updateData: Record<string, any> = {}
-        if (username) updateData.username = username
-        if (displayName) updateData.display_name = displayName
+        if (username) updateData.username = sanitize(username)
+        if (displayName) updateData.display_name = sanitize(displayName)
 
         // Update user
         const { data: updatedUser, error: updateError } = await supabase

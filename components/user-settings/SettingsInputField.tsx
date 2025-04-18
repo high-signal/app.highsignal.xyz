@@ -26,7 +26,7 @@ export default function SettingsInputField({
         <VStack align="stretch" w="100%">
             <HStack justify="space-between" px={2}>
                 <Text fontWeight="bold">{label}</Text>
-                <HStack fontSize="sm" color="gray.500">
+                <HStack fontSize="sm" color="gray.500" cursor="default" gap={1}>
                     <FontAwesomeIcon icon={isPrivate ? faLock : faEarthAmericas} />
                     <Text>{isPrivate ? "Private" : "Public"}</Text>
                 </HStack>
