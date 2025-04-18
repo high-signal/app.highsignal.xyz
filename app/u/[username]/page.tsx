@@ -1,11 +1,5 @@
-export default async function UserProfilePage({
-    params,
-}: {
-    params: Promise<{
-        username: string
-    }>
-}) {
-    const { username } = await params
+import UserProfileContainer from "../../../components/user-profile/UserProfileContainer"
 
-    return <div>User Profile: {username}</div>
+export default async function UserProfilePage() {
+    return <UserProfileContainer />
 }
