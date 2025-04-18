@@ -49,7 +49,6 @@ export default function UserSettingsContainer() {
                 }
 
                 const data = await response.json()
-                console.log("data", data)
                 setTargetUser(data)
                 setUsername(data.username || "")
                 setDisplayName(data.display_name || "")
@@ -110,12 +109,15 @@ export default function UserSettingsContainer() {
 
             await refreshUser()
             setChanged(false)
-            // Show success message
-            alert(`${fieldName === "username" ? "Username" : "Display name"} updated successfully`)
+            // TODO: Show success message toast
+
+            // If username is changed, redirect to the new username
+            if (fieldName === "username") {
+                router.push(`/settings/u/${value}`)
+            }
         } catch (error) {
             console.error(`Error updating ${fieldName}:`, error)
-            // Show error message
-            alert(error instanceof Error ? error.message : "An unknown error occurred")
+            // Show error message toast
         } finally {
             setIsLoading(false)
         }
