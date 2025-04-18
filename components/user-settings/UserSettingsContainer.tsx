@@ -7,10 +7,16 @@ import { usePrivy } from "@privy-io/react-auth"
 import ContentContainer from "../layout/ContentContainer"
 import { validateUsername, validateDisplayName } from "../../utils/userValidation"
 import SettingsInputField from "./SettingsInputField"
+import { useParams, useRouter } from "next/navigation"
 
 export default function UserSettingsContainer() {
     const { user, refreshUser } = useUser()
     const { getAccessToken } = usePrivy()
+    const params = useParams()
+    const router = useRouter()
+    const [targetUser, setTargetUser] = useState<any>(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     const [username, setUsername] = useState("")
     const [displayName, setDisplayName] = useState("")
@@ -18,16 +24,44 @@ export default function UserSettingsContainer() {
     const [displayNameError, setDisplayNameError] = useState("")
     const [isUsernameChanged, setIsUsernameChanged] = useState(false)
     const [isDisplayNameChanged, setIsDisplayNameChanged] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
 
     // Initialize form with user data
     useEffect(() => {
-        if (user?.username || user?.isSuperAdmin === true) {
-            //fetchUser()
-        } else {
-            //show404()
+        const fetchUserData = async () => {
+            if (!user) return
+
+            const username = params?.username as string
+            if (!username) return
+
+            try {
+                const token = await getAccessToken()
+                const response = await fetch(`/api/settings/u`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ username }),
+                })
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch user data")
+                }
+
+                const data = await response.json()
+                console.log("data", data)
+                setTargetUser(data)
+                setUsername(data.username || "")
+                setDisplayName(data.display_name || "")
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "An error occurred")
+            } finally {
+                setIsLoading(false)
+            }
         }
-    }, [user])
+
+        fetchUserData()
+    }, [user, params?.username, getAccessToken, router])
 
     // Handle username change
     const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,11 +131,33 @@ export default function UserSettingsContainer() {
         saveField("displayName", displayName, displayNameError, setIsDisplayNameChanged)
     }
 
-    if (!user) {
+    if (isLoading) {
         return (
             <ContentContainer>
                 <VStack>
                     <Text>Loading user data...</Text>
+                </VStack>
+            </ContentContainer>
+        )
+    }
+
+    // TODO: Style this
+    if (error) {
+        return (
+            <ContentContainer>
+                <VStack>
+                    <Text color="red.500">{error}</Text>
+                </VStack>
+            </ContentContainer>
+        )
+    }
+
+    // TODO: Style this
+    if (!targetUser) {
+        return (
+            <ContentContainer>
+                <VStack>
+                    <Text>User not found</Text>
                 </VStack>
             </ContentContainer>
         )
