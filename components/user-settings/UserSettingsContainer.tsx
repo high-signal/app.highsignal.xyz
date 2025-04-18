@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { VStack, Text } from "@chakra-ui/react"
+import { VStack, Text, Button, Spinner } from "@chakra-ui/react"
 import { useUser } from "../../contexts/UserContext"
 import { usePrivy } from "@privy-io/react-auth"
 import ContentContainer from "../layout/ContentContainer"
@@ -10,84 +10,133 @@ import SettingsInputField from "./SettingsInputField"
 import { useParams, useRouter } from "next/navigation"
 
 export default function UserSettingsContainer() {
-    const { user, refreshUser } = useUser()
+    const { user, isLoading: userLoading, refreshUser } = useUser()
     const { getAccessToken } = usePrivy()
     const params = useParams()
     const router = useRouter()
     const [targetUser, setTargetUser] = useState<any>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const [username, setUsername] = useState("")
-    const [displayName, setDisplayName] = useState("")
-    const [usernameError, setUsernameError] = useState("")
-    const [displayNameError, setDisplayNameError] = useState("")
-    const [isUsernameChanged, setIsUsernameChanged] = useState(false)
-    const [isDisplayNameChanged, setIsDisplayNameChanged] = useState(false)
+    const [formData, setFormData] = useState({
+        username: "",
+        displayName: "",
+    })
+    const [errors, setErrors] = useState({
+        username: "",
+        displayName: "",
+    })
+    const [hasChanges, setHasChanges] = useState(false)
 
     // Initialize form with user data
     useEffect(() => {
         const fetchUserData = async () => {
-            if (!user) return
+            if (!user) {
+                setIsLoading(false)
+                setError("Please log in to view your settings")
+                return
+            }
 
             const username = params?.username as string
-            if (!username) return
+            if (!username) {
+                setError("No username provided")
+                return
+            }
 
             try {
                 const token = await getAccessToken()
-                const response = await fetch(`/api/settings/u`, {
-                    method: "POST",
+                const response = await fetch(`/api/settings/u?username=${username}`, {
+                    method: "GET",
                     headers: {
-                        "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
                     },
-                    body: JSON.stringify({ username }),
                 })
 
                 if (!response.ok) {
-                    throw new Error("Failed to fetch user data")
+                    const errorData = await response.json()
+                    console.error("Failed to fetch user data:", errorData)
+                    throw new Error(errorData.error || "Failed to fetch user data")
                 }
 
                 const data = await response.json()
                 setTargetUser(data)
-                setUsername(data.username || "")
-                setDisplayName(data.display_name || "")
+                setFormData({
+                    username: data.username || "",
+                    displayName: data.display_name || "",
+                })
             } catch (err) {
+                console.error("Error in fetchUserData:", err)
                 setError(err instanceof Error ? err.message : "An error occurred")
             } finally {
                 setIsLoading(false)
             }
         }
 
-        fetchUserData()
-    }, [user, params?.username, getAccessToken, router])
+        if (!userLoading) {
+            fetchUserData()
+        }
+    }, [user, userLoading, params?.username, getAccessToken, router])
 
-    // Handle username change
-    const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newValue = e.target.value
-        setUsername(newValue)
-        setUsernameError(validateUsername(newValue))
-        setIsUsernameChanged(newValue !== user?.username)
+    // Handle field changes
+    const handleFieldChange = (field: string, value: string) => {
+        setFormData((prev) => ({ ...prev, [field]: value }))
+
+        // Validate the field
+        let fieldError = ""
+        if (field === "username") {
+            fieldError = validateUsername(value)
+        } else if (field === "displayName") {
+            fieldError = validateDisplayName(value)
+        }
+
+        setErrors((prev) => ({ ...prev, [field]: fieldError }))
+
+        // Check if any field has changed from original values AND there are no errors
+        const hasAnyChanges =
+            value !== (field === "username" ? targetUser?.username : targetUser?.display_name) ||
+            Object.keys(formData).some(
+                (key) =>
+                    key !== field &&
+                    formData[key as keyof typeof formData] !==
+                        (key === "username" ? targetUser?.username : targetUser?.display_name),
+            )
+
+        // Only set hasChanges to true if there are changes AND no errors in any field
+        const hasAnyErrors = fieldError !== "" || Object.values(errors).some((error) => error !== "")
+        setHasChanges(hasAnyChanges && !hasAnyErrors)
     }
 
-    // Handle display name change
-    const handleDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newValue = e.target.value
-        setDisplayName(newValue)
-        setDisplayNameError(validateDisplayName(newValue))
-        setIsDisplayNameChanged(newValue !== user?.displayName)
-    }
+    // Save all changes
+    const saveChanges = async () => {
+        // Validate all fields first
+        const usernameError = validateUsername(formData.username)
+        const displayNameError = validateDisplayName(formData.displayName)
 
-    // Generic save function for updating user fields
-    const saveField = async (
-        fieldName: string,
-        value: string,
-        error: string,
-        setChanged: (changed: boolean) => void,
-    ) => {
-        if (error) return
+        setErrors({
+            username: usernameError,
+            displayName: displayNameError,
+        })
 
-        setIsLoading(true)
+        if (usernameError || displayNameError) {
+            return
+        }
+
+        // Create an object with only the changed fields
+        const changedFields: Record<string, string> = {}
+        if (formData.username !== targetUser?.username) {
+            changedFields.username = formData.username
+        }
+        if (formData.displayName !== targetUser?.display_name) {
+            changedFields.displayName = formData.displayName
+        }
+
+        // If nothing has changed, return early
+        if (Object.keys(changedFields).length === 0) {
+            return
+        }
+
+        setIsSubmitting(true)
         try {
             const token = await getAccessToken()
             const response = await fetch("/api/users", {
@@ -96,48 +145,47 @@ export default function UserSettingsContainer() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({
-                    [fieldName]: value,
-                }),
+                body: JSON.stringify(changedFields),
             })
 
             const data = await response.json()
 
             if (!response.ok) {
-                throw new Error(data.error || `Failed to update ${fieldName}`)
+                // Handle specific API errors
+                if (data.error === "Username is already taken" || data.error?.includes("username")) {
+                    setErrors((prev) => ({ ...prev, username: data.error }))
+                } else if (data.error?.includes("display name")) {
+                    setErrors((prev) => ({ ...prev, displayName: data.error }))
+                } else {
+                    // Only set general error if it's not a field-specific error
+                    setError(data.error || "Failed to update settings")
+                }
+                setHasChanges(false)
+                return
             }
 
             await refreshUser()
-            setChanged(false)
-            // TODO: Show success message toast
+            setHasChanges(false)
 
             // If username is changed, redirect to the new username
-            if (fieldName === "username") {
-                router.push(`/settings/u/${value}`)
+            // Full page reload is needed to stop the page from requesting the old username
+            if (changedFields.username) {
+                window.location.href = `/settings/u/${changedFields.username}`
             }
         } catch (error) {
-            console.error(`Error updating ${fieldName}:`, error)
-            // Show error message toast
+            console.error("Error updating settings:", error)
+            setError("An error occurred while saving changes")
         } finally {
-            setIsLoading(false)
+            setIsSubmitting(false)
         }
     }
 
-    // Save username
-    const saveUsername = () => {
-        saveField("username", username, usernameError, setIsUsernameChanged)
-    }
-
-    // Save display name
-    const saveDisplayName = () => {
-        saveField("displayName", displayName, displayNameError, setIsDisplayNameChanged)
-    }
-
+    // TODO: Style this
     if (isLoading) {
         return (
             <ContentContainer>
-                <VStack>
-                    <Text>Loading user data...</Text>
+                <VStack gap={10} w="100%" minH="300px" justifyContent="center" alignItems="center" borderRadius="20px">
+                    <Spinner size="lg" />
                 </VStack>
             </ContentContainer>
         )
@@ -148,7 +196,7 @@ export default function UserSettingsContainer() {
         return (
             <ContentContainer>
                 <VStack>
-                    <Text color="red.500">{error}</Text>
+                    <Text color="orange.700">{error}</Text>
                 </VStack>
             </ContentContainer>
         )
@@ -174,25 +222,30 @@ export default function UserSettingsContainer() {
 
                 <SettingsInputField
                     label="Username"
-                    description="This is your username. It will be used to identify you in the community."
-                    value={username}
-                    onChange={handleUsernameChange}
-                    onSave={saveUsername}
-                    error={usernameError}
-                    isChanged={isUsernameChanged}
-                    isLoading={isLoading}
+                    description="Your username is unique and is used to identify you. It is publicly visible."
+                    value={formData.username}
+                    onChange={(e) => handleFieldChange("username", e.target.value)}
+                    error={errors.username}
                 />
 
                 <SettingsInputField
                     label="Display Name"
-                    description="This is your display name. It will be used to identify you in the community."
-                    value={displayName}
-                    onChange={handleDisplayNameChange}
-                    onSave={saveDisplayName}
-                    error={displayNameError}
-                    isChanged={isDisplayNameChanged}
-                    isLoading={isLoading}
+                    description="Your display name is shown on your profile. It is publicly visible."
+                    value={formData.displayName}
+                    onChange={(e) => handleFieldChange("displayName", e.target.value)}
+                    error={errors.displayName}
                 />
+
+                <Button
+                    colorScheme="blue"
+                    onClick={saveChanges}
+                    loading={isSubmitting}
+                    disabled={!hasChanges || isSubmitting}
+                    w="100%"
+                    mt={4}
+                >
+                    Save Changes
+                </Button>
             </VStack>
         </ContentContainer>
     )

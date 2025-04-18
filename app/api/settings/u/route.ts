@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { verifyPermissions } from "../../../../utils/verifyPermissions"
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
     try {
-        // Get the target username from the request body
-        const { username } = await request.json()
+        // Get the target username from the URL search params
+        const username = request.nextUrl.searchParams.get("username")
         if (!username) {
             return NextResponse.json({ error: "Username is required" }, { status: 400 })
         }

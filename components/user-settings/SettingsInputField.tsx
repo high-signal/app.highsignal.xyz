@@ -7,33 +7,14 @@ interface SettingsInputFieldProps {
     description: string
     value: string
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-    onSave: () => void
     error: string
-    isChanged: boolean
-    isLoading: boolean
 }
 
-export default function SettingsInputField({
-    label,
-    description,
-    value,
-    onChange,
-    onSave,
-    error,
-    isChanged,
-    isLoading,
-}: SettingsInputFieldProps) {
+export default function SettingsInputField({ label, description, value, onChange, error }: SettingsInputFieldProps) {
     return (
         <VStack align="stretch" w="100%">
             <Text fontWeight="bold">{label}</Text>
-            <HStack>
-                <Input value={value} onChange={onChange} _invalid={{ borderColor: "red.300" }} />
-                {isChanged && (
-                    <Button colorScheme="blue" onClick={onSave} loading={isLoading} disabled={!!error}>
-                        Save
-                    </Button>
-                )}
-            </HStack>
+            <Input value={value} onChange={onChange} />
             {error ? (
                 <Text color="orange.700" fontSize="sm">
                     {error}
