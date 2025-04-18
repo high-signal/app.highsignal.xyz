@@ -17,6 +17,9 @@ const userButtonStyles = {
     overflow: "hidden",
     justifyContent: "center",
     h: "50px",
+    _hover: {
+        borderColor: "gray.500",
+    },
 }
 
 export default function UserMenuButton() {
@@ -53,8 +56,11 @@ export default function UserMenuButton() {
                         {...userButtonStyles}
                         cursor="pointer"
                         maxW="50px"
+                        border={"none"}
+                        transform={{ base: "scale(1)", sm: isMenuOpen ? "scale(1.1)" : "scale(1)" }}
+                        transition="transform 0.2s ease-in-out"
                         _hover={{
-                            borderColor: "gray.500",
+                            transform: { base: "scale(1)", sm: "scale(1.1)" },
                         }}
                     >
                         <Image
@@ -65,6 +71,7 @@ export default function UserMenuButton() {
                             }
                             alt={`User ${user.display_name} Profile Image`}
                             fit="cover"
+                            transition="transform 0.2s ease-in-out"
                         />
                     </HStack>
                 </Menu.Trigger>
