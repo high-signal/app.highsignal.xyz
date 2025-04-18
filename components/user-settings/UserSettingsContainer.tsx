@@ -1,13 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
 import { VStack, Text, Button, Spinner } from "@chakra-ui/react"
+import { toaster } from "../ui/toaster"
+
 import { useUser } from "../../contexts/UserContext"
 import { usePrivy } from "@privy-io/react-auth"
-import ContentContainer from "../layout/ContentContainer"
 import { validateUsername, validateDisplayName } from "../../utils/userValidation"
+
+import ContentContainer from "../layout/ContentContainer"
 import SettingsInputField from "./SettingsInputField"
-import { useParams, useRouter } from "next/navigation"
 
 export default function UserSettingsContainer() {
     const { user, isLoading: userLoading, refreshUser } = useUser()
@@ -164,6 +167,11 @@ export default function UserSettingsContainer() {
                 return
             }
 
+            toaster.create({
+                title: "✅ Settings saved successfully",
+                type: "success",
+            })
+
             await refreshUser()
             setHasChanges(false)
 
@@ -173,6 +181,11 @@ export default function UserSettingsContainer() {
                 window.location.href = `/settings/u/${changedFields.username}`
             }
         } catch (error) {
+            toaster.create({
+                title: "❌ Error updating settings",
+                description: error instanceof Error ? error.message : "An unknown error occurred",
+                type: "error",
+            })
             console.error("Error updating settings:", error)
             setError("An error occurred while saving changes")
         } finally {
@@ -215,14 +228,15 @@ export default function UserSettingsContainer() {
 
     return (
         <ContentContainer>
-            <VStack gap={6} w="100%" maxW="600px" mx="auto" p={4}>
+            <VStack gap={6} w="100%" maxW="500px" mx="auto" p={4}>
                 <Text fontSize="2xl" fontWeight="bold">
                     User Settings
                 </Text>
 
                 <SettingsInputField
                     label="Username"
-                    description="Your username is unique and is used to identify you. It is publicly visible."
+                    description="Your username is unique and is used to identify you."
+                    isPrivate={false}
                     value={formData.username}
                     onChange={(e) => handleFieldChange("username", e.target.value)}
                     error={errors.username}
@@ -230,7 +244,8 @@ export default function UserSettingsContainer() {
 
                 <SettingsInputField
                     label="Display Name"
-                    description="Your display name is shown on your profile. It is publicly visible."
+                    description="Your display name is shown on your profile."
+                    isPrivate={false}
                     value={formData.displayName}
                     onChange={(e) => handleFieldChange("displayName", e.target.value)}
                     error={errors.displayName}
@@ -243,6 +258,7 @@ export default function UserSettingsContainer() {
                     disabled={!hasChanges || isSubmitting}
                     w="100%"
                     mt={4}
+                    borderRadius="full"
                 >
                     Save Changes
                 </Button>

@@ -7,6 +7,8 @@ import { useState, useEffect } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleXmark } from "@fortawesome/free-solid-svg-icons"
 
+import SingleLineTextInput from "../ui/SingleLineTextInput"
+
 const TableHeader = ({
     children,
     textAlign = "left",
@@ -83,13 +85,6 @@ export default function Leaderboard({ project }: { project: string }) {
         setIsSearching(true)
     }
 
-    // const handleRowClick = (username: string) => {
-    //     // Navigate immediately but with a small delay to allow the active state to be visible
-    //     setTimeout(() => {
-    //         router.push(`/${project}/${username}`)
-    //     }, 100)
-    // }
-
     if (error) {
         return (
             <VStack gap={10} w="100%" maxW="800px" borderRadius="20px">
@@ -116,44 +111,12 @@ export default function Leaderboard({ project }: { project: string }) {
                             </HStack>
                         </TableHeader>
                         <TableHeader maxW={displayNameColumnWidth} px={{ base: 2, sm: 2 }}>
-                            <Box position="relative">
-                                <Input
-                                    type="text"
-                                    fontSize="md"
-                                    placeholder="Search users..."
-                                    borderRadius="full"
-                                    border={"2px solid"}
-                                    borderColor="gray.800"
-                                    value={searchTerm}
-                                    onChange={handleSearchChange}
-                                    _focus={{
-                                        borderColor: "gray.300",
-                                        boxShadow: "none",
-                                        outline: "none",
-                                    }}
-                                    _selection={{
-                                        bg: "gray.600",
-                                        color: "white",
-                                    }}
-                                    bg={searchTerm ? "gray.800" : "transparent"}
-                                    pr="30px"
-                                    h="35px"
-                                />
-                                {searchTerm && (
-                                    <Box
-                                        position="absolute"
-                                        right="6px"
-                                        top="50%"
-                                        transform="translateY(-50%)"
-                                        cursor="pointer"
-                                        onClick={handleClearSearch}
-                                        color="gray.200"
-                                        _hover={{ color: "white" }}
-                                    >
-                                        <FontAwesomeIcon icon={faCircleXmark} size="lg" />
-                                    </Box>
-                                )}
-                            </Box>
+                            <SingleLineTextInput
+                                value={searchTerm}
+                                onChange={handleSearchChange}
+                                handleClear={handleClearSearch}
+                                placeholder="Search users..."
+                            />
                         </TableHeader>
                         <TableHeader textAlign="center" maxW={signalColumnWidth}>
                             Signal

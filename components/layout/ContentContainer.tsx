@@ -3,9 +3,9 @@
 import { VStack, Box } from "@chakra-ui/react"
 import { ReactNode } from "react"
 
+import Toaster from "../ui/toaster"
 import Header from "../layout/Header"
 import Footer from "./Footer"
-
 interface ContentContainerProps {
     children: ReactNode
 }
@@ -13,6 +13,7 @@ interface ContentContainerProps {
 export default function ContentContainer({ children }: ContentContainerProps) {
     return (
         <VStack minH="100dvh" gap={0} overflow={"hidden"}>
+            <Toaster />
             <Header />
             <VStack
                 alignItems={"center"}
