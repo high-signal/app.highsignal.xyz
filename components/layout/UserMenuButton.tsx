@@ -26,7 +26,7 @@ const userButtonStyles = {
 export default function UserMenuButton() {
     const router = useRouter()
     const { login, authenticated, logout, ready: privyReady } = usePrivy()
-    const { user, isLoading, userCreated, setUserCreated } = useUser()
+    const { loggedInUser, loggedInUserLoading, userCreated, setUserCreated } = useUser()
     const [isMenuOpen, setIsMenuOpen] = useState(false)
 
     // On user creation, redirect to the user settings page
@@ -42,7 +42,7 @@ export default function UserMenuButton() {
         router.push("/")
     }
 
-    if (isLoading) {
+    if (loggedInUserLoading) {
         return (
             <HStack {...userButtonStyles} w={"50px"}>
                 <Spinner />
@@ -50,7 +50,7 @@ export default function UserMenuButton() {
         )
     }
 
-    if (privyReady && authenticated && user) {
+    if (privyReady && authenticated && loggedInUser) {
         return (
             <Menu.Root onOpenChange={(details) => setIsMenuOpen(details.open)}>
                 <Menu.Trigger asChild>
@@ -67,11 +67,11 @@ export default function UserMenuButton() {
                     >
                         <Image
                             src={
-                                !user.profileImageUrl || user.profileImageUrl === ""
+                                !loggedInUser.profileImageUrl || loggedInUser.profileImageUrl === ""
                                     ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                    : user.profileImageUrl
+                                    : loggedInUser.profileImageUrl
                             }
-                            alt={`User ${user.displayName} Profile Image`}
+                            alt={`User ${loggedInUser.displayName} Profile Image`}
                             fit="cover"
                             transition="transform 0.2s ease-in-out"
                         />
@@ -104,7 +104,7 @@ export default function UserMenuButton() {
                                 borderRadius={"0px"}
                                 fontSize={"md"}
                             >
-                                {user.displayName}
+                                {loggedInUser.displayName}
                             </Menu.Item>
                             <Menu.Item
                                 py={3}
@@ -114,7 +114,7 @@ export default function UserMenuButton() {
                                 value="profile"
                                 // TODO: Uncomment this when the profile page is implemented
                                 // onClick={() => router.push(`/u/${user.username}`)}
-                                onClick={() => router.push(`/p/lido/${user.username}`)}
+                                onClick={() => router.push(`/p/lido/${loggedInUser.username}`)}
                             >
                                 <HStack>
                                     <Box w="20px">
@@ -129,7 +129,7 @@ export default function UserMenuButton() {
                                 cursor={"pointer"}
                                 fontSize={"md"}
                                 value="settings"
-                                onClick={() => router.push(`/settings/u/${user.username}`)}
+                                onClick={() => router.push(`/settings/u/${loggedInUser.username}`)}
                             >
                                 <HStack>
                                     <Box w="20px">

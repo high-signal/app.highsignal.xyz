@@ -12,8 +12,8 @@ interface User {
 }
 
 interface UserContextType {
-    user: User | null
-    isLoading: boolean
+    loggedInUser: User | null
+    loggedInUserLoading: boolean
     userCreated: string
     setUserCreated: (username: string) => void
     error: string | null
@@ -21,8 +21,8 @@ interface UserContextType {
 }
 
 const UserContext = createContext<UserContextType>({
-    user: null,
-    isLoading: true,
+    loggedInUser: null,
+    loggedInUserLoading: true,
     userCreated: "",
     setUserCreated: () => {},
     error: null,
@@ -33,8 +33,8 @@ export const useUser = () => useContext(UserContext)
 
 export function UserProvider({ children }: { children: ReactNode }) {
     const { ready, authenticated, user: privyUser, getAccessToken } = usePrivy()
-    const [user, setUser] = useState<User | null>(null)
-    const [isLoading, setIsLoading] = useState(true)
+    const [loggedInUser, setLoggedInUser] = useState<User | null>(null)
+    const [loggedInUserLoading, setLoggedInUserLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [missingUser, setMissingUser] = useState(false)
     const [userCreated, setUserCreated] = useState("")
@@ -76,13 +76,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     const fetchUser = async () => {
         if (ready && !authenticated) {
-            setIsLoading(false)
-            setUser(null)
+            setLoggedInUserLoading(false)
+            setLoggedInUser(null)
             return
         }
 
         try {
-            setIsLoading(true)
+            setLoggedInUserLoading(true)
             const accessToken = await getAccessToken()
 
             const response = await fetch(`/api/me`, {
@@ -100,14 +100,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
             if (response.status === 200) {
                 const userData = await response.json()
-                setUser(userData)
+                setLoggedInUser(userData)
                 setError(null)
-                setIsLoading(false)
+                setLoggedInUserLoading(false)
             }
         } catch (err) {
             console.error("Error fetching user:", err)
             setError(err instanceof Error ? err.message : "Unknown error")
-            setIsLoading(false)
+            setLoggedInUserLoading(false)
         }
     }
 
@@ -122,7 +122,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <UserContext.Provider value={{ user, isLoading, userCreated, setUserCreated, error, refreshUser }}>
+        <UserContext.Provider
+            value={{ loggedInUser, loggedInUserLoading, userCreated, setUserCreated, error, refreshUser }}
+        >
             {children}
         </UserContext.Provider>
     )

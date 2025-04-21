@@ -16,7 +16,7 @@ import SettingsInputField from "./SettingsInputField"
 import ProfileImageEditor from "./ProfileImageEditor"
 
 export default function UserSettingsContainer() {
-    const { user, isLoading: userLoading, refreshUser } = useUser()
+    const { loggedInUser, loggedInUserLoading, refreshUser } = useUser()
     const { getAccessToken } = usePrivy()
     const params = useParams()
     const router = useRouter()
@@ -42,7 +42,7 @@ export default function UserSettingsContainer() {
     // Initialize form with user data
     useEffect(() => {
         const fetchUserData = async () => {
-            if (!user) {
+            if (!loggedInUser) {
                 setIsLoading(false)
                 setError("Please log in to view your settings")
                 return
@@ -93,10 +93,10 @@ export default function UserSettingsContainer() {
             }
         }
 
-        if (!userLoading) {
+        if (!loggedInUserLoading) {
             fetchUserData()
         }
-    }, [user, userLoading, params?.username, getAccessToken, router])
+    }, [loggedInUser, loggedInUserLoading, params?.username, getAccessToken, router])
 
     // Handle field changes
     const handleFieldChange = (field: string, value: string) => {
@@ -256,7 +256,7 @@ export default function UserSettingsContainer() {
                     label: "View Profile",
                     // TODO: Uncomment this when the profile page is implemented
                     // onClick: () => router.push(`/u/${targetUser.username}`),
-                    onClick: () => router.push(`/p/lido/${user?.username}`),
+                    onClick: () => router.push(`/p/lido/${loggedInUser?.username}`),
                 },
             })
         } catch (error) {

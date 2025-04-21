@@ -18,7 +18,7 @@ export default function SignalStrength({
     projectData: SignalStrengthProjectData
     isUserConnected: boolean
 }) {
-    const { user: loggedInUser } = useUser()
+    const { loggedInUser } = useUser()
     const router = useRouter()
 
     const percentageCompleted = (Number(userData.value) / Number(projectData.maxValue)) * 100
