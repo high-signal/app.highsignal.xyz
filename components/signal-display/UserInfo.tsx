@@ -1,4 +1,5 @@
 import { HStack, Text, Box, Image } from "@chakra-ui/react"
+import { ASSETS } from "../../config/constants"
 
 interface UserInfoProps {
     profileImageUrl: string
@@ -22,9 +23,7 @@ export default function UserInfo({ profileImageUrl, name }: UserInfoProps) {
                 <Box boxSize="100px" minW="100px" borderRadius="full" overflow="hidden" flexGrow={0}>
                     <Image
                         src={
-                            !profileImageUrl || profileImageUrl === ""
-                                ? "/static/images/default-profile-image.png"
-                                : profileImageUrl
+                            !profileImageUrl || profileImageUrl === "" ? ASSETS.DEFAULT_PROFILE_IMAGE : profileImageUrl
                         }
                         alt={`User ${name} Profile Image`}
                         fit="cover"

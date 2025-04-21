@@ -44,11 +44,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate file type
-        if (!file.type.match(/^image\/(jpeg|png|gif|webp)$/)) {
-            return NextResponse.json(
-                { error: "Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed." },
-                { status: 400 },
-            )
+        if (!file.type.match(/^image\/(jpeg|png|)$/)) {
+            return NextResponse.json({ error: "Invalid file type. Only JPEG and PNG are allowed." }, { status: 400 })
         }
 
         // Validate file size (max 5MB)

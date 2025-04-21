@@ -11,8 +11,17 @@ import { ColorModeToggle } from "../color-mode/ColorModeToggle"
 import UserMenuButton from "./UserMenuButton"
 
 import Link from "next/link"
+import { ASSETS, SOCIAL_LINKS } from "../../config/constants"
 
-// const socialLinks = [{ href: "https://x.com/highsignalxyz", label: "High Signal X", icon: faXTwitter }]
+const iconMap = {
+    faXTwitter,
+}
+
+const socialLinks = Object.values(SOCIAL_LINKS).map((link) => ({
+    href: link.url,
+    label: link.label,
+    icon: iconMap[link.icon as keyof typeof iconMap],
+}))
 
 const IconLinkButton = ({ href, label, icon }: { href: string; label: string; icon: IconDefinition }) => {
     return (
@@ -56,7 +65,7 @@ export default function Header({}) {
             >
                 <Box onClick={() => router.push("/")} cursor="pointer">
                     <HStack gap={2} justifyContent={"center"} alignItems={"center"}>
-                        <Image src="/static/logo/logo-coin.png" alt="Logo" boxSize={"40px"} borderRadius="full" />
+                        <Image src={ASSETS.LOGO} alt="Logo" boxSize={"40px"} borderRadius="full" />
                         <Text minW="80px" fontWeight="bold" fontSize="xl" whiteSpace={"nowrap"}>
                             {process.env.NEXT_PUBLIC_SITE_NAME}
                         </Text>

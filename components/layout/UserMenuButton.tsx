@@ -8,6 +8,7 @@ import { faGear, faSignOut } from "@fortawesome/free-solid-svg-icons"
 import { faCircleUser } from "@fortawesome/free-regular-svg-icons"
 import { usePrivy } from "@privy-io/react-auth"
 import { useUser } from "../../contexts/UserContext"
+import { ASSETS } from "../../config/constants"
 
 // Common styles for the user button container
 const userButtonStyles = {
@@ -67,7 +68,7 @@ export default function UserMenuButton() {
                         <Image
                             src={
                                 !user.profileImageUrl || user.profileImageUrl === ""
-                                    ? "/static/images/default-profile-image.png"
+                                    ? ASSETS.DEFAULT_PROFILE_IMAGE
                                     : user.profileImageUrl
                             }
                             alt={`User ${user.displayName} Profile Image`}

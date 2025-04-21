@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCamera } from "@fortawesome/free-solid-svg-icons"
 import { toaster } from "../ui/toaster"
 import { usePrivy } from "@privy-io/react-auth"
+import { ASSETS } from "../../config/constants"
 
 interface ProfileImageEditorProps {
     currentImageUrl?: string
@@ -15,7 +16,7 @@ interface ProfileImageEditorProps {
 
 export default function ProfileImageEditor({ currentImageUrl, onImageUploaded, userId }: ProfileImageEditorProps) {
     const [isUploading, setIsUploading] = useState(false)
-    const [previewUrl, setPreviewUrl] = useState<string>(currentImageUrl || "/static/images/default-profile-image.png")
+    const [previewUrl, setPreviewUrl] = useState<string>(currentImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const { getAccessToken } = usePrivy()
 
@@ -96,7 +97,7 @@ export default function ProfileImageEditor({ currentImageUrl, onImageUploaded, u
             })
 
             // Reset preview on error
-            setPreviewUrl(currentImageUrl || "/static/images/default-profile-image.png")
+            setPreviewUrl(currentImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE)
         } finally {
             setIsUploading(false)
         }
