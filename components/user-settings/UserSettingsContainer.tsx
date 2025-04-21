@@ -277,8 +277,9 @@ export default function UserSettingsContainer() {
             const currentValue = targetUser.forum_users[0].forum_username
             setHasForumChanges(newValue !== currentValue)
         } else {
-            // If there's no current forum username, set hasForumChanges to true only if the new value is not empty
-            setHasForumChanges(newValue !== "")
+            // If there's no current forum username from the API, set hasForumChanges to true
+            // This ensures we show the "Connect" button when typing
+            setHasForumChanges(true)
         }
     }
 
@@ -427,6 +428,7 @@ export default function UserSettingsContainer() {
                     onChange={handleForumInputChange}
                     onKeyDown={handleForumKeyDown}
                     error=""
+                    isEditable={hasForumChanges}
                     rightElement={
                         hasForumChanges ? (
                             <Button

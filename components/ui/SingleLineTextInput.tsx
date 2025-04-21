@@ -10,6 +10,7 @@ interface SingleLineTextInputProps {
     handleClear?: () => void
     placeholder?: string
     rightElement?: ReactNode
+    isEditable?: boolean
 }
 
 export default function SingleLineTextInput({
@@ -19,6 +20,7 @@ export default function SingleLineTextInput({
     handleClear,
     placeholder = "",
     rightElement,
+    isEditable = true,
 }: SingleLineTextInputProps) {
     const showClearButton = Boolean(handleClear) && Boolean(value)
 
@@ -36,17 +38,21 @@ export default function SingleLineTextInput({
                 border={"2px solid"}
                 borderColor="gray.800"
                 _focus={{
-                    borderColor: "gray.300",
+                    borderColor: isEditable ? "gray.300" : "gray.800",
                     boxShadow: "none",
                     outline: "none",
                 }}
                 _selection={{
-                    bg: "gray.600",
-                    color: "white",
+                    bg: isEditable ? "gray.600" : "transparent",
+                    color: isEditable ? "white" : "inherit",
                 }}
-                bg={value ? "gray.800" : "transparent"}
+                bg={value && isEditable ? "gray.800" : "transparent"}
                 pr={showClearButton ? "30px" : "0px"}
                 h="35px"
+                readOnly={!isEditable}
+                cursor={isEditable ? "text" : "default"}
+                userSelect={isEditable ? "text" : "none"}
+                pointerEvents={isEditable ? "auto" : "none"}
             />
             {showClearButton && (
                 <Box

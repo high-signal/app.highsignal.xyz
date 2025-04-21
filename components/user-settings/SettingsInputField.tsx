@@ -15,6 +15,7 @@ interface SettingsInputFieldProps {
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
     error?: string
     rightElement?: ReactNode
+    isEditable?: boolean
 }
 
 export default function SettingsInputField({
@@ -26,6 +27,7 @@ export default function SettingsInputField({
     onKeyDown,
     error,
     rightElement,
+    isEditable = true,
 }: SettingsInputFieldProps) {
     return (
         <VStack align="stretch" w="100%">
@@ -42,6 +44,7 @@ export default function SettingsInputField({
                     onChange={onChange}
                     onKeyDown={onKeyDown}
                     rightElement={rightElement}
+                    isEditable={isEditable}
                 />
                 {rightElement}
             </HStack>
