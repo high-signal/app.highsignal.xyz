@@ -24,7 +24,9 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
                 }}
                 _active={{ bg: "gray.600" }}
                 transition="all 0.1s ease"
-                onClick={() => router.back()}
+                onClick={() => {
+                    router.push(`/p/${projectData.projectSlug}${window.location.search}`)
+                }}
                 alignItems="center"
                 fontSize="xl"
             >

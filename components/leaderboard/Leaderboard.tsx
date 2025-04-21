@@ -163,7 +163,9 @@ export default function Leaderboard({ project }: { project: string }) {
                                 }}
                                 _active={{ bg: "gray.700" }}
                                 transition="all 0.1s ease"
-                                onClick={() => router.push(`p/${project}/${user.username}`)}
+                                onClick={() => {
+                                    router.push(`/p/${project}/${user.username}${window.location.search}`)
+                                }}
                                 borderBottom="1px solid"
                                 borderColor="gray.500"
                             >
