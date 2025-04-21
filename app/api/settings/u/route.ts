@@ -24,7 +24,18 @@ export async function GET(request: NextRequest) {
         // Get the target user from the database
         const { data: targetUser, error: targetUserError } = await supabase
             .from("users")
-            .select("id, username, display_name")
+            .select(
+                `
+                id, 
+                username, 
+                display_name,
+                forum_users (
+                    user_id,
+                    project_id,
+                    forum_username
+                )
+            `,
+            )
             .eq("username", username)
             .single()
 

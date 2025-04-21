@@ -1,31 +1,38 @@
 import { Box, Input } from "@chakra-ui/react"
 import { faCircleXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { ReactNode } from "react"
 
 interface SingleLineTextInputProps {
     value: string
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
     handleClear?: () => void
     placeholder?: string
+    rightElement?: ReactNode
 }
 
 export default function SingleLineTextInput({
     value,
     onChange,
+    onKeyDown,
     handleClear,
     placeholder = "",
+    rightElement,
 }: SingleLineTextInputProps) {
     const showClearButton = Boolean(handleClear) && Boolean(value)
 
     return (
-        <Box position="relative">
+        <Box position="relative" w="100%">
             <Input
                 value={value}
                 onChange={onChange}
+                onKeyDown={onKeyDown}
                 placeholder={placeholder}
                 type="text"
                 fontSize="md"
                 borderRadius="full"
+                borderRightRadius={rightElement ? "none" : "full"}
                 border={"2px solid"}
                 borderColor="gray.800"
                 _focus={{

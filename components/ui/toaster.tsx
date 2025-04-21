@@ -1,10 +1,11 @@
 "use client"
 
-import { Toaster as ChakraToaster, Portal, Spinner, Stack, Toast, VStack, createToaster } from "@chakra-ui/react"
+import { Toaster as ChakraToaster, Portal, Toast, VStack, createToaster } from "@chakra-ui/react"
 
 export const toaster = createToaster({
     placement: "top-end",
     pauseOnPageIdle: true,
+    duration: 10000,
 })
 
 export default function Toaster() {
@@ -19,11 +20,15 @@ export default function Toaster() {
                         alignItems="center"
                         borderRadius="20px"
                     >
-                        <VStack maxWidth="100%">
+                        <VStack maxWidth="100%" alignItems="start">
                             {toast.title && <Toast.Title>{toast.title}</Toast.Title>}
                             {toast.description && <Toast.Description>{toast.description}</Toast.Description>}
+                            {toast.action && (
+                                <Toast.ActionTrigger borderRadius="full" border={"2px solid"} cursor="pointer">
+                                    {toast.action.label}
+                                </Toast.ActionTrigger>
+                            )}
                         </VStack>
-                        {toast.action && <Toast.ActionTrigger>{toast.action.label}</Toast.ActionTrigger>}
                         <Toast.CloseTrigger
                             cursor="pointer"
                             top={"14px"}

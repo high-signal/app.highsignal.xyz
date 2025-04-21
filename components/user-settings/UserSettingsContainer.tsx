@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import Link from "next/link"
 import { VStack, Text, Button, Spinner } from "@chakra-ui/react"
 import { toaster } from "../ui/toaster"
 
@@ -31,6 +32,9 @@ export default function UserSettingsContainer() {
         displayName: "",
     })
     const [hasChanges, setHasChanges] = useState(false)
+    const [forumUsername, setForumUsername] = useState("")
+    const [isForumSubmitting, setIsForumSubmitting] = useState(false)
+    const [hasForumChanges, setHasForumChanges] = useState(false)
 
     // Initialize form with user data
     useEffect(() => {
@@ -68,6 +72,15 @@ export default function UserSettingsContainer() {
                     username: data.username || "",
                     displayName: data.display_name || "",
                 })
+                // Set the forum username from the API response
+                if (data.forum_users && data.forum_users.length > 0) {
+                    setForumUsername(data.forum_users[0].forum_username || "")
+                    // Set hasForumChanges to false if there's a forum username
+                    setHasForumChanges(false)
+                } else {
+                    // If there's no forum username, set hasForumChanges to true
+                    setHasForumChanges(true)
+                }
             } catch (err) {
                 console.error("Error in fetchUserData:", err)
                 setError(err instanceof Error ? err.message : "An error occurred")
@@ -193,6 +206,86 @@ export default function UserSettingsContainer() {
         }
     }
 
+    const handleForumChange = async (forumUsername: string, user_id: string, project_id: string) => {
+        try {
+            setIsForumSubmitting(true)
+
+            // Call the forum_users PUT route
+            const forumResponse = await fetch("/api/accounts/forum_users", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    user_id,
+                    project_id,
+                    forum_username: forumUsername,
+                }),
+            })
+
+            if (!forumResponse.ok) {
+                const errorData = await forumResponse.json()
+                throw new Error(errorData.error || "Failed to update forum username")
+            }
+
+            // Update the targetUser state with the new forum username
+            setTargetUser((prev: any) => ({
+                ...prev,
+                forum_users: [
+                    {
+                        ...prev.forum_users[0],
+                        forum_username: forumUsername,
+                    },
+                ],
+            }))
+
+            // Reset the form state
+            setHasForumChanges(false)
+
+            // Show success message
+            toaster.create({
+                title: "✅ Forum username updated",
+                description:
+                    "Your forum username has been updated successfully. It may take a few minutes to update your signal score.",
+                type: "success",
+                action: {
+                    label: "View Profile",
+                    onClick: () => router.push(`/u/${targetUser.username}`),
+                },
+            })
+        } catch (error) {
+            console.error("Error updating forum username:", error)
+            toaster.create({
+                title: "❌ Error updating forum username",
+                description: error instanceof Error ? error.message : "An unknown error occurred",
+                type: "error",
+            })
+        } finally {
+            setIsForumSubmitting(false)
+        }
+    }
+
+    const handleForumInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value
+        setForumUsername(newValue)
+
+        // Check if the value has changed from the current value in targetUser
+        if (targetUser && targetUser.forum_users && targetUser.forum_users.length > 0) {
+            const currentValue = targetUser.forum_users[0].forum_username
+            setHasForumChanges(newValue !== currentValue)
+        } else {
+            // If there's no current forum username, set hasForumChanges to true only if the new value is not empty
+            setHasForumChanges(newValue !== "")
+        }
+    }
+
+    // Handle Enter key press in the forum username input
+    const handleForumKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter" && hasForumChanges && forumUsername && !isForumSubmitting) {
+            handleForumChange(forumUsername, targetUser.id, "1")
+        }
+    }
+
     // TODO: Style this
     if (isLoading) {
         return (
@@ -232,7 +325,6 @@ export default function UserSettingsContainer() {
                 <Text fontSize="2xl" fontWeight="bold">
                     User Settings
                 </Text>
-
                 <SettingsInputField
                     label="Username"
                     description="Your username is unique and is used to identify you."
@@ -241,7 +333,6 @@ export default function UserSettingsContainer() {
                     onChange={(e) => handleFieldChange("username", e.target.value)}
                     error={errors.username}
                 />
-
                 <SettingsInputField
                     label="Display Name"
                     description="Your display name is shown on your profile."
@@ -250,18 +341,48 @@ export default function UserSettingsContainer() {
                     onChange={(e) => handleFieldChange("displayName", e.target.value)}
                     error={errors.displayName}
                 />
-
                 <Button
                     colorScheme="blue"
                     onClick={saveChanges}
                     loading={isSubmitting}
                     disabled={!hasChanges || isSubmitting}
                     w="100%"
-                    mt={4}
                     borderRadius="full"
                 >
                     Save Changes
                 </Button>
+            </VStack>
+            <VStack gap={6} w="100%" maxW="500px" mx="auto" p={4}>
+                <Text fontSize="2xl" fontWeight="bold">
+                    Connected Accounts
+                </Text>
+                <SettingsInputField
+                    label="Lido Forum"
+                    description="Your Lido Forum username."
+                    isPrivate={true}
+                    value={forumUsername}
+                    onChange={handleForumInputChange}
+                    onKeyDown={handleForumKeyDown}
+                    error=""
+                    rightElement={
+                        <Button
+                            h={"35px"}
+                            w={"110px"}
+                            bg={hasForumChanges ? "orange.500" : "green.500"}
+                            color={hasForumChanges ? "white" : "#029E03"}
+                            borderColor={hasForumChanges ? "green.500" : "#029E03"}
+                            onClick={
+                                hasForumChanges ? () => handleForumChange(forumUsername, targetUser.id, "1") : undefined
+                            }
+                            loading={isForumSubmitting}
+                            borderRightRadius="full"
+                            cursor={!hasForumChanges || !forumUsername || isForumSubmitting ? "default" : "pointer"}
+                            disabled={!forumUsername || isForumSubmitting}
+                        >
+                            <Text fontWeight="bold">{hasForumChanges ? "Connect" : "Connected"}</Text>
+                        </Button>
+                    }
+                />
             </VStack>
         </ContentContainer>
     )

@@ -4,6 +4,7 @@ import { VStack, Text, HStack } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEarthAmericas, faLock } from "@fortawesome/free-solid-svg-icons"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
+import { ReactNode } from "react"
 
 interface SettingsInputFieldProps {
     label: string
@@ -11,7 +12,9 @@ interface SettingsInputFieldProps {
     isPrivate: boolean
     value: string
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-    error: string
+    onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
+    error?: string
+    rightElement?: ReactNode
 }
 
 export default function SettingsInputField({
@@ -20,7 +23,9 @@ export default function SettingsInputField({
     isPrivate,
     value,
     onChange,
+    onKeyDown,
     error,
+    rightElement,
 }: SettingsInputFieldProps) {
     return (
         <VStack align="stretch" w="100%">
@@ -31,7 +36,15 @@ export default function SettingsInputField({
                     <Text>{isPrivate ? "Private" : "Public"}</Text>
                 </HStack>
             </HStack>
-            <SingleLineTextInput value={value} onChange={onChange} />
+            <HStack w="100%" gap={0}>
+                <SingleLineTextInput
+                    value={value}
+                    onChange={onChange}
+                    onKeyDown={onKeyDown}
+                    rightElement={rightElement}
+                />
+                {rightElement}
+            </HStack>
             {error ? (
                 <Text color="orange.700" fontSize="sm" px={2}>
                     {error}
