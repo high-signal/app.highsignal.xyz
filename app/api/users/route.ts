@@ -35,6 +35,8 @@ type User = {
     }>
 }
 
+// Unauthenticated GET request
+// Returns user data for a given project
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const projectSlug = searchParams.get("project")
@@ -177,6 +179,9 @@ export async function GET(request: Request) {
     }
 }
 
+// Authenticated POST request
+// Creates a new user in the database
+// Takes no arguments as it creates a default user in the database
 export async function POST(request: Request) {
     try {
         // Check auth token
@@ -278,6 +283,9 @@ export async function POST(request: Request) {
     }
 }
 
+// Authenticated PATCH request
+// Updates a user in the database
+// Takes a JSON body with updated parameters
 export async function PATCH(request: Request) {
     try {
         // Check auth token
@@ -290,13 +298,17 @@ export async function PATCH(request: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
+        // Parse the request body
+        const body = await request.json()
+        const { targetUsername, changedFields } = body
+
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-        // Get the current user
-        const { data: currentUser, error: userError } = await supabase
+        // Get the target user
+        const { data: targetUser, error: userError } = await supabase
             .from("users")
-            .select("id, privy_id")
-            .eq("privy_id", authResult.privyId)
+            .select("id")
+            .eq("username", targetUsername)
             .single()
 
         if (userError) {
@@ -304,17 +316,13 @@ export async function PATCH(request: Request) {
             return NextResponse.json({ error: "Error fetching user" }, { status: 500 })
         }
 
-        if (!currentUser) {
+        if (!targetUser) {
             return NextResponse.json({ error: "User not found" }, { status: 404 })
         }
 
-        // Parse the request body
-        const body = await request.json()
-        const { username, displayName } = body
-
         // Validate username if provided
-        if (username) {
-            const usernameError = validateUsername(username)
+        if (changedFields.username) {
+            const usernameError = validateUsername(changedFields.username)
             if (usernameError) {
                 return NextResponse.json({ error: usernameError }, { status: 400 })
             }
@@ -323,8 +331,8 @@ export async function PATCH(request: Request) {
             const { data: existingUser, error: existingUserError } = await supabase
                 .from("users")
                 .select("id")
-                .eq("username", username)
-                .neq("id", currentUser.id)
+                .eq("username", changedFields.username)
+                .neq("id", targetUser.id)
                 .single()
 
             if (existingUserError && existingUserError.code !== "PGRST116") {
@@ -338,8 +346,8 @@ export async function PATCH(request: Request) {
         }
 
         // Validate display name if provided
-        if (displayName) {
-            const displayNameError = validateDisplayName(displayName)
+        if (changedFields.displayName) {
+            const displayNameError = validateDisplayName(changedFields.displayName)
             if (displayNameError) {
                 return NextResponse.json({ error: displayNameError }, { status: 400 })
             }
@@ -349,14 +357,14 @@ export async function PATCH(request: Request) {
         // SANITIZE USER INPUTS BEFORE STORING IN DATABASE
         // ************************************************
         const updateData: Record<string, any> = {}
-        if (username) updateData.username = sanitize(username)
-        if (displayName) updateData.display_name = sanitize(displayName)
+        if (changedFields.username) updateData.username = sanitize(changedFields.username)
+        if (changedFields.displayName) updateData.display_name = sanitize(changedFields.displayName)
 
         // Update user
         const { data: updatedUser, error: updateError } = await supabase
             .from("users")
             .update(updateData)
-            .eq("id", currentUser.id)
+            .eq("id", targetUser.id)
             .select()
             .single()
 

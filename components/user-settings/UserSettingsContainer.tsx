@@ -165,7 +165,10 @@ export default function UserSettingsContainer() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(changedFields),
+                body: JSON.stringify({
+                    targetUsername: targetUser?.username,
+                    changedFields: changedFields,
+                }),
             })
 
             const data = await response.json()
