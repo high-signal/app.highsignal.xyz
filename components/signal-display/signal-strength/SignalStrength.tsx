@@ -2,21 +2,25 @@ import { HStack, VStack, Box, Text } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 import { useUser } from "../../../contexts/UserContext"
 import { useRouter } from "next/navigation"
+
+import { keyframes } from "@emotion/react"
 
 export default function SignalStrength({
     username,
     userData,
     projectData,
     isUserConnected,
+    refreshUserData,
 }: {
     username: string
     userData: SignalStrengthUserData
     projectData: SignalStrengthProjectData
     isUserConnected: boolean
+    refreshUserData: () => void
 }) {
     const { loggedInUser } = useUser()
     const router = useRouter()
@@ -24,9 +28,72 @@ export default function SignalStrength({
     const percentageCompleted = (Number(userData.value) / Number(projectData.maxValue)) * 100
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
     const [isOpen, setIsOpen] = useState(true)
+    const [countdown, setCountdown] = useState<number | null>(null)
+    const [triggerRefresh, setTriggerRefresh] = useState(false)
+    const [countdownText, setCountdownText] = useState<string | null>("Analyzing engagement...")
 
     // Check if the box should be openable
     const hasContent = Boolean(userData.description || userData.improvements)
+
+    const countdownDuration = 12000
+
+    const rainbowAnimation = keyframes`
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+        `
+
+    // Refresh user data before the end of the countdown
+    useEffect(() => {
+        console.log("Refreshing user data")
+        refreshUserData()
+    }, [triggerRefresh, refreshUserData])
+
+    // Calculate countdown timer
+    useEffect(() => {
+        if (!userData.lastChecked) return
+
+        const lastCheckedTime = userData.lastChecked * 1000
+        const now = Date.now()
+        const timeElapsed = now - lastCheckedTime
+        const timeRemaining = countdownDuration - timeElapsed
+
+        if (timeRemaining <= 0) {
+            setCountdown(null)
+            return
+        }
+
+        // Set initial countdown
+        setCountdown(Math.ceil(timeRemaining / 1000))
+
+        // Update countdown every second
+        const timer = setInterval(() => {
+            const updatedNow = Date.now()
+            const updatedTimeElapsed = updatedNow - lastCheckedTime
+            const updatedTimeRemaining = countdownDuration - updatedTimeElapsed
+
+            if (updatedTimeRemaining > countdownDuration * 0.6) {
+                setCountdownText("Analyzing engagement...")
+            } else if (updatedTimeRemaining > countdownDuration * 0.3) {
+                setCountdownText("Checking criteria...")
+            } else if (updatedTimeRemaining > countdownDuration * 0.15) {
+                setCountdownText("Calculating score...")
+            }
+
+            if (updatedTimeRemaining < 5000) {
+                setTriggerRefresh(true)
+            }
+
+            if (updatedTimeRemaining <= 0) {
+                setCountdown(null)
+                clearInterval(timer)
+            } else {
+                setCountdown(Math.ceil(updatedTimeRemaining / 1000))
+            }
+        }, 1000)
+
+        return () => clearInterval(timer)
+    }, [userData.lastChecked])
 
     return (
         <VStack alignItems={"center"} gap={4} w={"100%"} bg="gray.900" py={3} px={3} borderRadius={"16px"}>
@@ -42,7 +109,7 @@ export default function SignalStrength({
                 w="100%"
             >
                 <Text fontSize="xl">{projectData.displayName}</Text>
-                {projectData.status === "active" && (
+                {!countdown && projectData.status === "active" && (
                     <HStack
                         gap={"2px"}
                         bg={completedBarWidth !== "0%" ? "green.500" : "gray.800"}
@@ -65,8 +132,28 @@ export default function SignalStrength({
                 px={1}
             >
                 <Text fontFamily={"monospace"}>0</Text>
-                <HStack w="100%" h="30px" bg="gray.800" borderRadius="md" overflow="hidden">
-                    {projectData.status === "active" && !isUserConnected ? (
+                <HStack
+                    w="100%"
+                    h="30px"
+                    bg="gray.800"
+                    borderRadius="md"
+                    overflow="hidden"
+                    backgroundImage={
+                        countdown ? "linear-gradient(270deg, pink, purple, blue, red, blue, purple, pink)" : "none"
+                    }
+                    backgroundSize={countdown ? "1000% 1000%" : "none"}
+                    textShadow={countdown ? "0px 0px 5px black" : "none"}
+                    animation={countdown ? `${rainbowAnimation} 20s linear infinite` : "none"}
+                >
+                    {countdown !== null ? (
+                        <Text fontWeight={"bold"} color="white" w={"100%"} textAlign={"center"} fontSize={"md"}>
+                            {countdownText}{" "}
+                            <Text as="span" fontFamily={"monospace"}>
+                                {countdown}
+                            </Text>
+                            s
+                        </Text>
+                    ) : projectData.status === "active" && !isUserConnected ? (
                         <Text color="gray.400" w={"100%"} textAlign={"center"} fontSize={"md"}>
                             Account not connected
                         </Text>
@@ -102,7 +189,7 @@ export default function SignalStrength({
                 </HStack>
                 <Text fontFamily={"monospace"}>{projectData.maxValue}</Text>
             </HStack>
-            {isUserConnected && (
+            {isUserConnected && !countdown && (
                 <VStack w="100%" gap={0} alignItems={"start"}>
                     <HStack
                         alignItems={"center"}

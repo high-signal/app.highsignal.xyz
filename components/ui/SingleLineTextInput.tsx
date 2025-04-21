@@ -50,9 +50,8 @@ export default function SingleLineTextInput({
                 pr={showClearButton ? "30px" : "0px"}
                 h="35px"
                 readOnly={!isEditable}
-                cursor={isEditable ? "text" : "default"}
+                cursor={isEditable ? "text" : "disabled"}
                 userSelect={isEditable ? "text" : "none"}
-                pointerEvents={isEditable ? "auto" : "none"}
             />
             {showClearButton && (
                 <Box

@@ -26,6 +26,7 @@ interface SignalStrengthUserData {
     summary: string
     description: string
     improvements: string
+    lastChecked?: number
 }
 
 interface ProjectData {

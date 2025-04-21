@@ -11,7 +11,7 @@ import { useGetUsers } from "../../hooks/useGetUsers"
 import { useGetProjects } from "../../hooks/useGetProjects"
 
 export default function SignalDisplayContainer({ project, username }: { project: string; username: string }) {
-    const { users, loading: usersLoading, error: usersError } = useGetUsers(project, username)
+    const { users, loading: usersLoading, error: usersError, refreshUserData } = useGetUsers(project, username)
     const { projects, loading: projectsLoading, error: projectsError } = useGetProjects(project)
 
     const currentUser = users[0]
@@ -52,7 +52,7 @@ export default function SignalDisplayContainer({ project, username }: { project:
                 <UserInfo profileImageUrl={currentUser.profileImageUrl} name={currentUser.displayName} />
                 <Box w="100%" h={{ base: "30px", sm: "20px" }} />
                 <CurrentSignal signal={currentUser.signal} signalValue={currentUser.score} />
-                <HStack w="100%" justifyContent="space-between">
+                {/* <HStack w="100%" justifyContent="space-between">
                     <Text color="white">
                         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce non quam non ligula imperdiet
                         laoreet. Donec ac quam ac felis laoreet dignissim eu quis lacus. Aenean dignissim blandit diam
@@ -60,7 +60,7 @@ export default function SignalDisplayContainer({ project, username }: { project:
                         orci, placerat feugiat magna. Ut mollis ligula sit amet elit placerat cursus. Aliquam varius
                         ante et odio porttitor, ac sodales metus placerat.
                     </Text>
-                </HStack>
+                </HStack> */}
             </VStack>
             <PeakSignalsContainer
                 currentUser={currentUser}
@@ -71,6 +71,7 @@ export default function SignalDisplayContainer({ project, username }: { project:
                 currentUser={currentUser}
                 projectSignalStrengths={enabledSignalStrengths}
                 projectData={currentProject}
+                refreshUserData={refreshUserData}
             />
         </VStack>
     )

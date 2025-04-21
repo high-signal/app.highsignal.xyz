@@ -5,10 +5,12 @@ export default function SignalStrengthContainer({
     currentUser,
     projectSignalStrengths,
     projectData,
+    refreshUserData,
 }: {
     currentUser: UserData
     projectSignalStrengths: SignalStrengthProjectData[]
     projectData: ProjectData
+    refreshUserData: () => void
 }) {
     // Match user signal strengths with project signal strengths by name
     const matchedSignalStrengths = projectSignalStrengths.map((projectStrength) => {
@@ -60,6 +62,7 @@ export default function SignalStrengthContainer({
                         }
                         projectData={projectData}
                         isUserConnected={userData ? true : false}
+                        refreshUserData={refreshUserData}
                     />
                 ))}
             </VStack>

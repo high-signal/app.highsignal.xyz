@@ -74,7 +74,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
     }, [authenticated, getAccessToken, missingUser])
 
-    const fetchUser = async () => {
+    const fetchUser = async (backgroundRefresh: boolean = false) => {
         if (ready && !authenticated) {
             setLoggedInUserLoading(false)
             setLoggedInUser(null)
@@ -82,7 +82,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-            setLoggedInUserLoading(true)
+            if (!backgroundRefresh) {
+                setLoggedInUserLoading(true)
+            }
+
             const accessToken = await getAccessToken()
 
             const response = await fetch(`/api/me`, {
@@ -118,7 +121,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }, [ready, authenticated, privyUser?.id])
 
     const refreshUser = async () => {
-        await fetchUser()
+        await fetchUser(true)
     }
 
     return (

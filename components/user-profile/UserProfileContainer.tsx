@@ -6,7 +6,7 @@ import { useUser } from "../../contexts/UserContext"
 import ContentContainer from "../layout/ContentContainer"
 
 export default function UserProfileContainer() {
-    const { user } = useUser()
+    const { loggedInUser } = useUser()
 
     return (
         <ContentContainer>

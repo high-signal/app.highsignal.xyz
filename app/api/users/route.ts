@@ -28,6 +28,7 @@ type User = {
         summary: string
         description: string
         improvements: string
+        last_checked: number
         signal_strengths: {
             id: string
             name: string
@@ -115,6 +116,7 @@ export async function GET(request: Request) {
                     summary,
                     description,
                     improvements,
+                    last_checked,
                     signal_strengths!inner (
                         id,
                         name
@@ -167,6 +169,7 @@ export async function GET(request: Request) {
                             summary: uss.summary,
                             description: uss.description,
                             improvements: uss.improvements,
+                            lastChecked: uss.last_checked,
                         })) || [],
                 }
             })

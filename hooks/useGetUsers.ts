@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 export const useGetUsers = (project: string, username?: string, fuzzy: boolean = false) => {
     const [users, setUsers] = useState<UserData[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    useEffect(() => {
-        const fetchData = async () => {
+    const fetchData = useCallback(
+        async (backgroundRefresh: boolean = false) => {
             try {
-                setLoading(true)
+                if (!backgroundRefresh) {
+                    setLoading(true)
+                }
 
                 const url = new URL("/api/users", window.location.origin)
                 url.searchParams.append("project", project)
@@ -30,10 +32,17 @@ export const useGetUsers = (project: string, username?: string, fuzzy: boolean =
             } finally {
                 setLoading(false)
             }
-        }
+        },
+        [project, username, fuzzy],
+    )
 
+    useEffect(() => {
         fetchData()
-    }, [project, username, fuzzy])
+    }, [fetchData])
 
-    return { users, loading, error }
+    const refreshUserData = useCallback(() => {
+        fetchData(true)
+    }, [fetchData])
+
+    return { users, loading, error, refreshUserData }
 }
