@@ -14,7 +14,7 @@ export function validateUsername(username: string): string {
 
     const usernameRegex = /^[a-zA-Z0-9_-]+$/
     if (!usernameRegex.test(username)) {
-        return "Username can only contain letters, numbers, underscores, and hyphens"
+        return "Username can only use letters, numbers, underscores, and hyphens"
     }
 
     return ""
