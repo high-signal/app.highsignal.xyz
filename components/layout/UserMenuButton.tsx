@@ -25,12 +25,13 @@ const userButtonStyles = {
 export default function UserMenuButton() {
     const router = useRouter()
     const { login, authenticated, logout, ready: privyReady } = usePrivy()
-    const { user, isLoading, userCreated } = useUser()
+    const { user, isLoading, userCreated, setUserCreated } = useUser()
     const [isMenuOpen, setIsMenuOpen] = useState(false)
 
     // On user creation, redirect to the user settings page
     useEffect(() => {
         if (userCreated) {
+            setUserCreated("")
             router.push(`/settings/u/${userCreated}`)
         }
     }, [userCreated, router])

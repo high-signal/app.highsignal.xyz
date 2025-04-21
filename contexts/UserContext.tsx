@@ -15,6 +15,7 @@ interface UserContextType {
     user: User | null
     isLoading: boolean
     userCreated: string
+    setUserCreated: (username: string) => void
     error: string | null
     refreshUser: () => Promise<void>
 }
@@ -23,6 +24,7 @@ const UserContext = createContext<UserContextType>({
     user: null,
     isLoading: true,
     userCreated: "",
+    setUserCreated: () => {},
     error: null,
     refreshUser: async () => {},
 })
@@ -120,7 +122,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <UserContext.Provider value={{ user, isLoading, userCreated, error, refreshUser }}>
+        <UserContext.Provider value={{ user, isLoading, userCreated, setUserCreated, error, refreshUser }}>
             {children}
         </UserContext.Provider>
     )
