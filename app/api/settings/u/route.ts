@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
                 id, 
                 username, 
                 display_name,
+                profile_image_url,
                 forum_users (
                     user_id,
                     project_id,

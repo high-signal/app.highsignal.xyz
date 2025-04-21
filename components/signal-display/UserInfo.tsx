@@ -23,7 +23,7 @@ export default function UserInfo({ profileImageUrl, name }: UserInfoProps) {
                     <Image
                         src={
                             !profileImageUrl || profileImageUrl === ""
-                                ? "/static/default-profile-image.png"
+                                ? "/static/images/default-profile-image.png"
                                 : profileImageUrl
                         }
                         alt={`User ${name} Profile Image`}

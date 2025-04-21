@@ -13,6 +13,7 @@ import { validateUsername, validateDisplayName } from "../../utils/userValidatio
 
 import ContentContainer from "../layout/ContentContainer"
 import SettingsInputField from "./SettingsInputField"
+import ProfileImageEditor from "./ProfileImageEditor"
 
 export default function UserSettingsContainer() {
     const { user, isLoading: userLoading, refreshUser } = useUser()
@@ -27,6 +28,7 @@ export default function UserSettingsContainer() {
     const [formData, setFormData] = useState({
         username: "",
         displayName: "",
+        profileImageUrl: "",
     })
     const [errors, setErrors] = useState({
         username: "",
@@ -72,6 +74,7 @@ export default function UserSettingsContainer() {
                 setFormData({
                     username: data.username || "",
                     displayName: data.display_name || "",
+                    profileImageUrl: data.profile_image_url || "",
                 })
                 // Set the forum username from the API response
                 if (data.forum_users && data.forum_users.length > 0) {
@@ -340,6 +343,13 @@ export default function UserSettingsContainer() {
         }
     }
 
+    const handleProfileImageUpdated = (imageUrl: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            profileImageUrl: imageUrl,
+        }))
+    }
+
     // TODO: Style this
     if (isLoading) {
         return (
@@ -379,6 +389,11 @@ export default function UserSettingsContainer() {
                 <Text fontSize="2xl" fontWeight="bold">
                     User Settings
                 </Text>
+                <ProfileImageEditor
+                    currentImageUrl={formData.profileImageUrl}
+                    onImageUploaded={handleProfileImageUpdated}
+                    userId={targetUser.id}
+                />
                 <SettingsInputField
                     label="Username"
                     description="Your username is unique and is used to identify you."

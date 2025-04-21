@@ -67,7 +67,7 @@ export default function UserMenuButton() {
                         <Image
                             src={
                                 !user.profileImageUrl || user.profileImageUrl === ""
-                                    ? "/static/default-profile-image.png"
+                                    ? "/static/images/default-profile-image.png"
                                     : user.profileImageUrl
                             }
                             alt={`User ${user.displayName} Profile Image`}
