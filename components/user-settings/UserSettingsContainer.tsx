@@ -250,7 +250,9 @@ export default function UserSettingsContainer() {
                 type: "success",
                 action: {
                     label: "View Profile",
-                    onClick: () => router.push(`/u/${targetUser.username}`),
+                    // TODO: Uncomment this when the profile page is implemented
+                    // onClick: () => router.push(`/u/${targetUser.username}`),
+                    onClick: () => router.push(`/p/lido/${user?.username}`),
                 },
             })
         } catch (error) {

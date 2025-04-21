@@ -110,7 +110,9 @@ export default function UserMenuButton() {
                                 cursor={"pointer"}
                                 fontSize={"md"}
                                 value="profile"
-                                onClick={() => router.push(`/u/${user.username}`)}
+                                // TODO: Uncomment this when the profile page is implemented
+                                // onClick={() => router.push(`/u/${user.username}`)}
+                                onClick={() => router.push(`/p/lido/${user.username}`)}
                             >
                                 <HStack>
                                     <Box w="20px">
