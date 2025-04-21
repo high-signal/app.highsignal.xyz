@@ -433,6 +433,7 @@ export default function UserSettingsContainer() {
                                 h={"35px"}
                                 w={"120px"}
                                 bg="orange.500"
+                                _hover={{ bg: "orange.600" }}
                                 color="white"
                                 borderColor="green.500"
                                 onClick={() => handleForumChange(forumUsername, targetUser.id, "1")}

@@ -4,15 +4,23 @@ import { faChevronRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
 import { useState } from "react"
 
+import { useUser } from "../../../contexts/UserContext"
+import { useRouter } from "next/navigation"
+
 export default function SignalStrength({
+    username,
     userData,
     projectData,
     isUserConnected,
 }: {
+    username: string
     userData: SignalStrengthUserData
     projectData: SignalStrengthProjectData
     isUserConnected: boolean
 }) {
+    const { user: loggedInUser } = useUser()
+    const router = useRouter()
+
     const percentageCompleted = (Number(userData.value) / Number(projectData.maxValue)) * 100
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
     const [isOpen, setIsOpen] = useState(true)
@@ -154,20 +162,26 @@ export default function SignalStrength({
                     )}
                 </VStack>
             )}
-            {/* {projectData.status === "active" && !isUserConnected && (
+            {projectData.status === "active" && !isUserConnected && loggedInUser?.username === username && (
                 <HStack w={"100%"} justifyContent={"center"} cursor={"disabled"}>
                     <Text
-                        color={"gray.900"}
                         justifyContent={"start"}
-                        bg={"gray.300"}
+                        bg="orange.500"
+                        _hover={{ bg: "orange.600" }}
+                        fontWeight={"bold"}
+                        fontSize={"sm"}
                         borderRadius={"full"}
                         px={3}
                         py={1}
+                        cursor={"pointer"}
+                        onClick={() => {
+                            router.push(`/settings/u/${username}`)
+                        }}
                     >
-                        Connect your account (coming soon)
+                        Connect your account
                     </Text>
                 </HStack>
-            )} */}
+            )}
         </VStack>
     )
 }

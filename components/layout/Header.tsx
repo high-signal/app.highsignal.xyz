@@ -8,7 +8,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faXTwitter, IconDefinition } from "@fortawesome/free-brands-svg-icons"
 
 import { ColorModeToggle } from "../color-mode/ColorModeToggle"
-import { useUser } from "../../contexts/UserContext"
 import UserMenuButton from "./UserMenuButton"
 
 import Link from "next/link"

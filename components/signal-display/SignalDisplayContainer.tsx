@@ -68,7 +68,7 @@ export default function SignalDisplayContainer({ project, username }: { project:
                 projectData={currentProject}
             />
             <SignalStrengthContainer
-                userSignalStrengths={currentUser.signalStrengths}
+                currentUser={currentUser}
                 projectSignalStrengths={enabledSignalStrengths}
                 projectData={currentProject}
             />

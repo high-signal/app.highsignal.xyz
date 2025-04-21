@@ -2,17 +2,17 @@ import { VStack, Text } from "@chakra-ui/react"
 import SignalStrength from "./SignalStrength"
 
 export default function SignalStrengthContainer({
-    userSignalStrengths,
+    currentUser,
     projectSignalStrengths,
     projectData,
 }: {
-    userSignalStrengths: SignalStrengthUserData[]
+    currentUser: UserData
     projectSignalStrengths: SignalStrengthProjectData[]
     projectData: ProjectData
 }) {
     // Match user signal strengths with project signal strengths by name
     const matchedSignalStrengths = projectSignalStrengths.map((projectStrength) => {
-        const matchingUserStrength = userSignalStrengths.find(
+        const matchingUserStrength = currentUser.signalStrengths.find(
             (userStrength) => userStrength.name === projectStrength.name,
         )
         return {
@@ -48,6 +48,7 @@ export default function SignalStrengthContainer({
                 {sortedMatchedSignalStrengths.map(({ projectData, userData }, index) => (
                     <SignalStrength
                         key={index}
+                        username={currentUser.username}
                         userData={
                             userData || {
                                 name: projectData.name,
