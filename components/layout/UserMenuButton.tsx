@@ -34,7 +34,7 @@ export default function UserMenuButton() {
             setUserCreated("")
             router.push(`/settings/u/${userCreated}`)
         }
-    }, [userCreated, router])
+    }, [userCreated, setUserCreated, router])
 
     const handleLogout = () => {
         logout()
