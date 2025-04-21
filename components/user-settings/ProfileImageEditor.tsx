@@ -7,7 +7,7 @@ import { faCamera } from "@fortawesome/free-solid-svg-icons"
 import { toaster } from "../ui/toaster"
 import { usePrivy } from "@privy-io/react-auth"
 import { ASSETS } from "../../config/constants"
-
+import { useUser } from "../../contexts/UserContext"
 interface ProfileImageEditorProps {
     currentImageUrl?: string
     onImageUploaded?: (imageUrl: string) => void
@@ -19,6 +19,8 @@ export default function ProfileImageEditor({ currentImageUrl, onImageUploaded, u
     const [previewUrl, setPreviewUrl] = useState<string>(currentImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const { getAccessToken } = usePrivy()
+
+    const { refreshUser } = useUser()
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -83,6 +85,9 @@ export default function ProfileImageEditor({ currentImageUrl, onImageUploaded, u
             if (onImageUploaded) {
                 onImageUploaded(data.imageUrl)
             }
+
+            // Refetch the user data
+            refreshUser()
 
             toaster.create({
                 title: "✅ㅤProfile image updated",
