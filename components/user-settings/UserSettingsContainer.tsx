@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import Link from "next/link"
 import { VStack, Text, Button, Spinner } from "@chakra-ui/react"
 import { toaster } from "../ui/toaster"
 
@@ -181,7 +180,7 @@ export default function UserSettingsContainer() {
             }
 
             toaster.create({
-                title: "✅ Settings saved successfully",
+                title: "✅ㅤSettings saved successfully",
                 type: "success",
             })
 
@@ -195,7 +194,7 @@ export default function UserSettingsContainer() {
             }
         } catch (error) {
             toaster.create({
-                title: "❌ Error updating settings",
+                title: "❌ㅤError updating settings",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
                 type: "error",
             })
@@ -244,7 +243,7 @@ export default function UserSettingsContainer() {
 
             // Show success message
             toaster.create({
-                title: "✅ Forum username updated",
+                title: "✅ㅤForum username updated",
                 description:
                     "Your forum username has been updated successfully. It may take a few minutes to update your signal score.",
                 type: "success",
@@ -258,7 +257,7 @@ export default function UserSettingsContainer() {
         } catch (error) {
             console.error("Error updating forum username:", error)
             toaster.create({
-                title: "❌ Error updating forum username",
+                title: "❌ㅤError updating forum username",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
                 type: "error",
             })
@@ -334,6 +333,11 @@ export default function UserSettingsContainer() {
                     value={formData.username}
                     onChange={(e) => handleFieldChange("username", e.target.value)}
                     error={errors.username}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" && hasChanges && !isSubmitting) {
+                            saveChanges()
+                        }
+                    }}
                 />
                 <SettingsInputField
                     label="Display Name"
@@ -342,6 +346,11 @@ export default function UserSettingsContainer() {
                     value={formData.displayName}
                     onChange={(e) => handleFieldChange("displayName", e.target.value)}
                     error={errors.displayName}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" && hasChanges && !isSubmitting) {
+                            saveChanges()
+                        }
+                    }}
                 />
                 <Button
                     colorScheme="blue"

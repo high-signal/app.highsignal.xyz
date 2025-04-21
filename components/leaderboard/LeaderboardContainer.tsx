@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, Text, HStack, Image } from "@chakra-ui/react"
+import { VStack, Text, HStack, Image, Skeleton } from "@chakra-ui/react"
 import { keyframes } from "@emotion/react"
 import Leaderboard from "./Leaderboard"
 import { useGetProjects } from "../../hooks/useGetProjects"
@@ -9,12 +9,6 @@ export default function LeaderboardContainer({ project }: { project: string }) {
     const { projects, loading, error } = useGetProjects(project)
 
     const currentProject = projects[0]
-
-    const pulseAnimation = keyframes`
-        0% { background-color: var(--chakra-colors-gray-800); }
-        50% { background-color: var(--chakra-colors-gray-700); }
-        100% { background-color: var(--chakra-colors-gray-800); }
-    `
 
     return (
         <VStack gap={5} w="100%" maxW="800px" borderRadius="20px">
@@ -41,17 +35,12 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                         </HStack>
                     </>
                 ) : (
-                    <HStack
-                        w="200px"
-                        my={"5px"}
-                        h="40px"
-                        bg="gray.800"
-                        justifyContent="center"
-                        borderRadius="full"
-                        animation={`${pulseAnimation} 1s ease-in-out infinite`}
-                        transition="background-color 0.5s ease-in-out"
-                    >
-                        {error && <Text fontSize="sm">Error: {error}</Text>}
+                    <HStack w="200px" my={"5px"} h="40px" justifyContent="center">
+                        {error ? (
+                            <Text fontSize="sm">Error: {error}</Text>
+                        ) : (
+                            <Skeleton height="40px" width="200px" borderRadius="full" />
+                        )}
                     </HStack>
                 )}
                 <Text>Signal Leaderboard</Text>

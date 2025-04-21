@@ -15,12 +15,12 @@ export default function Toaster() {
                 {(toast) => (
                     <Toast.Root
                         w={"fit-content"}
-                        minW={"300px"}
+                        minW={{ base: "100%", sm: "400px" }}
                         h={"fit-content"}
                         alignItems="center"
                         borderRadius="20px"
                     >
-                        <VStack maxWidth="100%" alignItems="start">
+                        <VStack maxWidth="100%" alignItems="center">
                             {toast.title && <Toast.Title>{toast.title}</Toast.Title>}
                             {toast.description && <Toast.Description>{toast.description}</Toast.Description>}
                             {toast.action && (
