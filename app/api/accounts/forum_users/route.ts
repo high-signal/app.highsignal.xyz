@@ -303,3 +303,57 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }
+
+export async function DELETE(request: Request) {
+    // TODO ENABLE AUTH AFTER TESTING
+    // // Check auth token
+    // const authHeader = request.headers.get("Authorization")
+    // const authResult = await verifyAuth(authHeader)
+    // if (authResult instanceof NextResponse) return authResult
+
+    // // If not authenticated, return an error
+    // if (!authResult.isAuthenticated) {
+    //     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    // }
+
+    try {
+        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+        // Parse the request body
+        const body = await request.json()
+        const { user_id, project_id, signal_strength_id } = body
+
+        // Validate required fields
+        if (!user_id || !project_id) {
+            return NextResponse.json(
+                { error: "Missing required fields: user_id and project_id are required" },
+                { status: 400 },
+            )
+        }
+
+        // Delete the forum user entry
+        const { error: forumUserError } = await supabase
+            .from("forum_users")
+            .delete()
+            .eq("user_id", user_id)
+            .eq("project_id", project_id)
+
+        // Delete associated signal strength
+        const { error: signalError } = await supabase
+            .from("user_signal_strengths")
+            .delete()
+            .eq("user_id", user_id)
+            .eq("project_id", project_id)
+            .eq("signal_strength_id", signal_strength_id)
+
+        if (forumUserError || signalError) {
+            console.error("Error deleting forum user:", forumUserError || signalError)
+            return NextResponse.json({ error: "Error deleting forum user" }, { status: 500 })
+        }
+
+        return NextResponse.json({ message: "Forum user deleted successfully" })
+    } catch (error) {
+        console.error("Unhandled error in forum user deletion:", error)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}

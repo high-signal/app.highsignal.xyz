@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { VStack, Text, Button, Spinner } from "@chakra-ui/react"
+import { VStack, Text, Button, Spinner, Menu, Portal, HStack, Box } from "@chakra-ui/react"
 import { toaster } from "../ui/toaster"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faEllipsisVertical, faSignOut } from "@fortawesome/free-solid-svg-icons"
 
 import { useUser } from "../../contexts/UserContext"
 import { usePrivy } from "@privy-io/react-auth"
@@ -287,6 +289,56 @@ export default function UserSettingsContainer() {
         }
     }
 
+    const handleForumDisconnect = async (user_id: string, project_id: string, signal_strength_id: string) => {
+        try {
+            setIsForumSubmitting(true)
+
+            // Call the forum_users DELETE route
+            const forumResponse = await fetch("/api/accounts/forum_users", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    user_id,
+                    project_id,
+                    signal_strength_id,
+                }),
+            })
+
+            if (!forumResponse.ok) {
+                const errorData = await forumResponse.json()
+                throw new Error(errorData.error || "Failed to disconnect forum username")
+            }
+
+            // Update the targetUser state to remove the forum username
+            setTargetUser((prev: any) => ({
+                ...prev,
+                forum_users: [],
+            }))
+
+            // Reset the form state
+            setForumUsername("")
+            setHasForumChanges(true)
+
+            // Show success message
+            toaster.create({
+                title: "✅ㅤForum account disconnected",
+                description: "Your forum account has been disconnected successfully.",
+                type: "success",
+            })
+        } catch (error) {
+            console.error("Error disconnecting forum username:", error)
+            toaster.create({
+                title: "❌ㅤError disconnecting forum account",
+                description: error instanceof Error ? error.message : "An unknown error occurred",
+                type: "error",
+            })
+        } finally {
+            setIsForumSubmitting(false)
+        }
+    }
+
     // TODO: Style this
     if (isLoading) {
         return (
@@ -376,22 +428,76 @@ export default function UserSettingsContainer() {
                     onKeyDown={handleForumKeyDown}
                     error=""
                     rightElement={
-                        <Button
-                            h={"35px"}
-                            w={"110px"}
-                            bg={hasForumChanges ? "orange.500" : "green.500"}
-                            color={hasForumChanges ? "white" : "#029E03"}
-                            borderColor={hasForumChanges ? "green.500" : "#029E03"}
-                            onClick={
-                                hasForumChanges ? () => handleForumChange(forumUsername, targetUser.id, "1") : undefined
-                            }
-                            loading={isForumSubmitting}
-                            borderRightRadius="full"
-                            cursor={!hasForumChanges || !forumUsername || isForumSubmitting ? "default" : "pointer"}
-                            disabled={!forumUsername || isForumSubmitting}
-                        >
-                            <Text fontWeight="bold">{hasForumChanges ? "Connect" : "Connected"}</Text>
-                        </Button>
+                        hasForumChanges ? (
+                            <Button
+                                h={"35px"}
+                                w={"120px"}
+                                bg="orange.500"
+                                color="white"
+                                borderColor="green.500"
+                                onClick={() => handleForumChange(forumUsername, targetUser.id, "1")}
+                                loading={isForumSubmitting}
+                                borderRightRadius="full"
+                                cursor={!forumUsername || isForumSubmitting ? "default" : "pointer"}
+                                disabled={!forumUsername || isForumSubmitting}
+                            >
+                                <Text fontWeight="bold">Connect</Text>
+                            </Button>
+                        ) : (
+                            <Menu.Root>
+                                <Menu.Trigger asChild>
+                                    <Button
+                                        h={"35px"}
+                                        w={"120px"}
+                                        pl={2}
+                                        pr={0}
+                                        border={"2px solid"}
+                                        bg="green.500"
+                                        color="#029E03"
+                                        borderColor="#029E03"
+                                        borderRightRadius="full"
+                                        cursor="pointer"
+                                        _hover={{ bg: "green.700" }}
+                                        disabled={isForumSubmitting}
+                                    >
+                                        <HStack gap={1}>
+                                            {isForumSubmitting ? (
+                                                <Spinner size="sm" color="#029E03" />
+                                            ) : (
+                                                <>
+                                                    <Text fontWeight="bold">Connected</Text>
+                                                    <FontAwesomeIcon icon={faEllipsisVertical} size="lg" />
+                                                </>
+                                            )}
+                                        </HStack>
+                                    </Button>
+                                </Menu.Trigger>
+                                <Portal>
+                                    <Menu.Positioner mt={"-4px"}>
+                                        <Menu.Content borderRadius={"full"} borderWidth={2} overflow={"hidden"} p={0}>
+                                            <Menu.Item
+                                                h={"35px"}
+                                                py={2}
+                                                pl={3}
+                                                cursor={"pointer"}
+                                                value="disconnect"
+                                                overflow={"hidden"}
+                                                onClick={() => handleForumDisconnect(targetUser.id, "1", "1")}
+                                            >
+                                                <HStack overflow={"hidden"}>
+                                                    <Text fontWeight="bold" color="orange.500">
+                                                        Disconnect
+                                                    </Text>
+                                                    <Box w="20px">
+                                                        <FontAwesomeIcon icon={faSignOut} />
+                                                    </Box>
+                                                </HStack>
+                                            </Menu.Item>
+                                        </Menu.Content>
+                                    </Menu.Positioner>
+                                </Portal>
+                            </Menu.Root>
+                        )
                     }
                 />
             </VStack>
