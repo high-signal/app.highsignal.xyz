@@ -41,6 +41,9 @@ export async function PUT(request: Request) {
             )
         }
 
+        // TODO: Add a check to see if the forum_username is already in the database
+        // If it is, delete the old entry and create a new one for the new requesting user
+
         // Check if an entry already exists with the same user_id and project_id
         const { data: existingEntry, error: checkError } = await supabase
             .from("forum_users")
@@ -151,6 +154,7 @@ export async function PUT(request: Request) {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
+                    user_id,
                     project_id,
                     signal_strength_id,
                     forum_username,
@@ -194,7 +198,7 @@ export async function PATCH(request: Request) {
 
         // Parse the request body
         const body = await request.json()
-        const { project_id, signal_strength_id, forum_username } = body
+        const { user_id, project_id, signal_strength_id, forum_username } = body
 
         // Validate required fields
         if (!project_id || !signal_strength_id || !forum_username) {
@@ -225,7 +229,7 @@ export async function PATCH(request: Request) {
         const { data: userData, error: userError } = await supabase
             .from("forum_users")
             .select("*")
-            .eq("forum_username", forum_username)
+            .eq("user_id", user_id)
             .eq("project_id", project_id)
             .single()
 
