@@ -45,7 +45,6 @@ export default function SignalStrength({
 
     // Refresh user data before the end of the countdown
     useEffect(() => {
-        console.log("Refreshing user data")
         refreshUserData()
     }, [triggerRefresh, refreshUserData])
 
@@ -57,6 +56,11 @@ export default function SignalStrength({
         const now = Date.now()
         const timeElapsed = now - lastCheckedTime
         const timeRemaining = countdownDuration - timeElapsed
+
+        console.log("lastCheckedTime", lastCheckedTime)
+        console.log("now", now)
+        console.log("timeElapsed", timeElapsed)
+        console.log("timeRemaining", timeRemaining)
 
         if (timeRemaining <= 0) {
             setCountdown(null)
