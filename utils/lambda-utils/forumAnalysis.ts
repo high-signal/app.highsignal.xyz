@@ -3,6 +3,7 @@ import { analyzeForumUserActivity } from "../../lambda/forumAnalysis/scripts/ana
 
 export async function triggerForumAnalysis(user_id: string, project_id: string, forum_username: string) {
     const LAMBDA_ENDPOINT = process.env.LAMBDA_ENDPOINT_DISCOURSE_FORUM_ANALYSIS
+    const API_KEY = process.env.LAMBDA_API_KEY
 
     if (LAMBDA_ENDPOINT) {
         // Execute on AWS Lambda
@@ -11,6 +12,7 @@ export async function triggerForumAnalysis(user_id: string, project_id: string, 
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    "X-API-Key": API_KEY || "",
                 },
                 body: JSON.stringify({
                     user_id,
