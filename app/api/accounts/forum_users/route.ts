@@ -45,6 +45,7 @@ async function analyzeForumUserActivity(
         // === Fetch signal strength config from Supabase ===
         console.log(`Fetching signal strength config from Supabase for project ${project_id}...`)
         const signalStrengthConfig = await getSignalStrengthConfig(supabase, project_id, signal_strength_id)
+        console.log("signalStrengthConfig", signalStrengthConfig)
 
         if (!signalStrengthConfig || signalStrengthConfig.length === 0) {
             console.error("Signal strength config not found")
@@ -62,6 +63,7 @@ async function analyzeForumUserActivity(
         }
 
         // === Get user data from Supabase ===
+        console.log(`Fetching user data from Supabase for user ${user_id}...`)
         const { data: userData, error: userError } = await supabase
             .from("forum_users")
             .select("*")
@@ -74,9 +76,12 @@ async function analyzeForumUserActivity(
             return
         }
 
+        console.log("userData", userData)
+
         const lastUpdated = userData.last_updated
 
         // === Get user display name from Supabase ===
+        console.log(`Fetching user display name from Supabase for user ${user_id}...`)
         const { data: userDisplayName, error: userDisplayNameError } = await supabase
             .from("users")
             .select("display_name")
@@ -89,6 +94,7 @@ async function analyzeForumUserActivity(
         }
 
         const displayName = userDisplayName.display_name
+        console.log("displayName", displayName)
 
         // === Fetch activity data from forum API ===
         console.log(`Fetching activity for user: ${forum_username}`)
