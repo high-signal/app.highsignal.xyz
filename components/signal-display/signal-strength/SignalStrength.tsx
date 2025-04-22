@@ -35,7 +35,7 @@ export default function SignalStrength({
     // Check if the box should be openable
     const hasContent = Boolean(userData.description || userData.improvements)
 
-    const countdownDuration = 12000
+    const countdownDuration = 30000
 
     const rainbowAnimation = keyframes`
         0% { background-position: 0% 50%; }

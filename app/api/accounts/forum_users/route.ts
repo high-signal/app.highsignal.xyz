@@ -192,8 +192,6 @@ export async function PATCH(request: Request) {
         //     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         // }
 
-        console.log("PATCH request received")
-
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
         // Parse the request body
