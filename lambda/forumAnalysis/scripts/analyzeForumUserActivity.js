@@ -1,24 +1,18 @@
-// @ts-ignore
+const { getSignalStrengthConfig } = require("./getSignalStrengthConfig")
+const { fetchUserActivity } = require("./fetchUserActivity")
+const { updateUserData } = require("./updateUserData")
+const { updateRequired } = require("./updateRequired")
+const { analyzeUserData } = require("./analyzeUserData")
 
-import { getSignalStrengthConfig } from "./getSignalStrengthConfig"
-// @ts-ignore
-import { fetchUserActivity } from "./fetchUserActivity"
-// @ts-ignore
-import { updateUserData } from "./updateUserData"
-// @ts-ignore
-import { updateRequired } from "./updateRequired"
-// @ts-ignore
-import { analyzeUserData } from "./analyzeUserData"
-
-import { createClient } from "@supabase/supabase-js"
-import { NextResponse } from "next/server"
+const { createClient } = require("@supabase/supabase-js")
+//const { NextResponse } = require("next/server")
 
 // Function to analyze forum user activity
-export async function analyzeForumUserActivity(user_id: string, project_id: string, forum_username: string) {
+async function analyzeForumUserActivity(user_id, project_id, forum_username) {
     const SIGNAL_STRENGTH_NAME = "discourse_forum"
 
     try {
-        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+        const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
         const { data: signalStrengthData, error: signalError } = await supabase
             .from("signal_strengths")
@@ -29,13 +23,13 @@ export async function analyzeForumUserActivity(user_id: string, project_id: stri
         if (signalError) {
             console.error("Error fetching signal strength ID:", signalError)
             // Continue without triggering analysis
-            return NextResponse.json(signalError)
+            return //NextResponse.json(signalError)
         }
 
         if (!signalStrengthData) {
             console.log(`No signal strength found with name: ${SIGNAL_STRENGTH_NAME}`)
             // Continue without triggering analysis
-            return NextResponse.json("No signal strength found with name: " + SIGNAL_STRENGTH_NAME)
+            return //NextResponse.json("No signal strength found with name: " + SIGNAL_STRENGTH_NAME)
         }
 
         const signal_strength_id = signalStrengthData.id
@@ -51,7 +45,7 @@ export async function analyzeForumUserActivity(user_id: string, project_id: stri
         if (projectSignalError || !projectSignalData || !projectSignalData.enabled) {
             console.log(`Signal strength ${SIGNAL_STRENGTH_NAME} is not enabled for this project`)
             // Continue without triggering analysis
-            return NextResponse.json("Signal strength is not enabled for this project")
+            return //NextResponse.json("Signal strength is not enabled for this project")
         }
 
         // === Update the last_checked date in the user_signal_strengths table ===
@@ -140,7 +134,7 @@ export async function analyzeForumUserActivity(user_id: string, project_id: stri
 
         // === Get the latest activity date for the update ===
         const latestActivityDate = activityData.sort(
-            (a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+            (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
         )[0].updated_at
 
         // === Check if update is required ===
@@ -151,7 +145,7 @@ export async function analyzeForumUserActivity(user_id: string, project_id: stri
 
         // Filter activity data to the past X days
         const filteredActivityData = activityData.filter(
-            (activity: any) =>
+            (activity) =>
                 new Date(activity.updated_at) > new Date(new Date().setDate(new Date().getDate() - previousDays)),
         )
 
@@ -194,3 +188,5 @@ export async function analyzeForumUserActivity(user_id: string, project_id: stri
         console.error("Error in analyzeForumUserActivity:", error)
     }
 }
+
+module.exports = { analyzeForumUserActivity }

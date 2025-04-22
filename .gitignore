@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -46,3 +47,7 @@ db_dump.sql
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# lambda
+lambda/forumAnalysis/discourse-forum-analysis.zip
+

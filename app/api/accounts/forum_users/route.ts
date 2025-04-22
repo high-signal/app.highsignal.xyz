@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import { verifyAuth } from "../../../../utils/verifyAuth"
 
-import { analyzeForumUserActivity } from "../../../../scripts/discourse_forum/analyzeForumUserActivity"
+import { triggerForumAnalysis } from "../../../../utils/lambda-utils/forumAnalysis"
 
 export async function PUT(request: Request) {
     try {
@@ -100,7 +100,7 @@ export async function PUT(request: Request) {
         try {
             // Trigger analysis in the background
             // TODO: Add instant check to confirm it started successfully (but make sure it continues)
-            analyzeForumUserActivity(user_id, project_id, forum_username).catch((error: Error) => {
+            triggerForumAnalysis(user_id, project_id, forum_username).catch((error: Error) => {
                 console.error("Error in background analysis:", error)
             })
 
