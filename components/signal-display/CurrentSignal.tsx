@@ -72,25 +72,24 @@ export default function CurrentSignal({ signal, signalValue }: CurrentSignalProp
                             opacity: 0.3,
                             borderLeftRadius: "7px",
                         }}
-                        zIndex={2}
                     />
                     <Box
                         position="absolute"
                         left={`${calculateSignalThresholdFromName("Low") - 0.5}%`}
                         top="0"
                         bottom="0"
-                        borderLeft="3px solid"
+                        borderLeft="3px dashed"
                         borderColor="gray.800"
-                        transform="scaleY(1.6)"
+                        zIndex={2}
                     />
                     <Box
                         position="absolute"
                         left={`${calculateSignalThresholdFromName("High") - 0.5}%`}
                         top="0"
                         bottom="0"
-                        borderLeft="3px solid"
+                        borderLeft="3px dashed"
                         borderColor="gray.800"
-                        transform="scaleY(1.6)"
+                        zIndex={2}
                     />
                 </HStack>
             </VStack>
