@@ -83,12 +83,22 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
         },
     ]
 
+    console.log("Sending request to OpenAI API...")
+    console.log("Model:", MODEL)
+    console.log("Temperature:", 0.2)
+    console.log("Messages length:", messages.length)
+    console.log("User message length:", messages[1].content.length)
+
     try {
+        console.log("Making OpenAI API call...")
         const res = await openai.chat.completions.create({
             model: MODEL,
             messages,
             temperature: 0.2,
         })
+        console.log("OpenAI API call completed successfully")
+        console.log("Response object keys:", Object.keys(res))
+        console.log("Choices length:", res.choices.length)
 
         const response = res.choices[0].message.content.trim()
         console.log("Raw response:", response)
