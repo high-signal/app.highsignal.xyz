@@ -42,5 +42,5 @@ jobs:
               run: |
                   aws lambda update-function-code \
                     --function-name prod-discourse-forum-analysis \
-                    --zip-file fileb://lambda/discourse-forum-analysis.zip \
+                    --zip-file fileb://lambda/forumAnalysis/discourse-forum-analysis.zip \
                     --region ${{ secrets.AWS_REGION }}
