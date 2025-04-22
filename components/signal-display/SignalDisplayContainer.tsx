@@ -52,15 +52,15 @@ export default function SignalDisplayContainer({ project, username }: { project:
                 <UserInfo profileImageUrl={currentUser.profileImageUrl} name={currentUser.displayName} />
                 <Box w="100%" h={{ base: "30px", sm: "20px" }} />
                 <CurrentSignal signal={currentUser.signal} signalValue={currentUser.score} />
-                {/* <HStack w="100%" justifyContent="space-between">
+                <HStack w="100%" justifyContent="space-between">
                     <Text color="white">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce non quam non ligula imperdiet
-                        laoreet. Donec ac quam ac felis laoreet dignissim eu quis lacus. Aenean dignissim blandit diam
-                        non blandit. Nunc semper elementum quam, ac porttitor sem ultrices blandit. Etiam vel varius
-                        orci, placerat feugiat magna. Ut mollis ligula sit amet elit placerat cursus. Aliquam varius
-                        ante et odio porttitor, ac sodales metus placerat.
+                        Placeholder text for the user summary. Placeholder text for the user summary. Placeholder text
+                        for the user summary. Placeholder text for the user summary. Placeholder text for the user
+                        summary. Placeholder text for the user summary. Placeholder text for the user summary.
+                        Placeholder text for the user summary. Placeholder text for the user summary. Placeholder text
+                        for the user summary.
                     </Text>
-                </HStack> */}
+                </HStack>
             </VStack>
             <PeakSignalsContainer
                 currentUser={currentUser}
