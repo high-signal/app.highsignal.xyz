@@ -1,4 +1,5 @@
 import { VStack, HStack, Text, Box, Span } from "@chakra-ui/react"
+import { calculateSignalPercentageFromName, calculateSignalThresholdFromName } from "../../utils/calculateSignal"
 
 interface CurrentSignalProps {
     signal: string
@@ -28,11 +29,11 @@ export default function CurrentSignal({ signal, signalValue }: CurrentSignalProp
             </HStack>
             <VStack align="stretch" gap={1} pb={8} w={"100%"}>
                 <HStack gap={0} h={"30px"} w={"100%"}>
-                    {["Low", "Mid", "High"].map((level, index) => (
+                    {["Low", "Mid", "High"].map((level) => (
                         <Text
                             key={level}
                             fontSize="20px"
-                            w={index === 1 ? "40%" : "30%"}
+                            w={`${calculateSignalPercentageFromName(level)}%`}
                             textAlign="center"
                             fontWeight={signal === level ? "bold" : "normal"}
                             color={signal === level ? `scoreColor.${signal}` : "inherit"}
@@ -48,7 +49,7 @@ export default function CurrentSignal({ signal, signalValue }: CurrentSignalProp
                     border={"3px solid"}
                     borderRadius={"10px"}
                     borderColor={"gray.800"}
-                    overflow={"hidden"}
+                    overflow={signalValue < 20 ? "hidden" : "visible"}
                     position="relative"
                 >
                     <Box
@@ -56,10 +57,9 @@ export default function CurrentSignal({ signal, signalValue }: CurrentSignalProp
                         w={`${signalValue}%`}
                         h={"100%"}
                         textAlign="center"
-                        // borderRight={"3px solid"}
                         border={signalValue === 100 ? "2px solid" : "none"}
                         borderRight={signalValue === 100 ? "2px solid" : "3px solid"}
-                        borderRadius={signalValue === 100 ? "md" : "none"}
+                        borderRightRadius={signalValue === 100 ? "md" : "none"}
                         borderColor={`scoreColor.${signal}`}
                         _before={{
                             content: '""',
@@ -70,24 +70,27 @@ export default function CurrentSignal({ signal, signalValue }: CurrentSignalProp
                             bottom: 0,
                             bg: `scoreColor.${signal}`,
                             opacity: 0.3,
-                            zIndex: -1,
+                            borderLeftRadius: "7px",
                         }}
+                        zIndex={2}
                     />
                     <Box
                         position="absolute"
-                        left="30%"
+                        left={`${calculateSignalThresholdFromName("Low") - 0.5}%`}
                         top="0"
                         bottom="0"
-                        borderLeft="2px dashed"
+                        borderLeft="3px solid"
                         borderColor="gray.800"
+                        transform="scaleY(1.6)"
                     />
                     <Box
                         position="absolute"
-                        left="70%"
+                        left={`${calculateSignalThresholdFromName("High") - 0.5}%`}
                         top="0"
                         bottom="0"
-                        borderLeft="2px dashed"
+                        borderLeft="3px solid"
                         borderColor="gray.800"
+                        transform="scaleY(1.6)"
                     />
                 </HStack>
             </VStack>

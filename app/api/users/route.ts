@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
-import { calculateSignal } from "../../../utils/calculateSignal"
+import { calculateSignalFromScore } from "../../../utils/calculateSignal"
 import { verifyAuth } from "../../../utils/verifyAuth"
 import { validateUsername, validateDisplayName } from "../../../utils/userValidation"
 import { sanitize } from "../../../utils/sanitize"
@@ -153,7 +153,7 @@ export async function GET(request: Request) {
                     score: score.total_score,
                     signalStrengthScore: score.signal_strength_score,
                     peakSignalScore: score.peak_signal_score,
-                    signal: calculateSignal(score.total_score),
+                    signal: calculateSignalFromScore(score.total_score),
                     peakSignals:
                         user.user_peak_signals?.map((ups) => ({
                             name: ups.peak_signals.name,
