@@ -5,7 +5,7 @@ import { Toaster as ChakraToaster, Portal, Toast, VStack, createToaster } from "
 export const toaster = createToaster({
     placement: "top-end",
     pauseOnPageIdle: true,
-    duration: 10000,
+    duration: 100009999,
 })
 
 export default function Toaster() {
@@ -20,9 +20,25 @@ export default function Toaster() {
                         alignItems="center"
                         borderRadius="20px"
                     >
-                        <VStack maxWidth="100%" alignItems="center">
-                            {toast.title && <Toast.Title>{toast.title}</Toast.Title>}
-                            {toast.description && <Toast.Description>{toast.description}</Toast.Description>}
+                        <VStack w={"100%"} alignItems="center">
+                            {toast.title && (
+                                <Toast.Title
+                                    _selection={{
+                                        bg: "gray.600",
+                                    }}
+                                >
+                                    {toast.title}
+                                </Toast.Title>
+                            )}
+                            {toast.description && (
+                                <Toast.Description
+                                    _selection={{
+                                        bg: "gray.600",
+                                    }}
+                                >
+                                    {toast.description}
+                                </Toast.Description>
+                            )}
                             {toast.action && (
                                 <Toast.ActionTrigger borderRadius="full" border={"2px solid"} cursor="pointer">
                                     {toast.action.label}

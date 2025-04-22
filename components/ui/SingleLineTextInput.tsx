@@ -43,8 +43,7 @@ export default function SingleLineTextInput({
                     outline: "none",
                 }}
                 _selection={{
-                    bg: isEditable ? "gray.600" : "transparent",
-                    color: isEditable ? "white" : "inherit",
+                    bg: "gray.600",
                 }}
                 bg={value && isEditable ? "gray.800" : "transparent"}
                 pr={showClearButton ? "30px" : "0px"}

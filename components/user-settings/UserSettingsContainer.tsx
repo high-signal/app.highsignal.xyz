@@ -235,42 +235,48 @@ export default function UserSettingsContainer() {
                 throw new Error(errorData.error || "Failed to update forum username")
             }
 
-            // Update the targetUser state with the new forum username
-            setTargetUser((prev: any) => ({
-                ...prev,
-                forum_users: [
-                    {
-                        ...prev.forum_users[0],
-                        forum_username: forumUsername,
-                    },
-                ],
-            }))
+            if (forumResponse.ok) {
+                // Add 2 second delay before updating and showing success message
+                setTimeout(() => {
+                    // Update the targetUser state with the new forum username
+                    setTargetUser((prev: any) => ({
+                        ...prev,
+                        forum_users: [
+                            {
+                                ...prev.forum_users[0],
+                                forum_username: forumUsername,
+                            },
+                        ],
+                    }))
 
-            // Reset the form state
-            setHasForumChanges(false)
+                    // Reset the form state
+                    setHasForumChanges(false)
 
-            // Show success message
-            toaster.create({
-                title: "✅ㅤForum username updated",
-                description:
-                    "Your forum username has been updated successfully. It may take a few minutes to update your signal score.",
-                type: "success",
-                action: {
-                    label: "View Profile",
-                    // TODO: Uncomment this when the profile page is implemented
-                    // onClick: () => router.push(`/u/${targetUser.username}`),
-                    onClick: () => router.push(`/p/lido/${loggedInUser?.username}`),
-                },
-            })
+                    setIsForumSubmitting(false)
+
+                    // Show success message
+                    toaster.create({
+                        title: "✅ㅤForum username updated",
+                        description:
+                            "Your forum username has been updated successfully. View your profile to see the calculation in progress.",
+                        type: "success",
+                        action: {
+                            label: "View Profile",
+                            // TODO: Uncomment this when the profile page is implemented
+                            // onClick: () => router.push(`/u/${targetUser.username}`),
+                            onClick: () => router.push(`/p/lido/${loggedInUser?.username}`),
+                        },
+                    })
+                }, 2000)
+            }
         } catch (error) {
             console.error("Error updating forum username:", error)
+            setIsForumSubmitting(false)
             toaster.create({
                 title: "❌ㅤError updating forum username",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
                 type: "error",
             })
-        } finally {
-            setIsForumSubmitting(false)
         }
     }
 
@@ -331,7 +337,7 @@ export default function UserSettingsContainer() {
             // Show success message
             toaster.create({
                 title: "✅ㅤForum account disconnected",
-                description: "Your forum account has been disconnected successfully.",
+                description: "Your forum account has been disconnected.",
                 type: "success",
             })
         } catch (error) {
