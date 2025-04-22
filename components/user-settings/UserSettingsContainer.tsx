@@ -38,6 +38,7 @@ export default function UserSettingsContainer() {
     const [forumUsername, setForumUsername] = useState("")
     const [isForumSubmitting, setIsForumSubmitting] = useState(false)
     const [hasForumChanges, setHasForumChanges] = useState(false)
+    const [countdown, setCountdown] = useState(0)
 
     // Initialize form with user data
     useEffect(() => {
@@ -97,6 +98,24 @@ export default function UserSettingsContainer() {
             fetchUserData()
         }
     }, [loggedInUser, loggedInUserLoading, params?.username, getAccessToken, router])
+
+    useEffect(() => {
+        let timer: NodeJS.Timeout | null = null
+        if (isForumSubmitting) {
+            timer = setInterval(() => {
+                setCountdown((prev) => {
+                    if (prev <= 1) {
+                        if (timer) clearInterval(timer)
+                        return 0
+                    }
+                    return prev - 1
+                })
+            }, 1000)
+        }
+        return () => {
+            if (timer) clearInterval(timer)
+        }
+    }, [isForumSubmitting])
 
     // Handle field changes
     const handleFieldChange = (field: string, value: string) => {
@@ -215,7 +234,9 @@ export default function UserSettingsContainer() {
 
     const handleForumChange = async (forumUsername: string, user_id: string, project_id: string) => {
         try {
+            const COUNTDOWN_DURATION_SECONDS = 8
             setIsForumSubmitting(true)
+            setCountdown(COUNTDOWN_DURATION_SECONDS)
 
             // Call the forum_users PUT route
             const forumResponse = await fetch("/api/accounts/forum_users", {
@@ -236,7 +257,7 @@ export default function UserSettingsContainer() {
             }
 
             if (forumResponse.ok) {
-                // Add 5 second delay before updating and showing success message
+                // Add a delay before updating and showing success message
                 setTimeout(() => {
                     // Update the targetUser state with the new forum username
                     setTargetUser((prev: any) => ({
@@ -251,7 +272,6 @@ export default function UserSettingsContainer() {
 
                     // Reset the form state
                     setHasForumChanges(false)
-
                     setIsForumSubmitting(false)
 
                     // Show success message
@@ -267,7 +287,7 @@ export default function UserSettingsContainer() {
                             onClick: () => router.push(`/p/lido/${loggedInUser?.username}`),
                         },
                     })
-                }, 5000)
+                }, COUNTDOWN_DURATION_SECONDS * 1000)
             }
         } catch (error) {
             console.error("Error updating forum username:", error)
@@ -463,12 +483,18 @@ export default function UserSettingsContainer() {
                                 color="white"
                                 borderColor="green.500"
                                 onClick={() => handleForumChange(forumUsername, targetUser.id, "1")}
-                                loading={isForumSubmitting}
                                 borderRightRadius="full"
                                 cursor={!forumUsername || isForumSubmitting ? "default" : "pointer"}
                                 disabled={!forumUsername || isForumSubmitting}
                             >
-                                <Text fontWeight="bold">Connect</Text>
+                                {isForumSubmitting ? (
+                                    <HStack gap={2}>
+                                        <Spinner size="sm" color="white" />
+                                        <Text fontWeight="bold">{countdown}s</Text>
+                                    </HStack>
+                                ) : (
+                                    <Text fontWeight="bold">Connect</Text>
+                                )}
                             </Button>
                         ) : (
                             <Menu.Root>
