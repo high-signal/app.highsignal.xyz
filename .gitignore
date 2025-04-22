@@ -40,6 +40,7 @@ yarn-error.log*
 
 # DB files
 db_dump.sql
+/supabase/.temp
 
 # Vercel
 .vercel
