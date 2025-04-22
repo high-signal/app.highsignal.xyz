@@ -472,7 +472,7 @@ export default function UserSettingsContainer() {
                     onChange={handleForumInputChange}
                     onKeyDown={handleForumKeyDown}
                     error=""
-                    isEditable={hasForumChanges}
+                    isEditable={countdown === 0 && hasForumChanges}
                     rightElement={
                         hasForumChanges ? (
                             <Button
