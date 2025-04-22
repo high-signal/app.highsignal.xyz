@@ -79,7 +79,7 @@ export default function SignalStrength({
                 setCountdownText("Calculating score...")
             }
 
-            if (updatedTimeRemaining < 5000) {
+            if (updatedTimeRemaining < 1000) {
                 setTriggerRefresh(true)
             }
 

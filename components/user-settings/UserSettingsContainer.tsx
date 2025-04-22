@@ -236,7 +236,7 @@ export default function UserSettingsContainer() {
             }
 
             if (forumResponse.ok) {
-                // Add 2 second delay before updating and showing success message
+                // Add 5 second delay before updating and showing success message
                 setTimeout(() => {
                     // Update the targetUser state with the new forum username
                     setTargetUser((prev: any) => ({
@@ -267,7 +267,7 @@ export default function UserSettingsContainer() {
                             onClick: () => router.push(`/p/lido/${loggedInUser?.username}`),
                         },
                     })
-                }, 2000)
+                }, 5000)
             }
         } catch (error) {
             console.error("Error updating forum username:", error)
