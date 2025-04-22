@@ -28,6 +28,7 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
     IMPORTANT: You must respond with ONLY a valid JSON object. Do not include any other text, markdown formatting, or backticks. The response should start with { and end with }.
 
     The summary and description should only mention the user display name "${displayName}" not the username "${username}".
+    The username "${username}" must be used as the key in the JSON object.
 
     The JSON object should have the username as the key, and the value should be an object containing:
     1. A short sentence describing the overall quality and tone of their activity (3-5 words)
@@ -37,7 +38,7 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
 
     Example format:
     {
-      "username": {
+      "${username}": {
         "summary": "Provides detailed technical feedback",
         "description": "${displayName} is a great contributor to the community. They provide detailed technical feedback and constructive suggestions.",
         "improvements": "To improve their score, they could ask more questions and provide more examples.",
@@ -83,12 +84,6 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
         },
     ]
 
-    console.log("Sending request to OpenAI API...")
-    console.log("Model:", MODEL)
-    console.log("Temperature:", 0.2)
-    console.log("Messages length:", messages.length)
-    console.log("User message length:", messages[1].content.length)
-
     try {
         console.log("Making OpenAI API call...")
         const res = await openai.chat.completions.create({
@@ -96,9 +91,6 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
             messages,
             temperature: 0.2,
         })
-        console.log("OpenAI API call completed successfully")
-        console.log("Response object keys:", Object.keys(res))
-        console.log("Choices length:", res.choices.length)
 
         const response = res.choices[0].message.content.trim()
         console.log("Raw response:", response)

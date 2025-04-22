@@ -299,7 +299,6 @@ export async function PUT(request: Request) {
                 console.error("Error in background analysis:", error)
             })
 
-            // Return the PUT result immediately
             return NextResponse.json(result)
         } catch (analysisError) {
             console.error("Error preparing analysis:", analysisError)
