@@ -9,7 +9,9 @@ const MODEL = "gpt-4-1106-preview"
 // === SETUP OPENAI ===
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 
-async function analyzeUserData(userData, username, maxValue, previousDays) {
+async function analyzeUserData(userData, username, displayName, maxValue, previousDays) {
+    console.log("displayName", displayName)
+
     // === PROMPT ===
     const basePrompt = `
     You are an assistant reviewing user activity data. Evaluate the overall quality and tone of the user's contributions. The score doesn't have to be round numbers, it should be a gradient based on those criteria. Give the user a score from 0-${maxValue} with the following criteria:
@@ -25,6 +27,8 @@ async function analyzeUserData(userData, username, maxValue, previousDays) {
 
     IMPORTANT: You must respond with ONLY a valid JSON object. Do not include any other text, markdown formatting, or backticks. The response should start with { and end with }.
 
+    The summary and description should only mention the user display name "${displayName}" not the username "${username}".
+
     The JSON object should have the username as the key, and the value should be an object containing:
     1. A short sentence describing the overall quality and tone of their activity (3-5 words)
     2. A short description of the user's activity (2-3 sentences)
@@ -35,7 +39,7 @@ async function analyzeUserData(userData, username, maxValue, previousDays) {
     {
       "username": {
         "summary": "Provides detailed technical feedback",
-        "description": "${username} is a great contributor to the community. They provide detailed technical feedback and constructive suggestions.",
+        "description": "${displayName} is a great contributor to the community. They provide detailed technical feedback and constructive suggestions.",
         "improvements": "To improve their score, they could ask more questions and provide more examples.",
         "value": ${Math.floor(maxValue * 0.6)}
       }

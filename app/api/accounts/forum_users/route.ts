@@ -240,6 +240,20 @@ export async function PATCH(request: Request) {
 
         const lastUpdated = userData.last_updated
 
+        // === Get user display name from Supabase ===
+        const { data: userDisplayName, error: userDisplayNameError } = await supabase
+            .from("users")
+            .select("display_name")
+            .eq("id", user_id)
+            .single()
+
+        if (userDisplayNameError) {
+            console.error("Error fetching user display name:", userDisplayNameError)
+            return NextResponse.json({ error: "User not found or error fetching user display name" }, { status: 404 })
+        }
+
+        const displayName = userDisplayName.display_name
+
         // === Fetch activity data from forum API ===
         console.log(`Fetching activity for user: ${forum_username}`)
         const activityData = await fetchUserActivity(url, forum_username)
@@ -292,7 +306,13 @@ export async function PATCH(request: Request) {
         console.log(`Filtered activity data to the past ${previousDays} days: ${filteredActivityData.length}`)
 
         // === Analyze user data with AI ===
-        const analysisResults = await analyzeUserData(filteredActivityData, forum_username, maxValue, previousDays)
+        const analysisResults = await analyzeUserData(
+            filteredActivityData,
+            forum_username,
+            displayName,
+            maxValue,
+            previousDays,
+        )
 
         // === Validity check on maxValue ===
         if (analysisResults && !analysisResults.error) {
