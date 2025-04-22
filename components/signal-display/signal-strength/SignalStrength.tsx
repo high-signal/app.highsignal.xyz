@@ -57,11 +57,6 @@ export default function SignalStrength({
         const timeElapsed = now - lastCheckedTime
         const timeRemaining = countdownDuration - timeElapsed
 
-        console.log("lastCheckedTime", lastCheckedTime)
-        console.log("now", now)
-        console.log("timeElapsed", timeElapsed)
-        console.log("timeRemaining", timeRemaining)
-
         if (timeRemaining <= 0) {
             setCountdown(null)
             return

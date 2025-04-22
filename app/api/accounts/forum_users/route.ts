@@ -208,6 +208,26 @@ export async function PATCH(request: Request) {
             )
         }
 
+        // === Update the last_checked date in the user_signal_strengths table ===
+        // Use unix timestamp to avoid timezone issues
+        const { error: lastCheckError } = await supabase.from("user_signal_strengths").upsert(
+            {
+                user_id: user_id,
+                project_id: project_id,
+                signal_strength_id: signal_strength_id,
+                last_checked: Math.floor(Date.now() / 1000),
+            },
+            {
+                onConflict: "user_id,project_id,signal_strength_id",
+            },
+        )
+
+        if (lastCheckError) {
+            console.error(`Error updating last_checked for ${forum_username}:`, lastCheckError.message)
+        } else {
+            console.log(`Successfully updated last_checked for ${forum_username}`)
+        }
+
         // === Fetch signal strength config from Supabase ===
         console.log(`Fetching signal strength config from Supabase for project ${project_id}...`)
         const signalStrengthConfig = await getSignalStrengthConfig(supabase, project_id, signal_strength_id)
@@ -258,30 +278,6 @@ export async function PATCH(request: Request) {
         console.log(`Fetching activity for user: ${forum_username}`)
         const activityData = await fetchUserActivity(url, forum_username)
         console.log(`Processed ${activityData?.length || 0} activities for ${forum_username}`)
-
-        // === Update the last_checked date in the user_signal_strengths table ===
-        // Use unix timestamp to avoid timezone issues
-        const { error } = await supabase.from("user_signal_strengths").upsert(
-            {
-                user_id: user_id,
-                project_id: project_id,
-                signal_strength_id: signal_strength_id,
-                last_checked: Math.floor(Date.now() / 1000),
-            },
-            {
-                onConflict: "user_id,project_id,signal_strength_id",
-            },
-        )
-
-        console.log("user_id", user_id)
-        console.log("project_id", project_id)
-        console.log("signal_strength_id", signal_strength_id)
-
-        if (error) {
-            console.error(`Error updating last_checked for ${forum_username}:`, error.message)
-        } else {
-            console.log(`Successfully updated last_checked for ${forum_username}`)
-        }
 
         if (!activityData || activityData.length === 0) {
             return NextResponse.json({ error: "No activity data found for this user" }, { status: 404 })
