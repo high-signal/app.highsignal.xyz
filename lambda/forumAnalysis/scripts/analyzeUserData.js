@@ -14,7 +14,7 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
 
     // === PROMPT ===
     const basePrompt = `
-    You are an assistant reviewing user activity data. Evaluate the overall quality and tone of the user's contributions. The score doesn't have to be round numbers, it should be a gradient based on those criteria. Give the user a score from 0-${maxValue} with the following criteria:
+    You are an assistant reviewing user activity data. Evaluate the overall quality and tone of the user's contributions. The score doesn't have to be round numbers (5, 20, etc.) but should be whole numbers, it should be a gradient based on those criteria. Give the user a score from 0-${maxValue} with the following criteria:
 
     Criteria:
     - 0: Aggressive, spam, hostile, or scam content.
@@ -41,7 +41,7 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
       "${username}": {
         "summary": "Provides detailed technical feedback",
         "description": "${displayName} is a great contributor to the community. They provide detailed technical feedback and constructive suggestions.",
-        "improvements": "To improve their score, they could ask more questions and provide more examples.",
+        "improvements": "To improve their score, ${displayName} could ask more questions and provide more examples.",
         "value": ${Math.floor(maxValue * 0.6)}
       }
     }
