@@ -65,10 +65,10 @@ export default function Header({}) {
             >
                 <Box onClick={() => router.push("/")} cursor="pointer">
                     <HStack gap={2} justifyContent={"center"} alignItems={"center"}>
-                        <Image src={ASSETS.LOGO} alt="Logo" boxSize={"40px"} borderRadius="full" />
-                        <Text minW="80px" fontWeight="bold" fontSize="xl" whiteSpace={"nowrap"}>
+                        <Image src={ASSETS.LOGO} alt="Logo" boxSize={"45px"} borderRadius="full" />
+                        {/* <Text minW="80px" fontWeight="bold" fontSize="xl" whiteSpace={"nowrap"}>
                             {process.env.NEXT_PUBLIC_SITE_NAME}
-                        </Text>
+                        </Text> */}
                     </HStack>
                 </Box>
                 <HStack gap={{ base: 2, md: 6 }} alignItems={"top"}>
