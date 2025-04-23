@@ -48,26 +48,6 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username) {
             return //NextResponse.json("Signal strength is not enabled for this project")
         }
 
-        // === Update the last_checked date in the user_signal_strengths table ===
-        // Use unix timestamp to avoid timezone issues
-        const { error: lastCheckError } = await supabase.from("user_signal_strengths").upsert(
-            {
-                user_id: user_id,
-                project_id: project_id,
-                signal_strength_id: signal_strength_id,
-                last_checked: Math.floor(Date.now() / 1000),
-            },
-            {
-                onConflict: "user_id,project_id,signal_strength_id",
-            },
-        )
-
-        if (lastCheckError) {
-            console.error(`Error updating last_checked for ${forum_username}:`, lastCheckError.message)
-        } else {
-            console.log(`Successfully updated last_checked for ${forum_username}`)
-        }
-
         // === Fetch signal strength config from Supabase ===
         console.log(`Fetching signal strength config from Supabase for project ${project_id}...`)
         const signalStrengthConfig = await getSignalStrengthConfig(supabase, project_id, signal_strength_id)

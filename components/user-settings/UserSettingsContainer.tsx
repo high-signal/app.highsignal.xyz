@@ -38,7 +38,6 @@ export default function UserSettingsContainer() {
     const [forumUsername, setForumUsername] = useState("")
     const [isForumSubmitting, setIsForumSubmitting] = useState(false)
     const [hasForumChanges, setHasForumChanges] = useState(false)
-    const [countdown, setCountdown] = useState(0)
 
     // Initialize form with user data
     useEffect(() => {
@@ -98,24 +97,6 @@ export default function UserSettingsContainer() {
             fetchUserData()
         }
     }, [loggedInUser, loggedInUserLoading, params?.username, getAccessToken, router])
-
-    useEffect(() => {
-        let timer: NodeJS.Timeout | null = null
-        if (isForumSubmitting) {
-            timer = setInterval(() => {
-                setCountdown((prev) => {
-                    if (prev <= 1) {
-                        if (timer) clearInterval(timer)
-                        return 0
-                    }
-                    return prev - 1
-                })
-            }, 1000)
-        }
-        return () => {
-            if (timer) clearInterval(timer)
-        }
-    }, [isForumSubmitting])
 
     // Handle field changes
     const handleFieldChange = (field: string, value: string) => {
@@ -234,9 +215,7 @@ export default function UserSettingsContainer() {
 
     const handleForumChange = async (forumUsername: string, user_id: string, project_id: string) => {
         try {
-            const COUNTDOWN_DURATION_SECONDS = 8
             setIsForumSubmitting(true)
-            setCountdown(COUNTDOWN_DURATION_SECONDS)
 
             // Call the forum_users PUT route
             const forumResponse = await fetch("/api/accounts/forum_users", {
@@ -248,6 +227,7 @@ export default function UserSettingsContainer() {
                     user_id,
                     project_id,
                     forum_username: forumUsername,
+                    signal_strength_name: "discourse_forum",
                 }),
             })
 
@@ -258,6 +238,8 @@ export default function UserSettingsContainer() {
 
             if (forumResponse.ok) {
                 // Add a delay before updating and showing success message
+                // This gives the DB time to update the last_checked date before
+                // showing the success message and profile link
                 setTimeout(() => {
                     // Update the targetUser state with the new forum username
                     setTargetUser((prev: any) => ({
@@ -287,7 +269,7 @@ export default function UserSettingsContainer() {
                             onClick: () => router.push(`/p/lido/${loggedInUser?.username}#discourse_forum`),
                         },
                     })
-                }, COUNTDOWN_DURATION_SECONDS * 1000)
+                }, 2000)
             }
         } catch (error) {
             console.error("Error updating forum username:", error)
@@ -472,7 +454,7 @@ export default function UserSettingsContainer() {
                     onChange={handleForumInputChange}
                     onKeyDown={handleForumKeyDown}
                     error=""
-                    isEditable={countdown === 0 && hasForumChanges}
+                    isEditable={!isForumSubmitting && hasForumChanges}
                     rightElement={
                         hasForumChanges ? (
                             <Button
@@ -488,10 +470,7 @@ export default function UserSettingsContainer() {
                                 disabled={!forumUsername || isForumSubmitting}
                             >
                                 {isForumSubmitting ? (
-                                    <HStack gap={2}>
-                                        <Spinner size="sm" color="white" />
-                                        <Text fontWeight="bold">{countdown}s</Text>
-                                    </HStack>
+                                    <Spinner size="sm" color="white" />
                                 ) : (
                                     <Text fontWeight="bold">Connect</Text>
                                 )}
@@ -509,7 +488,7 @@ export default function UserSettingsContainer() {
                                         color="#029E03"
                                         borderColor="#029E03"
                                         borderRightRadius="full"
-                                        cursor="pointer"
+                                        cursor={isForumSubmitting ? "default" : "pointer"}
                                         _hover={{ bg: "green.700" }}
                                         disabled={isForumSubmitting}
                                     >

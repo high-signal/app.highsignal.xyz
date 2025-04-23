@@ -21,14 +21,51 @@ export async function PUT(request: Request) {
 
         // Parse the request body
         const body = await request.json()
-        const { user_id, project_id, forum_username } = body
+        const { user_id, project_id, forum_username, signal_strength_name } = body
 
         // Validate required fields
-        if (!user_id || !project_id || !forum_username) {
+        if (!user_id || !project_id || !forum_username || !signal_strength_name) {
             return NextResponse.json(
-                { error: "Missing required fields: user_id, project_id, and forum_username are required" },
+                {
+                    error: "Missing required fields: user_id, project_id, forum_username, and signal_strength_name are required",
+                },
                 { status: 400 },
             )
+        }
+
+        // Get the signal_strength_id to use in the last_checked upsert
+        const { data: signalStrengthData, error: signalStrengthDataError } = await supabase
+            .from("signal_strengths")
+            .select("id")
+            .eq("name", signal_strength_name)
+            .single()
+
+        if (signalStrengthDataError) {
+            console.error("Error fetching signal strength ID:", signalStrengthDataError)
+        }
+
+        if (signalStrengthData?.id) {
+            // Before anything else, add the last_checked date to the user_signal_strengths table.
+            // This is to give the best UX experience when the user is updating their forum username
+            // so that when they navigate to their profile page, it shows the loading animation immediately.
+            // Use unix timestamp to avoid timezone issues.
+            const { error: lastCheckError } = await supabase.from("user_signal_strengths").upsert(
+                {
+                    user_id: user_id,
+                    project_id: project_id,
+                    signal_strength_id: signalStrengthData.id,
+                    last_checked: Math.floor(Date.now() / 1000),
+                },
+                {
+                    onConflict: "user_id,project_id,signal_strength_id",
+                },
+            )
+
+            if (lastCheckError) {
+                console.error(`Error updating last_checked for ${forum_username}:`, lastCheckError.message)
+            } else {
+                console.log(`Successfully updated last_checked for ${forum_username}`)
+            }
         }
 
         // TODO: Add a check to see if the forum_username is already in the database
