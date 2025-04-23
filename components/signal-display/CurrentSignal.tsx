@@ -80,7 +80,6 @@ export default function CurrentSignal({ signal, signalValue }: CurrentSignalProp
                         bottom="0"
                         borderLeft="3px dashed"
                         borderColor="gray.800"
-                        zIndex={2}
                     />
                     <Box
                         position="absolute"
@@ -89,7 +88,6 @@ export default function CurrentSignal({ signal, signalValue }: CurrentSignalProp
                         bottom="0"
                         borderLeft="3px dashed"
                         borderColor="gray.800"
-                        zIndex={2}
                     />
                 </HStack>
             </VStack>
