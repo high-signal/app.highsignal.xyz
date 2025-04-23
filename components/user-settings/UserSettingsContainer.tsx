@@ -284,7 +284,7 @@ export default function UserSettingsContainer() {
                             label: "View Profile",
                             // TODO: Uncomment this when the profile page is implemented
                             // onClick: () => router.push(`/u/${targetUser.username}`),
-                            onClick: () => router.push(`/p/lido/${loggedInUser?.username}`),
+                            onClick: () => router.push(`/p/lido/${loggedInUser?.username}#discourse_forum`),
                         },
                     })
                 }, COUNTDOWN_DURATION_SECONDS * 1000)

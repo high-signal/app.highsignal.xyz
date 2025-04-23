@@ -94,6 +94,20 @@ export default function SignalStrength({
         return () => clearInterval(timer)
     }, [userData.lastChecked])
 
+    // Scroll to the project name when the element is loaded if the hash matches the project name
+    useEffect(() => {
+        // Check if the current hash matches this project's name
+        if (window.location.hash === `#${projectData.name}`) {
+            // Small delay to ensure the element is rendered
+            setTimeout(() => {
+                const element = document.getElementById(projectData.name)
+                if (element) {
+                    element.scrollIntoView({ behavior: "smooth" })
+                }
+            }, 100)
+        }
+    }, [projectData.name])
+
     return (
         <VStack alignItems={"center"} gap={4} w={"100%"} bg="gray.900" py={3} px={3} borderRadius={"16px"}>
             <HStack
@@ -107,7 +121,9 @@ export default function SignalStrength({
                 gap={3}
                 w="100%"
             >
-                <Text fontSize="xl">{projectData.displayName}</Text>
+                <Text as="a" id={projectData.name} fontSize="xl">
+                    {projectData.displayName}
+                </Text>
                 {!countdown && projectData.status === "active" && (
                     <HStack
                         gap={"2px"}
