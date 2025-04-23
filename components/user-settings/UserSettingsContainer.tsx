@@ -231,6 +231,8 @@ export default function UserSettingsContainer() {
                 }),
             })
 
+            console.log("Forum response:", forumResponse)
+
             if (!forumResponse.ok) {
                 const errorData = await forumResponse.json()
                 throw new Error(errorData.error || "Failed to update forum username")
@@ -339,7 +341,6 @@ export default function UserSettingsContainer() {
             // Show success message
             toaster.create({
                 title: "✅ㅤForum account disconnected",
-                description: "Your forum account has been disconnected.",
                 type: "success",
             })
         } catch (error) {

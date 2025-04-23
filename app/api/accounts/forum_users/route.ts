@@ -133,19 +133,40 @@ export async function PUT(request: Request) {
             result = data
         }
 
-        // After successful update, trigger the analysis in the background
         try {
-            // Trigger analysis in the background
-            // TODO: Add instant check to confirm it started successfully (but make sure it continues)
-            triggerForumAnalysis(user_id, project_id, forum_username).catch((error: Error) => {
-                console.error("Error in background analysis:", error)
-            })
+            // Trigger analysis and wait for initial response
+            console.log("Triggering forum analysis for user:", forum_username)
+            const analysisResponse = await triggerForumAnalysis(user_id, project_id, forum_username)
 
-            return NextResponse.json(result)
+            if (!analysisResponse.success) {
+                console.error("Failed to start analysis:", analysisResponse.message)
+                return NextResponse.json(
+                    {
+                        error: analysisResponse.message,
+                        forumUser: result,
+                    },
+                    { status: 400 },
+                )
+            }
+
+            console.log("Analysis started successfully:", analysisResponse.message)
+            return NextResponse.json(
+                {
+                    success: true,
+                    message: analysisResponse.message,
+                    forumUser: result,
+                },
+                { status: 200 },
+            )
         } catch (analysisError) {
-            console.error("Error preparing analysis:", analysisError)
-            // Continue with just the PUT result
-            return NextResponse.json(result)
+            console.error("Error starting analysis:", analysisError)
+            return NextResponse.json(
+                {
+                    error: "An unexpected error occurred while starting the analysis",
+                    forumUser: result,
+                },
+                { status: 500 },
+            )
         }
     } catch (error) {
         console.error("Unhandled error in forum user update:", error)
