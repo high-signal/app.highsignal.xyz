@@ -44,8 +44,11 @@ export default function SignalStrength({
         `
 
     // Refresh user data before the end of the countdown
+    // to ensure the response from the DB has time to return
     useEffect(() => {
-        refreshUserData()
+        if (triggerRefresh) {
+            refreshUserData()
+        }
     }, [triggerRefresh, refreshUserData])
 
     // Calculate countdown timer
@@ -79,7 +82,8 @@ export default function SignalStrength({
                 setCountdownText("Calculating score...")
             }
 
-            if (updatedTimeRemaining < 1000) {
+            // Refresh the user data in the background when the countdown is less than 5 seconds
+            if (updatedTimeRemaining < 5000) {
                 setTriggerRefresh(true)
             }
 

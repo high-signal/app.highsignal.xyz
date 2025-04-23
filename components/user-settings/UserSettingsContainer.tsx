@@ -231,8 +231,6 @@ export default function UserSettingsContainer() {
                 }),
             })
 
-            console.log("Forum response:", forumResponse)
-
             if (!forumResponse.ok) {
                 const errorData = await forumResponse.json()
                 throw new Error(errorData.error || "Failed to update forum username")
