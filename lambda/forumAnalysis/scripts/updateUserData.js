@@ -38,6 +38,7 @@ async function updateUserData(
                 description: analysisResults[username].description,
                 improvements: analysisResults[username].improvements,
                 last_updated: latestActivityDate,
+                last_checked: analysisResults[username].clearLastChecked ? null : undefined,
             },
             {
                 onConflict: "user_id,project_id,signal_strength_id",

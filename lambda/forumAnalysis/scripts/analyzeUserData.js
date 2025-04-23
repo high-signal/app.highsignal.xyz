@@ -12,6 +12,20 @@ const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 async function analyzeUserData(userData, username, displayName, maxValue, previousDays) {
     console.log("displayName", displayName)
 
+    // If filteredActivityData is empty, return null
+    if (userData.length === 0) {
+        console.log(`** No activity in the past ${previousDays} days **`)
+        return {
+            [username]: {
+                summary: `No activity in the past ${previousDays} days`,
+                description: null,
+                improvements: null,
+                value: 0,
+                clearLastChecked: true,
+            },
+        }
+    }
+
     // === PROMPT ===
     const basePrompt = `
     You are an assistant reviewing user activity data. Evaluate the overall quality and tone of the user's contributions. The score doesn't have to be round numbers (5, 20, etc.) but should be whole numbers, it should be a gradient based on those criteria. Give the user a score from 0-${maxValue} with the following criteria:
@@ -46,19 +60,6 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
       }
     }
     `
-
-    // If filteredActivityData is empty, return null
-    if (userData.length === 0) {
-        console.log(`** No activity in the past ${previousDays} days **`)
-        return {
-            [username]: {
-                summary: `No activity in the past ${previousDays} days`,
-                description: null,
-                improvements: null,
-                value: 0,
-            },
-        }
-    }
 
     // Process the userData to strip HTML
     const processedUserData = processObjectForHtml(userData)
