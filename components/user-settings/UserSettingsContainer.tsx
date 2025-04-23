@@ -188,7 +188,7 @@ export default function UserSettingsContainer() {
             }
 
             toaster.create({
-                title: "✅ㅤSettings saved successfully",
+                title: "✅ Settings saved successfully",
                 type: "success",
             })
 
@@ -202,7 +202,7 @@ export default function UserSettingsContainer() {
             }
         } catch (error) {
             toaster.create({
-                title: "❌ㅤError updating settings",
+                title: "❌ Error updating settings",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
                 type: "error",
             })
@@ -258,7 +258,7 @@ export default function UserSettingsContainer() {
 
                     // Show success message
                     toaster.create({
-                        title: "✅ㅤForum username updated",
+                        title: "✅ Forum username updated",
                         description:
                             "Your forum username has been updated successfully. View your profile to see the calculation in progress.",
                         type: "success",
@@ -275,7 +275,7 @@ export default function UserSettingsContainer() {
             console.error("Error updating forum username:", error)
             setIsForumSubmitting(false)
             toaster.create({
-                title: "❌ㅤError updating forum username",
+                title: "❌ Error updating forum username",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
                 type: "error",
             })
@@ -338,13 +338,13 @@ export default function UserSettingsContainer() {
 
             // Show success message
             toaster.create({
-                title: "✅ㅤForum account disconnected",
+                title: "✅ Forum account disconnected",
                 type: "success",
             })
         } catch (error) {
             console.error("Error disconnecting forum username:", error)
             toaster.create({
-                title: "❌ㅤError disconnecting forum account",
+                title: "❌ Error disconnecting forum account",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
                 type: "error",
             })

@@ -15,19 +15,29 @@ export default function Toaster() {
                 {(toast) => (
                     <Toast.Root
                         w={"fit-content"}
-                        minW={{ base: "100%", sm: "400px" }}
+                        minW={{ base: "100%", sm: toast.description ? "400px" : "fit-content" }}
                         h={"fit-content"}
                         alignItems="center"
                         borderRadius="20px"
                     >
-                        <VStack w={"100%"} alignItems="center">
+                        <VStack w={"fit-content"} alignItems="center">
                             {toast.title && (
                                 <Toast.Title
+                                    mr={4}
+                                    ml={toast.description ? 4 : 0}
+                                    w={"max-content"}
                                     _selection={{
                                         bg: "gray.600",
                                     }}
                                 >
-                                    {toast.title}
+                                    {typeof toast.title === "string" ? (
+                                        <>
+                                            <span style={{ paddingRight: "5px" }}>{toast.title.charAt(0)}</span>
+                                            {toast.title.slice(1)}
+                                        </>
+                                    ) : (
+                                        toast.title
+                                    )}
                                 </Toast.Title>
                             )}
                             {toast.description && (
@@ -35,6 +45,7 @@ export default function Toaster() {
                                     _selection={{
                                         bg: "gray.600",
                                     }}
+                                    textAlign={"center"}
                                 >
                                     {toast.description}
                                 </Toast.Description>

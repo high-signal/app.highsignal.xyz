@@ -90,13 +90,13 @@ export default function ProfileImageEditor({ currentImageUrl, onImageUploaded, u
             refreshUser()
 
             toaster.create({
-                title: "✅ㅤProfile image updated",
+                title: "✅ Profile image updated",
                 type: "success",
             })
         } catch (error) {
             console.error("Error uploading image:", error)
             toaster.create({
-                title: "❌ㅤError uploading image",
+                title: "❌ Error uploading image",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
                 type: "error",
             })
