@@ -80,7 +80,7 @@ export const customConfig = createSystem(defaultConfig, {
         semanticTokens: {
             colors: {
                 textColor: {
-                    value: { _light: "black", _dark: "#A6A6A6" },
+                    value: { _light: "black", _dark: "{colors.gray.400}" },
                 },
                 pageBackground: {
                     value: { _light: "#FFFFFF", _dark: "#0A0A0A" },

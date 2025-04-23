@@ -1,11 +1,16 @@
 "use client"
 
-import { VStack, HStack, Text, Box, Table, Image, Spinner, Input } from "@chakra-ui/react"
+import { VStack, HStack, Text, Box, Table, Image, Spinner } from "@chakra-ui/react"
+import { Tooltip } from "../../components/ui/tooltip"
+
 import { useRouter, useSearchParams } from "next/navigation"
-import { useGetUsers } from "../../hooks/useGetUsers"
 import { useState, useEffect } from "react"
+
+import { useGetUsers } from "../../hooks/useGetUsers"
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleXmark } from "@fortawesome/free-solid-svg-icons"
+
 import { ASSETS } from "../../config/constants"
 
 import SingleLineTextInput from "../ui/SingleLineTextInput"
@@ -233,14 +238,25 @@ export default function Leaderboard({ project }: { project: string }) {
                                             .sort((a, b) => b.value - a.value)
                                             .slice(0, 5)
                                             .map((badge, index) => (
-                                                <Image
+                                                <Tooltip
                                                     key={index}
-                                                    src={badge.imageSrc}
-                                                    alt={badge.imageAlt}
-                                                    width={10}
-                                                    height={10}
-                                                    borderRadius="full"
-                                                />
+                                                    openDelay={100}
+                                                    closeDelay={0}
+                                                    content={badge.displayName}
+                                                    positioning={{
+                                                        placement: "top",
+                                                        offset: { mainAxis: 2 },
+                                                    }}
+                                                >
+                                                    <Image
+                                                        key={index}
+                                                        src={badge.imageSrc}
+                                                        alt={badge.imageAlt}
+                                                        width={10}
+                                                        height={10}
+                                                        borderRadius="full"
+                                                    />
+                                                </Tooltip>
                                             ))}
                                     </HStack>
                                 </Table.Cell>
