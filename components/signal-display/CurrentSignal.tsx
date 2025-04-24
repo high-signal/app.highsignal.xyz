@@ -1,4 +1,4 @@
-import { VStack, HStack, Text, Box, Span, Spinner } from "@chakra-ui/react"
+import { VStack, HStack, Text, Box, Span, Spinner, Skeleton } from "@chakra-ui/react"
 import { calculateSignalPercentageFromName, calculateSignalThresholdFromName } from "../../utils/calculateSignal"
 import { useEffect, useState } from "react"
 import { APP_CONFIG } from "../../config/constants"
@@ -9,8 +9,8 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
     const signal = currentUser.signal
     const signalValue = currentUser.score
 
+    // If lastChecked for any of the signal strengths is less than X seconds ago, set isSignalStrengthLoading to true
     useEffect(() => {
-        // if lastChecked for any of the signal strengths is less than X seconds ago, set isSignalStrengthLoading to true
         const isSignalStrengthLoading = currentUser.signalStrengths.some((signalStrength) => {
             if (!signalStrength.lastChecked) return false
             const now = Date.now()
@@ -33,13 +33,25 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                 w={"100%"}
                 flexWrap={"wrap"}
             >
-                <Text textAlign={"center"}>
-                    <Span color={`scoreColor.${signal}`}>{signal.charAt(0).toUpperCase() + signal.slice(1)}</Span>{" "}
-                    Signal
-                </Text>
-                <Text px={4} py={0} border={"5px solid"} borderRadius="25px" borderColor={`scoreColor.${signal}`}>
-                    {signalValue}
-                </Text>
+                {isSignalStrengthLoading ? (
+                    <Skeleton
+                        w={{ base: "200px", sm: "250px" }}
+                        h={{ base: "70px", sm: "85px" }}
+                        borderRadius={"25px"}
+                    />
+                ) : (
+                    <Text textAlign={"center"}>
+                        <Span color={`scoreColor.${signal}`}>{signal.charAt(0).toUpperCase() + signal.slice(1)}</Span>{" "}
+                        Signal
+                    </Text>
+                )}
+                {isSignalStrengthLoading ? (
+                    <Skeleton w={"100px"} h={{ base: "70px", sm: "85px" }} borderRadius={"25px"} />
+                ) : (
+                    <Text px={4} py={0} border={"5px solid"} borderRadius="25px" borderColor={`scoreColor.${signal}`}>
+                        {signalValue}
+                    </Text>
+                )}
             </HStack>
             <VStack align="stretch" gap={1} pb={8} w={"100%"}>
                 <HStack gap={0} h={"30px"} w={"100%"}>

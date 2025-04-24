@@ -237,39 +237,34 @@ export default function UserSettingsContainer() {
             }
 
             if (forumResponse.ok) {
-                // Add a delay before updating and showing success message
-                // This gives the DB time to update the last_checked date before
-                // showing the success message and profile link
-                setTimeout(() => {
-                    // Update the targetUser state with the new forum username
-                    setTargetUser((prev: any) => ({
-                        ...prev,
-                        forum_users: [
-                            {
-                                ...prev.forum_users[0],
-                                forum_username: forumUsername,
-                            },
-                        ],
-                    }))
-
-                    // Reset the form state
-                    setHasForumChanges(false)
-                    setIsForumSubmitting(false)
-
-                    // Show success message
-                    toaster.create({
-                        title: "✅ Forum username updated",
-                        description:
-                            "Your forum username has been updated successfully. View your profile to see the calculation in progress.",
-                        type: "success",
-                        action: {
-                            label: "View Profile",
-                            // TODO: Uncomment this when the profile page is implemented
-                            // onClick: () => router.push(`/u/${targetUser.username}`),
-                            onClick: () => router.push(`/p/lido/${loggedInUser?.username}#discourse_forum`),
+                // Update the targetUser state with the new forum username
+                setTargetUser((prev: any) => ({
+                    ...prev,
+                    forum_users: [
+                        {
+                            ...prev.forum_users[0],
+                            forum_username: forumUsername,
                         },
-                    })
-                }, 2000)
+                    ],
+                }))
+
+                // Reset the form state
+                setHasForumChanges(false)
+                setIsForumSubmitting(false)
+
+                // Show success message
+                toaster.create({
+                    title: "✅ Forum username updated",
+                    description:
+                        "Your forum username has been updated successfully. View your profile to see the calculation in progress.",
+                    type: "success",
+                    action: {
+                        label: "View Profile",
+                        // TODO: Uncomment this when the profile page is implemented
+                        // onClick: () => router.push(`/u/${targetUser.username}`),
+                        onClick: () => router.push(`/p/lido/${loggedInUser?.username}#discourse_forum`),
+                    },
+                })
             }
         } catch (error) {
             console.error("Error updating forum username:", error)
