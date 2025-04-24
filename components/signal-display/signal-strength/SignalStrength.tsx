@@ -202,7 +202,7 @@ export default function SignalStrength({
                 </HStack>
                 <Text fontFamily={"monospace"}>{projectData.maxValue}</Text>
             </HStack>
-            {isUserConnected && !countdown && (
+            {isUserConnected && !countdown && !userDataRefreshTriggered && (
                 <VStack w="100%" gap={0} alignItems={"start"}>
                     <HStack
                         alignItems={"center"}
