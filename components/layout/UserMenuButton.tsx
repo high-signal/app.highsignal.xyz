@@ -4,7 +4,7 @@ import { HStack, Box, Image, Text, Menu, Portal, Spinner } from "@chakra-ui/reac
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faGear, faSignOut } from "@fortawesome/free-solid-svg-icons"
+import { faCog, faGear, faSignOut } from "@fortawesome/free-solid-svg-icons"
 import { faCircleUser } from "@fortawesome/free-regular-svg-icons"
 import { usePrivy } from "@privy-io/react-auth"
 import { useUser } from "../../contexts/UserContext"
@@ -22,6 +22,58 @@ const userButtonStyles = {
         borderColor: "gray.500",
     },
 }
+
+interface MenuItemProps {
+    isHeading?: boolean
+    icon?: any
+    label: string
+    value: string
+    onClick?: () => void
+    disabled?: boolean
+    borderBottom?: boolean
+}
+
+const MenuItem = ({ isHeading = false, icon, label, value, onClick, disabled }: MenuItemProps) => (
+    <Menu.Item
+        px={4}
+        pt={3}
+        pb={isHeading ? 2 : 3}
+        cursor={disabled ? "default" : "pointer"}
+        fontSize={"md"}
+        value={value}
+        onClick={onClick}
+        disabled={disabled}
+        opacity={disabled ? 0.8 : 1}
+        fontWeight={disabled ? "bold" : "normal"}
+    >
+        <HStack>
+            {icon ? (
+                <>
+                    {typeof icon === "string" && icon.startsWith("http") ? (
+                        <Box w="20px" mr={2}>
+                            <Image
+                                src={icon}
+                                alt={label}
+                                boxSize="20px"
+                                objectFit="cover"
+                                borderRadius="full"
+                                transform="scale(1.5)"
+                            />
+                        </Box>
+                    ) : (
+                        <Box w="20px">
+                            <FontAwesomeIcon icon={icon} w="20px" />
+                        </Box>
+                    )}
+
+                    <Text>{label}</Text>
+                </>
+            ) : (
+                <Text>{label}</Text>
+            )}
+        </HStack>
+    </Menu.Item>
+)
 
 export default function UserMenuButton() {
     const router = useRouter()
@@ -92,67 +144,48 @@ export default function UserMenuButton() {
                     )}
                     <Menu.Positioner>
                         <Menu.Content borderRadius={"16px"} p={0}>
-                            <Menu.Item
-                                py={3}
-                                pl={4}
-                                value="username"
-                                disabled
-                                opacity={0.8}
-                                fontWeight="bold"
-                                cursor="default"
-                                borderBottom={"1px solid"}
-                                borderRadius={"0px"}
-                                fontSize={"md"}
-                            >
-                                {loggedInUser.displayName}
-                            </Menu.Item>
-                            <Menu.Item
-                                py={3}
-                                pl={4}
-                                cursor={"pointer"}
-                                fontSize={"md"}
+                            {loggedInUser.isSuperAdmin && (
+                                <>
+                                    <MenuItem label="Super Admin" value="superAdmin" disabled isHeading />
+                                    <MenuItem
+                                        key={"superAdminSettings"}
+                                        icon={faCog}
+                                        label={"Settings"}
+                                        value={"superAdminSettings"}
+                                        onClick={() => router.push(`/settings/superadmin`)}
+                                    />
+                                    <Box h="10px" w="100%" />
+                                </>
+                            )}
+                            {loggedInUser.projectAdmins && loggedInUser.projectAdmins.length > 0 && (
+                                <>
+                                    <MenuItem label="Project Admin" value="projects" disabled isHeading />
+                                    {loggedInUser.projectAdmins.map((project) => (
+                                        <MenuItem
+                                            key={project.projectId}
+                                            icon={project.projectLogoUrl}
+                                            label={project.projectName}
+                                            value={`project-${project.projectId}`}
+                                            onClick={() => router.push(`/p/${project.urlSlug}`)}
+                                        />
+                                    ))}
+                                    <Box h="10px" w="100%" />
+                                </>
+                            )}
+                            <MenuItem label={loggedInUser.displayName} value="username" disabled isHeading />
+                            <MenuItem
+                                icon={faCircleUser}
+                                label="Profile"
                                 value="profile"
-                                // TODO: Uncomment this when the profile page is implemented
-                                // onClick={() => router.push(`/u/${user.username}`)}
                                 onClick={() => router.push(`/p/lido/${loggedInUser.username}`)}
-                            >
-                                <HStack>
-                                    <Box w="20px">
-                                        <FontAwesomeIcon icon={faCircleUser} />
-                                    </Box>
-                                    <Text>Profile</Text>
-                                </HStack>
-                            </Menu.Item>
-                            <Menu.Item
-                                pl={4}
-                                py={3}
-                                cursor={"pointer"}
-                                fontSize={"md"}
+                            />
+                            <MenuItem
+                                icon={faGear}
+                                label="Settings"
                                 value="settings"
                                 onClick={() => router.push(`/settings/u/${loggedInUser.username}`)}
-                            >
-                                <HStack>
-                                    <Box w="20px">
-                                        <FontAwesomeIcon icon={faGear} />
-                                    </Box>
-                                    <Text>Settings</Text>
-                                </HStack>
-                            </Menu.Item>
-                            <Menu.Item
-                                pl={4}
-                                py={3}
-                                cursor={"pointer"}
-                                fontSize={"md"}
-                                value="logout"
-                                onClick={handleLogout}
-                            >
-                                <HStack>
-                                    <Box w="20px">
-                                        <FontAwesomeIcon icon={faSignOut} />
-                                    </Box>
-                                    <Text>Logout</Text>
-                                </HStack>
-                            </Menu.Item>
+                            />
+                            <MenuItem icon={faSignOut} label="Logout" value="logout" onClick={handleLogout} />
                         </Menu.Content>
                     </Menu.Positioner>
                 </Portal>
