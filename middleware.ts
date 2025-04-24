@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { NextRequest } from "next/server"
 import { getRoutePermissions, Role } from "./security/routePermissions"
 import { verifyAuthentication } from "./security/verifyAuth"
+import { fetchUserData } from "./utils/fetchUserData"
 
 export async function middleware(request: NextRequest) {
     // Skip middleware for non-API routes
@@ -52,20 +53,12 @@ export async function middleware(request: NextRequest) {
             // GET LOGGED IN USER DATA
             // ************************
             // Get logged in user data to determine their roles
-            const authHeader = request.headers.get("Authorization")!
-            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || request.url
-            const apiUrl = baseUrl.endsWith("/") ? `${baseUrl}api/me` : `${baseUrl}/api/me`
-            const response = await fetch(apiUrl, {
-                headers: {
-                    Authorization: authHeader,
-                    "Content-Type": "application/json",
-                },
-            })
-            if (!response.ok) {
-                throw new Error("Failed to fetch user data from /api/me endpoint")
-            }
+            const { data: loggedInUserData, error } = await fetchUserData(authResult.privyId!)
 
-            const loggedInUserData = await response.json()
+            if (error || !loggedInUserData) {
+                console.error("Error fetching user data in middleware:", error)
+                return NextResponse.json({ error: "Failed to fetch user data" }, { status: 500 })
+            }
 
             // ******************
             // TARGET USER CHECK
