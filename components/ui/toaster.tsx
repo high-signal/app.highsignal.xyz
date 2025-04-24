@@ -20,7 +20,10 @@ export default function Toaster() {
                         alignItems="center"
                         borderRadius="20px"
                     >
-                        <VStack w={"fit-content"} alignItems="center">
+                        <VStack
+                            w={{ base: "fit-content", sm: toast.description ? "100%" : "fit-content" }}
+                            alignItems="center"
+                        >
                             {toast.title && (
                                 <Toast.Title
                                     mr={4}
