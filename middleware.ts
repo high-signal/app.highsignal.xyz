@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { NextRequest } from "next/server"
-import { getRoutePermissions } from "./security/routePermissions"
-
+import { getRoutePermissions, Role } from "./security/routePermissions"
 import { verifyAuthentication } from "./security/verifyAuth"
 
 export async function middleware(request: NextRequest) {
@@ -22,8 +21,11 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-        // If the method requires authentication
-        if (methodPermission.requiresAuth) {
+        if (!methodPermission.requiresAuth) {
+            // If the method does not require auth, allow it
+            return NextResponse.next()
+        } else {
+            // If the method requires authentication
             const authResult = await verifyAuthentication(request.headers.get("Authorization"))
             if (!authResult.success) {
                 return authResult.error
@@ -33,29 +35,78 @@ export async function middleware(request: NextRequest) {
             const requestHeaders = new Headers(request.headers)
             requestHeaders.set("x-privy-id", authResult.privyId!)
 
-            // If the method requires project admin permissions
-            if (methodPermission.requiresProjectAdmin) {
-                // TODO: Implement project admin check
-                // This would need to be implemented based on your specific requirements
-                // For example, checking if the user is an admin of the project in the URL
+            // *********************
+            // LOGGED IN USER CHECK
+            // *********************
+            // If route allows currentUser, return immediately after confirming auth
+            // This is for routes that just need the user to be logged in e.g. /api/me and user creation
+            if (methodPermission.allowedAccess?.includes("loggedInUser")) {
+                return NextResponse.next({
+                    request: {
+                        headers: requestHeaders,
+                    },
+                })
             }
 
-            return NextResponse.next({
-                request: {
-                    headers: requestHeaders,
+            // ************************
+            // GET LOGGED IN USER DATA
+            // ************************
+            // Get logged in user data to determine their roles
+            const authHeader = request.headers.get("Authorization")!
+            const response = await fetch(new URL("/api/me", request.url).toString(), {
+                headers: {
+                    Authorization: authHeader,
+                    "Content-Type": "application/json",
                 },
             })
-        }
+            if (!response.ok) {
+                throw new Error("Failed to fetch user data from /api/me endpoint")
+            }
 
-        // If the method does not require auth, allow it
-        return NextResponse.next()
+            const loggedInUserData = await response.json()
+
+            // ******************
+            // TARGET USER CHECK
+            // ******************
+            // If targetUser is allowed access check if logged in user is the target user
+            if (methodPermission.allowedAccess?.includes("targetUser")) {
+                const requestClone = request.clone()
+                const body = await requestClone.json()
+                const targetUsername = body.targetUsername?.toLowerCase()
+                if (loggedInUserData.username === targetUsername) {
+                    return NextResponse.next({
+                        request: {
+                            headers: requestHeaders,
+                        },
+                    })
+                }
+            }
+
+            // ******************
+            // SUPER ADMIN CHECK
+            // ******************
+            // If targetUser is allowed access check if logged in user is a superAdmin
+            if (methodPermission.allowedAccess?.includes("superAdmin")) {
+                if (loggedInUserData.isSuperAdmin) {
+                    return NextResponse.next({
+                        request: {
+                            headers: requestHeaders,
+                        },
+                    })
+                }
+            }
+
+            // If nothing has passed, return a 403
+            return NextResponse.json({ error: "You do not have permission to access this resource" }, { status: 403 })
+        }
     } catch (error) {
         return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid token" }, { status: 401 })
     }
 }
 
 // Configure which routes the middleware should run on
+// TODO: Add back in matcher for all API routes: ["/api/:path*"]
 export const config = {
     // matcher: ["/api/:path*"],
-    matcher: ["/api/me"],
+    matcher: ["/api/me", "/api/projects", "/api/users"],
 }

@@ -10,6 +10,7 @@ interface UserData {
     projectData: ProjectData
     peakSignals: PeakSignalUserData[]
     signalStrengths: SignalStrengthUserData[]
+    isSuperAdmin?: boolean
 }
 
 interface PeakSignalUserData {

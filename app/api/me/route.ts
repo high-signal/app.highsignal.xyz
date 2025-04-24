@@ -3,14 +3,12 @@ import { createClient } from "@supabase/supabase-js"
 
 export async function GET(request: NextRequest) {
     try {
-        // Get the privyId from the headers (set by middleware)
+        // Get the privyId of the logged in user from the headers (set by middleware)
         const privyId = request.headers.get("x-privy-id")!
 
         // Query Supabase for the user data
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-        // NOTE: The permission checks are done in the middleware
-        // the results here are used to display buttons in the UI only
         const { data: userData, error } = await supabase
             .from("users")
             .select(

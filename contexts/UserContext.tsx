@@ -3,20 +3,18 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import { usePrivy } from "@privy-io/react-auth"
 
-interface ProjectAdmin {
-    projectId: string
-    projectName: string
-    urlSlug: string
-    projectLogoUrl: string
-}
-
 interface User {
     id: string
     username: string
     displayName: string
     profileImageUrl?: string
     isSuperAdmin?: boolean
-    projectAdmins?: ProjectAdmin[]
+    projectAdmins?: {
+        projectId: string
+        projectName: string
+        urlSlug: string
+        projectLogoUrl: string
+    }[]
 }
 
 interface UserContextType {

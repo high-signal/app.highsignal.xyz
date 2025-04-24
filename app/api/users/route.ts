@@ -182,20 +182,13 @@ export async function GET(request: Request) {
     }
 }
 
-// Authenticated POST request
+// Authenticated POST request (uses logged in user privyId)
 // Creates a new user in the database
 // Takes no arguments as it creates a default user in the database
 export async function POST(request: Request) {
     try {
-        // Check auth token
-        const authHeader = request.headers.get("Authorization")
-        const authResult = await verifyAuth(authHeader)
-        if (authResult instanceof NextResponse) return authResult
-
-        // If not authenticated, return an error
-        if (!authResult.isAuthenticated) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
+        // Get the privyId of the logged in user from the headers (set by middleware)
+        const privyId = request.headers.get("x-privy-id")!
 
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -203,7 +196,7 @@ export async function POST(request: Request) {
         const { data: existingPrivyUser, error: privyCheckError } = await supabase
             .from("users")
             .select("id")
-            .eq("privy_id", authResult.privyId)
+            .eq("privy_id", privyId)
             .single()
 
         if (privyCheckError && privyCheckError.code !== "PGRST116") {
@@ -266,7 +259,7 @@ export async function POST(request: Request) {
             .from("users")
             .insert([
                 {
-                    privy_id: authResult.privyId,
+                    privy_id: privyId,
                     username: username,
                     display_name: displayName,
                 },
@@ -291,16 +284,6 @@ export async function POST(request: Request) {
 // Takes a JSON body with updated parameters
 export async function PATCH(request: Request) {
     try {
-        // Check auth token
-        const authHeader = request.headers.get("Authorization")
-        const authResult = await verifyAuth(authHeader)
-        if (authResult instanceof NextResponse) return authResult
-
-        // If not authenticated, return an error
-        if (!authResult.isAuthenticated) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-
         // Parse the request body
         const body = await request.json()
         const { targetUsername, changedFields } = body

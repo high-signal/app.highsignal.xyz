@@ -22,6 +22,8 @@ type Project = {
     peak_signals_max_value: number
 }
 
+// Unauthenticated GET request
+// Returns users for the given project
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const projectSlug = searchParams.get("project")

@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server"
 
+export type Role = "loggedInUser" | "targetUser" | "superAdmin" | "projectAdmin"
+
 export type MethodPermission = {
     requiresAuth: boolean
-    requiresProjectAdmin?: boolean
+    allowedAccess?: Role[]
 }
 
 export type RoutePermission = {
@@ -16,23 +18,38 @@ export const routePermissions: RoutePermission[] = [
     {
         path: "/api/me",
         methods: {
-            GET: { requiresAuth: true },
+            GET: {
+                requiresAuth: true,
+                allowedAccess: ["loggedInUser"],
+            },
         },
     },
     {
-        path: "/projects",
+        path: "/api/projects",
         methods: {
-            GET: { requiresAuth: false }, // Public read access
-            POST: { requiresAuth: true, requiresProjectAdmin: true }, // Only project admins can create
+            // Public read access to project config data
+            GET: {
+                requiresAuth: false,
+            },
         },
     },
     {
-        path: "/projects/:projectId",
+        path: "/api/users",
         methods: {
-            GET: { requiresAuth: false }, // Public read access
-            PUT: { requiresAuth: true, requiresProjectAdmin: true },
-            PATCH: { requiresAuth: true, requiresProjectAdmin: true },
-            DELETE: { requiresAuth: true, requiresProjectAdmin: true },
+            // Public read access to user data
+            GET: {
+                requiresAuth: false,
+            },
+            // User creation
+            POST: {
+                requiresAuth: true,
+                allowedAccess: ["loggedInUser"],
+            },
+            // User data edits
+            PATCH: {
+                requiresAuth: true,
+                allowedAccess: ["targetUser", "superAdmin"],
+            },
         },
     },
 ]
