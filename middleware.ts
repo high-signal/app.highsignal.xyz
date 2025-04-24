@@ -53,7 +53,9 @@ export async function middleware(request: NextRequest) {
             // ************************
             // Get logged in user data to determine their roles
             const authHeader = request.headers.get("Authorization")!
-            const response = await fetch(new URL("/api/me", request.url).toString(), {
+            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || request.url
+            const apiUrl = baseUrl.endsWith("/") ? `${baseUrl}api/me` : `${baseUrl}/api/me`
+            const response = await fetch(apiUrl, {
                 headers: {
                     Authorization: authHeader,
                     "Content-Type": "application/json",
