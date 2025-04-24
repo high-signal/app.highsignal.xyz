@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import { calculateSignalFromScore } from "../../../utils/calculateSignal"
-import { verifyAuth } from "../../../utils/verifyAuth"
 import { validateUsername, validateDisplayName } from "../../../utils/userValidation"
 import { sanitize } from "../../../utils/sanitize"
 

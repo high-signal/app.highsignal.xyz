@@ -1,6 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
-import { verifyAuth } from "../../../../utils/verifyAuth"
 
 import { triggerForumAnalysis } from "../../../../utils/lambda-utils/forumAnalysis"
 

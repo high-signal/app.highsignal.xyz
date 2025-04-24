@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { v2 as cloudinary } from "cloudinary"
 import sharp from "sharp"
-import { verifyAuth } from "../../../../utils/verifyAuth"
 import { createClient } from "@supabase/supabase-js"
 
 // Define Cloudinary response type
@@ -24,16 +23,6 @@ cloudinary.config({
 
 export async function POST(request: NextRequest) {
     try {
-        // Check authentication using custom auth
-        const authHeader = request.headers.get("Authorization")
-        const authResult = await verifyAuth(authHeader)
-        if (authResult instanceof NextResponse) return authResult
-
-        // If not authenticated, return an error
-        if (!authResult.isAuthenticated) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-
         // Get form data
         const formData = await request.formData()
         const file = formData.get("file") as File

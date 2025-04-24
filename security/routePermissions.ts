@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-export type Role = "loggedInUser" | "targetUser" | "superAdmin" | "projectAdmin"
+export type Role = "loggedInUser" | "targetUser" | "projectAdmin" | "superAdmin"
 
 export type MethodPermission = {
     requiresAuth: boolean
@@ -61,6 +61,15 @@ export const routePermissions: RoutePermission[] = [
             GET: {
                 requiresAuth: true,
                 allowedAccess: ["targetUser", "superAdmin"],
+            },
+        },
+    },
+    {
+        path: "/api/settings/p",
+        methods: {
+            GET: {
+                requiresAuth: true,
+                allowedAccess: ["projectAdmin", "superAdmin"],
             },
         },
     },
