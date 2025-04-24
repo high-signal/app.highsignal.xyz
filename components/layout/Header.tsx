@@ -63,14 +63,46 @@ export default function Header({}) {
                 alignItems={"center"}
                 px={3}
             >
-                <Box onClick={() => router.push("/")} cursor="pointer">
-                    <HStack gap={2} justifyContent={"center"} alignItems={"center"}>
-                        <Image src={ASSETS.LOGO} alt="Logo" boxSize={"45px"} borderRadius="full" />
-                        {/* <Text minW="80px" fontWeight="bold" fontSize="xl" whiteSpace={"nowrap"}>
-                            {process.env.NEXT_PUBLIC_SITE_NAME}
-                        </Text> */}
+                <HStack gap={{ base: 2, sm: 10 }} w={"100%"}>
+                    <Box onClick={() => router.push("/")} cursor="pointer">
+                        <HStack gap={2} justifyContent={"center"} alignItems={"center"}>
+                            <Image src={ASSETS.LOGO} alt="Logo" boxSize={"45px"} borderRadius="full" />
+                            <Text
+                                minW="80px"
+                                fontWeight="bold"
+                                fontSize="xl"
+                                whiteSpace={"nowrap"}
+                                display={{ base: "none", sm: "block" }}
+                            >
+                                {process.env.NEXT_PUBLIC_SITE_NAME}
+                            </Text>
+                        </HStack>
+                    </Box>
+                    <HStack flexGrow={{ base: 1, sm: 0 }} justifyContent={"center"}>
+                        <HStack
+                            gap={5}
+                            px={4}
+                            py={1}
+                            w="fit-content"
+                            bg="gray.800"
+                            borderRadius="full"
+                            cursor="pointer"
+                            _hover={{
+                                bg: "gray.700",
+                                _active: { bg: "gray.600" },
+                            }}
+                            _active={{ bg: "gray.600" }}
+                            transition="all 0.1s ease"
+                            onClick={() => {
+                                router.push(`/p/lido/`)
+                            }}
+                            alignItems="center"
+                            fontSize="lg"
+                        >
+                            <Text>View leaderboard</Text>
+                        </HStack>
                     </HStack>
-                </Box>
+                </HStack>
                 <HStack gap={{ base: 2, md: 6 }} alignItems={"top"}>
                     {/* <HStack direction="row" wrap="wrap" gap={2} justifyContent="right" pr={{ base: 0, md: 2 }}>
                         {socialLinks.map((link, index) => (
