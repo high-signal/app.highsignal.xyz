@@ -8,7 +8,8 @@ export async function triggerForumAnalysis(user_id: string, project_id: string, 
     if (LAMBDA_ENDPOINT) {
         // Execute on AWS Lambda
         try {
-            const response = await fetch(LAMBDA_ENDPOINT, {
+            // Don't await the response, just send the request
+            fetch(LAMBDA_ENDPOINT, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -22,8 +23,6 @@ export async function triggerForumAnalysis(user_id: string, project_id: string, 
                 }),
             })
 
-            console.log("Lambda response:", response)
-
             return {
                 success: true,
                 message: "Analysis initiated successfully",
@@ -34,7 +33,7 @@ export async function triggerForumAnalysis(user_id: string, project_id: string, 
                 },
             }
         } catch (error) {
-            console.error("Error executing forum analysis on Lambda:", error)
+            console.error("Error sending forum analysis request:", error)
             return {
                 success: false,
                 message: error instanceof Error ? error.message : "Failed to start analysis",
