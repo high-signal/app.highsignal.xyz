@@ -1,4 +1,4 @@
-import { HStack, VStack, Box, Text } from "@chakra-ui/react"
+import { HStack, VStack, Box, Text, Spinner } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
@@ -7,7 +7,7 @@ import { useState, useEffect } from "react"
 import { useUser } from "../../../contexts/UserContext"
 import { useRouter } from "next/navigation"
 
-import { keyframes } from "@emotion/react"
+import { APP_CONFIG } from "../../../config/constants"
 
 export default function SignalStrength({
     username,
@@ -29,27 +29,22 @@ export default function SignalStrength({
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
     const [isOpen, setIsOpen] = useState(true)
     const [countdown, setCountdown] = useState<number | null>(null)
-    const [triggerRefresh, setTriggerRefresh] = useState(false)
     const [countdownText, setCountdownText] = useState<string | null>("Analyzing engagement...")
+    const [userDataRefreshTriggered, setUserDataRefreshTriggered] = useState(false)
 
     // Check if the box should be openable
     const hasContent = Boolean(userData.description || userData.improvements)
 
-    const countdownDuration = 30000
+    const countdownDuration = APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
 
-    const rainbowAnimation = keyframes`
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-        `
-
-    // Refresh user data before the end of the countdown
-    // to ensure the response from the DB has time to return
     useEffect(() => {
-        if (triggerRefresh) {
-            refreshUserData()
+        if (userDataRefreshTriggered) {
+            // Add small delay so the spinner is visible
+            setTimeout(() => {
+                setUserDataRefreshTriggered(false)
+            }, 1000)
         }
-    }, [triggerRefresh, refreshUserData])
+    }, [userDataRefreshTriggered, userData])
 
     // Calculate countdown timer
     useEffect(() => {
@@ -82,14 +77,11 @@ export default function SignalStrength({
                 setCountdownText("Calculating score...")
             }
 
-            // Refresh the user data in the background when the countdown is less than 5 seconds
-            if (updatedTimeRemaining < 5000) {
-                setTriggerRefresh(true)
-            }
-
             if (updatedTimeRemaining <= 0) {
+                refreshUserData()
                 setCountdown(null)
                 clearInterval(timer)
+                setUserDataRefreshTriggered(true)
             } else {
                 setCountdown(Math.ceil(updatedTimeRemaining / 1000))
             }
@@ -157,14 +149,16 @@ export default function SignalStrength({
                     bg="gray.800"
                     borderRadius="md"
                     overflow="hidden"
-                    backgroundImage={
-                        countdown ? "linear-gradient(270deg, pink, purple, blue, red, blue, purple, pink)" : "none"
-                    }
-                    backgroundSize={countdown ? "1000% 1000%" : "none"}
-                    textShadow={countdown ? "0px 0px 5px black" : "none"}
-                    animation={countdown ? `${rainbowAnimation} 20s linear infinite` : "none"}
+                    className={userDataRefreshTriggered || countdown ? "rainbow-animation" : ""}
                 >
-                    {countdown !== null ? (
+                    {userDataRefreshTriggered ? (
+                        <HStack w={"100%"} justifyContent={"center"}>
+                            <Text fontWeight={"bold"} color="white" textAlign={"center"} fontSize={"md"}>
+                                Loading score...
+                            </Text>
+                            <Spinner size="sm" />
+                        </HStack>
+                    ) : countdown !== null ? (
                         <Text fontWeight={"bold"} color="white" w={"100%"} textAlign={"center"} fontSize={"md"}>
                             {countdownText}{" "}
                             <Text as="span" fontFamily={"monospace"}>

@@ -1,7 +1,14 @@
 import { createSystem, defaultConfig } from "@chakra-ui/react"
+import { keyframes } from "@emotion/react"
 
 // Color Palette
 // https://javisperez.github.io/tailwindcolorshades/?corn=e7c60d&curious-blue=36A2EB&pomegranate=EC420C&malachite=00B800
+
+const rainbowAnimation = keyframes`
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+        `
 
 export const customConfig = createSystem(defaultConfig, {
     theme: {
@@ -115,6 +122,12 @@ export const customConfig = createSystem(defaultConfig, {
             width: "100vw",
             overflowX: "hidden",
             fontFamily: "fonts.body",
+        },
+        ".rainbow-animation": {
+            backgroundImage: "linear-gradient(270deg, pink, purple, blue, red, blue, purple, pink) !important",
+            backgroundSize: "1000% 1000% !important",
+            textShadow: "0px 0px 5px black !important",
+            animation: `${rainbowAnimation} 20s linear infinite !important`,
         },
     },
 })

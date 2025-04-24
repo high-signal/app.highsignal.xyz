@@ -21,7 +21,6 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
                 description: null,
                 improvements: null,
                 value: 0,
-                clearLastChecked: true,
             },
         }
     }

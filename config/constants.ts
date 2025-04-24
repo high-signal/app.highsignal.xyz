@@ -14,6 +14,7 @@ export const ASSETS = {
 // TODO: Application settings
 export const APP_CONFIG = {
     DEFAULT_PAGINATION_LIMIT: 10,
+    SIGNAL_STRENGTH_LOADING_DURATION: 30000,
 } as const
 
 //Social media links
