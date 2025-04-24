@@ -171,17 +171,17 @@ export default function UserSettingsContainer() {
                 }),
             })
 
-            const data = await response.json()
+            const responseData = await response.json()
 
             if (!response.ok) {
                 // Handle specific API errors
-                if (data.error === "Username is already taken" || data.error?.includes("username")) {
-                    setErrors((prev) => ({ ...prev, username: data.error }))
-                } else if (data.error?.includes("display name")) {
-                    setErrors((prev) => ({ ...prev, displayName: data.error }))
+                if (responseData.error === "Username is already taken" || responseData.error?.includes("username")) {
+                    setErrors((prev) => ({ ...prev, username: responseData.error }))
+                } else if (responseData.error?.includes("display name")) {
+                    setErrors((prev) => ({ ...prev, displayName: responseData.error }))
                 } else {
                     // Only set general error if it's not a field-specific error
-                    setError(data.error || "Failed to update settings")
+                    setError(responseData.error || "Failed to update settings")
                 }
                 setHasChanges(false)
                 return
@@ -198,7 +198,7 @@ export default function UserSettingsContainer() {
             // If username is changed, redirect to the new username
             // Full page reload is needed to stop the page from requesting the old username
             if (changedFields.username) {
-                window.location.href = `/settings/u/${changedFields.username}`
+                window.location.href = `/settings/u/${changedFields.username.toLowerCase()}`
             }
         } catch (error) {
             toaster.create({

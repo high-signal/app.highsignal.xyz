@@ -325,7 +325,7 @@ export async function PATCH(request: Request) {
 
         // Validate username if provided
         if (changedFields.username) {
-            const usernameError = validateUsername(changedFields.username)
+            const usernameError = validateUsername(changedFields.username.toLowerCase())
             if (usernameError) {
                 return NextResponse.json({ error: usernameError }, { status: 400 })
             }
@@ -334,7 +334,7 @@ export async function PATCH(request: Request) {
             const { data: existingUser, error: existingUserError } = await supabase
                 .from("users")
                 .select("id")
-                .eq("username", changedFields.username)
+                .eq("username", changedFields.username.toLowerCase())
                 .neq("id", targetUser.id)
                 .single()
 
@@ -350,7 +350,7 @@ export async function PATCH(request: Request) {
 
         // Validate display name if provided
         if (changedFields.displayName) {
-            const displayNameError = validateDisplayName(changedFields.displayName)
+            const displayNameError = validateDisplayName(changedFields.displayName.toLowerCase())
             if (displayNameError) {
                 return NextResponse.json({ error: displayNameError }, { status: 400 })
             }
@@ -360,7 +360,7 @@ export async function PATCH(request: Request) {
         // SANITIZE USER INPUTS BEFORE STORING IN DATABASE
         // ************************************************
         const updateData: Record<string, any> = {}
-        if (changedFields.username) updateData.username = sanitize(changedFields.username)
+        if (changedFields.username) updateData.username = sanitize(changedFields.username.toLowerCase())
         if (changedFields.displayName) updateData.display_name = sanitize(changedFields.displayName)
 
         // Update user
