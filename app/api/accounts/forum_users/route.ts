@@ -6,17 +6,6 @@ import { triggerForumAnalysis } from "../../../../utils/lambda-utils/forumAnalys
 
 export async function PUT(request: Request) {
     try {
-        // TODO ENABLE AUTH AFTER TESTING
-        // // Check auth token
-        // const authHeader = request.headers.get("Authorization")
-        // const authResult = await verifyAuth(authHeader)
-        // if (authResult instanceof NextResponse) return authResult
-
-        // // If not authenticated, return an error
-        // if (!authResult.isAuthenticated) {
-        //     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        // }
-
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
         // Parse the request body
@@ -175,17 +164,6 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-    // TODO ENABLE AUTH AFTER TESTING
-    // // Check auth token
-    // const authHeader = request.headers.get("Authorization")
-    // const authResult = await verifyAuth(authHeader)
-    // if (authResult instanceof NextResponse) return authResult
-
-    // // If not authenticated, return an error
-    // if (!authResult.isAuthenticated) {
-    //     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    // }
-
     try {
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 

@@ -16,6 +16,28 @@ export type RoutePermission = {
 
 export const routePermissions: RoutePermission[] = [
     {
+        path: "/api/accounts",
+        methods: {
+            PUT: {
+                requiresAuth: true,
+                allowedAccess: ["targetUser", "superAdmin"],
+            },
+            DELETE: {
+                requiresAuth: true,
+                allowedAccess: ["targetUser", "superAdmin"],
+            },
+        },
+    },
+    {
+        path: "/api/info",
+        methods: {
+            // Public read access to project info (Vercel region, etc.)
+            GET: {
+                requiresAuth: false,
+            },
+        },
+    },
+    {
         path: "/api/me",
         methods: {
             GET: {
@@ -30,6 +52,15 @@ export const routePermissions: RoutePermission[] = [
             // Public read access to project config data
             GET: {
                 requiresAuth: false,
+            },
+        },
+    },
+    {
+        path: "/api/settings/u",
+        methods: {
+            GET: {
+                requiresAuth: true,
+                allowedAccess: ["targetUser", "superAdmin"],
             },
         },
     },

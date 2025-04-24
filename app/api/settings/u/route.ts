@@ -1,22 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { verifyPermissions } from "../../../../utils/verifyPermissions"
 
 export async function GET(request: NextRequest) {
     try {
         // Get the target username from the URL search params
-        const username = request.nextUrl.searchParams.get("username")
-        if (!username) {
+        const targetUsername = request.nextUrl.searchParams.get("username")
+        if (!targetUsername) {
             return NextResponse.json({ error: "Username is required" }, { status: 400 })
-        }
-
-        // Get the authorization header
-        const authHeader = request.headers.get("Authorization")
-
-        // Verify permissions of the requesting user to view the target user data
-        const permissionResult = await verifyPermissions(authHeader, username)
-        if (!permissionResult.success) {
-            return permissionResult.error
         }
 
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -37,7 +27,7 @@ export async function GET(request: NextRequest) {
                 )
             `,
             )
-            .eq("username", username)
+            .eq("username", targetUsername)
             .single()
 
         if (targetUserError) {

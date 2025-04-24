@@ -70,9 +70,18 @@ export async function middleware(request: NextRequest) {
             // ******************
             // If targetUser is allowed access check if logged in user is the target user
             if (methodPermission.allowedAccess?.includes("targetUser")) {
-                const requestClone = request.clone()
-                const body = await requestClone.json()
-                const targetUsername = body.targetUsername?.toLowerCase()
+                let targetUsername = null
+
+                if (request.nextUrl.searchParams.get("username")) {
+                    // Check if the target username is passed in the URL search params
+                    targetUsername = request.nextUrl.searchParams.get("username")?.toLowerCase()
+                } else {
+                    // Check if the target username is passed in the request body
+                    const requestClone = request.clone()
+                    const body = await requestClone.json()
+                    targetUsername = body.targetUsername?.toLowerCase()
+                }
+
                 if (loggedInUserData.username === targetUsername) {
                     return NextResponse.next({
                         request: {
@@ -97,7 +106,7 @@ export async function middleware(request: NextRequest) {
             }
 
             // If nothing has passed, return a 403
-            return NextResponse.json({ error: "You do not have permission to access this resource" }, { status: 403 })
+            return NextResponse.json({ error: "You do not have permission to access this resource." }, { status: 403 })
         }
     } catch (error) {
         return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid token" }, { status: 401 })
@@ -105,8 +114,6 @@ export async function middleware(request: NextRequest) {
 }
 
 // Configure which routes the middleware should run on
-// TODO: Add back in matcher for all API routes: ["/api/:path*"]
 export const config = {
-    // matcher: ["/api/:path*"],
-    matcher: ["/api/me", "/api/projects", "/api/users"],
+    matcher: ["/api/:path*"],
 }
