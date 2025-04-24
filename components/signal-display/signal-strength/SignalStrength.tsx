@@ -88,7 +88,7 @@ export default function SignalStrength({
         }, 1000)
 
         return () => clearInterval(timer)
-    }, [userData.lastChecked])
+    }, [userData.lastChecked, countdownDuration, refreshUserData])
 
     // Scroll to the project name when the element is loaded if the hash matches the project name
     useEffect(() => {
