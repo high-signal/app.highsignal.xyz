@@ -62,7 +62,7 @@ const MenuItem = ({ isHeading = false, icon, label, value, onClick, disabled }: 
                         </Box>
                     ) : (
                         <Box w="20px">
-                            <FontAwesomeIcon icon={icon} w="20px" />
+                            <FontAwesomeIcon icon={icon} />
                         </Box>
                     )}
 
@@ -166,7 +166,7 @@ export default function UserMenuButton() {
                                             icon={project.projectLogoUrl}
                                             label={project.projectName}
                                             value={`project-${project.projectId}`}
-                                            onClick={() => router.push(`/p/${project.urlSlug}`)}
+                                            onClick={() => router.push(`/settings/p/${project.urlSlug}`)}
                                         />
                                     ))}
                                     <Box h="10px" w="100%" />
