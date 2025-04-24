@@ -3,7 +3,8 @@ import { NextResponse } from "next/server"
 
 import { triggerForumAnalysis } from "../../../../utils/lambda-utils/forumAnalysis"
 
-export async function PUT(request: Request) {
+// Create a new forum user
+export async function POST(request: Request) {
     try {
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 

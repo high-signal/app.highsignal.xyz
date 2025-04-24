@@ -12,9 +12,15 @@ interface ProfileImageEditorProps {
     currentImageUrl?: string
     onImageUploaded?: (imageUrl: string) => void
     userId: string
+    targetUsername: string
 }
 
-export default function ProfileImageEditor({ currentImageUrl, onImageUploaded, userId }: ProfileImageEditorProps) {
+export default function ProfileImageEditor({
+    currentImageUrl,
+    onImageUploaded,
+    userId,
+    targetUsername,
+}: ProfileImageEditorProps) {
     const [isUploading, setIsUploading] = useState(false)
     const [previewUrl, setPreviewUrl] = useState<string>(currentImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -66,10 +72,11 @@ export default function ProfileImageEditor({ currentImageUrl, onImageUploaded, u
             formData.append("userId", userId)
 
             // Upload to your API endpoint
-            const response = await fetch("/api/users/profile-image", {
+            const response = await fetch("/api/settings/u/profile-image", {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
+                    "x-target-username": targetUsername,
                 },
                 body: formData,
             })

@@ -60,6 +60,7 @@ export default function UserSettingsContainer() {
                     method: "GET",
                     headers: {
                         Authorization: `Bearer ${token}`,
+                        "x-target-username": username,
                     },
                 })
 
@@ -159,11 +160,12 @@ export default function UserSettingsContainer() {
         setIsSubmitting(true)
         try {
             const token = await getAccessToken()
-            const response = await fetch("/api/users", {
+            const response = await fetch("/api/settings/u", {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
+                    "x-target-username": targetUser?.username,
                 },
                 body: JSON.stringify({
                     targetUsername: targetUser?.username,
@@ -217,11 +219,13 @@ export default function UserSettingsContainer() {
         try {
             setIsForumSubmitting(true)
 
-            // Call the forum_users PUT route
+            const token = await getAccessToken()
             const forumResponse = await fetch("/api/accounts/forum_users", {
-                method: "PUT",
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                    "x-target-username": targetUser?.username,
                 },
                 body: JSON.stringify({
                     user_id,
@@ -252,7 +256,6 @@ export default function UserSettingsContainer() {
                 setHasForumChanges(false)
                 setIsForumSubmitting(false)
 
-                // Show success message
                 toaster.create({
                     title: "✅ Forum username updated",
                     description:
@@ -304,10 +307,13 @@ export default function UserSettingsContainer() {
             setIsForumSubmitting(true)
 
             // Call the forum_users DELETE route
+            const token = await getAccessToken()
             const forumResponse = await fetch("/api/accounts/forum_users", {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                    "x-target-username": targetUser?.username,
                 },
                 body: JSON.stringify({
                     user_id,
@@ -398,6 +404,7 @@ export default function UserSettingsContainer() {
                     currentImageUrl={formData.profileImageUrl}
                     onImageUploaded={handleProfileImageUpdated}
                     userId={targetUser.id}
+                    targetUsername={targetUser.username}
                 />
                 <SettingsInputField
                     label="Username"

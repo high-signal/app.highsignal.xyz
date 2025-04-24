@@ -70,18 +70,7 @@ export async function middleware(request: NextRequest) {
             // ******************
             // If targetUser is allowed access check if logged in user is the target user
             if (methodPermission.allowedAccess?.includes("targetUser")) {
-                let targetUsername = null
-
-                if (request.nextUrl.searchParams.get("username")) {
-                    // Check if the target username is passed in the URL search params
-                    targetUsername = request.nextUrl.searchParams.get("username")?.toLowerCase()
-                } else {
-                    // Check if the target username is passed in the request body
-                    const requestClone = request.clone()
-                    const body = await requestClone.json()
-                    targetUsername = body.targetUsername?.toLowerCase()
-                }
-
+                const targetUsername = request.headers.get("x-target-username")?.toLowerCase()
                 if (loggedInUserData.username === targetUsername) {
                     return NextResponse.next({
                         request: {
