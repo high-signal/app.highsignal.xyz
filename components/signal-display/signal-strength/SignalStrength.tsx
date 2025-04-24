@@ -1,4 +1,4 @@
-import { HStack, VStack, Box, Text, Spinner } from "@chakra-ui/react"
+import { HStack, VStack, Box, Text, Spinner, Skeleton } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
@@ -107,7 +107,7 @@ export default function SignalStrength({
     return (
         <VStack alignItems={"center"} gap={4} w={"100%"} bg="gray.900" py={3} px={3} borderRadius={"16px"}>
             <HStack
-                alignItems={"baseline"}
+                alignItems={userDataRefreshTriggered ? "center" : "baseline"}
                 py={2}
                 px={4}
                 justifyContent={"center"}
@@ -120,18 +120,23 @@ export default function SignalStrength({
                 <Text as="a" id={projectData.name} fontSize="xl">
                     {projectData.displayName}
                 </Text>
-                {!countdown && projectData.status === "active" && (
-                    <HStack
-                        gap={"2px"}
-                        bg={completedBarWidth !== "0%" ? "green.500" : "gray.800"}
-                        fontSize="xl"
-                        px={2}
-                        borderRadius="8px"
-                        color={completedBarWidth !== "0%" ? "#029E03" : "gray.400"}
-                    >
-                        {completedBarWidth !== "0%" && <Text>+</Text>}
-                        <Text>{userData.value}</Text>
-                    </HStack>
+                {userDataRefreshTriggered ? (
+                    <Skeleton w={"40px"} h={"30px"} borderRadius={"8px"} />
+                ) : (
+                    !countdown &&
+                    projectData.status === "active" && (
+                        <HStack
+                            gap={"2px"}
+                            bg={completedBarWidth !== "0%" ? "green.500" : "gray.800"}
+                            fontSize="xl"
+                            px={2}
+                            borderRadius="8px"
+                            color={completedBarWidth !== "0%" ? "#029E03" : "gray.400"}
+                        >
+                            {completedBarWidth !== "0%" && <Text>+</Text>}
+                            <Text>{userData.value}</Text>
+                        </HStack>
+                    )
                 )}
             </HStack>
             <HStack
