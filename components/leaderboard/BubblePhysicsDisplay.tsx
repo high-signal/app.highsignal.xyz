@@ -15,6 +15,8 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
     const renderRef = useRef<Matter.Render | null>(null)
     const bodiesRef = useRef<Matter.Body[]>([])
     const [zoom, setZoom] = useState(1)
+    const [transformOrigin, setTransformOrigin] = useState("center")
+    const [isZooming, setIsZooming] = useState(false)
 
     const boxSize = 600
     const borderWidth = 5
@@ -43,14 +45,27 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             // Add mouse wheel event listener for zooming
             const handleWheel = (event: WheelEvent) => {
                 event.preventDefault()
-                const delta = event.deltaY
-                const zoomFactor = 0.0005 // Reduced for finer control
-                const newZoom = Math.max(1, Math.min(4, zoom - delta * zoomFactor))
-                setZoom(newZoom)
 
-                if (sceneRef.current) {
-                    sceneRef.current.style.transform = `scale(${newZoom})`
-                }
+                // Get mouse position relative to the container
+                const rect = sceneRef.current!.getBoundingClientRect()
+                const x = event.clientX - rect.left
+                const y = event.clientY - rect.top
+
+                // Calculate percentage position
+                const xPercent = (x / rect.width) * 100
+                const yPercent = (y / rect.height) * 100
+
+                // Set transform origin to mouse position
+                setTransformOrigin(`${xPercent}% ${yPercent}%`)
+
+                const delta = event.deltaY
+                const zoomStep = 2
+                const newZoom = Math.max(1, Math.min(200, zoom + (delta > 0 ? -zoomStep : zoomStep)))
+                setZoom(newZoom)
+                setIsZooming(true)
+
+                // Reset zooming state after animation
+                setTimeout(() => setIsZooming(false), 150)
             }
 
             sceneRef.current.addEventListener("wheel", handleWheel, { passive: false })
@@ -130,8 +145,6 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
 
     return (
         <Box
-            // width="400px"
-            // height="400px"
             boxSize={`${boxSize}px`}
             border={`${borderWidth}px solid`}
             borderColor="gray.800"
@@ -146,11 +159,9 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 borderRadius="100%"
                 overflow="hidden"
                 clipPath={`circle(${boxSize / 2}px at center)`}
-                // border="5px solid"
-                // borderColor="gray.800"
-                // cursor="zoom-in"
-                transformOrigin="center"
-                transition="transform 0.05s ease-out"
+                transformOrigin={transformOrigin}
+                transform={`scale(${zoom})`}
+                transition={isZooming ? "transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)" : "none"}
             />
         </Box>
     )
