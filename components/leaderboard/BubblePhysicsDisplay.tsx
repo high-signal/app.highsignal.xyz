@@ -17,6 +17,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
     const initialZoom = 1
     const borderWidth = useBreakpointValue({ base: 1, sm: 2 }) || 2
     const circleRadius = useBreakpointValue({ base: 5, sm: 10 }) || 10
+    const minSpacing = useBreakpointValue({ base: 15, sm: 25 }) || 25
     const { users, loading, error } = useGetUsers(project)
     const sceneRef = useRef<HTMLDivElement>(null)
     const engineRef = useRef<Matter.Engine | null>(null)
@@ -140,8 +141,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             })
 
             // Calculate optimal ring arrangement
-            const bodyRadius = circleRadius // Radius of each circle
-            const minSpacing = 25 // Minimum space between circles
+            const bodyRadius = circleRadius // Use the responsive circleRadius from component level
             const center = { x: boxSize / 2, y: boxSize / 2 }
             const innerRadius = boxSize / 2 + bodyRadius * 3 // Start from center
             const maxRadius = (boxSize / 2) * 1.8 // Allow expansion outward
