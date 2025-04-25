@@ -4,29 +4,31 @@ import { useState, useRef } from "react"
 import { Box, Center, Image, Text, VStack, Spinner } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCamera } from "@fortawesome/free-solid-svg-icons"
-import { toaster } from "../ui/toaster"
+import { toaster } from "./toaster"
 import { usePrivy } from "@privy-io/react-auth"
 import { ASSETS } from "../../config/constants"
-import { useUser } from "../../contexts/UserContext"
-interface ProfileImageEditorProps {
+
+interface ImageEditorProps {
     currentImageUrl?: string
     onImageUploaded?: (imageUrl: string) => void
-    userId: string
-    targetUsername: string
+    targetType: "user" | "project"
+    targetId: string
+    targetName: string
+    uploadApiPath: string
 }
 
-export default function ProfileImageEditor({
+export default function ImageEditor({
     currentImageUrl,
     onImageUploaded,
-    userId,
-    targetUsername,
-}: ProfileImageEditorProps) {
+    targetType,
+    targetId,
+    targetName,
+    uploadApiPath,
+}: ImageEditorProps) {
     const [isUploading, setIsUploading] = useState(false)
     const [previewUrl, setPreviewUrl] = useState<string>(currentImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const { getAccessToken } = usePrivy()
-
-    const { refreshUser } = useUser()
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -69,14 +71,13 @@ export default function ProfileImageEditor({
             // Create form data
             const formData = new FormData()
             formData.append("file", file)
-            formData.append("userId", userId)
+            formData.append("targetId", targetId)
 
-            // Upload to your API endpoint
-            const response = await fetch("/api/settings/u/profile-image", {
+            const response = await fetch(uploadApiPath, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
-                    "x-target-username": targetUsername,
+                    [`x-target-${targetType === "user" ? "username" : "project"}`]: targetName,
                 },
                 body: formData,
             })
@@ -93,11 +94,8 @@ export default function ProfileImageEditor({
                 onImageUploaded(data.imageUrl)
             }
 
-            // Refetch the user data
-            refreshUser()
-
             toaster.create({
-                title: "✅ Profile image updated",
+                title: "✅ Image updated",
                 type: "success",
             })
         } catch (error) {
@@ -135,7 +133,7 @@ export default function ProfileImageEditor({
                     transform: { base: "scale(1)", sm: "scale(1.1)" },
                 }}
             >
-                <Image src={previewUrl} alt="Profile" width="100%" height="100%" objectFit="cover" />
+                <Image src={previewUrl} alt="Image" width="100%" height="100%" objectFit="cover" />
                 <Center
                     position="absolute"
                     top="0"
@@ -166,7 +164,7 @@ export default function ProfileImageEditor({
             />
 
             <Text fontSize="sm" color="gray.500">
-                Click to upload a new profile image (max 5MB)
+                Click to upload a new image (max 5MB)
             </Text>
         </VStack>
     )

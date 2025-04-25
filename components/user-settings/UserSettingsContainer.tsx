@@ -13,7 +13,7 @@ import { validateUsername, validateDisplayName } from "../../utils/userValidatio
 
 import ContentContainer from "../layout/ContentContainer"
 import SettingsInputField from "./SettingsInputField"
-import ProfileImageEditor from "./ProfileImageEditor"
+import ImageEditor from "../ui/ImageEditor"
 
 export default function UserSettingsContainer() {
     const { loggedInUser, loggedInUserLoading, refreshUser } = useUser()
@@ -359,6 +359,7 @@ export default function UserSettingsContainer() {
             ...prev,
             profileImageUrl: imageUrl,
         }))
+        refreshUser()
     }
 
     // TODO: Style this
@@ -400,11 +401,13 @@ export default function UserSettingsContainer() {
                 <Text fontSize="2xl" fontWeight="bold">
                     User Settings
                 </Text>
-                <ProfileImageEditor
+                <ImageEditor
                     currentImageUrl={formData.profileImageUrl}
                     onImageUploaded={handleProfileImageUpdated}
-                    userId={targetUser.id}
-                    targetUsername={targetUser.username}
+                    targetType="user"
+                    targetId={targetUser.id}
+                    targetName={targetUser.username}
+                    uploadApiPath="/api/settings/u/profile-image"
                 />
                 <SettingsInputField
                     label="Username"
