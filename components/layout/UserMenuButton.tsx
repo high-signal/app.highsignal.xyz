@@ -154,7 +154,7 @@ export default function UserMenuButton() {
                                         value={"superAdminSettings"}
                                         onClick={() => router.push(`/settings/superadmin`)}
                                     />
-                                    <Box h="10px" w="100%" />
+                                    <Box h="20px" w="100%" />
                                 </>
                             )}
                             {loggedInUser.projectAdmins && loggedInUser.projectAdmins.length > 0 && (
@@ -169,7 +169,7 @@ export default function UserMenuButton() {
                                             onClick={() => router.push(`/settings/p/${project.urlSlug}`)}
                                         />
                                     ))}
-                                    <Box h="10px" w="100%" />
+                                    <Box h="20px" w="100%" />
                                 </>
                             )}
                             <MenuItem label={loggedInUser.displayName} value="username" disabled isHeading />
