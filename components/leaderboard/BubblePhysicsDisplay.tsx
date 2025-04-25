@@ -23,9 +23,17 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
     const [transformOrigin, setTransformOrigin] = useState("center")
     const [isZooming, setIsZooming] = useState(false)
 
+    // Use ref to store the zoom value so it can be used in the wheel event handler
+    // inside the useEffect hook without causing a re-render
+    const zoomRef = useRef(zoom)
+    useEffect(() => {
+        zoomRef.current = zoom
+    }, [zoom])
+
     // Update zoom when screen width changes
     useEffect(() => {
         setZoom(initialZoom)
+        zoomRef.current = initialZoom
     }, [initialZoom])
 
     useEffect(() => {
@@ -52,23 +60,45 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             // Add mouse wheel event listener for zooming
             const handleWheel = (event: WheelEvent) => {
                 event.preventDefault()
+                const currentZoom = zoomRef.current
+                // Use currentZoom instead of zoom
 
-                // Get mouse position relative to the container
+                // // Get mouse position relative to the container
                 // const rect = sceneRef.current!.getBoundingClientRect()
                 // const x = event.clientX - rect.left
                 // const y = event.clientY - rect.top
 
-                // Calculate percentage position
+                // // Calculate percentage position
                 // const xPercent = (x / rect.width) * 100
                 // const yPercent = (y / rect.height) * 100
 
-                // Set transform origin to mouse position
+                // // Set transform origin to mouse position
                 // setTransformOrigin(`${xPercent}% ${yPercent}%`)
 
                 const delta = event.deltaY
-                const zoomStep = 0.5
-                const newZoom = Math.max(initialZoom, Math.min(100, zoom + (delta > 0 ? -zoomStep : zoomStep)))
-                setZoom(newZoom)
+                const zoomStep = 0.04
+                const maxZoom = 0.5
+
+                let newZoom = currentZoom
+                console.log("test zoom", currentZoom)
+                if (delta > 0) {
+                    newZoom = currentZoom - zoomStep
+                } else {
+                    newZoom = currentZoom + zoomStep
+                }
+                if (newZoom <= initialZoom) {
+                    // Reset transform origin to center when fully zoomed out
+                    console.log("Resetting transform origin")
+                    setTransformOrigin("center")
+                    setZoom(initialZoom)
+                } else if (newZoom >= maxZoom) {
+                    console.log("Setting new zoom", Number(maxZoom.toFixed(3)))
+                    setZoom(maxZoom)
+                } else {
+                    console.log("Setting new zoom", Number(newZoom.toFixed(3)))
+                    setZoom(Number(newZoom.toFixed(3)))
+                }
+
                 setIsZooming(true)
 
                 // Reset zooming state after animation
@@ -163,9 +193,6 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             <Box
                 ref={sceneRef}
                 boxSize={`${zoomedBoxSize}px`}
-                // position="relative"
-                // borderRadius="100%"
-                // overflow="hidden"
                 clipPath={`circle(${zoomedBoxSize / 2}px at center)`}
                 transformOrigin={transformOrigin}
                 transform={`scale(${zoom})`}
