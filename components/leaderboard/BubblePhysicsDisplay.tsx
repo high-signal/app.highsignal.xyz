@@ -131,7 +131,13 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             sceneRef.current.addEventListener("wheel", handleWheel, { passive: false })
 
             // Create user circles
-            const duplicatedUsers = Array(10).fill(users).flat() // TODO: Remove this and use the actual number of users
+            const duplicatedUsers = Array(100).fill(users).flat() // TODO: Remove this and use the actual number of users
+
+            // Sort users by signal type
+            const sortedUsers = [...duplicatedUsers].sort((a, b) => {
+                const signalOrder = { high: 0, mid: 1, low: 2 }
+                return signalOrder[a.signal as SignalType] - signalOrder[b.signal as SignalType]
+            })
 
             // Calculate optimal ring arrangement
             const bodyRadius = 10 // Radius of each circle
@@ -146,49 +152,77 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 return Math.floor(circumference / (bodyRadius * 2 + minSpacing))
             }
 
-            // Calculate rings needed, working from center outward
-            let remainingCircles = duplicatedUsers.length
-            let currentRadius = innerRadius
-            const rings: { radius: number; count: number }[] = []
+            // Group users by signal type
+            const highSignalUsers = sortedUsers.filter((user) => user.signal === "high")
+            const midSignalUsers = sortedUsers.filter((user) => user.signal === "mid")
+            const lowSignalUsers = sortedUsers.filter((user) => user.signal === "low")
 
-            while (remainingCircles > 0 && currentRadius <= maxRadius) {
-                const circlesInRing = circlesPerRing(currentRadius)
-                const circlesToAdd = Math.min(circlesInRing, remainingCircles)
-                if (circlesToAdd > 0) {
-                    rings.push({ radius: currentRadius, count: circlesToAdd })
-                    remainingCircles -= circlesToAdd
+            // Calculate rings for each signal type with better spacing
+            const calculateRings = (users: typeof sortedUsers, startRadius: number, endRadius: number) => {
+                let remainingCircles = users.length
+                let currentRadius = startRadius
+                const rings: { radius: number; count: number }[] = []
+
+                // Calculate total available space for this signal type
+                const totalSpace = endRadius - startRadius
+                const maxRings = Math.floor(totalSpace / (bodyRadius * 2 + minSpacing))
+
+                // Calculate how many circles should be in each ring
+                const circlesPerRing = Math.ceil(users.length / maxRings)
+
+                while (remainingCircles > 0 && currentRadius <= endRadius) {
+                    const circlesToAdd = Math.min(circlesPerRing, remainingCircles)
+                    if (circlesToAdd > 0) {
+                        rings.push({ radius: currentRadius, count: circlesToAdd })
+                        remainingCircles -= circlesToAdd
+                    }
+                    currentRadius += bodyRadius * 2 + minSpacing
                 }
-                currentRadius += bodyRadius * 2 + minSpacing
+
+                return rings
             }
 
-            // If we still have circles left, distribute them in the last ring
-            if (remainingCircles > 0 && rings.length > 0) {
-                rings[rings.length - 1].count += remainingCircles
-            }
+            // Calculate target radii for each signal type
+            const highEndRadius = innerRadius + (maxRadius - innerRadius) * 0.33
+            const midEndRadius = innerRadius + (maxRadius - innerRadius) * 0.66
+
+            // Calculate rings for each signal type
+            const highSignalRings = calculateRings(highSignalUsers, innerRadius, highEndRadius)
+            const midSignalRings = calculateRings(
+                midSignalUsers,
+                highEndRadius + bodyRadius * 2 + minSpacing,
+                midEndRadius,
+            )
+            const lowSignalRings = calculateRings(lowSignalUsers, midEndRadius + bodyRadius * 2 + minSpacing, maxRadius)
+
+            // Combine all rings
+            const allRings = [...highSignalRings, ...midSignalRings, ...lowSignalRings]
 
             // Create bodies in concentric rings
-            const bodies = duplicatedUsers.map((user, index) => {
+            const bodies = sortedUsers.map((user, index) => {
                 let circleIndex = index
                 let ringIndex = 0
                 let angle = 0
                 let radius = innerRadius
 
                 // Find which ring this circle belongs to
-                while (ringIndex < rings.length && circleIndex >= rings[ringIndex].count) {
-                    circleIndex -= rings[ringIndex].count
+                while (ringIndex < allRings.length && circleIndex >= allRings[ringIndex].count) {
+                    circleIndex -= allRings[ringIndex].count
                     ringIndex++
                 }
 
-                if (ringIndex < rings.length) {
-                    const ring = rings[ringIndex]
+                if (ringIndex < allRings.length) {
+                    const ring = allRings[ringIndex]
+                    // Calculate evenly spaced angle for this circle in the ring
                     angle = (2 * Math.PI * circleIndex) / ring.count
                     radius = ring.radius
                 } else {
                     // Fallback for any remaining circles - place them in a tight circle
-                    angle = (2 * Math.PI * circleIndex) / remainingCircles
+                    angle = (2 * Math.PI * circleIndex) / sortedUsers.length
                     radius = maxRadius
                 }
 
+                // Calculate position with even spacing
                 const x = center.x + radius * Math.cos(angle)
                 const y = center.y + radius * Math.sin(angle)
 
