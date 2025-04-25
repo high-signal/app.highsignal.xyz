@@ -89,9 +89,10 @@ export default function ProjectSettingsContainer() {
     }, [loggedInUser, loggedInUserLoading, params?.project, getAccessToken, router])
 
     const handleImageUpdated = (imageUrl: string) => {
+        // Update form data and refresh user data so all the states are updated
         setFormData((prev) => ({
             ...prev,
-            profileImageUrl: imageUrl,
+            projectLogoUrl: imageUrl,
         }))
         refreshUser()
     }

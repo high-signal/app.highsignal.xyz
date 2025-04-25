@@ -99,6 +99,15 @@ export default function UserSettingsContainer() {
         }
     }, [loggedInUser, loggedInUserLoading, params?.username, getAccessToken, router])
 
+    const handleProfileImageUpdated = (imageUrl: string) => {
+        // Update form data and refresh user data so all the states are updated
+        setFormData((prev) => ({
+            ...prev,
+            profileImageUrl: imageUrl,
+        }))
+        refreshUser()
+    }
+
     const handleFieldChange = (field: string, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }))
 
@@ -338,14 +347,6 @@ export default function UserSettingsContainer() {
         } finally {
             setIsForumSubmitting(false)
         }
-    }
-
-    const handleProfileImageUpdated = (imageUrl: string) => {
-        setFormData((prev) => ({
-            ...prev,
-            profileImageUrl: imageUrl,
-        }))
-        refreshUser()
     }
 
     if (isLoading) {
