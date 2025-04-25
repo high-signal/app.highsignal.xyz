@@ -36,9 +36,17 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
         low: useToken("colors", "scoreColor.low")[0],
     }
 
+    // Use ref to store the zoom value so it can be used in the wheel event handler
+    // inside the useEffect hook without causing a re-render
+    const zoomRef = useRef(zoom)
+    useEffect(() => {
+        zoomRef.current = zoom
+    }, [zoom])
+
     // Update zoom when screen width changes
     useEffect(() => {
         setZoom(initialZoom)
+        zoomRef.current = initialZoom
     }, [initialZoom])
 
     useEffect(() => {
@@ -78,6 +86,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             // Add mouse wheel event listener for zooming
             const handleWheel = (event: WheelEvent) => {
                 event.preventDefault()
+                const currentZoom = zoomRef.current
 
                 // Get mouse position relative to the container
                 const rect = sceneRef.current!.getBoundingClientRect()
@@ -92,11 +101,26 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 setTransformOrigin(`${xPercent}% ${yPercent}%`)
 
                 const delta = event.deltaY
-                const zoomStep = 2
-                const newZoom = Math.max(1, Math.min(400, zoom + (delta > 0 ? -zoomStep : zoomStep)))
-                setZoom(newZoom)
-                setIsZooming(true)
+                const zoomStep = 0.2
+                const maxZoom = 5
 
+                let newZoom = currentZoom
+                if (delta > 0) {
+                    newZoom = currentZoom - zoomStep
+                } else {
+                    newZoom = currentZoom + zoomStep
+                }
+                if (newZoom <= initialZoom) {
+                    // Reset transform origin to center when fully zoomed out
+                    setTransformOrigin("center")
+                    setZoom(initialZoom)
+                } else if (newZoom >= maxZoom) {
+                    setZoom(maxZoom)
+                } else {
+                    setZoom(Number(newZoom.toFixed(3)))
+                }
+
+                setIsZooming(true)
                 // Reset zooming state after animation
                 setTimeout(() => setIsZooming(false), 150)
             }
@@ -104,7 +128,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             sceneRef.current.addEventListener("wheel", handleWheel, { passive: false })
 
             // Create user circles
-            const duplicatedUsers = Array(100).fill(users).flat() // TODO: Remove this and use the actual number of users
+            const duplicatedUsers = Array(10).fill(users).flat() // TODO: Remove this and use the actual number of users
 
             // Calculate optimal ring arrangement
             const bodyRadius = 10 // Radius of each circle
