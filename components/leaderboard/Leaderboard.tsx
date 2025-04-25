@@ -200,8 +200,8 @@ export default function Leaderboard({ project }: { project: string }) {
                                 </Table.Cell>
                                 <Table.Cell borderBottom="none" py={0} px={0} maxW={signalColumnWidth}>
                                     <HStack justifyContent="center" alignItems="center" fontSize="xl" fontWeight="bold">
-                                        <Text color={`scoreColor.${user.signal}`}>
-                                            {user.signal.charAt(0).toUpperCase() + user.signal.slice(1)}
+                                        <Text color={`scoreColor.${user.signal || "gray.500"}`}>
+                                            {(user.signal || "").charAt(0).toUpperCase() + (user.signal || "").slice(1)}
                                         </Text>
                                     </HStack>
                                 </Table.Cell>
@@ -218,7 +218,7 @@ export default function Leaderboard({ project }: { project: string }) {
                                             py={1}
                                             border="3px solid"
                                             borderRadius="15px"
-                                            borderColor={`scoreColor.${user.signal}`}
+                                            borderColor={`scoreColor.${user.signal || ""}`}
                                             color="white"
                                             w="fit-content"
                                             fontSize="lg"
@@ -234,7 +234,7 @@ export default function Leaderboard({ project }: { project: string }) {
                                     display={{ base: "none", sm: "table-cell" }}
                                 >
                                     <HStack justify="center" gap={2}>
-                                        {[...user.peakSignals]
+                                        {[...(user.peakSignals || [])]
                                             .sort((a, b) => b.value - a.value)
                                             .slice(0, 5)
                                             .map((badge, index) => (

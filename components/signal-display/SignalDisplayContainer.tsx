@@ -49,7 +49,7 @@ export default function SignalDisplayContainer({ project, username }: { project:
             <VStack gap={0} w="100%" maxW="600px" px={3}>
                 <Title projectData={currentProject} />
                 <Box w="100%" h="10px" />
-                <UserInfo profileImageUrl={currentUser.profileImageUrl} name={currentUser.displayName} />
+                <UserInfo profileImageUrl={currentUser.profileImageUrl || ""} name={currentUser.displayName || ""} />
                 <Box w="100%" h={{ base: "30px", sm: "20px" }} />
                 <CurrentSignal currentUser={currentUser} />
                 <HStack w="100%" justifyContent="space-between">
@@ -62,7 +62,7 @@ export default function SignalDisplayContainer({ project, username }: { project:
             </VStack>
             <PeakSignalsContainer
                 currentUser={currentUser}
-                peakSignals={currentUser.peakSignals}
+                peakSignals={currentUser.peakSignals || []}
                 projectData={currentProject}
             />
             <SignalStrengthContainer

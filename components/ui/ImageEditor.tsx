@@ -12,7 +12,7 @@ interface ImageEditorProps {
     currentImageUrl?: string
     onImageUploaded?: (imageUrl: string) => void
     targetType: "user" | "project"
-    targetId: string
+    targetId: number
     targetName: string
     uploadApiPath: string
 }
@@ -71,7 +71,7 @@ export default function ImageEditor({
             // Create form data
             const formData = new FormData()
             formData.append("file", file)
-            formData.append("targetId", targetId)
+            formData.append("targetId", targetId.toString())
 
             const response = await fetch(uploadApiPath, {
                 method: "POST",

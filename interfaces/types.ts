@@ -1,16 +1,24 @@
 interface UserData {
-    rank: number
-    score: number
-    peakSignalScore: number
-    signalStrengthScore: number
-    username: string
-    displayName: string
-    profileImageUrl: string
-    signal: string
-    projectData: ProjectData
-    peakSignals: PeakSignalUserData[]
-    signalStrengths: SignalStrengthUserData[]
+    id?: number
+    rank?: number
+    score?: number
+    peakSignalScore?: number
+    signalStrengthScore?: number
+    username?: string
+    displayName?: string
+    profileImageUrl?: string
+    signal?: string
+    projectData?: ProjectData
+    peakSignals?: PeakSignalUserData[]
+    signalStrengths?: SignalStrengthUserData[]
+    forumUsers?: ForumUser[]
     isSuperAdmin?: boolean
+}
+
+interface ForumUser {
+    userId: string
+    projectId: string
+    forumUsername: string
 }
 
 interface PeakSignalUserData {

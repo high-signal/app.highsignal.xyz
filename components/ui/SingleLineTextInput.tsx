@@ -5,7 +5,7 @@ import { ReactNode } from "react"
 
 interface SingleLineTextInputProps {
     value: string
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
     handleClear?: () => void
     placeholder?: string

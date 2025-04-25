@@ -11,7 +11,7 @@ interface SettingsInputFieldProps {
     description: string
     isPrivate: boolean
     value: string
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
     error?: string
     rightElement?: ReactNode

@@ -11,7 +11,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
 
     // If lastChecked for any of the signal strengths is less than X seconds ago, set isSignalStrengthLoading to true
     useEffect(() => {
-        const isSignalStrengthLoading = currentUser.signalStrengths.some((signalStrength) => {
+        const isSignalStrengthLoading = (currentUser.signalStrengths || []).some((signalStrength) => {
             if (!signalStrength.lastChecked) return false
             const now = Date.now()
             const lastCheckedTime = signalStrength.lastChecked * 1000 // Convert to milliseconds
@@ -41,7 +41,9 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                     />
                 ) : (
                     <Text textAlign={"center"}>
-                        <Span color={`scoreColor.${signal}`}>{signal.charAt(0).toUpperCase() + signal.slice(1)}</Span>{" "}
+                        <Span color={`scoreColor.${signal || "gray.500"}`}>
+                            {(signal || "").charAt(0).toUpperCase() + (signal || "").slice(1)}
+                        </Span>{" "}
                         Signal
                     </Text>
                 )}
@@ -92,7 +94,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                         border={"3px solid"}
                         borderRadius={"10px"}
                         borderColor={"gray.800"}
-                        overflow={signalValue < 20 ? "hidden" : "visible"}
+                        overflow={(signalValue || 0) < 20 ? "hidden" : "visible"}
                         position="relative"
                     >
                         <Box

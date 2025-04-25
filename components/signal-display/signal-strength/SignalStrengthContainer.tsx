@@ -14,7 +14,7 @@ export default function SignalStrengthContainer({
 }) {
     // Match user signal strengths with project signal strengths by name
     const matchedSignalStrengths = projectSignalStrengths.map((projectStrength) => {
-        const matchingUserStrength = currentUser.signalStrengths.find(
+        const matchingUserStrength = (currentUser.signalStrengths || []).find(
             (userStrength) => userStrength.name === projectStrength.name,
         )
         return {
@@ -50,7 +50,7 @@ export default function SignalStrengthContainer({
                 {sortedMatchedSignalStrengths.map(({ projectData, userData }, index) => (
                     <SignalStrength
                         key={index}
-                        username={currentUser.username}
+                        username={currentUser.username || ""}
                         userData={
                             userData || {
                                 name: projectData.name,

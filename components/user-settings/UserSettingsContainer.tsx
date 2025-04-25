@@ -14,13 +14,14 @@ import { validateUsername, validateDisplayName } from "../../utils/inputValidati
 import ContentContainer from "../layout/ContentContainer"
 import SettingsInputField from "../ui/SettingsInputField"
 import ImageEditor from "../ui/ImageEditor"
+import ConnectedAccountsContainer from "./ConnectedAccountsContainer"
 
 export default function UserSettingsContainer() {
     const { loggedInUser, loggedInUserLoading, refreshUser } = useUser()
     const { getAccessToken } = usePrivy()
     const params = useParams()
     const router = useRouter()
-    const [targetUser, setTargetUser] = useState<any>(null)
+    const [targetUser, setTargetUser] = useState<UserData | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -35,9 +36,6 @@ export default function UserSettingsContainer() {
         displayName: "",
     })
     const [hasChanges, setHasChanges] = useState(false)
-    const [forumUsername, setForumUsername] = useState("")
-    const [isForumSubmitting, setIsForumSubmitting] = useState(false)
-    const [hasForumChanges, setHasForumChanges] = useState(false)
 
     // Initialize form with user data
     useEffect(() => {
@@ -74,18 +72,9 @@ export default function UserSettingsContainer() {
                 setTargetUser(data)
                 setFormData({
                     username: data.username || "",
-                    displayName: data.display_name || "",
-                    profileImageUrl: data.profile_image_url || "",
+                    displayName: data.displayName || "",
+                    profileImageUrl: data.profileImageUrl || "",
                 })
-                // Set the forum username from the API response
-                if (data.forum_users && data.forum_users.length > 0) {
-                    setForumUsername(data.forum_users[0].forum_username || "")
-                    // Set hasForumChanges to false if there's a forum username
-                    setHasForumChanges(false)
-                } else {
-                    // If there's no forum username, set hasForumChanges to true
-                    setHasForumChanges(true)
-                }
             } catch (err) {
                 console.error("Error in fetchUserData:", err)
                 setError(err instanceof Error ? err.message : "An error occurred")
@@ -123,12 +112,12 @@ export default function UserSettingsContainer() {
 
         // Check if any field has changed from original values AND there are no errors
         const hasAnyChanges =
-            value !== (field === "username" ? targetUser?.username : targetUser?.display_name) ||
+            value !== (field === "username" ? targetUser?.username : targetUser?.displayName) ||
             Object.keys(formData).some(
                 (key) =>
                     key !== field &&
                     formData[key as keyof typeof formData] !==
-                        (key === "username" ? targetUser?.username : targetUser?.display_name),
+                        (key === "username" ? targetUser?.username : targetUser?.displayName),
             )
 
         // Only set hasChanges to true if there are changes AND no errors in any field
@@ -142,7 +131,7 @@ export default function UserSettingsContainer() {
         if (formData.username !== targetUser?.username) {
             changedFields.username = formData.username
         }
-        if (formData.displayName !== targetUser?.display_name) {
+        if (formData.displayName !== targetUser?.displayName) {
             changedFields.displayName = formData.displayName
         }
 
@@ -159,7 +148,7 @@ export default function UserSettingsContainer() {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
-                    "x-target-username": targetUser?.username,
+                    "x-target-username": targetUser!.username!,
                 },
                 body: JSON.stringify({
                     targetUsername: targetUser?.username,
@@ -210,145 +199,6 @@ export default function UserSettingsContainer() {
         }
     }
 
-    const handleForumChange = async (forumUsername: string, user_id: string, project_id: string) => {
-        try {
-            setIsForumSubmitting(true)
-
-            const token = await getAccessToken()
-            const forumResponse = await fetch("/api/accounts/forum_users", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                    "x-target-username": targetUser?.username,
-                },
-                body: JSON.stringify({
-                    user_id,
-                    project_id,
-                    forum_username: forumUsername,
-                    signal_strength_name: "discourse_forum",
-                }),
-            })
-
-            if (!forumResponse.ok) {
-                const errorData = await forumResponse.json()
-                throw new Error(errorData.error || "Failed to update forum username")
-            }
-
-            if (forumResponse.ok) {
-                // Update the targetUser state with the new forum username
-                setTargetUser((prev: any) => ({
-                    ...prev,
-                    forum_users: [
-                        {
-                            ...prev.forum_users[0],
-                            forum_username: forumUsername,
-                        },
-                    ],
-                }))
-
-                // Reset the form state
-                setHasForumChanges(false)
-                setIsForumSubmitting(false)
-
-                toaster.create({
-                    title: "✅ Forum username updated",
-                    description:
-                        "Your forum username has been updated successfully. View your profile to see the calculation in progress.",
-                    type: "success",
-                    action: {
-                        label: "View Profile",
-                        // TODO: Uncomment this when the profile page is implemented
-                        // onClick: () => router.push(`/u/${targetUser.username}`),
-                        onClick: () => router.push(`/p/lido/${targetUser?.username}#discourse_forum`),
-                    },
-                })
-            }
-        } catch (error) {
-            console.error("Error updating forum username:", error)
-            setIsForumSubmitting(false)
-            toaster.create({
-                title: "❌ Error updating forum username",
-                description: error instanceof Error ? error.message : "An unknown error occurred",
-                type: "error",
-            })
-        }
-    }
-
-    const handleForumInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newValue = e.target.value
-        setForumUsername(newValue)
-
-        // Check if the value has changed from the current value in targetUser
-        if (targetUser && targetUser.forum_users && targetUser.forum_users.length > 0) {
-            const currentValue = targetUser.forum_users[0].forum_username
-            setHasForumChanges(newValue !== currentValue)
-        } else {
-            // If there's no current forum username from the API, set hasForumChanges to true
-            // This ensures we show the "Connect" button when typing
-            setHasForumChanges(true)
-        }
-    }
-
-    // Handle Enter key press in the forum username input
-    const handleForumKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter" && hasForumChanges && forumUsername && !isForumSubmitting) {
-            handleForumChange(forumUsername, targetUser.id, "1")
-        }
-    }
-
-    const handleForumDisconnect = async (user_id: string, project_id: string, signal_strength_id: string) => {
-        try {
-            setIsForumSubmitting(true)
-
-            // Call the forum_users DELETE route
-            const token = await getAccessToken()
-            const forumResponse = await fetch("/api/accounts/forum_users", {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                    "x-target-username": targetUser?.username,
-                },
-                body: JSON.stringify({
-                    user_id,
-                    project_id,
-                    signal_strength_id,
-                }),
-            })
-
-            if (!forumResponse.ok) {
-                const errorData = await forumResponse.json()
-                throw new Error(errorData.error || "Failed to disconnect forum username")
-            }
-
-            // Update the targetUser state to remove the forum username
-            setTargetUser((prev: any) => ({
-                ...prev,
-                forum_users: [],
-            }))
-
-            // Reset the form state
-            setForumUsername("")
-            setHasForumChanges(true)
-
-            // Show success message
-            toaster.create({
-                title: "✅ Forum account disconnected",
-                type: "success",
-            })
-        } catch (error) {
-            console.error("Error disconnecting forum username:", error)
-            toaster.create({
-                title: "❌ Error disconnecting forum account",
-                description: error instanceof Error ? error.message : "An unknown error occurred",
-                type: "error",
-            })
-        } finally {
-            setIsForumSubmitting(false)
-        }
-    }
-
     if (isLoading) {
         return (
             <ContentContainer>
@@ -389,8 +239,8 @@ export default function UserSettingsContainer() {
                     currentImageUrl={formData.profileImageUrl}
                     onImageUploaded={handleProfileImageUpdated}
                     targetType="user"
-                    targetId={targetUser.id}
-                    targetName={targetUser.username}
+                    targetId={targetUser!.id!}
+                    targetName={targetUser!.username!}
                     uploadApiPath="/api/settings/u/profile-image"
                 />
                 <SettingsInputField
@@ -430,97 +280,7 @@ export default function UserSettingsContainer() {
                     Save Changes
                 </Button>
             </VStack>
-            <VStack gap={6} w="100%" maxW="500px" mx="auto" p={4}>
-                <Text fontSize="2xl" fontWeight="bold">
-                    Connected Accounts
-                </Text>
-                <SettingsInputField
-                    label="Lido Forum"
-                    description="Your Lido Forum username."
-                    isPrivate={true}
-                    value={forumUsername}
-                    onChange={handleForumInputChange}
-                    onKeyDown={handleForumKeyDown}
-                    error=""
-                    isEditable={!isForumSubmitting && hasForumChanges}
-                    rightElement={
-                        hasForumChanges ? (
-                            <Button
-                                h={"35px"}
-                                w={"120px"}
-                                bg="orange.500"
-                                _hover={{ bg: "orange.600" }}
-                                color="white"
-                                borderColor="green.500"
-                                onClick={() => handleForumChange(forumUsername, targetUser.id, "1")}
-                                borderRightRadius="full"
-                                cursor={!forumUsername || isForumSubmitting ? "default" : "pointer"}
-                                disabled={!forumUsername || isForumSubmitting}
-                            >
-                                {isForumSubmitting ? (
-                                    <Spinner size="sm" color="white" />
-                                ) : (
-                                    <Text fontWeight="bold">Connect</Text>
-                                )}
-                            </Button>
-                        ) : (
-                            <Menu.Root>
-                                <Menu.Trigger asChild>
-                                    <Button
-                                        h={"35px"}
-                                        w={"120px"}
-                                        pl={2}
-                                        pr={0}
-                                        border={"2px solid"}
-                                        bg="green.500"
-                                        color="#029E03"
-                                        borderColor="#029E03"
-                                        borderRightRadius="full"
-                                        cursor={isForumSubmitting ? "default" : "pointer"}
-                                        _hover={{ bg: "green.700" }}
-                                        disabled={isForumSubmitting}
-                                    >
-                                        <HStack gap={1}>
-                                            {isForumSubmitting ? (
-                                                <Spinner size="sm" color="#029E03" />
-                                            ) : (
-                                                <>
-                                                    <Text fontWeight="bold">Connected</Text>
-                                                    <FontAwesomeIcon icon={faEllipsisVertical} size="lg" />
-                                                </>
-                                            )}
-                                        </HStack>
-                                    </Button>
-                                </Menu.Trigger>
-                                <Portal>
-                                    <Menu.Positioner mt={"-4px"}>
-                                        <Menu.Content borderRadius={"full"} borderWidth={2} overflow={"hidden"} p={0}>
-                                            <Menu.Item
-                                                h={"35px"}
-                                                py={2}
-                                                pl={3}
-                                                cursor={"pointer"}
-                                                value="disconnect"
-                                                overflow={"hidden"}
-                                                onClick={() => handleForumDisconnect(targetUser.id, "1", "1")}
-                                            >
-                                                <HStack overflow={"hidden"}>
-                                                    <Text fontWeight="bold" color="orange.500">
-                                                        Disconnect
-                                                    </Text>
-                                                    <Box w="20px">
-                                                        <FontAwesomeIcon icon={faSignOut} />
-                                                    </Box>
-                                                </HStack>
-                                            </Menu.Item>
-                                        </Menu.Content>
-                                    </Menu.Positioner>
-                                </Portal>
-                            </Menu.Root>
-                        )
-                    }
-                />
-            </VStack>
+            <ConnectedAccountsContainer targetUser={targetUser} refreshUser={refreshUser} />
         </ContentContainer>
     )
 }

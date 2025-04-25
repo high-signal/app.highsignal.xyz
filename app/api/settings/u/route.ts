@@ -37,7 +37,19 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Target user not found" }, { status: 404 })
         }
 
-        return NextResponse.json(targetUser)
+        const formattedTargetUser: UserData = {
+            id: targetUser.id,
+            username: targetUser.username,
+            displayName: targetUser.display_name,
+            profileImageUrl: targetUser.profile_image_url,
+            forumUsers: targetUser.forum_users.map((forumUser: any) => ({
+                userId: forumUser.user_id,
+                projectId: forumUser.project_id,
+                forumUsername: forumUser.forum_username,
+            })),
+        }
+
+        return NextResponse.json(formattedTargetUser)
     } catch (error) {
         console.error("Error fetching user settings:", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
