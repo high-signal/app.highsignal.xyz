@@ -106,7 +106,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             sceneRef.current.addEventListener("wheel", handleWheel, { passive: false })
 
             // Create user circles
-            const duplicatedUsers = Array(100).fill(users).flat()
+            const duplicatedUsers = Array(100).fill(users).flat() // TODO: Remove this and use the actual number of users
             const results = await Promise.all(
                 duplicatedUsers.map((user) => makeCircularImage(user.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE)),
             )
