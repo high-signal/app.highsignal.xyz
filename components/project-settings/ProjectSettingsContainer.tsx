@@ -12,8 +12,10 @@ import { usePrivy } from "@privy-io/react-auth"
 import { validateUrlSlug, validateDisplayName } from "../../utils/inputValidation"
 
 import ContentContainer from "../layout/ContentContainer"
+import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import ImageEditor from "../ui/ImageEditor"
 import SettingsInputField from "../ui/SettingsInputField"
+import SignalStrengthProjectSettingsContainer from "./SignalStrengthProjectSettingsContainer"
 
 export default function ProjectSettingsContainer() {
     const { loggedInUser, loggedInUserLoading, refreshUser } = useUser()
@@ -231,10 +233,7 @@ export default function ProjectSettingsContainer() {
 
     return (
         <ContentContainer>
-            <VStack gap={6} w="100%" maxW="500px" mx="auto" p={4}>
-                <Text fontSize="2xl" fontWeight="bold">
-                    Project Settings
-                </Text>
+            <SettingsSectionContainer title="Project Settings">
                 <ImageEditor
                     currentImageUrl={project.project_logo_url}
                     onImageUploaded={handleImageUpdated}
@@ -279,7 +278,9 @@ export default function ProjectSettingsContainer() {
                 >
                     Save Changes
                 </Button>
-            </VStack>
+            </SettingsSectionContainer>
+            <SignalStrengthProjectSettingsContainer />
+            <Box h={"300px"} />
         </ContentContainer>
     )
 }

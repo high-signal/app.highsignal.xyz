@@ -10,6 +10,7 @@ import { faEllipsisVertical, faSignOut } from "@fortawesome/free-solid-svg-icons
 import { usePrivy } from "@privy-io/react-auth"
 
 import SettingsInputField from "../ui/SettingsInputField"
+import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 
 export default function ConnectedAccountsContainer({
     targetUser,
@@ -147,10 +148,7 @@ export default function ConnectedAccountsContainer({
     }
 
     return (
-        <VStack gap={6} w="100%" maxW="500px" mx="auto" p={4}>
-            <Text fontSize="2xl" fontWeight="bold">
-                Connected Accounts
-            </Text>
+        <SettingsSectionContainer title="Connected Accounts">
             <SettingsInputField
                 label="Lido Forum"
                 description="Your Lido Forum username."
@@ -237,6 +235,6 @@ export default function ConnectedAccountsContainer({
                     )
                 }
             />
-        </VStack>
+        </SettingsSectionContainer>
     )
 }

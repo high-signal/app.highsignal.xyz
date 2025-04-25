@@ -15,6 +15,7 @@ import ContentContainer from "../layout/ContentContainer"
 import SettingsInputField from "../ui/SettingsInputField"
 import ImageEditor from "../ui/ImageEditor"
 import ConnectedAccountsContainer from "./ConnectedAccountsContainer"
+import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 
 export default function UserSettingsContainer() {
     const { loggedInUser, loggedInUserLoading, refreshUser } = useUser()
@@ -231,10 +232,7 @@ export default function UserSettingsContainer() {
 
     return (
         <ContentContainer>
-            <VStack gap={6} w="100%" maxW="500px" mx="auto" p={4}>
-                <Text fontSize="2xl" fontWeight="bold">
-                    User Settings
-                </Text>
+            <SettingsSectionContainer title="User Settings">
                 <ImageEditor
                     currentImageUrl={formData.profileImageUrl}
                     onImageUploaded={handleProfileImageUpdated}
@@ -279,7 +277,7 @@ export default function UserSettingsContainer() {
                 >
                     Save Changes
                 </Button>
-            </VStack>
+            </SettingsSectionContainer>
             <ConnectedAccountsContainer targetUser={targetUser} refreshUser={refreshUser} />
         </ContentContainer>
     )
