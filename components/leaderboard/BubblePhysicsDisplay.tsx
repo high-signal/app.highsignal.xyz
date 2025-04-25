@@ -88,19 +88,22 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 event.preventDefault()
                 const currentZoom = zoomRef.current
 
-                // Get mouse position relative to the container
-                const rect = sceneRef.current!.getBoundingClientRect()
-                const x = event.clientX - rect.left
-                const y = event.clientY - rect.top
-
-                // Calculate percentage position
-                const xPercent = (x / rect.width) * 100
-                const yPercent = (y / rect.height) * 100
-
-                // Set transform origin to mouse position
-                setTransformOrigin(`${xPercent}% ${yPercent}%`)
-
                 const delta = event.deltaY
+
+                if (delta < 0) {
+                    // Get mouse position relative to the container
+                    const rect = sceneRef.current!.getBoundingClientRect()
+                    const x = event.clientX - rect.left
+                    const y = event.clientY - rect.top
+
+                    // Calculate percentage position
+                    const xPercent = (x / rect.width) * 100
+                    const yPercent = (y / rect.height) * 100
+
+                    // Set transform origin to mouse position
+                    setTransformOrigin(`${xPercent}% ${yPercent}%`)
+                }
+
                 const zoomStep = 0.2
                 const maxZoom = 5
 
@@ -122,7 +125,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
 
                 setIsZooming(true)
                 // Reset zooming state after animation
-                setTimeout(() => setIsZooming(false), 150)
+                setTimeout(() => setIsZooming(false), 500)
             }
 
             sceneRef.current.addEventListener("wheel", handleWheel, { passive: false })
@@ -329,7 +332,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 clipPath={`circle(${boxSize / 2}px at center)`}
                 transformOrigin={transformOrigin}
                 transform={`scale(${zoom})`}
-                transition={isZooming ? "transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)" : "none"}
+                transition={isZooming ? "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)" : "none"}
                 css={{
                     canvas: {
                         img: {
