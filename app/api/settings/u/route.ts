@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { validateUsername, validateDisplayName } from "../../../../utils/userValidation"
+import { validateUsername, validateDisplayName } from "../../../../utils/inputValidation"
 import { sanitize } from "../../../../utils/sanitize"
 
 export async function GET(request: NextRequest) {

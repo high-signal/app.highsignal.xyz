@@ -9,10 +9,10 @@ import { faEllipsisVertical, faSignOut } from "@fortawesome/free-solid-svg-icons
 
 import { useUser } from "../../contexts/UserContext"
 import { usePrivy } from "@privy-io/react-auth"
-import { validateUsername, validateDisplayName } from "../../utils/userValidation"
+import { validateUsername, validateDisplayName } from "../../utils/inputValidation"
 
 import ContentContainer from "../layout/ContentContainer"
-import SettingsInputField from "./SettingsInputField"
+import SettingsInputField from "../ui/SettingsInputField"
 import ImageEditor from "../ui/ImageEditor"
 
 export default function UserSettingsContainer() {
@@ -99,7 +99,6 @@ export default function UserSettingsContainer() {
         }
     }, [loggedInUser, loggedInUserLoading, params?.username, getAccessToken, router])
 
-    // Handle field changes
     const handleFieldChange = (field: string, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }))
 
@@ -128,21 +127,7 @@ export default function UserSettingsContainer() {
         setHasChanges(hasAnyChanges && !hasAnyErrors)
     }
 
-    // Save all changes
     const saveChanges = async () => {
-        // Validate all fields first
-        const usernameError = validateUsername(formData.username)
-        const displayNameError = validateDisplayName(formData.displayName)
-
-        setErrors({
-            username: usernameError,
-            displayName: displayNameError,
-        })
-
-        if (usernameError || displayNameError) {
-            return
-        }
-
         // Create an object with only the changed fields
         const changedFields: Record<string, string> = {}
         if (formData.username !== targetUser?.username) {
@@ -194,6 +179,7 @@ export default function UserSettingsContainer() {
                 type: "success",
             })
 
+            // Refresh the user data after saving changes
             await refreshUser()
             setHasChanges(false)
 
@@ -362,7 +348,6 @@ export default function UserSettingsContainer() {
         refreshUser()
     }
 
-    // TODO: Style this
     if (isLoading) {
         return (
             <ContentContainer>
@@ -373,7 +358,6 @@ export default function UserSettingsContainer() {
         )
     }
 
-    // TODO: Style this
     if (error) {
         return (
             <ContentContainer>
@@ -384,7 +368,6 @@ export default function UserSettingsContainer() {
         )
     }
 
-    // TODO: Style this
     if (!targetUser) {
         return (
             <ContentContainer>

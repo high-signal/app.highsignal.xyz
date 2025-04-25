@@ -3,7 +3,7 @@
 import { VStack, Text, HStack } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEarthAmericas, faLock } from "@fortawesome/free-solid-svg-icons"
-import SingleLineTextInput from "../ui/SingleLineTextInput"
+import SingleLineTextInput from "./SingleLineTextInput"
 import { ReactNode } from "react"
 
 interface SettingsInputFieldProps {

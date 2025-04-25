@@ -36,3 +36,25 @@ export function validateDisplayName(displayName: string): string {
 
     return ""
 }
+
+/**
+ * Validates a urlSlug according to the application rules
+ * @param urlSlug The urlSlug to validate
+ * @returns An error message if validation fails, or an empty string if validation passes
+ */
+export function validateUrlSlug(urlSlug: string): string {
+    if (!urlSlug) {
+        return "Url slug is required"
+    }
+
+    if (urlSlug.length > 20) {
+        return "Url slug cannot be longer than 20 characters"
+    }
+
+    const urlSlugRegex = /^[a-zA-Z0-9_-]+$/
+    if (!urlSlugRegex.test(urlSlug)) {
+        return "Url slug can only use letters, numbers, underscores, and hyphens"
+    }
+
+    return ""
+}
