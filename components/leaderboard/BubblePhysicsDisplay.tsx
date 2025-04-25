@@ -14,6 +14,10 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
     const engineRef = useRef<Matter.Engine | null>(null)
     const renderRef = useRef<Matter.Render | null>(null)
     const bodiesRef = useRef<Matter.Body[]>([])
+    const [zoom, setZoom] = useState(1)
+
+    const boxSize = 600
+    const borderWidth = 5
 
     useEffect(() => {
         const setupPhysics = async () => {
@@ -29,16 +33,31 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 engine: engine,
                 options: {
                     width: sceneRef.current.clientWidth,
-                    height: 400,
+                    height: sceneRef.current.clientHeight,
                     wireframes: false,
-                    background: "pageBackground", // Dark grey background
+                    background: "pageBackground",
                 },
             })
             renderRef.current = render
 
+            // Add mouse wheel event listener for zooming
+            const handleWheel = (event: WheelEvent) => {
+                event.preventDefault()
+                const delta = event.deltaY
+                const zoomFactor = 0.0005 // Reduced for finer control
+                const newZoom = Math.max(1, Math.min(4, zoom - delta * zoomFactor))
+                setZoom(newZoom)
+
+                if (sceneRef.current) {
+                    sceneRef.current.style.transform = `scale(${newZoom})`
+                }
+            }
+
+            sceneRef.current.addEventListener("wheel", handleWheel, { passive: false })
+
             // Create circular boundary using small static bodies
-            const circleCenter = { x: render.options.width! / 2, y: 200 }
-            const circleRadius = 200
+            const circleCenter = { x: render.options.width! / 2, y: render.options.height! / 2 }
+            const circleRadius = boxSize / 2 - borderWidth
             const wallThickness = 5
             const wallCount = 200
             const angleStep = (2 * Math.PI) / wallCount
@@ -95,6 +114,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             engine.gravity.y = -0.2
 
             return () => {
+                sceneRef.current?.removeEventListener("wheel", handleWheel)
                 Matter.Render.stop(render)
                 Matter.World.clear(engine.world, false)
                 Matter.Engine.clear(engine)
@@ -110,16 +130,29 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
 
     return (
         <Box
-            ref={sceneRef}
-            width="400px"
-            height="400px"
-            position="relative"
+            // width="400px"
+            // height="400px"
+            boxSize={`${boxSize}px`}
+            border={`${borderWidth}px solid`}
+            borderColor="gray.800"
             borderRadius="100%"
             overflow="hidden"
-            clipPath="circle(200px at center)"
-            border="5px solid"
-            borderColor="gray.800"
-        />
+        >
+            <Box
+                ref={sceneRef}
+                width="100%"
+                height="100%"
+                position="relative"
+                borderRadius="100%"
+                overflow="hidden"
+                clipPath={`circle(${boxSize / 2}px at center)`}
+                // border="5px solid"
+                // borderColor="gray.800"
+                // cursor="zoom-in"
+                transformOrigin="center"
+                transition="transform 0.05s ease-out"
+            />
+        </Box>
     )
 }
 
