@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, HStack, Text, Box, Table, Image, Spinner, useBreakpointValue } from "@chakra-ui/react"
+import { VStack, HStack, Text, Box, Table, Image, Spinner, useBreakpointValue, useToken } from "@chakra-ui/react"
 import { Tooltip } from "../../components/ui/tooltip"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useEffect, useRef } from "react"
@@ -25,6 +25,16 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
     const [transformOrigin, setTransformOrigin] = useState("center")
     const [isZooming, setIsZooming] = useState(false)
     const [isCanvasLoading, setIsCanvasLoading] = useState(true)
+
+    type SignalType = "high" | "mid" | "low"
+    type ScoreColors = Record<SignalType, string>
+
+    // Get the score colors from the theme
+    const scoreColors: ScoreColors = {
+        high: useToken("colors", "scoreColor.high")[0],
+        mid: useToken("colors", "scoreColor.mid")[0],
+        low: useToken("colors", "scoreColor.low")[0],
+    }
 
     // Update zoom when screen width changes
     useEffect(() => {
@@ -53,6 +63,18 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             })
             renderRef.current = render
 
+            // Add central wall
+            const wallRadius = 2
+            const wall = Matter.Bodies.circle(boxSize / 2, boxSize / 2, wallRadius, {
+                isStatic: true,
+                render: {
+                    visible: false,
+                },
+            })
+
+            // Add wall to the world
+            Matter.World.add(engine.world, wall)
+
             // Add mouse wheel event listener for zooming
             const handleWheel = (event: WheelEvent) => {
                 event.preventDefault()
@@ -71,7 +93,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
 
                 const delta = event.deltaY
                 const zoomStep = 2
-                const newZoom = Math.max(1, Math.min(200, zoom + (delta > 0 ? -zoomStep : zoomStep)))
+                const newZoom = Math.max(1, Math.min(400, zoom + (delta > 0 ? -zoomStep : zoomStep)))
                 setZoom(newZoom)
                 setIsZooming(true)
 
@@ -145,13 +167,15 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
 
                 // Create a custom HTML element for the circle
                 const element = document.createElement("div")
-                element.style.width = `${bodyRadius * 2 - 1}px`
-                element.style.height = `${bodyRadius * 2 - 1}px`
+                element.style.width = `${bodyRadius * 2 - 2}px`
+                element.style.height = `${bodyRadius * 2 - 2}px`
                 element.style.borderRadius = "50%"
                 element.style.overflow = "hidden"
                 element.style.cursor = "pointer"
                 element.style.position = "absolute"
                 element.style.transform = "translate(-50%, -50%)"
+                element.style.border = "2px solid"
+                element.style.borderColor = scoreColors[user.signal as SignalType]
 
                 // Add the image
                 const img = document.createElement("img")
@@ -170,10 +194,10 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 sceneRef.current?.appendChild(element)
 
                 const body = Matter.Bodies.circle(x, y, bodyRadius, {
-                    restitution: 0.3,
-                    friction: 0.2,
+                    // restitution: 0.3,
+                    // friction: 1,
                     render: {
-                        visible: false, // Hide the default canvas rendering
+                        visible: false,
                     },
                 }) as BodyWithElement
 
@@ -198,7 +222,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                     if (element) {
                         element.style.left = `${body.position.x}px`
                         element.style.top = `${body.position.y}px`
-                        element.style.transform = `translate(-50%, -50%) rotate(${body.angle}rad)`
+                        element.style.transform = `translate(-50%, -50%)`
                     }
                 })
             })
@@ -208,7 +232,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             engine.gravity.y = 0
 
             // Add central anchor point
-            const anchorRadius = 30
+            const anchorRadius = 10
             const anchor = Matter.Bodies.circle(center.x, center.y, anchorRadius, {
                 isStatic: true,
                 render: {
