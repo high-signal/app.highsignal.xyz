@@ -61,7 +61,6 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             const handleWheel = (event: WheelEvent) => {
                 event.preventDefault()
                 const currentZoom = zoomRef.current
-                // Use currentZoom instead of zoom
 
                 // // Get mouse position relative to the container
                 // const rect = sceneRef.current!.getBoundingClientRect()
@@ -80,22 +79,19 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 const maxZoom = 0.5
 
                 let newZoom = currentZoom
-                console.log("test zoom", currentZoom)
                 if (delta > 0) {
                     newZoom = currentZoom - zoomStep
                 } else {
                     newZoom = currentZoom + zoomStep
                 }
+
                 if (newZoom <= initialZoom) {
                     // Reset transform origin to center when fully zoomed out
-                    console.log("Resetting transform origin")
                     setTransformOrigin("center")
                     setZoom(initialZoom)
                 } else if (newZoom >= maxZoom) {
-                    console.log("Setting new zoom", Number(maxZoom.toFixed(3)))
                     setZoom(maxZoom)
                 } else {
-                    console.log("Setting new zoom", Number(newZoom.toFixed(3)))
                     setZoom(Number(newZoom.toFixed(3)))
                 }
 
