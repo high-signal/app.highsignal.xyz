@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, HStack, Text, Box, Table, Image, Spinner } from "@chakra-ui/react"
+import { VStack, HStack, Text, Box, Table, Image, Spinner, useBreakpointValue } from "@chakra-ui/react"
 import { Tooltip } from "../../components/ui/tooltip"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useEffect, useRef } from "react"
@@ -9,9 +9,9 @@ import { ASSETS } from "../../config/constants"
 import Matter from "matter-js"
 
 export default function BubblePhysicsDisplay({ project }: { project: string }) {
-    const boxSize = 600
+    const boxSize = useBreakpointValue({ base: 300, sm: 600 }) || 600
+    const initialZoom = useBreakpointValue({ base: 0.05, sm: 0.1 }) || 0.1
     const borderWidth = 5
-    const initialZoom = 0.5
     const zoomedBoxSize = boxSize / initialZoom
 
     const { users, loading, error } = useGetUsers(project)
@@ -22,6 +22,11 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
     const [zoom, setZoom] = useState(initialZoom)
     const [transformOrigin, setTransformOrigin] = useState("center")
     const [isZooming, setIsZooming] = useState(false)
+
+    // Update zoom when screen width changes
+    useEffect(() => {
+        setZoom(initialZoom)
+    }, [initialZoom])
 
     useEffect(() => {
         const setupPhysics = async () => {
@@ -39,7 +44,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                     width: zoomedBoxSize,
                     height: zoomedBoxSize,
                     wireframes: false,
-                    background: "orange",
+                    background: "pageBackground",
                 },
             })
             renderRef.current = render
@@ -61,8 +66,8 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 // setTransformOrigin(`${xPercent}% ${yPercent}%`)
 
                 const delta = event.deltaY
-                const zoomStep = 2
-                const newZoom = Math.max(initialZoom, Math.min(200, zoom + (delta > 0 ? -zoomStep : zoomStep)))
+                const zoomStep = 0.5
+                const newZoom = Math.max(initialZoom, Math.min(100, zoom + (delta > 0 ? -zoomStep : zoomStep)))
                 setZoom(newZoom)
                 setIsZooming(true)
 
@@ -74,7 +79,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
 
             // Create circular boundary using small static bodies
             const circleCenter = { x: zoomedBoxSize / 2, y: zoomedBoxSize / 2 }
-            const circleRadius = zoomedBoxSize / 2 - borderWidth
+            const circleRadius = zoomedBoxSize / 2 - borderWidth / initialZoom
             const wallThickness = 5
             const wallCount = 200
             const angleStep = (2 * Math.PI) / wallCount
@@ -99,9 +104,9 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             )
 
             const bodies = results.map(({ dataUrl, size }) => {
-                const x = Math.random() * (render.options.width! - 100) + 50
-                const y = 350
-                const radius = 20
+                const x = Math.random() * (zoomedBoxSize - 100) + 50
+                const y = zoomedBoxSize / 2
+                const radius = 100
                 const scale = (radius * 2) / size
 
                 const body = Matter.Bodies.circle(x, y, radius, {
