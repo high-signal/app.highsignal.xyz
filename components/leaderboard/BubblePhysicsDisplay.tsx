@@ -8,33 +8,27 @@ import { useGetUsers } from "../../hooks/useGetUsers"
 import { ASSETS } from "../../config/constants"
 import Matter from "matter-js"
 
+interface BodyWithElement extends Matter.Body {
+    element: HTMLDivElement
+}
+
 export default function BubblePhysicsDisplay({ project }: { project: string }) {
     const boxSize = useBreakpointValue({ base: 300, sm: 600 }) || 600
-    const initialZoom = useBreakpointValue({ base: 0.05, sm: 0.1 }) || 0.1
+    const initialZoom = 1
     const borderWidth = 5
-    const zoomedBoxSize = boxSize / initialZoom
 
     const { users, loading, error } = useGetUsers(project)
     const sceneRef = useRef<HTMLDivElement>(null)
     const engineRef = useRef<Matter.Engine | null>(null)
     const renderRef = useRef<Matter.Render | null>(null)
-    const bodiesRef = useRef<Matter.Body[]>([])
     const [zoom, setZoom] = useState(initialZoom)
     const [transformOrigin, setTransformOrigin] = useState("center")
     const [isZooming, setIsZooming] = useState(false)
     const [isCanvasLoading, setIsCanvasLoading] = useState(true)
 
-    // Use ref to store the zoom value so it can be used in the wheel event handler
-    // inside the useEffect hook without causing a re-render
-    const zoomRef = useRef(zoom)
-    useEffect(() => {
-        zoomRef.current = zoom
-    }, [zoom])
-
     // Update zoom when screen width changes
     useEffect(() => {
         setZoom(initialZoom)
-        zoomRef.current = initialZoom
     }, [initialZoom])
 
     useEffect(() => {
@@ -51,8 +45,8 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 element: sceneRef.current,
                 engine: engine,
                 options: {
-                    width: zoomedBoxSize,
-                    height: zoomedBoxSize,
+                    width: boxSize,
+                    height: boxSize,
                     wireframes: false,
                     background: "pageBackground",
                 },
@@ -62,41 +56,23 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             // Add mouse wheel event listener for zooming
             const handleWheel = (event: WheelEvent) => {
                 event.preventDefault()
-                const currentZoom = zoomRef.current
 
-                // // Get mouse position relative to the container
-                // const rect = sceneRef.current!.getBoundingClientRect()
-                // const x = event.clientX - rect.left
-                // const y = event.clientY - rect.top
+                // Get mouse position relative to the container
+                const rect = sceneRef.current!.getBoundingClientRect()
+                const x = event.clientX - rect.left
+                const y = event.clientY - rect.top
 
-                // // Calculate percentage position
-                // const xPercent = (x / rect.width) * 100
-                // const yPercent = (y / rect.height) * 100
+                // Calculate percentage position
+                const xPercent = (x / rect.width) * 100
+                const yPercent = (y / rect.height) * 100
 
-                // // Set transform origin to mouse position
-                // setTransformOrigin(`${xPercent}% ${yPercent}%`)
+                // Set transform origin to mouse position
+                setTransformOrigin(`${xPercent}% ${yPercent}%`)
 
                 const delta = event.deltaY
-                const zoomStep = 0.04
-                const maxZoom = 0.5
-
-                let newZoom = currentZoom
-                if (delta > 0) {
-                    newZoom = currentZoom - zoomStep
-                } else {
-                    newZoom = currentZoom + zoomStep
-                }
-
-                if (newZoom <= initialZoom) {
-                    // Reset transform origin to center when fully zoomed out
-                    setTransformOrigin("center")
-                    setZoom(initialZoom)
-                } else if (newZoom >= maxZoom) {
-                    setZoom(maxZoom)
-                } else {
-                    setZoom(Number(newZoom.toFixed(3)))
-                }
-
+                const zoomStep = 2
+                const newZoom = Math.max(1, Math.min(200, zoom + (delta > 0 ? -zoomStep : zoomStep)))
+                setZoom(newZoom)
                 setIsZooming(true)
 
                 // Reset zooming state after animation
@@ -107,16 +83,13 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
 
             // Create user circles
             const duplicatedUsers = Array(100).fill(users).flat() // TODO: Remove this and use the actual number of users
-            const results = await Promise.all(
-                duplicatedUsers.map((user) => makeCircularImage(user.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE)),
-            )
 
             // Calculate optimal ring arrangement
-            const bodyRadius = 100 // Radius of each circle
-            const minSpacing = 20 // Minimum space between circles
-            const center = { x: zoomedBoxSize / 2, y: zoomedBoxSize / 2 }
-            const innerRadius = zoomedBoxSize / 2 + bodyRadius * 3 // Start from center
-            const maxRadius = (zoomedBoxSize / 2) * 1.8 // Allow expansion outward
+            const bodyRadius = 10 // Radius of each circle
+            const minSpacing = 25 // Minimum space between circles
+            const center = { x: boxSize / 2, y: boxSize / 2 }
+            const innerRadius = boxSize / 2 + bodyRadius * 3 // Start from center
+            const maxRadius = (boxSize / 2) * 1.8 // Allow expansion outward
 
             // Calculate how many circles can fit in each ring
             const circlesPerRing = (radius: number) => {
@@ -125,7 +98,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             }
 
             // Calculate rings needed, working from center outward
-            let remainingCircles = results.length
+            let remainingCircles = duplicatedUsers.length
             let currentRadius = innerRadius
             const rings: { radius: number; count: number }[] = []
 
@@ -145,7 +118,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             }
 
             // Create bodies in concentric rings
-            const bodies = results.map(({ dataUrl, size }, index) => {
+            const bodies = duplicatedUsers.map((user, index) => {
                 let circleIndex = index
                 let ringIndex = 0
                 let angle = 0
@@ -169,22 +142,46 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
 
                 const x = center.x + radius * Math.cos(angle)
                 const y = center.y + radius * Math.sin(angle)
-                const scale = (bodyRadius * 2) / size
+
+                // Create a custom HTML element for the circle
+                const element = document.createElement("div")
+                element.style.width = `${bodyRadius * 2 - 1}px`
+                element.style.height = `${bodyRadius * 2 - 1}px`
+                element.style.borderRadius = "50%"
+                element.style.overflow = "hidden"
+                element.style.cursor = "pointer"
+                element.style.position = "absolute"
+                element.style.transform = "translate(-50%, -50%)"
+
+                // Add the image
+                const img = document.createElement("img")
+                img.src = user.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE
+                img.style.width = "100%"
+                img.style.height = "100%"
+                img.style.objectFit = "cover"
+                element.appendChild(img)
+
+                // Add click handler
+                element.addEventListener("click", () => {
+                    window.location.href = `/u/${user.username}`
+                })
+
+                // Add the element to the scene
+                sceneRef.current?.appendChild(element)
 
                 const body = Matter.Bodies.circle(x, y, bodyRadius, {
                     restitution: 0.3,
-                    friction: 0.1,
+                    friction: 0.2,
                     render: {
-                        sprite: {
-                            texture: dataUrl,
-                            xScale: scale,
-                            yScale: scale,
-                        },
+                        visible: false, // Hide the default canvas rendering
                     },
-                })
+                }) as BodyWithElement
+
+                // Store reference to the element
+                body.element = element
+
                 return body
             })
-            bodiesRef.current = bodies
 
             // Add all bodies to the world
             Matter.World.add(engine.world, bodies)
@@ -193,6 +190,18 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             Matter.Render.run(render)
             const runner = Matter.Runner.create()
             Matter.Runner.run(runner, engine)
+
+            // Update element positions based on physics
+            Matter.Events.on(engine, "afterUpdate", () => {
+                bodies.forEach((body) => {
+                    const element = (body as BodyWithElement).element
+                    if (element) {
+                        element.style.left = `${body.position.x}px`
+                        element.style.top = `${body.position.y}px`
+                        element.style.transform = `translate(-50%, -50%) rotate(${body.angle}rad)`
+                    }
+                })
+            })
 
             // Disable default gravity
             engine.gravity.x = 0
@@ -232,12 +241,19 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 setIsCanvasLoading(false)
             }, 1000)
 
+            // Cleanup
             return () => {
                 sceneRef.current?.removeEventListener("wheel", handleWheel)
                 Matter.Render.stop(render)
                 Matter.World.clear(engine.world, false)
                 Matter.Engine.clear(engine)
-                render.canvas.remove()
+                // Remove all custom elements
+                bodies.forEach((body) => {
+                    const element = (body as BodyWithElement).element
+                    if (element && element.parentNode) {
+                        element.parentNode.removeChild(element)
+                    }
+                })
             }
         }
 
@@ -256,37 +272,27 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             overflow="hidden"
             justifyContent="center"
             alignItems="center"
+            position="relative"
         >
             {isCanvasLoading && <Spinner zIndex={10} position={"absolute"} />}
             <Box
                 ref={sceneRef}
-                boxSize={`${zoomedBoxSize}px`}
-                clipPath={`circle(${zoomedBoxSize / 2}px at center)`}
+                boxSize={`${boxSize}px`}
+                clipPath={`circle(${boxSize / 2}px at center)`}
                 transformOrigin={transformOrigin}
                 transform={`scale(${zoom})`}
                 transition={isZooming ? "transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)" : "none"}
+                css={{
+                    canvas: {
+                        img: {
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                            width: "100%",
+                            height: "100%",
+                        },
+                    },
+                }}
             />
         </HStack>
     )
-}
-
-function makeCircularImage(url: string): Promise<{ dataUrl: string; size: number }> {
-    return new Promise((resolve) => {
-        const img = new window.Image()
-        img.crossOrigin = "anonymous"
-        img.onload = () => {
-            const size = Math.min(img.width, img.height)
-            const canvas = document.createElement("canvas")
-            canvas.width = size
-            canvas.height = size
-            const ctx = canvas.getContext("2d")!
-            ctx.beginPath()
-            ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
-            ctx.closePath()
-            ctx.clip()
-            ctx.drawImage(img, 0, 0, size, size)
-            resolve({ dataUrl: canvas.toDataURL(), size })
-        }
-        img.src = url
-    })
 }
