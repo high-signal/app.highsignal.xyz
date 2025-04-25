@@ -22,6 +22,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
     const [zoom, setZoom] = useState(initialZoom)
     const [transformOrigin, setTransformOrigin] = useState("center")
     const [isZooming, setIsZooming] = useState(false)
+    const [isCanvasLoading, setIsCanvasLoading] = useState(true)
 
     // Use ref to store the zoom value so it can be used in the wheel event handler
     // inside the useEffect hook without causing a re-render
@@ -39,6 +40,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
     useEffect(() => {
         const setupPhysics = async () => {
             if (!sceneRef.current || !users || users.length === 0) return
+            setIsCanvasLoading(true)
 
             // Create engine
             const engine = Matter.Engine.create()
@@ -225,6 +227,11 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 })
             })
 
+            // Add a 1 second delay before hiding the spinner to allow gravity to take effect
+            setTimeout(() => {
+                setIsCanvasLoading(false)
+            }, 1000)
+
             return () => {
                 sceneRef.current?.removeEventListener("wheel", handleWheel)
                 Matter.Render.stop(render)
@@ -250,6 +257,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             justifyContent="center"
             alignItems="center"
         >
+            {isCanvasLoading && <Spinner zIndex={10} position={"absolute"} />}
             <Box
                 ref={sceneRef}
                 boxSize={`${zoomedBoxSize}px`}
