@@ -15,8 +15,8 @@ interface BodyWithElement extends Matter.Body {
 export default function BubblePhysicsDisplay({ project }: { project: string }) {
     const boxSize = useBreakpointValue({ base: 300, sm: 600 }) || 600
     const initialZoom = 1
-    const borderWidth = 5
-
+    const borderWidth = useBreakpointValue({ base: 1, sm: 2 }) || 2
+    const circleRadius = useBreakpointValue({ base: 5, sm: 10 }) || 10
     const { users, loading, error } = useGetUsers(project)
     const sceneRef = useRef<HTMLDivElement>(null)
     const engineRef = useRef<Matter.Engine | null>(null)
@@ -140,17 +140,11 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             })
 
             // Calculate optimal ring arrangement
-            const bodyRadius = 10 // Radius of each circle
+            const bodyRadius = circleRadius // Radius of each circle
             const minSpacing = 25 // Minimum space between circles
             const center = { x: boxSize / 2, y: boxSize / 2 }
             const innerRadius = boxSize / 2 + bodyRadius * 3 // Start from center
             const maxRadius = (boxSize / 2) * 1.8 // Allow expansion outward
-
-            // Calculate how many circles can fit in each ring
-            const circlesPerRing = (radius: number) => {
-                const circumference = 2 * Math.PI * radius
-                return Math.floor(circumference / (bodyRadius * 2 + minSpacing))
-            }
 
             // Group users by signal type
             const highSignalUsers = sortedUsers.filter((user) => user.signal === "high")
@@ -235,7 +229,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 element.style.cursor = "pointer"
                 element.style.position = "absolute"
                 element.style.transform = "translate(-50%, -50%)"
-                element.style.border = "2px solid"
+                element.style.border = `${borderWidth}px solid`
                 element.style.borderColor = scoreColors[user.signal as SignalType]
 
                 // Add the image
@@ -321,10 +315,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 })
             })
 
-            // Add a 1 second delay before hiding the spinner to allow gravity to take effect
-            setTimeout(() => {
-                setIsCanvasLoading(false)
-            }, 1000)
+            setIsCanvasLoading(false)
 
             // Cleanup
             return () => {
@@ -351,7 +342,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
     return (
         <HStack
             boxSize={`${boxSize}px`}
-            border={`${borderWidth}px solid`}
+            border={"5px solid"}
             borderColor="gray.800"
             borderRadius="100%"
             overflow="hidden"
