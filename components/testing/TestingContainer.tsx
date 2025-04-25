@@ -1,11 +1,11 @@
 "use client"
 
 import { VStack, Text, HStack, Image, Skeleton } from "@chakra-ui/react"
-import Leaderboard from "./Leaderboard"
 import { useGetProjects } from "../../hooks/useGetProjects"
+import BubblePhysicsDisplay from "../leaderboard/BubblePhysicsDisplay"
 
-export default function LeaderboardContainer({ project }: { project: string }) {
-    const { projects, loading, error } = useGetProjects(project)
+export default function TestingContainer() {
+    const { projects, loading, error } = useGetProjects("lido")
 
     const currentProject = projects[0]
 
@@ -44,7 +44,7 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                 )}
                 <Text>Signal Leaderboard</Text>
             </VStack>
-            <Leaderboard project={project} />
+            <BubblePhysicsDisplay project={"lido"} />
         </VStack>
     )
 }

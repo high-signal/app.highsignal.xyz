@@ -1,8 +1,6 @@
 "use client"
 
-import { VStack, HStack, Text, Box, Table, Image, Spinner, useBreakpointValue, useToken } from "@chakra-ui/react"
-import { Tooltip } from "../../components/ui/tooltip"
-import { useRouter, useSearchParams } from "next/navigation"
+import { HStack, Text, Box, Spinner, useBreakpointValue, useToken } from "@chakra-ui/react"
 import { useState, useEffect, useRef } from "react"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { ASSETS } from "../../config/constants"
@@ -44,11 +42,11 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
         zoomRef.current = zoom
     }, [zoom])
 
-    // Update zoom when screen width changes
-    useEffect(() => {
-        setZoom(initialZoom)
-        zoomRef.current = initialZoom
-    }, [initialZoom])
+    // TODO: Update zoom when screen width changes
+    // useEffect(() => {
+    //     setZoom(initialZoom)
+    //     zoomRef.current = initialZoom
+    // }, [])
 
     useEffect(() => {
         const setupPhysics = async () => {
