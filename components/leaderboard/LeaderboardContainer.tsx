@@ -4,6 +4,7 @@ import { VStack, Text, HStack, Image, Skeleton } from "@chakra-ui/react"
 import { keyframes } from "@emotion/react"
 import Leaderboard from "./Leaderboard"
 import { useGetProjects } from "../../hooks/useGetProjects"
+import BubblePhysicsDisplay from "./BubblePhysicsDisplay"
 
 export default function LeaderboardContainer({ project }: { project: string }) {
     const { projects, loading, error } = useGetProjects(project)
@@ -45,7 +46,8 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                 )}
                 <Text>Signal Leaderboard</Text>
             </VStack>
-            <Leaderboard project={project} />
+            {/* <Leaderboard project={project} /> */}
+            <BubblePhysicsDisplay project={project} />
         </VStack>
     )
 }
