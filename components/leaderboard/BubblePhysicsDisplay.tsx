@@ -9,17 +9,19 @@ import { ASSETS } from "../../config/constants"
 import Matter from "matter-js"
 
 export default function BubblePhysicsDisplay({ project }: { project: string }) {
+    const boxSize = 600
+    const borderWidth = 5
+    const initialZoom = 0.5
+    const zoomedBoxSize = boxSize / initialZoom
+
     const { users, loading, error } = useGetUsers(project)
     const sceneRef = useRef<HTMLDivElement>(null)
     const engineRef = useRef<Matter.Engine | null>(null)
     const renderRef = useRef<Matter.Render | null>(null)
     const bodiesRef = useRef<Matter.Body[]>([])
-    const [zoom, setZoom] = useState(1)
+    const [zoom, setZoom] = useState(initialZoom)
     const [transformOrigin, setTransformOrigin] = useState("center")
     const [isZooming, setIsZooming] = useState(false)
-
-    const boxSize = 600
-    const borderWidth = 5
 
     useEffect(() => {
         const setupPhysics = async () => {
@@ -34,10 +36,10 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 element: sceneRef.current,
                 engine: engine,
                 options: {
-                    width: sceneRef.current.clientWidth,
-                    height: sceneRef.current.clientHeight,
+                    width: zoomedBoxSize,
+                    height: zoomedBoxSize,
                     wireframes: false,
-                    background: "pageBackground",
+                    background: "orange",
                 },
             })
             renderRef.current = render
@@ -47,20 +49,20 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 event.preventDefault()
 
                 // Get mouse position relative to the container
-                const rect = sceneRef.current!.getBoundingClientRect()
-                const x = event.clientX - rect.left
-                const y = event.clientY - rect.top
+                // const rect = sceneRef.current!.getBoundingClientRect()
+                // const x = event.clientX - rect.left
+                // const y = event.clientY - rect.top
 
                 // Calculate percentage position
-                const xPercent = (x / rect.width) * 100
-                const yPercent = (y / rect.height) * 100
+                // const xPercent = (x / rect.width) * 100
+                // const yPercent = (y / rect.height) * 100
 
                 // Set transform origin to mouse position
-                setTransformOrigin(`${xPercent}% ${yPercent}%`)
+                // setTransformOrigin(`${xPercent}% ${yPercent}%`)
 
                 const delta = event.deltaY
                 const zoomStep = 2
-                const newZoom = Math.max(1, Math.min(200, zoom + (delta > 0 ? -zoomStep : zoomStep)))
+                const newZoom = Math.max(initialZoom, Math.min(200, zoom + (delta > 0 ? -zoomStep : zoomStep)))
                 setZoom(newZoom)
                 setIsZooming(true)
 
@@ -71,8 +73,8 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             sceneRef.current.addEventListener("wheel", handleWheel, { passive: false })
 
             // Create circular boundary using small static bodies
-            const circleCenter = { x: render.options.width! / 2, y: render.options.height! / 2 }
-            const circleRadius = boxSize / 2 - borderWidth
+            const circleCenter = { x: zoomedBoxSize / 2, y: zoomedBoxSize / 2 }
+            const circleRadius = zoomedBoxSize / 2 - borderWidth
             const wallThickness = 5
             const wallCount = 200
             const angleStep = (2 * Math.PI) / wallCount
@@ -91,7 +93,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             //     users.map((user) => makeCircularImage(user.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE)),
             // )
             // TODO: Testing with duplicated users
-            const duplicatedUsers = Array(10).fill(users).flat()
+            const duplicatedUsers = Array(100).fill(users).flat()
             const results = await Promise.all(
                 duplicatedUsers.map((user) => makeCircularImage(user.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE)),
             )
@@ -103,8 +105,8 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 const scale = (radius * 2) / size
 
                 const body = Matter.Bodies.circle(x, y, radius, {
-                    restitution: 0.8,
-                    friction: 0.2,
+                    restitution: 0.5,
+                    friction: 0.5,
                     render: {
                         sprite: {
                             texture: dataUrl,
@@ -125,7 +127,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             const runner = Matter.Runner.create()
             Matter.Runner.run(runner, engine)
 
-            // Flip gravity after a short delay
+            // Flip gravity
             engine.gravity.y = -0.2
 
             return () => {
@@ -144,26 +146,27 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
     if (error) return <Text color="red.500">Error loading users</Text>
 
     return (
-        <Box
+        <HStack
             boxSize={`${boxSize}px`}
             border={`${borderWidth}px solid`}
             borderColor="gray.800"
             borderRadius="100%"
             overflow="hidden"
+            justifyContent="center"
+            alignItems="center"
         >
             <Box
                 ref={sceneRef}
-                width="100%"
-                height="100%"
-                position="relative"
-                borderRadius="100%"
-                overflow="hidden"
-                clipPath={`circle(${boxSize / 2}px at center)`}
+                boxSize={`${zoomedBoxSize}px`}
+                // position="relative"
+                // borderRadius="100%"
+                // overflow="hidden"
+                clipPath={`circle(${zoomedBoxSize / 2}px at center)`}
                 transformOrigin={transformOrigin}
                 transform={`scale(${zoom})`}
                 transition={isZooming ? "transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)" : "none"}
             />
-        </Box>
+        </HStack>
     )
 }
 
