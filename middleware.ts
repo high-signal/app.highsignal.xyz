@@ -75,6 +75,21 @@ export async function middleware(request: NextRequest) {
                 }
             }
 
+            // ********************
+            // PROJECT ADMIN CHECK
+            // ********************
+            // If projectAdmin is allowed access check if logged in user is the a project admin
+            if (methodPermission.allowedAccess?.includes("projectAdmin")) {
+                const targetProject = request.headers.get("x-target-project")?.toLowerCase()
+                if (loggedInUserData.projectAdmins.some((project) => project.urlSlug === targetProject)) {
+                    return NextResponse.next({
+                        request: {
+                            headers: requestHeaders,
+                        },
+                    })
+                }
+            }
+
             // ******************
             // SUPER ADMIN CHECK
             // ******************

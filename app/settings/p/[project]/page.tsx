@@ -1,6 +1,5 @@
-// import ProjectSettingsPageContainer from "../../../components/project/ProjectSettingsPageContainer"
+import ProjectSettingsContainer from "../../../../components/project-settings/ProjectSettingsContainer"
 
 export default async function ProjectSettingsPage() {
-    // return <ProjectSettingsPageContainer />
-    return <div>Project Settings: TODO</div>
+    return <ProjectSettingsContainer />
 }
