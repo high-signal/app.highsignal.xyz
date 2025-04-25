@@ -103,41 +103,75 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
 
             sceneRef.current.addEventListener("wheel", handleWheel, { passive: false })
 
-            // Create circular boundary using small static bodies
-            const circleCenter = { x: zoomedBoxSize / 2, y: zoomedBoxSize / 2 }
-            const circleRadius = zoomedBoxSize / 2 - borderWidth / initialZoom
-            const wallThickness = 5
-            const wallCount = 200
-            const angleStep = (2 * Math.PI) / wallCount
-            const walls = Array.from({ length: wallCount }, (_, i) => {
-                const angle = i * angleStep
-                const x = circleCenter.x + circleRadius * Math.cos(angle)
-                const y = circleCenter.y + circleRadius * Math.sin(angle)
-                return Matter.Bodies.rectangle(x, y, wallThickness, wallThickness, {
-                    isStatic: true,
-                    render: { visible: false },
-                })
-            })
-
             // Create user circles
-            // const results = await Promise.all(
-            //     users.map((user) => makeCircularImage(user.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE)),
-            // )
-            // TODO: Testing with duplicated users
             const duplicatedUsers = Array(100).fill(users).flat()
             const results = await Promise.all(
                 duplicatedUsers.map((user) => makeCircularImage(user.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE)),
             )
 
-            const bodies = results.map(({ dataUrl, size }) => {
-                const x = Math.random() * (zoomedBoxSize - 100) + 50
-                const y = zoomedBoxSize / 2
-                const radius = 100
-                const scale = (radius * 2) / size
+            // Calculate optimal ring arrangement
+            const bodyRadius = 100 // Radius of each circle
+            const minSpacing = 20 // Minimum space between circles
+            const center = { x: zoomedBoxSize / 2, y: zoomedBoxSize / 2 }
+            const innerRadius = zoomedBoxSize / 2 + bodyRadius * 3 // Start from center
+            const maxRadius = (zoomedBoxSize / 2) * 1.8 // Allow expansion outward
 
-                const body = Matter.Bodies.circle(x, y, radius, {
-                    restitution: 0.5,
-                    friction: 0.5,
+            // Calculate how many circles can fit in each ring
+            const circlesPerRing = (radius: number) => {
+                const circumference = 2 * Math.PI * radius
+                return Math.floor(circumference / (bodyRadius * 2 + minSpacing))
+            }
+
+            // Calculate rings needed, working from center outward
+            let remainingCircles = results.length
+            let currentRadius = innerRadius
+            const rings: { radius: number; count: number }[] = []
+
+            while (remainingCircles > 0 && currentRadius <= maxRadius) {
+                const circlesInRing = circlesPerRing(currentRadius)
+                const circlesToAdd = Math.min(circlesInRing, remainingCircles)
+                if (circlesToAdd > 0) {
+                    rings.push({ radius: currentRadius, count: circlesToAdd })
+                    remainingCircles -= circlesToAdd
+                }
+                currentRadius += bodyRadius * 2 + minSpacing
+            }
+
+            // If we still have circles left, distribute them in the last ring
+            if (remainingCircles > 0 && rings.length > 0) {
+                rings[rings.length - 1].count += remainingCircles
+            }
+
+            // Create bodies in concentric rings
+            const bodies = results.map(({ dataUrl, size }, index) => {
+                let circleIndex = index
+                let ringIndex = 0
+                let angle = 0
+                let radius = innerRadius
+
+                // Find which ring this circle belongs to
+                while (ringIndex < rings.length && circleIndex >= rings[ringIndex].count) {
+                    circleIndex -= rings[ringIndex].count
+                    ringIndex++
+                }
+
+                if (ringIndex < rings.length) {
+                    const ring = rings[ringIndex]
+                    angle = (2 * Math.PI * circleIndex) / ring.count
+                    radius = ring.radius
+                } else {
+                    // Fallback for any remaining circles - place them in a tight circle
+                    angle = (2 * Math.PI * circleIndex) / remainingCircles
+                    radius = maxRadius
+                }
+
+                const x = center.x + radius * Math.cos(angle)
+                const y = center.y + radius * Math.sin(angle)
+                const scale = (bodyRadius * 2) / size
+
+                const body = Matter.Bodies.circle(x, y, bodyRadius, {
+                    restitution: 0.3,
+                    friction: 0.1,
                     render: {
                         sprite: {
                             texture: dataUrl,
@@ -151,15 +185,45 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             bodiesRef.current = bodies
 
             // Add all bodies to the world
-            Matter.World.add(engine.world, [...walls, ...bodies])
+            Matter.World.add(engine.world, bodies)
 
             // Run the engine
             Matter.Render.run(render)
             const runner = Matter.Runner.create()
             Matter.Runner.run(runner, engine)
 
-            // Flip gravity
-            engine.gravity.y = -0.2
+            // Disable default gravity
+            engine.gravity.x = 0
+            engine.gravity.y = 0
+
+            // Add central anchor point
+            const anchorRadius = 30
+            const anchor = Matter.Bodies.circle(center.x, center.y, anchorRadius, {
+                isStatic: true,
+                render: {
+                    fillStyle: "transparent",
+                },
+            })
+            Matter.World.add(engine.world, anchor)
+
+            // Add central gravitational force
+            const gravityStrength = 0.0005
+
+            Matter.Events.on(engine, "beforeUpdate", () => {
+                bodies.forEach((body) => {
+                    const dx = center.x - body.position.x
+                    const dy = center.y - body.position.y
+                    const distance = Math.sqrt(dx * dx + dy * dy)
+
+                    if (distance > 0) {
+                        const force = {
+                            x: (dx / distance) * gravityStrength * body.mass,
+                            y: (dy / distance) * gravityStrength * body.mass,
+                        }
+                        Matter.Body.applyForce(body, body.position, force)
+                    }
+                })
+            })
 
             return () => {
                 sceneRef.current?.removeEventListener("wheel", handleWheel)
