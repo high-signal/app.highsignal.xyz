@@ -32,7 +32,7 @@ export function calculateRings({
     boxSize,
 }: RingCalculationParams): RingCalculationResult {
     const center = { x: boxSize / 2, y: boxSize / 2 }
-    const innerRadius = boxSize / 2 + bodyRadius * 3 // Start from center
+    const innerRadius = boxSize / 2 + bodyRadius * 5 // Start from center
     const maxRadius = (boxSize / 2) * 1.8 // Allow expansion outward
 
     // Group users by signal type

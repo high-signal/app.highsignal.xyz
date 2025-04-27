@@ -13,8 +13,9 @@ interface BodyWithElement extends Matter.Body {
 }
 
 export default function BubbleDisplay({ project }: { project: string }) {
-    const boxSize = useBreakpointValue({ base: 300, sm: 600 }) || 600
     const initialZoom = 1
+    const physicsDuration = 4000 // TODO: Make this dynamic based on the number of circles
+    const boxSize = useBreakpointValue({ base: 300, sm: 600 }) || 600
     const borderWidth = useBreakpointValue({ base: 1, sm: 2 }) || 2
     const circleRadius = useBreakpointValue({ base: 5, sm: 10 }) || 10
     const minSpacing = useBreakpointValue({ base: 15, sm: 25 }) || 25
@@ -78,7 +79,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
             containerRef.current.addEventListener("wheel", handleWheel, { passive: false })
 
             // Create user circles
-            const duplicatedUsers = Array(10).fill(users).flat() // TODO: Remove this and use the actual number of users
+            const duplicatedUsers = Array(100).fill(users).flat() // TODO: Remove this and use the actual number of users
 
             // Sort users by signal type
             const sortedUsers = [...duplicatedUsers].sort((a, b) => {
@@ -172,6 +173,24 @@ export default function BubbleDisplay({ project }: { project: string }) {
             const runner = Matter.Runner.create()
             Matter.Runner.run(runner, engine)
 
+            // Track physics time elapsed
+            let physicsTimeElapsed = 0
+            const physicsTimeStep = 1000 / 60 // Target 60 FPS physics updates
+            const targetPhysicsTime = physicsDuration
+            const startTime = Date.now()
+
+            Matter.Events.on(engine, "beforeUpdate", () => {
+                physicsTimeElapsed += physicsTimeStep
+                if (physicsTimeElapsed >= targetPhysicsTime) {
+                    console.log("Stopped physics")
+                    const realTimeElapsed = Date.now() - startTime
+                    console.log(`Real time elapsed: ${realTimeElapsed}ms`)
+                    console.log(`Engine time elapsed: ${physicsTimeElapsed}ms`)
+                    Matter.Runner.stop(runner)
+                    Matter.Engine.clear(engine)
+                }
+            })
+
             // Update element positions based on physics
             let animationFrameId: number
             const updateElements = () => {
@@ -179,7 +198,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
                     const element = (body as BodyWithElement).element
                     if (element) {
                         // Only update if velocity is above threshold to prevent jitter
-                        const velocityThreshold = 0.3
+                        const velocityThreshold = 0.01
                         const velocity = Math.sqrt(
                             body.velocity.x * body.velocity.x + body.velocity.y * body.velocity.y,
                         )
