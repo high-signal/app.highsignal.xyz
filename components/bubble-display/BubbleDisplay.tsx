@@ -14,10 +14,9 @@ interface BodyWithElement extends Matter.Body {
 
 export default function BubbleDisplay({ project }: { project: string }) {
     const initialZoom = 1
-    const physicsDuration = 4000 // TODO: Make this dynamic based on the number of circles
+    const physicsDuration = 8000 // TODO: Make this dynamic based on the number of circles
     const boxSize = useBreakpointValue({ base: 300, sm: 600 }) || 600
-    const borderWidth = useBreakpointValue({ base: 1, sm: 2 }) || 2
-    const circleRadius = useBreakpointValue({ base: 5, sm: 10 }) || 10
+    // const borderWidth = useBreakpointValue({ base: 1, sm: 2 }) || 2
     const minSpacing = useBreakpointValue({ base: 15, sm: 25 }) || 25
 
     const { users, loading, error } = useGetUsers(project)
@@ -63,23 +62,11 @@ export default function BubbleDisplay({ project }: { project: string }) {
             })
             renderRef.current = render
 
-            // Add central wall
-            const wallRadius = 2
-            const wall = Matter.Bodies.circle(boxSize / 2, boxSize / 2, wallRadius, {
-                isStatic: true,
-                render: {
-                    visible: false,
-                },
-            })
-
-            // Add wall to the world
-            Matter.World.add(engine.world, wall)
-
             // Add mouse wheel event listener for zooming
             containerRef.current.addEventListener("wheel", handleWheel, { passive: false })
 
             // Create user circles
-            const duplicatedUsers = Array(100).fill(users).flat() // TODO: Remove this and use the actual number of users
+            const duplicatedUsers = Array(5).fill(users).flat() // TODO: Remove this and use the actual number of users
 
             // Sort users by signal type
             const sortedUsers = [...duplicatedUsers].sort((a, b) => {
@@ -88,9 +75,8 @@ export default function BubbleDisplay({ project }: { project: string }) {
             })
 
             // Calculate optimal ring arrangement
-            const { allRings, center, innerRadius, maxRadius } = calculateRings({
+            const { allRings, center, innerRadius, maxRadius, circleRadius } = calculateRings({
                 users: sortedUsers,
-                bodyRadius: circleRadius,
                 minSpacing,
                 boxSize,
             })
@@ -132,7 +118,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
                 element.style.cursor = "pointer"
                 element.style.position = "absolute"
                 element.style.transform = "translate(-50%, -50%)"
-                element.style.border = `${borderWidth}px solid`
+                element.style.border = `${Math.min(Math.max(circleRadius / 5, 2), 8)}px solid`
                 element.style.borderColor = scoreColors[user.signal as SignalType]
 
                 // Add the image
@@ -168,6 +154,18 @@ export default function BubbleDisplay({ project }: { project: string }) {
             // Add all bodies to the world
             Matter.World.add(engine.world, bodies)
 
+            // Add central wall
+            const wallRadius = Math.min(circleRadius, 50)
+            const wall = Matter.Bodies.circle(boxSize / 2, boxSize / 2, wallRadius, {
+                isStatic: true,
+                render: {
+                    visible: true,
+                },
+            })
+
+            // Add wall to the world
+            Matter.World.add(engine.world, wall)
+
             // Run the engine
             Matter.Render.run(render)
             const runner = Matter.Runner.create()
@@ -175,7 +173,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
 
             // Track physics time elapsed
             let physicsTimeElapsed = 0
-            const physicsTimeStep = 1000 / 60 // Target 60 FPS physics updates
+            const physicsTimeStep = 1000 / 30 // Target 60 FPS physics updates
             const targetPhysicsTime = physicsDuration
             const startTime = Date.now()
 

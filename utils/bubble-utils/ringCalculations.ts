@@ -13,7 +13,6 @@ interface Ring {
 
 interface RingCalculationParams {
     users: User[]
-    bodyRadius: number
     minSpacing: number
     boxSize: number
 }
@@ -23,16 +22,20 @@ interface RingCalculationResult {
     center: { x: number; y: number }
     innerRadius: number
     maxRadius: number
+    circleRadius: number
 }
 
-export function calculateRings({
-    users,
-    bodyRadius,
-    minSpacing,
-    boxSize,
-}: RingCalculationParams): RingCalculationResult {
+export function calculateRings({ users, minSpacing, boxSize }: RingCalculationParams): RingCalculationResult {
+    const calculateCircleRadius = (numUsers: number) => {
+        const containerArea = Math.PI * (boxSize / 2) * (boxSize / 2)
+        const targetTotalCircleArea = containerArea * 0.4
+        return Math.sqrt(targetTotalCircleArea / (numUsers * Math.PI))
+    }
+
+    const circleRadius = Math.min(calculateCircleRadius(users.length), 50)
+
     const center = { x: boxSize / 2, y: boxSize / 2 }
-    const innerRadius = boxSize / 2 + bodyRadius * 5 // Start from center
+    const innerRadius = boxSize / 2 + circleRadius * 5 // Start from center
     const maxRadius = (boxSize / 2) * 1.8 // Allow expansion outward
 
     // Group users by signal type
@@ -48,7 +51,7 @@ export function calculateRings({
 
         // Calculate total available space for this signal type
         const totalSpace = endRadius - startRadius
-        const maxRings = Math.floor(totalSpace / (bodyRadius * 2 + minSpacing))
+        const maxRings = Math.floor(totalSpace / (circleRadius * 2 + minSpacing))
 
         // Calculate how many circles should be in each ring
         const circlesPerRing = Math.ceil(users.length / maxRings)
@@ -59,7 +62,7 @@ export function calculateRings({
                 rings.push({ radius: currentRadius, count: circlesToAdd })
                 remainingCircles -= circlesToAdd
             }
-            currentRadius += bodyRadius * 2 + minSpacing
+            currentRadius += circleRadius * 2 + minSpacing
         }
 
         return rings
@@ -73,12 +76,12 @@ export function calculateRings({
     const highSignalRings = calculateRingsForSignalType(highSignalUsers, innerRadius, highEndRadius)
     const midSignalRings = calculateRingsForSignalType(
         midSignalUsers,
-        highEndRadius + bodyRadius * 2 + minSpacing,
+        highEndRadius + circleRadius * 2 + minSpacing,
         midEndRadius,
     )
     const lowSignalRings = calculateRingsForSignalType(
         lowSignalUsers,
-        midEndRadius + bodyRadius * 2 + minSpacing,
+        midEndRadius + circleRadius * 2 + minSpacing,
         maxRadius,
     )
 
@@ -90,5 +93,6 @@ export function calculateRings({
         center,
         innerRadius,
         maxRadius,
+        circleRadius,
     }
 }
