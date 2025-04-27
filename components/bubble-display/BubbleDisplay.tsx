@@ -212,6 +212,9 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                     const cssId = `profile-images-${user.id}-${publicId}`
 
                     // Check if the classId exists in the css on the document
+                    // TODO: See if this check is happening before the sprite is loaded
+                    // as sometimes it looks like it is using the default profile image
+                    // when the sprite does contain the classId
                     if (!spriteCssText.includes(cssId)) {
                         // TODO: Refactor this duplicated code (PART 1)
                         img.style.backgroundImage = `url(${ASSETS.DEFAULT_PROFILE_IMAGE})`
