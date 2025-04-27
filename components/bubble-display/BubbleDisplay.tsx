@@ -127,11 +127,12 @@ export default function BubbleDisplay({ project }: { project: string }) {
             })
 
             const borderWidth = Math.round(Math.min(Math.max(circleRadius / 5, 1), 8))
+            const profileImageWidth = 300
             const spriteWidth = Math.round(circleRadius * 2 - borderWidth * 2)
 
             const loadSpriteCss = async () => {
                 try {
-                    const spriteUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/sprite/w_${spriteWidth},h_${spriteWidth},c_fit/profile_image`
+                    const spriteUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/sprite/w_${profileImageWidth},h_${profileImageWidth},c_fit/profile_image`
                     const cssUrl = `${spriteUrl}.css`
                     console.log("Loading sprite CSS from:", cssUrl)
                     const response = await fetch(cssUrl)
@@ -199,21 +200,36 @@ export default function BubbleDisplay({ project }: { project: string }) {
                 element.style.border = `${borderWidth}px solid`
                 element.style.borderColor = scoreColors[user.signal as SignalType]
 
-                // Add the image
+                // Add the image using a sprite
                 const img = document.createElement("div")
                 if (user.profileImageUrl && user.profileImageUrl != ASSETS.DEFAULT_PROFILE_IMAGE) {
                     // Extract the public ID from the profile image URL
                     const publicId = user.profileImageUrl.split("/").pop()?.split(".")[0]
                     const cssId = `profile-images-${user.id}-${publicId}`
                     console.log("cssId", cssId)
+
+                    // Create a wrapper div for scaling
+                    const wrapper = document.createElement("div")
+                    wrapper.style.width = `${spriteWidth}px`
+                    wrapper.style.height = `${spriteWidth}px`
+                    wrapper.style.overflow = "hidden"
+                    wrapper.style.position = "relative"
+
+                    // Set up the sprite image
                     img.className = cssId
+                    img.style.position = "absolute"
+                    img.style.transform = `scale(${spriteWidth / profileImageWidth})`
+                    img.style.transformOrigin = "0 0"
+
+                    wrapper.appendChild(img)
+                    element.appendChild(wrapper)
                 } else {
                     img.style.backgroundImage = `url(${ASSETS.DEFAULT_PROFILE_IMAGE})`
                     img.style.backgroundSize = "cover"
                     img.style.width = "100%"
                     img.style.height = "100%"
+                    element.appendChild(img)
                 }
-                element.appendChild(img)
 
                 // Add click handler
                 element.addEventListener("click", () => {
