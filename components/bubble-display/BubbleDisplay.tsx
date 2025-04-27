@@ -78,7 +78,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
             containerRef.current.addEventListener("wheel", handleWheel, { passive: false })
 
             // Create user circles
-            const duplicatedUsers = Array(100).fill(users).flat() // TODO: Remove this and use the actual number of users
+            const duplicatedUsers = Array(10).fill(users).flat() // TODO: Remove this and use the actual number of users
 
             // Sort users by signal type
             const sortedUsers = [...duplicatedUsers].sort((a, b) => {
@@ -151,6 +151,8 @@ export default function BubbleDisplay({ project }: { project: string }) {
                 containerRef.current?.appendChild(element)
 
                 const body = Matter.Bodies.circle(x, y, circleRadius, {
+                    // restitution: 0.2,
+                    // friction: 0.8,
                     render: {
                         visible: false,
                     },
@@ -171,15 +173,31 @@ export default function BubbleDisplay({ project }: { project: string }) {
             Matter.Runner.run(runner, engine)
 
             // Update element positions based on physics
-            Matter.Events.on(engine, "afterUpdate", () => {
+            let animationFrameId: number
+            const updateElements = () => {
                 bodies.forEach((body) => {
                     const element = (body as BodyWithElement).element
                     if (element) {
-                        element.style.left = `${body.position.x}px`
-                        element.style.top = `${body.position.y}px`
-                        element.style.transform = `translate(-50%, -50%)`
+                        // Only update if velocity is above threshold to prevent jitter
+                        const velocityThreshold = 0.3
+                        const velocity = Math.sqrt(
+                            body.velocity.x * body.velocity.x + body.velocity.y * body.velocity.y,
+                        )
+
+                        if (velocity > velocityThreshold) {
+                            element.style.left = `${body.position.x}px`
+                            element.style.top = `${body.position.y}px`
+                        }
                     }
                 })
+                animationFrameId = requestAnimationFrame(updateElements)
+            }
+
+            Matter.Events.on(engine, "afterUpdate", () => {
+                // Start the animation frame loop
+                if (!animationFrameId) {
+                    updateElements()
+                }
             })
 
             // Disable default gravity
@@ -223,6 +241,10 @@ export default function BubbleDisplay({ project }: { project: string }) {
                 Matter.Render.stop(render)
                 Matter.World.clear(engine.world, false)
                 Matter.Engine.clear(engine)
+                // Cancel any pending animation frames
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId)
+                }
                 // Remove all custom elements
                 bodies.forEach((body) => {
                     const element = (body as BodyWithElement).element
