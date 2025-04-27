@@ -45,7 +45,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
     const debouncedMultiplier = useDebounce(userMultiplier, 500)
     const engineRef = useRef<Matter.Engine | null>(null)
     const renderRef = useRef<Matter.Render | null>(null)
-    const wallRef = useRef<Matter.Body | null>(null)
+
     const [isCanvasLoading, setIsCanvasLoading] = useState(true)
 
     const { users, loading, error } = useGetUsers(project)
@@ -126,6 +126,39 @@ export default function BubbleDisplay({ project }: { project: string }) {
                 boxSize,
             })
 
+            const borderWidth = Math.round(Math.min(Math.max(circleRadius / 5, 1), 8))
+            const spriteWidth = Math.round(circleRadius * 2 - borderWidth * 2)
+
+            const loadSpriteCss = async () => {
+                try {
+                    const spriteUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/sprite/w_${spriteWidth},h_${spriteWidth},c_fit/profile_image`
+                    const cssUrl = `${spriteUrl}.css`
+                    console.log("Loading sprite CSS from:", cssUrl)
+                    const response = await fetch(cssUrl)
+                    if (response.ok) {
+                        const cssText = await response.text()
+                        // Ensure the CSS has the correct protocol
+                        const processedCssText = cssText.replace(/url\('\/\//g, "url('https://")
+                        const style = document.createElement("style")
+                        style.textContent = processedCssText
+                        style.id = "profile-images-sprite"
+                        // Remove any existing sprite styles
+                        const existingStyle = document.getElementById("profile-images-sprite")
+                        if (existingStyle) {
+                            existingStyle.remove()
+                        }
+                        document.head.appendChild(style)
+                        console.log("Sprite CSS loaded successfully")
+                    } else {
+                        console.error("Failed to load sprite CSS:", response.status, response.statusText)
+                    }
+                } catch (error) {
+                    console.error("Failed to load sprite CSS:", error)
+                }
+            }
+
+            await loadSpriteCss()
+
             // Create bodies in concentric rings
             const bodies = sortedUsers.map((user, index) => {
                 let circleIndex = index
@@ -163,15 +196,23 @@ export default function BubbleDisplay({ project }: { project: string }) {
                 element.style.cursor = "pointer"
                 element.style.position = "absolute"
                 element.style.transform = "translate(-50%, -50%)"
-                element.style.border = `${Math.min(Math.max(circleRadius / 5, 1), 8)}px solid`
+                element.style.border = `${borderWidth}px solid`
                 element.style.borderColor = scoreColors[user.signal as SignalType]
 
                 // Add the image
-                const img = document.createElement("img")
-                img.src = user.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE
-                img.style.width = "100%"
-                img.style.height = "100%"
-                img.style.objectFit = "cover"
+                const img = document.createElement("div")
+                if (user.profileImageUrl && user.profileImageUrl != ASSETS.DEFAULT_PROFILE_IMAGE) {
+                    // Extract the public ID from the profile image URL
+                    const publicId = user.profileImageUrl.split("/").pop()?.split(".")[0]
+                    const cssId = `profile-images-${user.id}-${publicId}`
+                    console.log("cssId", cssId)
+                    img.className = cssId
+                } else {
+                    img.style.backgroundImage = `url(${ASSETS.DEFAULT_PROFILE_IMAGE})`
+                    img.style.backgroundSize = "cover"
+                    img.style.width = "100%"
+                    img.style.height = "100%"
+                }
                 element.appendChild(img)
 
                 // Add click handler
@@ -207,7 +248,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
             element.style.height = `${wallRadius * 2 - 10}px`
             element.style.borderRadius = "50%"
             element.style.overflow = "hidden"
-            element.style.cursor = "pointer"
+            element.style.cursor = "default"
             element.style.position = "absolute"
             element.style.transform = "translate(-50%, -50%)"
 
@@ -397,6 +438,13 @@ export default function BubbleDisplay({ project }: { project: string }) {
                     }}
                 />
             </HStack>
+            {/* Add test display of sprite image */}
+            {/* {spriteUrl && (
+                <Box mt={4} textAlign="center">
+                    <Text mb={2}>Sprite Test Display:</Text>
+                    <img src={spriteUrl} alt="Profile images sprite" style={{ maxWidth: "100%", height: "auto" }} />
+                </Box>
+            )} */}
         </Box>
     )
 }

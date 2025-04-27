@@ -143,6 +143,7 @@ export async function GET(request: Request) {
                 const user = (userDetails as unknown as User[])?.find((u) => u.id === score.user_id)
                 if (!user) return null
                 return {
+                    id: user.id,
                     username: user.username,
                     displayName: user.display_name,
                     profileImageUrl: user.profile_image_url,
