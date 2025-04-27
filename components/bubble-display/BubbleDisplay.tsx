@@ -1,12 +1,13 @@
 "use client"
 
-import { HStack, Text, Box, Spinner, useBreakpointValue, useToken } from "@chakra-ui/react"
-import { useState, useEffect, useRef } from "react"
+import { HStack, Text, Box, Spinner, useBreakpointValue, useToken, Slider } from "@chakra-ui/react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { ASSETS } from "../../config/constants"
 import Matter from "matter-js"
 import { calculateRings } from "../../utils/bubble-utils/ringCalculations"
 import { useZoom } from "../../utils/bubble-utils/handleZoom"
+import { useDebounce } from "../../hooks/useDebounce"
 
 interface BodyWithElement extends Matter.Body {
     element: HTMLDivElement
@@ -16,14 +17,15 @@ export default function BubbleDisplay({ project }: { project: string }) {
     const initialZoom = 1
     const physicsDuration = 8000 // TODO: Make this dynamic based on the number of circles
     const boxSize = useBreakpointValue({ base: 300, sm: 600 }) || 600
-    // const borderWidth = useBreakpointValue({ base: 1, sm: 2 }) || 2
     const minSpacing = useBreakpointValue({ base: 15, sm: 25 }) || 25
 
-    const { users, loading, error } = useGetUsers(project)
+    const [userMultiplier, setUserMultiplier] = useState(1)
+    const debouncedMultiplier = useDebounce(userMultiplier, 500)
     const engineRef = useRef<Matter.Engine | null>(null)
     const renderRef = useRef<Matter.Render | null>(null)
     const [isCanvasLoading, setIsCanvasLoading] = useState(true)
 
+    const { users, loading, error } = useGetUsers(project)
     const { zoom, transformOrigin, isZooming, handleWheel, containerRef } = useZoom({
         initialZoom,
         maxZoom: 5,
@@ -40,10 +42,31 @@ export default function BubbleDisplay({ project }: { project: string }) {
         low: useToken("colors", "scoreColor.low")[0],
     }
 
+    const cleanupPhysics = useCallback(() => {
+        if (engineRef.current) {
+            // Clear all bodies from the world
+            Matter.World.clear(engineRef.current.world, false)
+            Matter.Engine.clear(engineRef.current)
+            engineRef.current = null
+        }
+        if (renderRef.current) {
+            Matter.Render.stop(renderRef.current)
+            renderRef.current = null
+        }
+        // Remove all custom elements
+        if (containerRef.current) {
+            const elements = containerRef.current.querySelectorAll('div[style*="position: absolute"]')
+            elements.forEach((element) => element.remove())
+        }
+    }, [containerRef])
+
     useEffect(() => {
         const setupPhysics = async () => {
             if (!containerRef.current || !users || users.length === 0) return
             setIsCanvasLoading(true)
+
+            // Cleanup existing physics and elements
+            cleanupPhysics()
 
             // Create engine
             const engine = Matter.Engine.create()
@@ -66,7 +89,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
             containerRef.current.addEventListener("wheel", handleWheel, { passive: false })
 
             // Create user circles
-            const duplicatedUsers = Array(5).fill(users).flat() // TODO: Remove this and use the actual number of users
+            const duplicatedUsers = Array(debouncedMultiplier).fill(users).flat()
 
             // Sort users by signal type
             const sortedUsers = [...duplicatedUsers].sort((a, b) => {
@@ -118,7 +141,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
                 element.style.cursor = "pointer"
                 element.style.position = "absolute"
                 element.style.transform = "translate(-50%, -50%)"
-                element.style.border = `${Math.min(Math.max(circleRadius / 5, 2), 8)}px solid`
+                element.style.border = `${Math.min(Math.max(circleRadius / 5, 1), 8)}px solid`
                 element.style.borderColor = scoreColors[user.signal as SignalType]
 
                 // Add the image
@@ -155,7 +178,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
             Matter.World.add(engine.world, bodies)
 
             // Add central wall
-            const wallRadius = Math.min(circleRadius, 50)
+            const wallRadius = Math.max(boxSize / 12, 30)
             const wall = Matter.Bodies.circle(boxSize / 2, boxSize / 2, wallRadius, {
                 isStatic: true,
                 render: {
@@ -221,16 +244,6 @@ export default function BubbleDisplay({ project }: { project: string }) {
             engine.gravity.x = 0
             engine.gravity.y = 0
 
-            // Add central anchor point
-            const anchorRadius = 10
-            const anchor = Matter.Bodies.circle(center.x, center.y, anchorRadius, {
-                isStatic: true,
-                render: {
-                    fillStyle: "transparent",
-                },
-            })
-            Matter.World.add(engine.world, anchor)
-
             // Add central gravitational force
             const gravityStrength = 0.0005
 
@@ -255,59 +268,80 @@ export default function BubbleDisplay({ project }: { project: string }) {
             // Cleanup
             return () => {
                 containerRef.current?.removeEventListener("wheel", handleWheel)
-                Matter.Render.stop(render)
-                Matter.World.clear(engine.world, false)
-                Matter.Engine.clear(engine)
-                // Cancel any pending animation frames
-                if (animationFrameId) {
-                    cancelAnimationFrame(animationFrameId)
-                }
-                // Remove all custom elements
-                bodies.forEach((body) => {
-                    const element = (body as BodyWithElement).element
-                    if (element && element.parentNode) {
-                        element.parentNode.removeChild(element)
-                    }
-                })
+                cleanupPhysics()
             }
         }
 
         setupPhysics()
-    }, [users])
+    }, [users, debouncedMultiplier, cleanupPhysics])
 
     if (loading) return <Spinner />
     if (error) return <Text color="red.500">Error loading users</Text>
 
     return (
-        <HStack
-            boxSize={`${boxSize}px`}
-            border={"5px solid"}
-            borderColor="gray.800"
-            borderRadius="100%"
-            overflow="hidden"
-            justifyContent="center"
-            alignItems="center"
-            position="relative"
-        >
-            {isCanvasLoading && <Spinner zIndex={10} position={"absolute"} />}
-            <Box
-                ref={containerRef}
+        <Box>
+            <Slider.Root
+                defaultValue={[1]}
+                min={1}
+                max={200}
+                step={1}
+                value={[userMultiplier]}
+                onValueChange={({ value }) => setUserMultiplier(value[0])}
+                mb={4}
+            >
+                <Slider.Label>User Multiplier</Slider.Label>
+                <Slider.Control>
+                    <Slider.Track>
+                        <Slider.Range />
+                    </Slider.Track>
+                    <Slider.Thumb index={0}>
+                        <Box
+                            position="absolute"
+                            top="-30px"
+                            left="50%"
+                            transform="translateX(-50%)"
+                            bg="blue.500"
+                            color="white"
+                            px={2}
+                            py={1}
+                            borderRadius="md"
+                            fontSize="sm"
+                        >
+                            {userMultiplier}x
+                        </Box>
+                    </Slider.Thumb>
+                </Slider.Control>
+            </Slider.Root>
+            <HStack
                 boxSize={`${boxSize}px`}
-                clipPath={`circle(${boxSize / 2}px at center)`}
-                transformOrigin={transformOrigin}
-                transform={`scale(${zoom})`}
-                transition={isZooming ? "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)" : "none"}
-                css={{
-                    canvas: {
-                        img: {
-                            borderRadius: "50%",
-                            objectFit: "cover",
-                            width: "100%",
-                            height: "100%",
+                border={"5px solid"}
+                borderColor="gray.800"
+                borderRadius="100%"
+                overflow="hidden"
+                justifyContent="center"
+                alignItems="center"
+                position="relative"
+            >
+                {isCanvasLoading && <Spinner zIndex={10} position={"absolute"} />}
+                <Box
+                    ref={containerRef}
+                    boxSize={`${boxSize}px`}
+                    clipPath={`circle(${boxSize / 2}px at center)`}
+                    transformOrigin={transformOrigin}
+                    transform={`scale(${zoom})`}
+                    transition={isZooming ? "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)" : "none"}
+                    css={{
+                        canvas: {
+                            img: {
+                                borderRadius: "50%",
+                                objectFit: "cover",
+                                width: "100%",
+                                height: "100%",
+                            },
                         },
-                    },
-                }}
-            />
-        </HStack>
+                    }}
+                />
+            </HStack>
+        </Box>
     )
 }
