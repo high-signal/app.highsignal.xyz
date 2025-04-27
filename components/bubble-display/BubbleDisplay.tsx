@@ -45,6 +45,7 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
     const debouncedMultiplier = useDebounce(userMultiplier, 500)
     const engineRef = useRef<Matter.Engine | null>(null)
     const renderRef = useRef<Matter.Render | null>(null)
+    const [spriteCssText, setSpriteCssText] = useState("")
 
     const [isCanvasLoading, setIsCanvasLoading] = useState(true)
 
@@ -139,6 +140,8 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                     const response = await fetch(cssUrl)
                     if (response.ok) {
                         const cssText = await response.text()
+
+                        setSpriteCssText(cssText)
                         // Ensure the CSS has the correct protocol
                         const processedCssText = cssText.replace(/url\('\/\//g, "url('https://")
                         const style = document.createElement("style")
@@ -207,24 +210,34 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                     // Extract the public ID from the profile image URL
                     const publicId = user.profileImageUrl.split("/").pop()?.split(".")[0]
                     const cssId = `profile-images-${user.id}-${publicId}`
-                    console.log("cssId", cssId)
 
-                    // Create a wrapper div for scaling
-                    const wrapper = document.createElement("div")
-                    wrapper.style.width = `${spriteWidth}px`
-                    wrapper.style.height = `${spriteWidth}px`
-                    wrapper.style.overflow = "hidden"
-                    wrapper.style.position = "relative"
+                    // Check if the classId exists in the css on the document
+                    if (!spriteCssText.includes(cssId)) {
+                        // TODO: Refactor this duplicated code (PART 1)
+                        img.style.backgroundImage = `url(${ASSETS.DEFAULT_PROFILE_IMAGE})`
+                        img.style.backgroundSize = "cover"
+                        img.style.width = "100%"
+                        img.style.height = "100%"
+                        element.appendChild(img)
+                    } else {
+                        // Create a wrapper div for scaling
+                        const wrapper = document.createElement("div")
+                        wrapper.style.width = `${spriteWidth}px`
+                        wrapper.style.height = `${spriteWidth}px`
+                        wrapper.style.overflow = "hidden"
+                        wrapper.style.position = "relative"
 
-                    // Set up the sprite image
-                    img.className = cssId
-                    img.style.position = "absolute"
-                    img.style.transform = `scale(${spriteWidth / profileImageWidth})`
-                    img.style.transformOrigin = "0 0"
+                        // Set up the sprite image
+                        img.className = cssId
+                        img.style.position = "absolute"
+                        img.style.transform = `scale(${spriteWidth / profileImageWidth})`
+                        img.style.transformOrigin = "0 0"
 
-                    wrapper.appendChild(img)
-                    element.appendChild(wrapper)
+                        wrapper.appendChild(img)
+                        element.appendChild(wrapper)
+                    }
                 } else {
+                    // TODO: Refactor this duplicated code (PART 2)
                     img.style.backgroundImage = `url(${ASSETS.DEFAULT_PROFILE_IMAGE})`
                     img.style.backgroundSize = "cover"
                     img.style.width = "100%"
