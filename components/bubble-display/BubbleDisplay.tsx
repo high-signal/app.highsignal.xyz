@@ -9,6 +9,27 @@ import { calculateRings } from "../../utils/bubble-utils/ringCalculations"
 import { useZoom } from "../../utils/bubble-utils/handleZoom"
 import { useDebounce } from "../../hooks/useDebounce"
 
+function useWindowSize() {
+    const [windowSize, setWindowSize] = useState({
+        width: typeof window !== "undefined" ? window.innerWidth : 600,
+        height: typeof window !== "undefined" ? window.innerHeight : 600,
+    })
+
+    useEffect(() => {
+        function handleResize() {
+            setWindowSize({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            })
+        }
+
+        window.addEventListener("resize", handleResize)
+        return () => window.removeEventListener("resize", handleResize)
+    }, [])
+
+    return windowSize
+}
+
 interface BodyWithElement extends Matter.Body {
     element: HTMLDivElement
 }
@@ -16,13 +37,15 @@ interface BodyWithElement extends Matter.Body {
 export default function BubbleDisplay({ project }: { project: string }) {
     const initialZoom = 1
     const physicsDuration = 8000 // TODO: Make this dynamic based on the number of circles
-    const boxSize = useBreakpointValue({ base: 300, sm: 600 }) || 600
+    const { width: windowWidth } = useWindowSize()
+    const boxSize = Math.min(windowWidth - 40, 600)
     const minSpacing = useBreakpointValue({ base: 15, sm: 25 }) || 25
 
     const [userMultiplier, setUserMultiplier] = useState(1)
     const debouncedMultiplier = useDebounce(userMultiplier, 500)
     const engineRef = useRef<Matter.Engine | null>(null)
     const renderRef = useRef<Matter.Render | null>(null)
+    const wallRef = useRef<Matter.Body | null>(null)
     const [isCanvasLoading, setIsCanvasLoading] = useState(true)
 
     const { users, loading, error } = useGetUsers(project)
@@ -44,7 +67,6 @@ export default function BubbleDisplay({ project }: { project: string }) {
 
     const cleanupPhysics = useCallback(() => {
         if (engineRef.current) {
-            // Clear all bodies from the world
             Matter.World.clear(engineRef.current.world, false)
             Matter.Engine.clear(engineRef.current)
             engineRef.current = null
@@ -177,14 +199,41 @@ export default function BubbleDisplay({ project }: { project: string }) {
             // Add all bodies to the world
             Matter.World.add(engine.world, bodies)
 
+            const wallRadius = Math.max(boxSize / 12, 50)
+
+            // Create a custom HTML element for the wall
+            const element = document.createElement("div")
+            element.style.width = `${wallRadius * 2}px`
+            element.style.height = `${wallRadius * 2}px`
+            element.style.borderRadius = "50%"
+            element.style.overflow = "hidden"
+            element.style.cursor = "pointer"
+            element.style.position = "absolute"
+            element.style.transform = "translate(-50%, -50%)"
+
+            // Add the image
+            const img = document.createElement("img")
+            img.src = ASSETS.LOGO
+            img.style.width = "100%"
+            img.style.height = "100%"
+            img.style.objectFit = "cover"
+            element.appendChild(img)
+
+            // Add the element to the scene
+            containerRef.current?.appendChild(element)
+
             // Add central wall
-            const wallRadius = Math.max(boxSize / 12, 30)
-            const wall = Matter.Bodies.circle(boxSize / 2, boxSize / 2, wallRadius, {
+
+            console.log("wallRadius", wallRadius)
+            const wall = Matter.Bodies.circle(center.x, center.y, wallRadius, {
                 isStatic: true,
                 render: {
-                    visible: true,
+                    visible: false,
                 },
-            })
+            }) as BodyWithElement
+
+            // Store reference to the element
+            wall.element = element
 
             // Add wall to the world
             Matter.World.add(engine.world, wall)
@@ -215,6 +264,12 @@ export default function BubbleDisplay({ project }: { project: string }) {
             // Update element positions based on physics
             let animationFrameId: number
             const updateElements = () => {
+                // Update wall position
+                if (wall.element) {
+                    wall.element.style.left = `${wall.position.x}px`
+                    wall.element.style.top = `${wall.position.y}px`
+                }
+
                 bodies.forEach((body) => {
                     const element = (body as BodyWithElement).element
                     if (element) {
@@ -273,7 +328,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
         }
 
         setupPhysics()
-    }, [users, debouncedMultiplier, cleanupPhysics])
+    }, [users, debouncedMultiplier, cleanupPhysics, boxSize])
 
     if (loading) return <Spinner />
     if (error) return <Text color="red.500">Error loading users</Text>
