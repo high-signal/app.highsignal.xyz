@@ -43,7 +43,7 @@ export default function TestingContainer() {
                     </HStack>
                 )}
             </VStack>
-            <BubbleDisplay project={"lido"} />
+            {currentProject && <BubbleDisplay project={currentProject} isSlider={true} />}
         </VStack>
     )
 }

@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "File and targetId are required" }, { status: 400 })
         }
 
-        const { imageUrl } = await uploadImage(file, `profile-images/${targetId}`)
+        const { imageUrl } = await uploadImage(file, `profile-images/${targetId}`, "profile_image")
 
         // Update the database with new image URL
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)

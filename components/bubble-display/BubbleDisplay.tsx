@@ -3,7 +3,7 @@
 import { HStack, Text, Box, Spinner, useBreakpointValue, useToken, Slider } from "@chakra-ui/react"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useGetUsers } from "../../hooks/useGetUsers"
-import { ASSETS } from "../../config/constants"
+import { ASSETS, APP_CONFIG } from "../../config/constants"
 import Matter from "matter-js"
 import { calculateRings } from "../../utils/bubble-utils/ringCalculations"
 import { useZoom } from "../../utils/bubble-utils/handleZoom"
@@ -34,7 +34,7 @@ interface BodyWithElement extends Matter.Body {
     element: HTMLDivElement
 }
 
-export default function BubbleDisplay({ project }: { project: string }) {
+export default function BubbleDisplay({ project, isSlider = false }: { project: ProjectData; isSlider: boolean }) {
     const initialZoom = 1
     const physicsDuration = 8000 // TODO: Make this dynamic based on the number of circles
     const { width: windowWidth } = useWindowSize()
@@ -48,7 +48,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
 
     const [isCanvasLoading, setIsCanvasLoading] = useState(true)
 
-    const { users, loading, error } = useGetUsers(project)
+    const { users, loading, error } = useGetUsers(project.projectSlug)
     const { zoom, transformOrigin, isZooming, handleWheel, containerRef } = useZoom({
         initialZoom,
         maxZoom: 5,
@@ -127,12 +127,13 @@ export default function BubbleDisplay({ project }: { project: string }) {
             })
 
             const borderWidth = Math.round(Math.min(Math.max(circleRadius / 5, 1), 8))
-            const profileImageWidth = 300
+            const profileImageWidth = APP_CONFIG.IMAGE_UPLOAD_WIDTH
             const spriteWidth = Math.round(circleRadius * 2 - borderWidth * 2)
 
             const loadSpriteCss = async () => {
                 try {
                     const spriteUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/sprite/w_${profileImageWidth},h_${profileImageWidth},c_fit/profile_image`
+
                     const cssUrl = `${spriteUrl}.css`
                     console.log("Loading sprite CSS from:", cssUrl)
                     const response = await fetch(cssUrl)
@@ -256,7 +257,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
             // Add all bodies to the world
             Matter.World.add(engine.world, bodies)
 
-            const wallRadius = Math.max(boxSize / 12, 50)
+            const wallRadius = Math.round(Math.max(boxSize / 12, 50))
 
             // Create a custom HTML element for the wall
             const element = document.createElement("div")
@@ -270,7 +271,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
 
             // Add the image
             const img = document.createElement("img")
-            img.src = ASSETS.LOGO
+            img.src = project.imageUrl
             img.style.width = "100%"
             img.style.height = "100%"
             img.style.objectFit = "cover"
@@ -280,8 +281,6 @@ export default function BubbleDisplay({ project }: { project: string }) {
             containerRef.current?.appendChild(element)
 
             // Add central wall
-
-            console.log("wallRadius", wallRadius)
             const wall = Matter.Bodies.circle(center.x, center.y, wallRadius, {
                 isStatic: true,
                 render: {
@@ -392,38 +391,43 @@ export default function BubbleDisplay({ project }: { project: string }) {
 
     return (
         <Box>
-            <Slider.Root
-                defaultValue={[1]}
-                min={1}
-                max={200}
-                step={1}
-                value={[userMultiplier]}
-                onValueChange={({ value }) => setUserMultiplier(value[0])}
-                mb={4}
-            >
-                <Slider.Label>User Multiplier</Slider.Label>
-                <Slider.Control>
-                    <Slider.Track>
-                        <Slider.Range />
-                    </Slider.Track>
-                    <Slider.Thumb index={0}>
-                        <Box
-                            position="absolute"
-                            top="-30px"
-                            left="50%"
-                            transform="translateX(-50%)"
-                            bg="blue.500"
-                            color="white"
-                            px={2}
-                            py={1}
-                            borderRadius="md"
-                            fontSize="sm"
-                        >
-                            {userMultiplier}x
-                        </Box>
-                    </Slider.Thumb>
-                </Slider.Control>
-            </Slider.Root>
+            {isSlider && (
+                <>
+                    <Box h={"20px"} />
+                    <Slider.Root
+                        defaultValue={[1]}
+                        min={1}
+                        max={200}
+                        step={1}
+                        value={[userMultiplier]}
+                        onValueChange={({ value }) => setUserMultiplier(value[0])}
+                    >
+                        <Slider.Control>
+                            <Slider.Track cursor="pointer">
+                                <Slider.Range />
+                            </Slider.Track>
+                            <Slider.Thumb index={0} cursor="pointer">
+                                <Box
+                                    position="absolute"
+                                    top="-30px"
+                                    left="50%"
+                                    transform="translateX(-50%)"
+                                    bg="blue.500"
+                                    color="white"
+                                    px={2}
+                                    py={1}
+                                    borderRadius="md"
+                                    fontSize="sm"
+                                    cursor="default"
+                                >
+                                    {userMultiplier}x
+                                </Box>
+                            </Slider.Thumb>
+                        </Slider.Control>
+                        <Slider.Label>User Multiplier</Slider.Label>
+                    </Slider.Root>
+                </>
+            )}
             <HStack
                 boxSize={`${boxSize}px`}
                 border={"5px solid"}
@@ -454,13 +458,6 @@ export default function BubbleDisplay({ project }: { project: string }) {
                     }}
                 />
             </HStack>
-            {/* Add test display of sprite image */}
-            {/* {spriteUrl && (
-                <Box mt={4} textAlign="center">
-                    <Text mb={2}>Sprite Test Display:</Text>
-                    <img src={spriteUrl} alt="Profile images sprite" style={{ maxWidth: "100%", height: "auto" }} />
-                </Box>
-            )} */}
         </Box>
     )
 }

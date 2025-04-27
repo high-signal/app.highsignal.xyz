@@ -106,7 +106,7 @@ export const customConfig = createSystem(defaultConfig, {
                         value: { _light: "{colors.orange.500}", _dark: "{colors.orange.500}" },
                     },
                     mid: {
-                        value: { _light: "{colors.blue.400}", _dark: "{colors.blue.400}" },
+                        value: { _light: "{colors.blue.400}", _dark: "{colors.blue.800}" },
                     },
                     low: {
                         value: { _light: "{colors.gray.400}", _dark: "{colors.gray.400}" },

@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary"
 import sharp from "sharp"
+import { APP_CONFIG } from "../config/constants"
 
 interface CloudinaryResponse {
     secure_url: string
@@ -17,7 +18,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-export async function uploadImage(file: File, folderPath: string): Promise<{ imageUrl: string }> {
+export async function uploadImage(file: File, folderPath: string, tag?: string): Promise<{ imageUrl: string }> {
     try {
         // Validate file type
         if (!file.type.match(/^image\/(jpeg|png|)$/)) {
@@ -34,7 +35,7 @@ export async function uploadImage(file: File, folderPath: string): Promise<{ ima
 
         // Process image with sharp
         const processedBuffer = await sharp(buffer)
-            .resize(300, 300, { fit: "cover", position: "center" })
+            .resize(APP_CONFIG.IMAGE_UPLOAD_WIDTH, APP_CONFIG.IMAGE_UPLOAD_WIDTH, { fit: "cover", position: "center" })
             .toFormat("webp", { quality: 80 })
             .toBuffer()
 
@@ -46,6 +47,8 @@ export async function uploadImage(file: File, folderPath: string): Promise<{ ima
                     resource_type: "image",
                     format: "webp",
                     transformation: [{ width: 300, height: 300, crop: "fill" }, { quality: "auto" }],
+                    tags: tag ? [tag] : undefined,
+                    invalidate: tag ? true : false,
                 },
                 (error: Error | undefined, result: CloudinaryResponse | undefined) => {
                     if (error) reject(error)
