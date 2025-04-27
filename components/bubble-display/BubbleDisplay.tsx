@@ -6,6 +6,7 @@ import { useGetUsers } from "../../hooks/useGetUsers"
 import { ASSETS } from "../../config/constants"
 import Matter from "matter-js"
 import { calculateRings } from "../../utils/bubble-utils/ringCalculations"
+import { useZoom } from "../../utils/bubble-utils/handleZoom"
 
 interface BodyWithElement extends Matter.Body {
     element: HTMLDivElement
@@ -19,13 +20,15 @@ export default function BubbleDisplay({ project }: { project: string }) {
     const minSpacing = useBreakpointValue({ base: 15, sm: 25 }) || 25
 
     const { users, loading, error } = useGetUsers(project)
-    const sceneRef = useRef<HTMLDivElement>(null)
     const engineRef = useRef<Matter.Engine | null>(null)
     const renderRef = useRef<Matter.Render | null>(null)
-    const [zoom, setZoom] = useState(initialZoom)
-    const [transformOrigin, setTransformOrigin] = useState("center")
-    const [isZooming, setIsZooming] = useState(false)
     const [isCanvasLoading, setIsCanvasLoading] = useState(true)
+
+    const { zoom, transformOrigin, isZooming, handleWheel, containerRef } = useZoom({
+        initialZoom,
+        maxZoom: 5,
+        zoomStep: 0.2,
+    })
 
     type SignalType = "high" | "mid" | "low"
     type ScoreColors = Record<SignalType, string>
@@ -37,22 +40,9 @@ export default function BubbleDisplay({ project }: { project: string }) {
         low: useToken("colors", "scoreColor.low")[0],
     }
 
-    // Use ref to store the zoom value so it can be used in the wheel event handler
-    // inside the useEffect hook without causing a re-render
-    const zoomRef = useRef(zoom)
-    useEffect(() => {
-        zoomRef.current = zoom
-    }, [zoom])
-
-    // TODO: Update zoom when screen width changes
-    // useEffect(() => {
-    //     setZoom(initialZoom)
-    //     zoomRef.current = initialZoom
-    // }, [])
-
     useEffect(() => {
         const setupPhysics = async () => {
-            if (!sceneRef.current || !users || users.length === 0) return
+            if (!containerRef.current || !users || users.length === 0) return
             setIsCanvasLoading(true)
 
             // Create engine
@@ -61,7 +51,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
 
             // Create renderer
             const render = Matter.Render.create({
-                element: sceneRef.current,
+                element: containerRef.current,
                 engine: engine,
                 options: {
                     width: boxSize,
@@ -85,51 +75,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
             Matter.World.add(engine.world, wall)
 
             // Add mouse wheel event listener for zooming
-            const handleWheel = (event: WheelEvent) => {
-                event.preventDefault()
-                const currentZoom = zoomRef.current
-
-                const delta = event.deltaY
-
-                if (delta < 0) {
-                    // Get mouse position relative to the container
-                    const rect = sceneRef.current!.getBoundingClientRect()
-                    const x = event.clientX - rect.left
-                    const y = event.clientY - rect.top
-
-                    // Calculate percentage position
-                    const xPercent = (x / rect.width) * 100
-                    const yPercent = (y / rect.height) * 100
-
-                    // Set transform origin to mouse position
-                    setTransformOrigin(`${xPercent}% ${yPercent}%`)
-                }
-
-                const zoomStep = 0.2
-                const maxZoom = 5
-
-                let newZoom = currentZoom
-                if (delta > 0) {
-                    newZoom = currentZoom - zoomStep
-                } else {
-                    newZoom = currentZoom + zoomStep
-                }
-                if (newZoom <= initialZoom) {
-                    // Reset transform origin to center when fully zoomed out
-                    setTransformOrigin("center")
-                    setZoom(initialZoom)
-                } else if (newZoom >= maxZoom) {
-                    setZoom(maxZoom)
-                } else {
-                    setZoom(Number(newZoom.toFixed(3)))
-                }
-
-                setIsZooming(true)
-                // Reset zooming state after animation
-                setTimeout(() => setIsZooming(false), 500)
-            }
-
-            sceneRef.current.addEventListener("wheel", handleWheel, { passive: false })
+            containerRef.current.addEventListener("wheel", handleWheel, { passive: false })
 
             // Create user circles
             const duplicatedUsers = Array(100).fill(users).flat() // TODO: Remove this and use the actual number of users
@@ -202,7 +148,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
                 })
 
                 // Add the element to the scene
-                sceneRef.current?.appendChild(element)
+                containerRef.current?.appendChild(element)
 
                 const body = Matter.Bodies.circle(x, y, circleRadius, {
                     render: {
@@ -273,7 +219,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
 
             // Cleanup
             return () => {
-                sceneRef.current?.removeEventListener("wheel", handleWheel)
+                containerRef.current?.removeEventListener("wheel", handleWheel)
                 Matter.Render.stop(render)
                 Matter.World.clear(engine.world, false)
                 Matter.Engine.clear(engine)
@@ -306,7 +252,7 @@ export default function BubbleDisplay({ project }: { project: string }) {
         >
             {isCanvasLoading && <Spinner zIndex={10} position={"absolute"} />}
             <Box
-                ref={sceneRef}
+                ref={containerRef}
                 boxSize={`${boxSize}px`}
                 clipPath={`circle(${boxSize / 2}px at center)`}
                 transformOrigin={transformOrigin}
