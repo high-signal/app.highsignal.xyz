@@ -203,8 +203,8 @@ export default function BubbleDisplay({ project }: { project: string }) {
 
             // Create a custom HTML element for the wall
             const element = document.createElement("div")
-            element.style.width = `${wallRadius * 2}px`
-            element.style.height = `${wallRadius * 2}px`
+            element.style.width = `${wallRadius * 2 - 10}px`
+            element.style.height = `${wallRadius * 2 - 10}px`
             element.style.borderRadius = "50%"
             element.style.overflow = "hidden"
             element.style.cursor = "pointer"
