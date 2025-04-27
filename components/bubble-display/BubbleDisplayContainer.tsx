@@ -2,7 +2,7 @@
 
 import { VStack, Text, HStack, Image, Skeleton } from "@chakra-ui/react"
 import { useGetProjects } from "../../hooks/useGetProjects"
-import BubblePhysicsDisplay from "../leaderboard/BubblePhysicsDisplay"
+import BubbleDisplay from "./BubbleDisplay"
 
 export default function TestingContainer() {
     const { projects, loading, error } = useGetProjects("lido")
@@ -42,9 +42,8 @@ export default function TestingContainer() {
                         )}
                     </HStack>
                 )}
-                <Text>Signal Leaderboard</Text>
             </VStack>
-            <BubblePhysicsDisplay project={"lido"} />
+            <BubbleDisplay project={"lido"} />
         </VStack>
     )
 }

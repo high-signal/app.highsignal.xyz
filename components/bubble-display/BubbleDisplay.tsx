@@ -5,17 +5,19 @@ import { useState, useEffect, useRef } from "react"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { ASSETS } from "../../config/constants"
 import Matter from "matter-js"
+import { calculateRings } from "../../utils/bubble-utils/ringCalculations"
 
 interface BodyWithElement extends Matter.Body {
     element: HTMLDivElement
 }
 
-export default function BubblePhysicsDisplay({ project }: { project: string }) {
+export default function BubbleDisplay({ project }: { project: string }) {
     const boxSize = useBreakpointValue({ base: 300, sm: 600 }) || 600
     const initialZoom = 1
     const borderWidth = useBreakpointValue({ base: 1, sm: 2 }) || 2
     const circleRadius = useBreakpointValue({ base: 5, sm: 10 }) || 10
     const minSpacing = useBreakpointValue({ base: 15, sm: 25 }) || 25
+
     const { users, loading, error } = useGetUsers(project)
     const sceneRef = useRef<HTMLDivElement>(null)
     const engineRef = useRef<Matter.Engine | null>(null)
@@ -139,56 +141,12 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
             })
 
             // Calculate optimal ring arrangement
-            const bodyRadius = circleRadius // Use the responsive circleRadius from component level
-            const center = { x: boxSize / 2, y: boxSize / 2 }
-            const innerRadius = boxSize / 2 + bodyRadius * 3 // Start from center
-            const maxRadius = (boxSize / 2) * 1.8 // Allow expansion outward
-
-            // Group users by signal type
-            const highSignalUsers = sortedUsers.filter((user) => user.signal === "high")
-            const midSignalUsers = sortedUsers.filter((user) => user.signal === "mid")
-            const lowSignalUsers = sortedUsers.filter((user) => user.signal === "low")
-
-            // Calculate rings for each signal type with better spacing
-            const calculateRings = (users: typeof sortedUsers, startRadius: number, endRadius: number) => {
-                let remainingCircles = users.length
-                let currentRadius = startRadius
-                const rings: { radius: number; count: number }[] = []
-
-                // Calculate total available space for this signal type
-                const totalSpace = endRadius - startRadius
-                const maxRings = Math.floor(totalSpace / (bodyRadius * 2 + minSpacing))
-
-                // Calculate how many circles should be in each ring
-                const circlesPerRing = Math.ceil(users.length / maxRings)
-
-                while (remainingCircles > 0 && currentRadius <= endRadius) {
-                    const circlesToAdd = Math.min(circlesPerRing, remainingCircles)
-                    if (circlesToAdd > 0) {
-                        rings.push({ radius: currentRadius, count: circlesToAdd })
-                        remainingCircles -= circlesToAdd
-                    }
-                    currentRadius += bodyRadius * 2 + minSpacing
-                }
-
-                return rings
-            }
-
-            // Calculate target radii for each signal type
-            const highEndRadius = innerRadius + (maxRadius - innerRadius) * 0.33
-            const midEndRadius = innerRadius + (maxRadius - innerRadius) * 0.66
-
-            // Calculate rings for each signal type
-            const highSignalRings = calculateRings(highSignalUsers, innerRadius, highEndRadius)
-            const midSignalRings = calculateRings(
-                midSignalUsers,
-                highEndRadius + bodyRadius * 2 + minSpacing,
-                midEndRadius,
-            )
-            const lowSignalRings = calculateRings(lowSignalUsers, midEndRadius + bodyRadius * 2 + minSpacing, maxRadius)
-
-            // Combine all rings
-            const allRings = [...highSignalRings, ...midSignalRings, ...lowSignalRings]
+            const { allRings, center, innerRadius, maxRadius } = calculateRings({
+                users: sortedUsers,
+                bodyRadius: circleRadius,
+                minSpacing,
+                boxSize,
+            })
 
             // Create bodies in concentric rings
             const bodies = sortedUsers.map((user, index) => {
@@ -220,8 +178,8 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
 
                 // Create a custom HTML element for the circle
                 const element = document.createElement("div")
-                element.style.width = `${bodyRadius * 2 - 2}px`
-                element.style.height = `${bodyRadius * 2 - 2}px`
+                element.style.width = `${circleRadius * 2 - 2}px`
+                element.style.height = `${circleRadius * 2 - 2}px`
                 element.style.borderRadius = "50%"
                 element.style.overflow = "hidden"
                 element.style.cursor = "pointer"
@@ -246,9 +204,7 @@ export default function BubblePhysicsDisplay({ project }: { project: string }) {
                 // Add the element to the scene
                 sceneRef.current?.appendChild(element)
 
-                const body = Matter.Bodies.circle(x, y, bodyRadius, {
-                    // restitution: 0.3,
-                    // friction: 1,
+                const body = Matter.Bodies.circle(x, y, circleRadius, {
                     render: {
                         visible: false,
                     },
