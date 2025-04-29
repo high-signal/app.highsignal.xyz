@@ -56,6 +56,8 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
         zoomStep: 0.2,
     })
 
+    const profileImageWidth = APP_CONFIG.IMAGE_UPLOAD_WIDTH
+
     type SignalType = "high" | "mid" | "low"
     type ScoreColors = Record<SignalType, string>
 
@@ -82,6 +84,41 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
             elements.forEach((element) => element.remove())
         }
     }, [containerRef])
+
+    useEffect(() => {
+        const loadSpriteCss = async () => {
+            try {
+                const spriteUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/sprite/w_${profileImageWidth},h_${profileImageWidth},c_fit/profile_image`
+
+                const cssUrl = `${spriteUrl}.css`
+                console.log("Loading sprite CSS from:", cssUrl)
+                const response = await fetch(cssUrl)
+                if (response.ok) {
+                    const cssText = await response.text()
+
+                    setSpriteCssText(cssText)
+                    // Ensure the CSS has the correct protocol
+                    const processedCssText = cssText.replace(/url\('\/\//g, "url('https://")
+                    const style = document.createElement("style")
+                    style.textContent = processedCssText
+                    style.id = "profile-images-sprite"
+                    // Remove any existing sprite styles
+                    const existingStyle = document.getElementById("profile-images-sprite")
+                    if (existingStyle) {
+                        existingStyle.remove()
+                    }
+                    document.head.appendChild(style)
+                    console.log("Sprite CSS loaded successfully")
+                } else {
+                    console.error("Failed to load sprite CSS:", response.status, response.statusText)
+                }
+            } catch (error) {
+                console.error("Failed to load sprite CSS:", error)
+            }
+        }
+
+        loadSpriteCss()
+    }, [])
 
     useEffect(() => {
         const setupPhysics = async () => {
@@ -128,41 +165,7 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
             })
 
             const borderWidth = Math.round(Math.min(Math.max(circleRadius / 5, 1), 8))
-            const profileImageWidth = APP_CONFIG.IMAGE_UPLOAD_WIDTH
             const spriteWidth = Math.round(circleRadius * 2 - borderWidth * 2)
-
-            const loadSpriteCss = async () => {
-                try {
-                    const spriteUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/sprite/w_${profileImageWidth},h_${profileImageWidth},c_fit/profile_image`
-
-                    const cssUrl = `${spriteUrl}.css`
-                    console.log("Loading sprite CSS from:", cssUrl)
-                    const response = await fetch(cssUrl)
-                    if (response.ok) {
-                        const cssText = await response.text()
-
-                        setSpriteCssText(cssText)
-                        // Ensure the CSS has the correct protocol
-                        const processedCssText = cssText.replace(/url\('\/\//g, "url('https://")
-                        const style = document.createElement("style")
-                        style.textContent = processedCssText
-                        style.id = "profile-images-sprite"
-                        // Remove any existing sprite styles
-                        const existingStyle = document.getElementById("profile-images-sprite")
-                        if (existingStyle) {
-                            existingStyle.remove()
-                        }
-                        document.head.appendChild(style)
-                        console.log("Sprite CSS loaded successfully")
-                    } else {
-                        console.error("Failed to load sprite CSS:", response.status, response.statusText)
-                    }
-                } catch (error) {
-                    console.error("Failed to load sprite CSS:", error)
-                }
-            }
-
-            await loadSpriteCss()
 
             // Create bodies in concentric rings
             const bodies = sortedUsers.map((user, index) => {
