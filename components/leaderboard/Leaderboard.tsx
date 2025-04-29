@@ -8,9 +8,6 @@ import { useState, useEffect } from "react"
 
 import { useGetUsers } from "../../hooks/useGetUsers"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCircleXmark } from "@fortawesome/free-solid-svg-icons"
-
 import { ASSETS } from "../../config/constants"
 
 import SingleLineTextInput from "../ui/SingleLineTextInput"
@@ -43,7 +40,7 @@ const TableHeader = ({
     </Table.ColumnHeader>
 )
 
-export default function Leaderboard({ project }: { project: string }) {
+export default function Leaderboard({ project }: { project: ProjectData }) {
     const router = useRouter()
     const searchParams = useSearchParams()
     const initialSearchTerm = searchParams.get("search") || ""
@@ -52,7 +49,11 @@ export default function Leaderboard({ project }: { project: string }) {
     const [isSearching, setIsSearching] = useState(false)
 
     // Use the fuzzy search when there is a search term
-    const { users, loading, error } = useGetUsers(project, debouncedSearchTerm, debouncedSearchTerm.length > 0)
+    const { users, loading, error } = useGetUsers(
+        project.projectSlug,
+        debouncedSearchTerm,
+        debouncedSearchTerm.length > 0,
+    )
 
     // Debounce the search term to avoid too many API calls
     useEffect(() => {
@@ -133,7 +134,7 @@ export default function Leaderboard({ project }: { project: string }) {
                         <TableHeader
                             textAlign="center"
                             maxW={peakSignalsColumnWidth}
-                            display={{ base: "none", sm: "table-cell" }}
+                            display={{ base: "none", sm: project.peakSignalsEnabled ? "table-cell" : "none" }}
                         >
                             Peak Signals
                         </TableHeader>
@@ -170,7 +171,7 @@ export default function Leaderboard({ project }: { project: string }) {
                                 _active={{ bg: "gray.700" }}
                                 transition="all 0.1s ease"
                                 onClick={() => {
-                                    router.push(`/p/${project}/${user.username}${window.location.search}`)
+                                    router.push(`/p/${project.projectSlug}/${user.username}${window.location.search}`)
                                 }}
                                 borderBottom="1px solid"
                                 borderColor="gray.500"
@@ -231,7 +232,7 @@ export default function Leaderboard({ project }: { project: string }) {
                                     borderBottom="none"
                                     py={0}
                                     maxW={peakSignalsColumnWidth}
-                                    display={{ base: "none", sm: "table-cell" }}
+                                    display={{ base: "none", sm: project.peakSignalsEnabled ? "table-cell" : "none" }}
                                 >
                                     <HStack justify="center" gap={2}>
                                         {[...(user.peakSignals || [])]

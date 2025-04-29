@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, Text, HStack, Image, Skeleton } from "@chakra-ui/react"
+import { VStack, Text, HStack, Image, Skeleton, Spinner } from "@chakra-ui/react"
 import Leaderboard from "./Leaderboard"
 import { useGetProjects } from "../../hooks/useGetProjects"
 
@@ -44,7 +44,7 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                 )}
                 <Text>Signal Leaderboard</Text>
             </VStack>
-            <Leaderboard project={project} />
+            {loading ? <Spinner /> : currentProject && <Leaderboard project={currentProject} />}
         </VStack>
     )
 }
