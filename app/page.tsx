@@ -11,12 +11,14 @@ export default async function Page({ searchParams }: PageProps) {
     const earlyAccessCode = params.earlyAccessCode
 
     return (
-        <ContentContainer>
+        <>
             {process.env.NODE_ENV === "development" || earlyAccessCode === "higher" ? (
-                <LeaderboardContainer project="lido" />
+                <ContentContainer>
+                    <LeaderboardContainer project="lido" />
+                </ContentContainer>
             ) : (
                 <EarlyAccessInput />
             )}
-        </ContentContainer>
+        </>
     )
 }

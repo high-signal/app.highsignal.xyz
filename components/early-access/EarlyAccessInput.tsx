@@ -29,25 +29,27 @@ export default function EarlyAccessInput() {
     }
 
     return (
-        <VStack gap={6} w="90%" maxW="400px" p={6} mt={5}>
-            <form onSubmit={handleSubmit} style={{ width: "100%" }}>
-                <VStack gap={4}>
-                    <Input
-                        placeholder="Enter access code"
-                        value={code}
-                        onChange={(e) => setCode(e.target.value.toLowerCase())}
-                        onKeyDown={handleKeyDown}
-                        size="lg"
-                        bg="gray.700"
-                        border="none"
-                        _focus={{ bg: "gray.700" }}
-                    />
-                    <Button size="lg" w="100%" type="submit">
-                        Submit
-                    </Button>
-                    {error && <Text color="red.400">{error}</Text>}
-                </VStack>
-            </form>
+        <VStack w="100%" pt={50} justifyContent="center" alignItems="center">
+            <VStack gap={6} w="90%" maxW="400px" p={6} mt={5}>
+                <form onSubmit={handleSubmit} style={{ width: "100%" }}>
+                    <VStack gap={4}>
+                        <Input
+                            placeholder="Enter access code"
+                            value={code}
+                            onChange={(e) => setCode(e.target.value.toLowerCase())}
+                            onKeyDown={handleKeyDown}
+                            size="lg"
+                            bg="gray.700"
+                            border="none"
+                            _focus={{ bg: "gray.700" }}
+                        />
+                        <Button size="lg" w="100%" type="submit">
+                            Submit
+                        </Button>
+                        {error && <Text color="red.400">{error}</Text>}
+                    </VStack>
+                </form>
+            </VStack>
         </VStack>
     )
 }
