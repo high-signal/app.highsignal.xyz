@@ -41,6 +41,10 @@ export async function GET(request: Request) {
     const username = searchParams.get("user")
     const fuzzy = searchParams.get("fuzzy") === "true"
 
+    // TODO: Add these filters to the query
+    const signalStrengthName = searchParams.get("signalStrengthName")
+    const signalStrengthScores = searchParams.get("signalStrengthScores")
+
     // Pagination
     const page = parseInt(searchParams.get("page") || "1")
     const resultsPerPage = 10

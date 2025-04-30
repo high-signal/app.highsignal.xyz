@@ -1,13 +1,28 @@
-import { HStack, Text, Switch, VStack, Box, Textarea, NativeSelect, Button } from "@chakra-ui/react"
+import { HStack, Text, Switch, VStack, Box, Textarea, Button, Image, Spinner } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
+import { useGetUsers } from "../../hooks/useGetUsers"
 
 import SignalStrength from "../signal-display/signal-strength/SignalStrength"
+import { ASSETS } from "../../config/constants"
 
 export default function SignalStrengthSettings({ signalStrength }: { signalStrength: SignalStrengthProjectData }) {
     const [isOpen, setIsOpen] = useState(false)
+    const [selectedUser, setSelectedUser] = useState<string>("")
+    const [searchTerm, setSearchTerm] = useState<string>("")
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
+    const [isFocused, setIsFocused] = useState(false)
+    const inputRef = useRef<HTMLInputElement>(null!)
+    const { users, loading, error } = useGetUsers("lido", debouncedSearchTerm, true)
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm)
+        }, 200)
+        return () => clearTimeout(timer)
+    }, [searchTerm])
 
     return (
         <VStack w="100%" gap={0}>
@@ -77,23 +92,142 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         <Textarea placeholder="Prompt" borderRadius={"10px"} borderWidth={2} />
                     </VStack>
                     {/* Testing Options */}
-                    <HStack w={"500px"} maxW={"100%"} bg={"contentBackground"} alignItems={"center"} px={3} py={5}>
-                        <NativeSelect.Root size="sm" width="fit-content">
-                            <NativeSelect.Field placeholder="Select test user">
-                                <option value="react">React</option>
-                                <option value="vue">Vue</option>
-                                <option value="angular">Angular</option>
-                                <option value="svelte">Svelte</option>
-                            </NativeSelect.Field>
-                            <NativeSelect.Indicator />
-                        </NativeSelect.Root>
-                        <Button>
-                            <Text>Test</Text>
-                        </Button>
-                        <Text>{"->"}</Text>
-                        <Button>
-                            <Text>Save</Text>
-                        </Button>
+                    <HStack
+                        w={"500px"}
+                        maxW={"100%"}
+                        bg={"contentBackground"}
+                        alignItems={"center"}
+                        px={3}
+                        py={5}
+                        flexWrap={"wrap"}
+                        gap={3}
+                    >
+                        <Box position="relative" minW={{ base: "100%", md: "250px" }} flexGrow={1}>
+                            <SingleLineTextInput
+                                ref={inputRef}
+                                placeholder="Select test user"
+                                value={selectedUser}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value)
+                                    setSelectedUser(e.target.value)
+                                }}
+                                onFocus={() => setIsFocused(true)}
+                                // Add a small delay so the button is clicked before the input is blurred
+                                onBlur={() => {
+                                    setTimeout(() => {
+                                        setIsFocused(false)
+                                    }, 50)
+                                }}
+                            />
+                            {isFocused && (
+                                <Box
+                                    position="absolute"
+                                    top="100%"
+                                    left={0}
+                                    right={0}
+                                    mt={1}
+                                    bg="contentBackground"
+                                    borderWidth={1}
+                                    borderRadius="10px"
+                                    boxShadow="md"
+                                    zIndex={1}
+                                    maxH="200px"
+                                    overflowY="auto"
+                                >
+                                    {loading ? (
+                                        <HStack w={"100%"} h={"30px"} ml={2}>
+                                            <Spinner />
+                                        </HStack>
+                                    ) : error ? (
+                                        <Text p={2} color="red.500">
+                                            Error loading users
+                                        </Text>
+                                    ) : users.length === 0 ? (
+                                        <Text p={2}>No users found</Text>
+                                    ) : (
+                                        users.map((user) => (
+                                            <Box
+                                                key={user.username}
+                                                p={2}
+                                                cursor="pointer"
+                                                _hover={{ bg: "gray.700" }}
+                                                onMouseDown={(e) => {
+                                                    e.preventDefault()
+                                                    setSelectedUser(user.username || "")
+                                                    setIsFocused(false)
+                                                    inputRef.current?.blur()
+                                                }}
+                                            >
+                                                <HStack justifyContent={"space-between"} w={"100%"}>
+                                                    <HStack>
+                                                        <Image
+                                                            src={
+                                                                !user.profileImageUrl || user.profileImageUrl === ""
+                                                                    ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                                                    : user.profileImageUrl
+                                                            }
+                                                            alt={`User ${user.displayName} Profile Image`}
+                                                            fit="cover"
+                                                            transition="transform 0.2s ease-in-out"
+                                                            w="25px"
+                                                            borderRadius="full"
+                                                        />
+                                                        <Text>{user.username}</Text>
+                                                    </HStack>
+                                                    {(() => {
+                                                        const ss = user.signalStrengths?.find(
+                                                            (s) => s.name === signalStrength.name,
+                                                        )
+                                                        const value = ss?.value
+
+                                                        let display
+                                                        let color
+                                                        let bg
+                                                        let fontSize
+                                                        if (value === null || value === undefined) {
+                                                            display = "Not connected"
+                                                            color = "gray.400"
+                                                            bg = "pageBackground"
+                                                            fontSize = "xs"
+                                                        } else if (Number(value) == 0) {
+                                                            display = value
+                                                            color = "gray.400"
+                                                            bg = "pageBackground"
+                                                        } else {
+                                                            display = value
+                                                            color = "#029E03"
+                                                            bg = "green.500"
+                                                        }
+
+                                                        return (
+                                                            <Text
+                                                                bg={bg}
+                                                                color={color}
+                                                                px={2}
+                                                                py={1}
+                                                                borderRadius={"10px"}
+                                                                fontSize={fontSize || undefined}
+                                                            >
+                                                                {display}
+                                                            </Text>
+                                                        )
+                                                    })()}
+                                                </HStack>
+                                            </Box>
+                                        ))
+                                    )}
+                                </Box>
+                            )}
+                        </Box>
+                        <HStack>
+                            <Button>
+                                <Text>Test</Text>
+                            </Button>
+                            <Text>{"->"}</Text>
+                            <Button>
+                                <Text>Save</Text>
+                            </Button>
+                        </HStack>
                     </HStack>
                     {/* Testing Output  */}
                     <VStack
