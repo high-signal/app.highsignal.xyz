@@ -3,7 +3,7 @@
 import { Toaster as ChakraToaster, Portal, Toast, VStack, createToaster } from "@chakra-ui/react"
 
 export const toaster = createToaster({
-    placement: "top-end",
+    placement: "bottom-end",
     pauseOnPageIdle: true,
     duration: 10000,
 })

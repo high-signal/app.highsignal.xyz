@@ -52,7 +52,6 @@ export default function UserSettingsContainer() {
                 }
 
                 const data = await response.json()
-                console.log("User data:", data)
                 setTargetUser(data)
             } catch (err) {
                 console.error("Error in fetchUserData:", err)
