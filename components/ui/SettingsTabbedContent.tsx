@@ -28,7 +28,7 @@ export default function SettingsTabbedContent({
             <Text fontSize="3xl" fontWeight="bold" pt={5}>
                 {title}
             </Text>
-            <Tabs.Root defaultValue={defaultValue} variant={"outline"}>
+            <Tabs.Root defaultValue={defaultValue} variant={"outline"} w={"100%"}>
                 <Box display="flex" justifyContent="center" w="100%">
                     <Tabs.List w={listWidth}>
                         {tabs.map((tab) => (
@@ -39,7 +39,7 @@ export default function SettingsTabbedContent({
                     </Tabs.List>
                 </Box>
                 {tabs.map((tab) => (
-                    <Tabs.Content key={tab.value} value={tab.value}>
+                    <Tabs.Content key={tab.value} value={tab.value} w={"100%"}>
                         {tab.content}
                     </Tabs.Content>
                 ))}
