@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { VStack, Text, Button, Spinner, Menu, Portal, HStack, Box } from "@chakra-ui/react"
+import { Text, Button, Spinner, Menu, Portal, HStack, Box } from "@chakra-ui/react"
 import { toaster } from "../ui/toaster"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEllipsisVertical, faSignOut } from "@fortawesome/free-solid-svg-icons"
@@ -59,6 +59,8 @@ export default function ConnectedAccountsContainer({
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
+                // TODO: When refactoring this section, remove any frontend defined values for security.
+                // Look up everything on the backend
                 body: JSON.stringify({
                     user_id,
                     project_id,
@@ -107,12 +109,14 @@ export default function ConnectedAccountsContainer({
 
             // Call the forum_users DELETE route
             const token = await getAccessToken()
-            const forumResponse = await fetch("/api/accounts/forum_users", {
+            const forumResponse = await fetch(`/api/accounts/forum_users?username=${targetUser?.username}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
+                // TODO: When refactoring this section, remove any frontend defined values for security.
+                // Look up everything on the backend
                 body: JSON.stringify({
                     user_id,
                     project_id,
