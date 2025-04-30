@@ -3,6 +3,28 @@ import { createClient } from "@supabase/supabase-js"
 import { validateUrlSlug, validateDisplayName } from "../../../../utils/inputValidation"
 import { sanitize } from "../../../../utils/sanitize"
 
+type ProjectSignalStrength = {
+    signal_strengths: {
+        name: string
+        display_name: string
+        status: string
+        project_signal_strengths: Array<{
+            max_value: number
+            enabled: boolean
+            previous_days: number
+        }>
+    }
+}
+
+type Project = {
+    url_slug: string
+    display_name: string
+    project_logo_url: string
+    peak_signals_enabled: boolean
+    peak_signals_max_value: number
+    project_signal_strengths: ProjectSignalStrength[]
+}
+
 export async function GET(request: NextRequest) {
     try {
         // Get the target project from the URL search params
@@ -18,11 +40,23 @@ export async function GET(request: NextRequest) {
             .from("projects")
             .select(
                 `
-                id, 
-                url_slug, 
+                url_slug,
                 display_name,
                 project_logo_url,
-                peak_signals_max_value
+                peak_signals_enabled,
+                peak_signals_max_value,
+                project_signal_strengths (
+                    signal_strengths (
+                        name,
+                        display_name,
+                        status,
+                        project_signal_strengths (
+                            max_value,
+                            enabled,
+                            previous_days
+                        )
+                    )
+                )
             `,
             )
             .eq("url_slug", targetProjectUrlSlug)
@@ -33,7 +67,25 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Target project not found" }, { status: 404 })
         }
 
-        return NextResponse.json(targetProject)
+        // Format the projects to match UI naming conventions
+        const formattedProject = {
+            urlSlug: targetProject.url_slug,
+            displayName: targetProject.display_name,
+            projectLogoUrl: targetProject.project_logo_url,
+            peakSignalsMaxValue: targetProject.peak_signals_max_value,
+            peakSignalsEnabled: targetProject.peak_signals_enabled,
+            signalStrengths:
+                (targetProject as unknown as Project).project_signal_strengths?.map((ps) => ({
+                    name: ps.signal_strengths.name,
+                    displayName: ps.signal_strengths.display_name,
+                    status: ps.signal_strengths.status,
+                    maxValue: ps.signal_strengths.project_signal_strengths[0]?.max_value,
+                    enabled: ps.signal_strengths.project_signal_strengths[0]?.enabled,
+                    previousDays: ps.signal_strengths.project_signal_strengths[0]?.previous_days,
+                })) || [],
+        }
+
+        return NextResponse.json(formattedProject)
     } catch (error) {
         console.error("Error fetching project settings:", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })

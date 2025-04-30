@@ -25,7 +25,7 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
                 _active={{ bg: "gray.600" }}
                 transition="all 0.1s ease"
                 onClick={() => {
-                    router.push(`/p/${projectData.projectSlug}${window.location.search}`)
+                    router.push(`/p/${projectData.urlSlug}${window.location.search}`)
                 }}
                 alignItems="center"
                 fontSize="xl"
@@ -33,7 +33,12 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
                 <FontAwesomeIcon icon={faArrowLeft} />
             </HStack>
             <HStack w="100%" justifyContent="center" gap={3}>
-                <Image src={projectData.imageUrl} alt={projectData.displayName} boxSize="50px" borderRadius="full" />
+                <Image
+                    src={projectData.projectLogoUrl}
+                    alt={projectData.displayName}
+                    boxSize="50px"
+                    borderRadius="full"
+                />
                 <Text fontSize={{ base: "3xl", sm: "4xl" }} textAlign="center" fontWeight="bold">
                     {projectData.displayName}
                 </Text>

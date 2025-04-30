@@ -25,7 +25,7 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                     <>
                         <HStack gap={3}>
                             <Image
-                                src={currentProject?.imageUrl}
+                                src={currentProject?.projectLogoUrl}
                                 alt={currentProject?.displayName}
                                 boxSize="50px"
                                 borderRadius="full"

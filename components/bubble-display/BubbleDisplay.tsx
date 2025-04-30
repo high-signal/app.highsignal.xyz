@@ -49,7 +49,7 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
 
     const [isCanvasLoading, setIsCanvasLoading] = useState(true)
 
-    const { users, loading, error } = useGetUsers(project.projectSlug)
+    const { users, loading, error } = useGetUsers(project.urlSlug)
     const { zoom, transformOrigin, isZooming, handleWheel, containerRef } = useZoom({
         initialZoom,
         maxZoom: 5,
@@ -290,7 +290,7 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
 
             // Add the image
             const img = document.createElement("img")
-            img.src = project.imageUrl
+            img.src = project.projectLogoUrl
             img.style.width = "100%"
             img.style.height = "100%"
             img.style.objectFit = "cover"

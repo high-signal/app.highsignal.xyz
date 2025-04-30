@@ -18,9 +18,9 @@ type Project = {
     url_slug: string
     display_name: string
     project_logo_url: string
-    project_signal_strengths: ProjectSignalStrength[]
     peak_signals_enabled: boolean
     peak_signals_max_value: number
+    project_signal_strengths: ProjectSignalStrength[]
 }
 
 // Unauthenticated GET request
@@ -81,9 +81,9 @@ export async function GET(request: Request) {
         // Format the projects to match UI naming conventions
         const formattedProjects = (projects as unknown as Project[]).map((project) => {
             return {
-                projectSlug: project.url_slug,
+                urlSlug: project.url_slug,
                 displayName: project.display_name,
-                imageUrl: project.project_logo_url,
+                projectLogoUrl: project.project_logo_url,
                 peakSignalsMaxValue: project.peak_signals_max_value,
                 peakSignalsEnabled: project.peak_signals_enabled,
                 signalStrengths:

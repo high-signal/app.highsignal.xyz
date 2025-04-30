@@ -49,11 +49,7 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
     const [isSearching, setIsSearching] = useState(false)
 
     // Use the fuzzy search when there is a search term
-    const { users, loading, error } = useGetUsers(
-        project.projectSlug,
-        debouncedSearchTerm,
-        debouncedSearchTerm.length > 0,
-    )
+    const { users, loading, error } = useGetUsers(project.urlSlug, debouncedSearchTerm, debouncedSearchTerm.length > 0)
 
     // Debounce the search term to avoid too many API calls
     useEffect(() => {
@@ -171,7 +167,7 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                 _active={{ bg: "gray.700" }}
                                 transition="all 0.1s ease"
                                 onClick={() => {
-                                    router.push(`/p/${project.projectSlug}/${user.username}${window.location.search}`)
+                                    router.push(`/p/${project.urlSlug}/${user.username}${window.location.search}`)
                                 }}
                                 borderBottom="1px solid"
                                 borderColor="gray.500"

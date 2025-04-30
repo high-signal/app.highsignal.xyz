@@ -21,7 +21,13 @@ interface SignalStrengthRowProps {
     isEnabled?: boolean
 }
 
-function SignalStrengthRow({ title, value, onChange, onKeyDown, isEnabled = true }: SignalStrengthRowProps) {
+function SignalStrengthProjectSettings({
+    title,
+    value,
+    onChange,
+    onKeyDown,
+    isEnabled = true,
+}: SignalStrengthRowProps) {
     return (
         <HStack justify="space-between" w={"100%"}>
             <Text w={"200px"} fontWeight="bold" fontSize="lg" whiteSpace="nowrap">
@@ -42,36 +48,20 @@ function SignalStrengthRow({ title, value, onChange, onKeyDown, isEnabled = true
     )
 }
 
-export default function SignalStrengthProjectSettingsContainer({}: {}) {
-    const { getAccessToken } = usePrivy()
-    const router = useRouter()
-
+export default function SignalStrengthSettingsContainer({ project }: { project: ProjectData }) {
     return (
         <SettingsSectionContainer title="Signal Strength Settings">
             <Text color="gray.500">🏗️ Under development 🏗️</Text>
-            <SignalStrengthRow
-                title="Forum Engagement"
-                value="30"
-                onChange={() => {}}
-                onKeyDown={() => {}}
-                isEnabled={true}
-            />
-            <SignalStrengthRow
-                title="Discord Engagement
-"
-                value="20"
-                onChange={() => {}}
-                onKeyDown={() => {}}
-                isEnabled={false}
-            />
-            <SignalStrengthRow
-                title="Protocol Engagement
-"
-                value="60"
-                onChange={() => {}}
-                onKeyDown={() => {}}
-                isEnabled={false}
-            />
+            {project.signalStrengths?.map((signalStrength) => (
+                <SignalStrengthProjectSettings
+                    key={signalStrength.name}
+                    title={signalStrength.displayName}
+                    value={signalStrength.maxValue.toString()}
+                    onChange={() => {}}
+                    onKeyDown={() => {}}
+                    isEnabled={signalStrength.enabled}
+                />
+            ))}
         </SettingsSectionContainer>
     )
 }

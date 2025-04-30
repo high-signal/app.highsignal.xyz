@@ -39,9 +39,9 @@ interface SignalStrengthUserData {
 }
 
 interface ProjectData {
-    projectSlug: string
+    urlSlug: string
     displayName: string
-    imageUrl: string
+    projectLogoUrl: string
     peakSignalsEnabled: boolean
     peakSignalsMaxValue: number
     signalStrengths: SignalStrengthProjectData[]
