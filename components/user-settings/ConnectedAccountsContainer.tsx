@@ -53,12 +53,11 @@ export default function ConnectedAccountsContainer({
             setIsForumSubmitting(true)
 
             const token = await getAccessToken()
-            const forumResponse = await fetch("/api/accounts/forum_users", {
+            const forumResponse = await fetch(`/api/accounts/forum_users?username=${targetUser?.username}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
-                    "x-target-username": targetUser!.username!,
                 },
                 body: JSON.stringify({
                     user_id,
@@ -113,7 +112,6 @@ export default function ConnectedAccountsContainer({
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
-                    "x-target-username": targetUser!.username!,
                 },
                 body: JSON.stringify({
                     user_id,

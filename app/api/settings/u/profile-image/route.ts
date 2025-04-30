@@ -6,20 +6,36 @@ export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData()
         const file = formData.get("file") as File
-        const targetId = formData.get("targetId") as string
 
-        if (!file || !targetId) {
+        // Get the target username from the URL search params
+        const targetUsername = request.nextUrl.searchParams.get("username")
+        if (!targetUsername) {
+            return NextResponse.json({ error: "Username is required" }, { status: 400 })
+        }
+
+        // Lookup userId from username
+        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+        const { data: user, error: userError } = await supabase
+            .from("users")
+            .select("id")
+            .eq("username", targetUsername)
+            .single()
+
+        if (userError) {
+            throw new Error(`Failed to lookup user: ${userError.message}`)
+        }
+
+        if (!file || !user?.id) {
             return NextResponse.json({ error: "File and targetId are required" }, { status: 400 })
         }
 
-        const { imageUrl } = await uploadImage(file, `profile-images/${targetId}`, "profile_image")
+        const { imageUrl } = await uploadImage(file, `profile-images/${user.id}`, "profile_image")
 
         // Update the database with new image URL
-        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
         const { error: updateError } = await supabase
             .from("users")
             .update({ profile_image_url: imageUrl })
-            .eq("id", targetId)
+            .eq("id", user.id)
 
         if (updateError) {
             throw new Error("Failed to update image in database")

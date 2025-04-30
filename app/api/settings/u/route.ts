@@ -59,11 +59,17 @@ export async function GET(request: NextRequest) {
 // Authenticated PATCH request
 // Updates a user in the database
 // Takes a JSON body with updated parameters
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
     try {
+        // Get the target username from the URL search params
+        const targetUsername = request.nextUrl.searchParams.get("username")
+        if (!targetUsername) {
+            return NextResponse.json({ error: "Username is required" }, { status: 400 })
+        }
+
         // Parse the request body
         const body = await request.json()
-        const { targetUsername, changedFields } = body
+        const { changedFields } = body
 
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 

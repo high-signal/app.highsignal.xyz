@@ -6,8 +6,8 @@ import { sanitize } from "../../../../utils/sanitize"
 export async function GET(request: NextRequest) {
     try {
         // Get the target project from the URL search params
-        const urlSlug = request.nextUrl.searchParams.get("project")
-        if (!urlSlug) {
+        const targetProjectUrlSlug = request.nextUrl.searchParams.get("project")
+        if (!targetProjectUrlSlug) {
             return NextResponse.json({ error: "Project is required" }, { status: 400 })
         }
 
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
                 peak_signals_max_value
             `,
             )
-            .eq("url_slug", urlSlug)
+            .eq("url_slug", targetProjectUrlSlug)
             .single()
 
         if (targetProjectError) {
@@ -43,11 +43,17 @@ export async function GET(request: NextRequest) {
 // Authenticated PATCH request
 // Updates a project in the database
 // Takes a JSON body with updated parameters
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
     try {
+        // Get the target project from the URL search params
+        const targetProjectUrlSlug = request.nextUrl.searchParams.get("project")
+        if (!targetProjectUrlSlug) {
+            return NextResponse.json({ error: "Project is required" }, { status: 400 })
+        }
+
         // Parse the request body
         const body = await request.json()
-        const { targetProjectUrlSlug, changedFields } = body
+        const { changedFields } = body
 
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 

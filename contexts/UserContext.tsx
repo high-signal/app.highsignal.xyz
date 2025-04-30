@@ -56,7 +56,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
                 console.log("Creating user in database...")
 
-                // Does not require x-target-username header
                 const response = await fetch("/api/users", {
                     method: "POST",
                     headers: {

@@ -65,7 +65,7 @@ export async function middleware(request: NextRequest) {
             // ******************
             // If targetUser is allowed access check if logged in user is the target user
             if (methodPermission.allowedAccess?.includes("targetUser")) {
-                const targetUsername = request.headers.get("x-target-username")?.toLowerCase()
+                const targetUsername = request.nextUrl.searchParams.get("username")?.toLowerCase()
                 if (loggedInUserData.username === targetUsername) {
                     return NextResponse.next({
                         request: {
@@ -80,7 +80,7 @@ export async function middleware(request: NextRequest) {
             // ********************
             // If projectAdmin is allowed access check if logged in user is the a project admin
             if (methodPermission.allowedAccess?.includes("projectAdmin")) {
-                const targetProject = request.headers.get("x-target-project")?.toLowerCase()
+                const targetProject = request.nextUrl.searchParams.get("project")?.toLowerCase()
                 if (loggedInUserData.projectAdmins.some((project) => project.urlSlug === targetProject)) {
                     return NextResponse.next({
                         request: {

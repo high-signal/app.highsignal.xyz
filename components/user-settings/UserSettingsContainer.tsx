@@ -59,7 +59,6 @@ export default function UserSettingsContainer() {
                     method: "GET",
                     headers: {
                         Authorization: `Bearer ${token}`,
-                        "x-target-username": username,
                     },
                 })
 
@@ -144,15 +143,13 @@ export default function UserSettingsContainer() {
         setIsSubmitting(true)
         try {
             const token = await getAccessToken()
-            const response = await fetch("/api/settings/u", {
+            const response = await fetch(`/api/settings/u?username=${targetUser?.username}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
-                    "x-target-username": targetUser!.username!,
                 },
                 body: JSON.stringify({
-                    targetUsername: targetUser?.username,
                     changedFields: changedFields,
                 }),
             })
@@ -237,7 +234,6 @@ export default function UserSettingsContainer() {
                     currentImageUrl={formData.profileImageUrl}
                     onImageUploaded={handleProfileImageUpdated}
                     targetType="user"
-                    targetId={targetUser!.id!}
                     targetName={targetUser!.username!}
                     uploadApiPath="/api/settings/u/profile-image"
                 />

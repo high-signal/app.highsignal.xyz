@@ -60,7 +60,6 @@ export default function ProjectSettingsContainer() {
                     method: "GET",
                     headers: {
                         Authorization: `Bearer ${token}`,
-                        "x-target-project": urlSlug,
                     },
                 })
 
@@ -145,15 +144,13 @@ export default function ProjectSettingsContainer() {
         setIsSubmitting(true)
         try {
             const token = await getAccessToken()
-            const response = await fetch("/api/settings/p", {
+            const response = await fetch(`/api/settings/p?project=${project?.url_slug}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
-                    "x-target-project": project?.url_slug,
                 },
                 body: JSON.stringify({
-                    targetProjectUrlSlug: project?.url_slug,
                     changedFields: changedFields,
                 }),
             })
@@ -238,8 +235,7 @@ export default function ProjectSettingsContainer() {
                     currentImageUrl={project.project_logo_url}
                     onImageUploaded={handleImageUpdated}
                     targetType="project"
-                    targetId={project.id}
-                    targetName={project.name}
+                    targetName={project.url_slug}
                     uploadApiPath="/api/settings/p/project-image"
                 />
                 <SettingsInputField
