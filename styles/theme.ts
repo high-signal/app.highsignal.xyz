@@ -93,7 +93,7 @@ export const customConfig = createSystem(defaultConfig, {
                     value: { _light: "#FFFFFF", _dark: "#0A0A0A" },
                 },
                 contentBackground: {
-                    value: { _light: "#EDF2F7", _dark: "#141414" },
+                    value: { _light: "#EDF2F7", _dark: "{colors.gray.900}" },
                 },
                 contentBackgroundHover: {
                     value: { _light: "#E2E8F0", _dark: "#2D3748" },

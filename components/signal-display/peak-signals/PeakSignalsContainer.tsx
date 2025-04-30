@@ -70,7 +70,13 @@ export default function PeakSignalsContainer({
                 Peak signals highlight achievements in the {projectData.displayName} community.
             </Text>
             {peakSignals.length === 0 && (
-                <Text color="textColor" bg={"gray.900"} borderRadius={{ base: "50px", md: "60px" }} py={2} px={4}>
+                <Text
+                    color="textColor"
+                    bg={"contentBackground"}
+                    borderRadius={{ base: "50px", md: "60px" }}
+                    py={2}
+                    px={4}
+                >
                     {currentUser.displayName} has no peak signals yet
                 </Text>
             )}
@@ -82,7 +88,7 @@ export default function PeakSignalsContainer({
                     gap={4}
                     py={{ base: 2, md: 4 }}
                     px={{ base: 2, md: 4 }}
-                    bg={"gray.900"}
+                    bg={"contentBackground"}
                     borderRadius={{ base: "50px", md: "60px" }}
                     w={{ base: "100%", md: peakSignals.length === 1 ? "fit-content" : "100%" }}
                     maxW="100%"
