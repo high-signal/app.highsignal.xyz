@@ -6,13 +6,13 @@ import { toaster } from "../ui/toaster"
 
 import { useUser } from "../../contexts/UserContext"
 import { usePrivy } from "@privy-io/react-auth"
-import { validateUrlSlug, validateDisplayName } from "../../utils/inputValidation"
+import { validateUsername, validateDisplayName } from "../../utils/inputValidation"
 
-import SettingsSectionContainer from "../ui/SettingsSectionContainer"
-import ImageEditor from "../ui/ImageEditor"
 import SettingsInputField from "../ui/SettingsInputField"
+import ImageEditor from "../ui/ImageEditor"
+import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 
-export default function GeneralSettingsContainer({ project }: { project: ProjectData }) {
+export default function GeneralSettingsContainer({ targetUser }: { targetUser: UserData }) {
     const { refreshUser } = useUser()
     const { getAccessToken } = usePrivy()
 
@@ -20,12 +20,12 @@ export default function GeneralSettingsContainer({ project }: { project: Project
     const [error, setError] = useState<string | null>(null)
 
     const [formData, setFormData] = useState({
-        urlSlug: project.urlSlug || "",
-        displayName: project.displayName || "",
-        projectLogoUrl: project.projectLogoUrl || "",
+        username: targetUser?.username || "",
+        displayName: targetUser?.displayName || "",
+        profileImageUrl: targetUser?.profileImageUrl || "",
     })
     const [errors, setErrors] = useState({
-        urlSlug: "",
+        username: "",
         displayName: "",
     })
     const [hasChanges, setHasChanges] = useState(false)
@@ -42,11 +42,11 @@ export default function GeneralSettingsContainer({ project }: { project: Project
         }
     }, [error])
 
-    const handleImageUpdated = (imageUrl: string) => {
+    const handleProfileImageUpdated = (imageUrl: string) => {
         // Update form data and refresh user data so all the states are updated
         setFormData((prev) => ({
             ...prev,
-            projectLogoUrl: imageUrl,
+            profileImageUrl: imageUrl,
         }))
         refreshUser()
     }
@@ -56,8 +56,8 @@ export default function GeneralSettingsContainer({ project }: { project: Project
 
         // Validate the field
         let fieldError = ""
-        if (field === "urlSlug") {
-            fieldError = validateUrlSlug(value)
+        if (field === "username") {
+            fieldError = validateUsername(value)
         } else if (field === "displayName") {
             fieldError = validateDisplayName(value)
         }
@@ -66,12 +66,12 @@ export default function GeneralSettingsContainer({ project }: { project: Project
 
         // Check if any field has changed from original values AND there are no errors
         const hasAnyChanges =
-            value !== (field === "urlSlug" ? project?.urlSlug : project?.displayName) ||
+            value !== (field === "username" ? targetUser?.username : targetUser?.displayName) ||
             Object.keys(formData).some(
                 (key) =>
                     key !== field &&
                     formData[key as keyof typeof formData] !==
-                        (key === "urlSlug" ? project?.urlSlug : project?.displayName),
+                        (key === "username" ? targetUser?.username : targetUser?.displayName),
             )
 
         // Only set hasChanges to true if there are changes AND no errors in any field
@@ -82,10 +82,10 @@ export default function GeneralSettingsContainer({ project }: { project: Project
     const saveChanges = async () => {
         // Create an object with only the changed fields
         const changedFields: Record<string, string> = {}
-        if (formData.urlSlug !== project?.urlSlug) {
-            changedFields.urlSlug = formData.urlSlug
+        if (formData.username !== targetUser?.username) {
+            changedFields.username = formData.username
         }
-        if (formData.displayName !== project?.displayName) {
+        if (formData.displayName !== targetUser?.displayName) {
             changedFields.displayName = formData.displayName
         }
 
@@ -97,7 +97,7 @@ export default function GeneralSettingsContainer({ project }: { project: Project
         setIsSubmitting(true)
         try {
             const token = await getAccessToken()
-            const response = await fetch(`/api/settings/p?project=${project?.urlSlug}`, {
+            const response = await fetch(`/api/settings/u?username=${targetUser?.username}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
@@ -112,8 +112,8 @@ export default function GeneralSettingsContainer({ project }: { project: Project
 
             if (!response.ok) {
                 // Handle specific API errors
-                if (responseData.error === "URL slug is already taken" || responseData.error?.includes("urlSlug")) {
-                    setErrors((prev) => ({ ...prev, urlSlug: responseData.error }))
+                if (responseData.error === "Username is already taken" || responseData.error?.includes("username")) {
+                    setErrors((prev) => ({ ...prev, username: responseData.error }))
                 } else if (responseData.error?.includes("display name")) {
                     setErrors((prev) => ({ ...prev, displayName: responseData.error }))
                 } else {
@@ -133,10 +133,10 @@ export default function GeneralSettingsContainer({ project }: { project: Project
             await refreshUser()
             setHasChanges(false)
 
-            // If urlSlug is changed, redirect to the new urlSlug
-            // Full page reload is needed to stop the page from requesting the old urlSlug
-            if (changedFields.urlSlug) {
-                window.location.href = `/settings/p/${changedFields.urlSlug.toLowerCase()}`
+            // If username is changed, redirect to the new username
+            // Full page reload is needed to stop the page from requesting the old username
+            if (changedFields.username) {
+                window.location.href = `/settings/u/${changedFields.username.toLowerCase()}`
             }
         } catch (error) {
             toaster.create({
@@ -154,19 +154,19 @@ export default function GeneralSettingsContainer({ project }: { project: Project
     return (
         <SettingsSectionContainer>
             <ImageEditor
-                currentImageUrl={project.projectLogoUrl}
-                onImageUploaded={handleImageUpdated}
-                targetType="project"
-                targetName={project.urlSlug}
-                uploadApiPath="/api/settings/p/project-image"
+                currentImageUrl={formData.profileImageUrl}
+                onImageUploaded={handleProfileImageUpdated}
+                targetType="user"
+                targetName={targetUser!.username!}
+                uploadApiPath="/api/settings/u/profile-image"
             />
             <SettingsInputField
-                label="Project URL Slug"
-                description="Your project URL slug is unique and is used to identify your project."
+                label="Username"
+                description="Your username is unique and is used to identify you."
                 isPrivate={false}
-                value={formData.urlSlug}
-                onChange={(e) => handleFieldChange("urlSlug", e.target.value)}
-                error={errors.urlSlug}
+                value={formData.username}
+                onChange={(e) => handleFieldChange("username", e.target.value)}
+                error={errors.username}
                 onKeyDown={(e) => {
                     if (e.key === "Enter" && hasChanges && !isSubmitting) {
                         saveChanges()
@@ -175,7 +175,7 @@ export default function GeneralSettingsContainer({ project }: { project: Project
             />
             <SettingsInputField
                 label="Display Name"
-                description="Your display name is shown on your project page."
+                description="Your display name is shown on your profile."
                 isPrivate={false}
                 value={formData.displayName}
                 onChange={(e) => handleFieldChange("displayName", e.target.value)}

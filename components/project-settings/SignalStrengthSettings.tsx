@@ -6,24 +6,8 @@ import SingleLineTextInput from "../ui/SingleLineTextInput"
 
 import SignalStrength from "../signal-display/signal-strength/SignalStrength"
 
-interface SignalStrengthRowProps {
-    title: string
-    value: string
-    onChange: () => void
-    onKeyDown: () => void
-    isEnabled?: boolean
-    status: string
-}
-
-export default function SignalStrengthSettings({
-    title,
-    value,
-    onChange,
-    onKeyDown,
-    isEnabled = true,
-    status,
-}: SignalStrengthRowProps) {
-    const [isOpen, setIsOpen] = useState(true)
+export default function SignalStrengthSettings({ signalStrength }: { signalStrength: SignalStrengthProjectData }) {
+    const [isOpen, setIsOpen] = useState(false)
 
     return (
         <VStack w="100%" gap={0}>
@@ -39,9 +23,9 @@ export default function SignalStrengthSettings({
             >
                 <HStack w={"250px"}>
                     <HStack
-                        cursor="pointer"
-                        onClick={() => setIsOpen(!isOpen)}
-                        _hover={{ bg: "gray.800" }}
+                        cursor={signalStrength.status !== "dev" ? "pointer" : "disabled"}
+                        onClick={() => signalStrength.status !== "dev" && setIsOpen(!isOpen)}
+                        _hover={signalStrength.status !== "dev" ? { bg: "gray.800" } : undefined}
                         py={2}
                         px={3}
                         borderRadius={"8px"}
@@ -50,16 +34,34 @@ export default function SignalStrengthSettings({
                         <Box transition="transform 0.2s" transform={`rotate(${isOpen ? 90 : 0}deg)`}>
                             <FontAwesomeIcon icon={faChevronRight} />
                         </Box>
-                        <Text w="fit-content" fontWeight="bold" fontSize="lg" whiteSpace="nowrap">
-                            {title}
+                        <Text
+                            w="fit-content"
+                            fontWeight="bold"
+                            fontSize="lg"
+                            whiteSpace="nowrap"
+                            color={signalStrength.status === "dev" ? "textColor" : undefined}
+                        >
+                            {signalStrength.displayName}
                         </Text>
                     </HStack>
                 </HStack>
-                <HStack justifyContent="start" w="100px">
-                    <SingleLineTextInput value={value} onChange={onChange} onKeyDown={onKeyDown} isEditable={true} />
-                    <Text whiteSpace="nowrap">/ 100</Text>
-                </HStack>
-                <Switch.Root defaultChecked={isEnabled} disabled={status != "active"}>
+                {signalStrength.status !== "dev" && signalStrength.enabled ? (
+                    <HStack justifyContent="start" w="100px">
+                        <SingleLineTextInput
+                            value={signalStrength.maxValue.toString()}
+                            onChange={() => {}}
+                            onKeyDown={() => {}}
+                            isEditable={true}
+                        />
+                        <Text whiteSpace="nowrap">/ 100</Text>
+                    </HStack>
+                ) : (
+                    <Text>Coming soon 🏗️</Text>
+                )}
+                <Switch.Root
+                    defaultChecked={signalStrength.status === "active" && signalStrength.enabled}
+                    disabled={signalStrength.status != "active"}
+                >
                     <Switch.HiddenInput />
                     <Switch.Control>
                         <Switch.Thumb />
@@ -71,7 +73,7 @@ export default function SignalStrengthSettings({
                 <VStack w="100%" pb={2} gap={0}>
                     {/* Prompt Options */}
                     <VStack w={"500px"} maxW={"100%"} bg={"contentBackground"} alignItems={"start"} gap={2} px={3}>
-                        <Text>Prompt Options</Text>
+                        <Text px={2}>Prompt</Text>
                         <Textarea placeholder="Prompt" borderRadius={"10px"} borderWidth={2} />
                     </VStack>
                     {/* Testing Options */}
@@ -129,7 +131,7 @@ export default function SignalStrengthSettings({
                                     projectData={{
                                         maxValue: 100,
                                         name: "test",
-                                        displayName: `${title}`,
+                                        displayName: `${signalStrength.displayName}`,
                                         status: "active",
                                         enabled: true,
                                         previousDays: 10,
@@ -163,7 +165,7 @@ export default function SignalStrengthSettings({
                                     projectData={{
                                         maxValue: 100,
                                         name: "test",
-                                        displayName: `${title}`,
+                                        displayName: `${signalStrength.displayName}`,
                                         status: "active",
                                         enabled: true,
                                         previousDays: 10,

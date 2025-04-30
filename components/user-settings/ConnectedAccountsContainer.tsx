@@ -7,19 +7,15 @@ import { toaster } from "../ui/toaster"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEllipsisVertical, faSignOut } from "@fortawesome/free-solid-svg-icons"
 
+import { useUser } from "../../contexts/UserContext"
 import { usePrivy } from "@privy-io/react-auth"
 
 import SettingsInputField from "../ui/SettingsInputField"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 
-export default function ConnectedAccountsContainer({
-    targetUser,
-    refreshUser,
-}: {
-    targetUser: UserData
-    refreshUser: () => void
-}) {
+export default function ConnectedAccountsContainer({ targetUser }: { targetUser: UserData }) {
     const { getAccessToken } = usePrivy()
+    const { refreshUser } = useUser()
     const router = useRouter()
 
     const [isConnected, setIsConnected] = useState(false)
@@ -150,7 +146,7 @@ export default function ConnectedAccountsContainer({
     }
 
     return (
-        <SettingsSectionContainer title="Connected Accounts">
+        <SettingsSectionContainer>
             <SettingsInputField
                 label="Lido Forum"
                 description="Your Lido Forum username."
