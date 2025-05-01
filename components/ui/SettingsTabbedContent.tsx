@@ -28,7 +28,7 @@ export default function SettingsTabbedContent({
             <Text fontSize="3xl" fontWeight="bold" pt={5}>
                 {title}
             </Text>
-            <Tabs.Root defaultValue={defaultValue} variant={"outline"} w={"100%"}>
+            <Tabs.Root lazyMount unmountOnExit defaultValue={defaultValue} variant={"outline"} w={"100%"}>
                 <Box display="flex" justifyContent="center" w="100%">
                     <Tabs.List w={listWidth}>
                         {tabs.map((tab) => (

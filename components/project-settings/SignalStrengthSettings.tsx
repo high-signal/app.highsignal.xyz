@@ -9,6 +9,8 @@ import SignalStrength from "../signal-display/signal-strength/SignalStrength"
 import { ASSETS } from "../../config/constants"
 
 export default function SignalStrengthSettings({ signalStrength }: { signalStrength: SignalStrengthProjectData }) {
+    // TODO: Optimize the calls to the API so it does not make so many requests on page load
+
     const [isOpen, setIsOpen] = useState(false)
     const [selectedUsername, setSelectedUsername] = useState<string>("")
     const [searchTerm, setSearchTerm] = useState<string>("")
@@ -23,7 +25,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
         error: testUserError,
     } = useGetUsers("lido", selectedUsername, false)
 
-    const [newPrompt, setNewPrompt] = useState<string | undefined>(signalStrength.prompt)
+    const [newPrompt, setNewPrompt] = useState<string>("")
     const [testResult, setTestResult] = useState<SignalStrengthUserData | null>(null)
 
     useEffect(() => {
@@ -38,12 +40,6 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
             setSelectedUser(testUser[0])
         }
     }, [selectedUsername, testUser])
-
-    const handleTestClick = () => {
-        if (selectedUsername) {
-            setSelectedUser(testUser[0])
-        }
-    }
 
     return (
         <VStack w="100%" gap={0}>
@@ -113,11 +109,12 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         maxW={"100%"}
                         bg={"contentBackground"}
                         alignItems={"center"}
-                        px={3}
+                        px={5}
                         py={5}
                         flexWrap={"wrap"}
-                        gap={{ base: 3, md: 5 }}
+                        gap={3}
                     >
+                        <Text>Test User</Text>
                         <Box position="relative" minW={{ base: "100%", md: "250px" }} flexGrow={1}>
                             <SingleLineTextInput
                                 ref={inputRef}
@@ -241,15 +238,6 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 </Box>
                             )}
                         </Box>
-                        <HStack>
-                            <Button onClick={handleTestClick}>
-                                <Text>Test</Text>
-                            </Button>
-                            <Text>{"->"}</Text>
-                            <Button>
-                                <Text>Save</Text>
-                            </Button>
-                        </HStack>
                     </HStack>
                     {/* Prompt Options */}
                     <HStack
@@ -281,7 +269,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             h={"30px"}
                             mt={{ base: 0, sm: "35px" }}
                             onClick={() => {
-                                setNewPrompt(signalStrength.prompt)
+                                setNewPrompt(signalStrength.prompt || "")
+                                setTestResult(null)
                             }}
                         >
                             <HStack gap={1}>
@@ -332,6 +321,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         bg={"gray.800"}
                                         borderRadius={"full"}
                                         fontWeight={"bold"}
+                                        borderWidth={3}
+                                        borderColor={"transparent"}
                                     >
                                         Current Result
                                     </Text>
@@ -396,7 +387,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         isUserConnected={true}
                                         refreshUserData={() => {}}
                                     />
-                                ) : (
+                                ) : selectedUser && newPrompt ? (
                                     <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
                                         <Button
                                             className="rainbow-animation"
@@ -414,8 +405,18 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                                 })
                                             }}
                                         >
-                                            Run new analysis
+                                            Run test analysis using new prompt
                                         </Button>
+                                    </VStack>
+                                ) : selectedUser ? (
+                                    <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
+                                        <Text>No new prompt set</Text>
+                                        <Text>Please set a new prompt</Text>
+                                    </VStack>
+                                ) : (
+                                    <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
+                                        <Text>No test user selected</Text>
+                                        <Text>Please select a user to test</Text>
                                     </VStack>
                                 )}
                             </VStack>
