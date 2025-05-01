@@ -23,7 +23,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
         error: testUserError,
     } = useGetUsers("lido", selectedUsername, false)
 
-    const [newPrompt, setNewPrompt] = useState<string>("")
+    const [newPrompt, setNewPrompt] = useState<string | undefined>(signalStrength.prompt)
 
     useEffect(() => {
         const timer = setTimeout(() => {

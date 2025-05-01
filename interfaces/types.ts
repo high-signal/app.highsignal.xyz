@@ -54,5 +54,5 @@ interface SignalStrengthProjectData {
     maxValue: number
     enabled: boolean
     previousDays: number
-    prompt: string
+    prompt?: string
 }
