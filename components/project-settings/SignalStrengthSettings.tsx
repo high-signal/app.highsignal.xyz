@@ -10,12 +10,18 @@ import { ASSETS } from "../../config/constants"
 
 export default function SignalStrengthSettings({ signalStrength }: { signalStrength: SignalStrengthProjectData }) {
     const [isOpen, setIsOpen] = useState(false)
-    const [selectedUser, setSelectedUser] = useState<string>("")
+    const [selectedUsername, setSelectedUsername] = useState<string>("")
     const [searchTerm, setSearchTerm] = useState<string>("")
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
+    const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
     const inputRef = useRef<HTMLInputElement>(null!)
     const { users, loading, error } = useGetUsers("lido", debouncedSearchTerm, true)
+    const {
+        users: testUser,
+        loading: testUserLoading,
+        error: testUserError,
+    } = useGetUsers("lido", selectedUsername, false)
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -23,6 +29,18 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
         }, 200)
         return () => clearTimeout(timer)
     }, [searchTerm])
+
+    useEffect(() => {
+        if (selectedUsername && testUser[0].username === selectedUsername) {
+            setSelectedUser(testUser[0])
+        }
+    }, [selectedUsername, testUser])
+
+    const handleTestClick = () => {
+        if (selectedUsername) {
+            setSelectedUser(testUser[0])
+        }
+    }
 
     return (
         <VStack w="100%" gap={0}>
@@ -86,11 +104,6 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
             </HStack>
             {isOpen && (
                 <VStack w="100%" pb={2} gap={0}>
-                    {/* Prompt Options */}
-                    <VStack w={"500px"} maxW={"100%"} bg={"contentBackground"} alignItems={"start"} gap={2} px={3}>
-                        <Text px={2}>Prompt</Text>
-                        <Textarea placeholder="Prompt" borderRadius={"10px"} borderWidth={2} />
-                    </VStack>
                     {/* Testing Options */}
                     <HStack
                         w={"500px"}
@@ -100,16 +113,21 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         px={3}
                         py={5}
                         flexWrap={"wrap"}
-                        gap={3}
+                        gap={{ base: 3, md: 5 }}
                     >
                         <Box position="relative" minW={{ base: "100%", md: "250px" }} flexGrow={1}>
                             <SingleLineTextInput
                                 ref={inputRef}
-                                placeholder="Select test user"
-                                value={selectedUser}
+                                placeholder="Select test user..."
+                                value={searchTerm}
                                 onChange={(e) => {
                                     setSearchTerm(e.target.value)
-                                    setSelectedUser(e.target.value)
+                                    setSelectedUser(null)
+                                }}
+                                handleClear={() => {
+                                    setSearchTerm("")
+                                    setSelectedUsername("")
+                                    setSelectedUser(null)
                                 }}
                                 onFocus={() => setIsFocused(true)}
                                 // Add a small delay so the button is clicked before the input is blurred
@@ -153,7 +171,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                                 _hover={{ bg: "gray.700" }}
                                                 onMouseDown={(e) => {
                                                     e.preventDefault()
-                                                    setSelectedUser(user.username || "")
+                                                    setSelectedUsername(user.username || "")
+                                                    setSearchTerm(user.username || "")
                                                     setIsFocused(false)
                                                     inputRef.current?.blur()
                                                 }}
@@ -220,7 +239,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             )}
                         </Box>
                         <HStack>
-                            <Button>
+                            <Button onClick={handleTestClick}>
                                 <Text>Test</Text>
                             </Button>
                             <Text>{"->"}</Text>
@@ -229,17 +248,36 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             </Button>
                         </HStack>
                     </HStack>
+                    {/* Prompt Options */}
+                    <HStack
+                        w={"100%"}
+                        maxW={"100%"}
+                        bg={"contentBackground"}
+                        alignItems={"start"}
+                        gap={2}
+                        px={3}
+                        pt={3}
+                        borderTopRadius={{ base: "0px", md: "16px" }}
+                    >
+                        <VStack w={"100%"} alignItems={"center"}>
+                            <Text px={2}>CurrentPrompt</Text>
+                            <Textarea placeholder="Prompt" borderRadius={"10px"} borderWidth={2} disabled />
+                        </VStack>
+                        <VStack w={"100%"} alignItems={"center"}>
+                            <Text px={2}>New Prompt</Text>
+                            <Textarea placeholder="Prompt" borderRadius={"10px"} borderWidth={2} />
+                        </VStack>
+                    </HStack>
                     {/* Testing Output  */}
                     <VStack
                         w={"100%"}
                         bg={"contentBackground"}
-                        borderRadius={"16px"}
-                        borderTopRadius={{ base: "0px", md: "16px" }}
+                        borderBottomRadius={"16px"}
                         alignItems={"center"}
                         gap={2}
                         pt={5}
                     >
-                        <HStack w={"100%"} justifyContent={"space-around"} flexWrap={"wrap"}>
+                        <HStack w={"100%"} justifyContent={"space-around"} alignItems={"start"} flexWrap={"wrap"}>
                             <VStack w={"100%"} maxW={"600px"} gap={2} borderRadius={"16px"}>
                                 <Box w={"100%"} px={3}>
                                     <Text
@@ -253,26 +291,30 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         Current Result
                                     </Text>
                                 </Box>
-                                <SignalStrength
-                                    username={"test"}
-                                    userData={{
-                                        value: "30",
-                                        description: "current description",
-                                        improvements: "current improvements",
-                                        name: "test",
-                                        summary: "current summary",
-                                    }}
-                                    projectData={{
-                                        maxValue: 100,
-                                        name: "test",
-                                        displayName: `${signalStrength.displayName}`,
-                                        status: "active",
-                                        enabled: true,
-                                        previousDays: 10,
-                                    }}
-                                    isUserConnected={true}
-                                    refreshUserData={() => {}}
-                                />
+                                {selectedUser ? (
+                                    <SignalStrength
+                                        username={selectedUser.username || ""}
+                                        userData={
+                                            selectedUser.signalStrengths?.find(
+                                                (s) => s.name === signalStrength.name,
+                                            ) || {
+                                                value: "0",
+                                                description: "No data",
+                                                improvements: "No data",
+                                                name: signalStrength.name,
+                                                summary: "No data",
+                                            }
+                                        }
+                                        projectData={signalStrength}
+                                        isUserConnected={true}
+                                        refreshUserData={() => {}}
+                                    />
+                                ) : (
+                                    <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
+                                        <Text>No test user selected</Text>
+                                        <Text>Please select a user to test</Text>
+                                    </VStack>
+                                )}
                             </VStack>
                             <VStack w={"100%"} maxW={"600px"} gap={2}>
                                 <Box w={"100%"} px={3}>
