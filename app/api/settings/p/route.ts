@@ -12,6 +12,7 @@ type ProjectSignalStrength = {
             max_value: number
             enabled: boolean
             previous_days: number
+            prompt: string
         }>
     }
 }
@@ -53,7 +54,8 @@ export async function GET(request: NextRequest) {
                         project_signal_strengths (
                             max_value,
                             enabled,
-                            previous_days
+                            previous_days,
+                            prompt
                         )
                     )
                 )
@@ -82,6 +84,7 @@ export async function GET(request: NextRequest) {
                     maxValue: ps.signal_strengths.project_signal_strengths[0]?.max_value,
                     enabled: ps.signal_strengths.project_signal_strengths[0]?.enabled,
                     previousDays: ps.signal_strengths.project_signal_strengths[0]?.previous_days,
+                    prompt: ps.signal_strengths.project_signal_strengths[0]?.prompt,
                 })) || [],
         }
 

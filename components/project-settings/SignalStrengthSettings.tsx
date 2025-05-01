@@ -1,6 +1,6 @@
 import { HStack, Text, Switch, VStack, Box, Textarea, Button, Image, Spinner } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
+import { faArrowDown, faArrowRight, faChevronRight } from "@fortawesome/free-solid-svg-icons"
 import { useState, useRef, useEffect } from "react"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import { useGetUsers } from "../../hooks/useGetUsers"
@@ -22,6 +22,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
         loading: testUserLoading,
         error: testUserError,
     } = useGetUsers("lido", selectedUsername, false)
+
+    const [newPrompt, setNewPrompt] = useState<string>("")
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -253,19 +255,57 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         w={"100%"}
                         maxW={"100%"}
                         bg={"contentBackground"}
+                        justifyContent={"center"}
                         alignItems={"start"}
-                        gap={2}
+                        gap={5}
                         px={3}
                         pt={3}
                         borderTopRadius={{ base: "0px", md: "16px" }}
+                        flexWrap={"wrap"}
                     >
-                        <VStack w={"100%"} alignItems={"center"}>
+                        <VStack w={"100%"} maxW={"500px"} alignItems={"center"}>
                             <Text px={2}>CurrentPrompt</Text>
-                            <Textarea placeholder="Prompt" borderRadius={"10px"} borderWidth={2} disabled />
+                            <Textarea
+                                placeholder="No prompt set"
+                                borderRadius={"10px"}
+                                borderWidth={2}
+                                disabled
+                                value={signalStrength.prompt}
+                            />
                         </VStack>
-                        <VStack w={"100%"} alignItems={"center"}>
+                        <Button
+                            borderRadius={"full"}
+                            px={2}
+                            py={1}
+                            mt={{ base: 0, sm: "35px" }}
+                            onClick={() => {
+                                setNewPrompt(signalStrength.prompt)
+                            }}
+                        >
+                            <HStack gap={1}>
+                                <Box display={{ base: "none", md: "block" }}>
+                                    <FontAwesomeIcon icon={faArrowRight} />
+                                </Box>
+                                <Box display={{ base: "block", md: "none" }}>
+                                    <FontAwesomeIcon icon={faArrowDown} />
+                                </Box>
+                                <Text>Copy</Text>
+                                <Box display={{ base: "none", md: "block" }}>
+                                    <FontAwesomeIcon icon={faArrowRight} />
+                                </Box>
+                                <Box display={{ base: "block", md: "none" }}>
+                                    <FontAwesomeIcon icon={faArrowDown} />
+                                </Box>
+                            </HStack>
+                        </Button>
+                        <VStack w={"100%"} maxW={"500px"} alignItems={"center"}>
                             <Text px={2}>New Prompt</Text>
-                            <Textarea placeholder="Prompt" borderRadius={"10px"} borderWidth={2} />
+                            <Textarea
+                                borderRadius={"10px"}
+                                borderWidth={2}
+                                value={newPrompt}
+                                onChange={(e) => setNewPrompt(e.target.value)}
+                            />
                         </VStack>
                     </HStack>
                     {/* Testing Output  */}
