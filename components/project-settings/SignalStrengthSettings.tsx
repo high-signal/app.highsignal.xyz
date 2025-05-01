@@ -24,6 +24,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     } = useGetUsers("lido", selectedUsername, false)
 
     const [newPrompt, setNewPrompt] = useState<string | undefined>(signalStrength.prompt)
+    const [testResult, setTestResult] = useState<SignalStrengthUserData | null>(null)
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -276,7 +277,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         <Button
                             borderRadius={"full"}
                             px={2}
-                            py={1}
+                            py={0}
+                            h={"30px"}
                             mt={{ base: 0, sm: "35px" }}
                             onClick={() => {
                                 setNewPrompt(signalStrength.prompt)
@@ -304,7 +306,10 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 borderRadius={"10px"}
                                 borderWidth={2}
                                 value={newPrompt}
-                                onChange={(e) => setNewPrompt(e.target.value)}
+                                onChange={(e) => {
+                                    setNewPrompt(e.target.value)
+                                    setTestResult(null)
+                                }}
                             />
                         </VStack>
                     </HStack>
@@ -362,33 +367,57 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         w={"100%"}
                                         py={2}
                                         textAlign={"center"}
-                                        bg={"blue.500"}
+                                        borderWidth={3}
+                                        borderColor={"blue.500"}
                                         borderRadius={"full"}
                                         fontWeight={"bold"}
                                     >
                                         Testing Result
                                     </Text>
                                 </Box>
-                                <SignalStrength
-                                    username={"test"}
-                                    userData={{
-                                        value: "70",
-                                        description: "new description",
-                                        improvements: "new improvements",
-                                        name: "test",
-                                        summary: "new summary",
-                                    }}
-                                    projectData={{
-                                        maxValue: 100,
-                                        name: "test",
-                                        displayName: `${signalStrength.displayName}`,
-                                        status: "active",
-                                        enabled: true,
-                                        previousDays: 10,
-                                    }}
-                                    isUserConnected={true}
-                                    refreshUserData={() => {}}
-                                />
+                                {testResult ? (
+                                    <SignalStrength
+                                        username={"test"}
+                                        userData={{
+                                            value: "70",
+                                            description: "new description",
+                                            improvements: "new improvements",
+                                            name: "test",
+                                            summary: "new summary",
+                                        }}
+                                        projectData={{
+                                            maxValue: 100,
+                                            name: "test",
+                                            displayName: `${signalStrength.displayName}`,
+                                            status: "active",
+                                            enabled: true,
+                                            previousDays: 10,
+                                        }}
+                                        isUserConnected={true}
+                                        refreshUserData={() => {}}
+                                    />
+                                ) : (
+                                    <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
+                                        <Button
+                                            className="rainbow-animation"
+                                            color={"white"}
+                                            fontWeight={"bold"}
+                                            fontSize={"md"}
+                                            borderRadius={"full"}
+                                            onClick={() => {
+                                                setTestResult({
+                                                    value: "70",
+                                                    description: "new description",
+                                                    improvements: "new improvements",
+                                                    name: "test",
+                                                    summary: "new summary",
+                                                })
+                                            }}
+                                        >
+                                            Run new analysis
+                                        </Button>
+                                    </VStack>
+                                )}
                             </VStack>
                         </HStack>
                     </VStack>
