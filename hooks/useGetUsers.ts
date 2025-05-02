@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from "react"
 
-export const useGetUsers = (project: string, username?: string, fuzzy: boolean = false) => {
+export const useGetUsers = (
+    project: string,
+    username?: string,
+    fuzzy: boolean = false,
+    shouldFetch: boolean = true,
+) => {
     const [users, setUsers] = useState<UserData[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -37,8 +42,14 @@ export const useGetUsers = (project: string, username?: string, fuzzy: boolean =
     )
 
     useEffect(() => {
-        fetchData()
-    }, [fetchData])
+        if (shouldFetch) {
+            fetchData()
+        } else {
+            setUsers([])
+            setLoading(false)
+            setError(null)
+        }
+    }, [fetchData, shouldFetch])
 
     const refreshUserData = useCallback(() => {
         fetchData(true)

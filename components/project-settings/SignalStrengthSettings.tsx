@@ -9,8 +9,6 @@ import SignalStrength from "../signal-display/signal-strength/SignalStrength"
 import { ASSETS } from "../../config/constants"
 
 export default function SignalStrengthSettings({ signalStrength }: { signalStrength: SignalStrengthProjectData }) {
-    // TODO: Optimize the calls to the API so it does not make so many requests on page load
-
     const [isOpen, setIsOpen] = useState(false)
     const [selectedUsername, setSelectedUsername] = useState<string>("")
     const [searchTerm, setSearchTerm] = useState<string>("")
@@ -18,12 +16,12 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     const [isFocused, setIsFocused] = useState(false)
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
     const inputRef = useRef<HTMLInputElement>(null!)
-    const { users, loading, error } = useGetUsers("lido", debouncedSearchTerm, true)
+    const { users, loading, error } = useGetUsers("lido", debouncedSearchTerm, true, isFocused)
     const {
         users: testUser,
         loading: testUserLoading,
         error: testUserError,
-    } = useGetUsers("lido", selectedUsername, false)
+    } = useGetUsers("lido", selectedUsername, false, selectedUsername.length > 0)
 
     const [newPrompt, setNewPrompt] = useState<string>("")
     const [testResult, setTestResult] = useState<SignalStrengthUserData | null>(null)
@@ -36,7 +34,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     }, [searchTerm])
 
     useEffect(() => {
-        if (selectedUsername && testUser[0].username === selectedUsername) {
+        if (selectedUsername && testUser.length > 0 && testUser[0].username === selectedUsername) {
             setSelectedUser(testUser[0])
         }
     }, [selectedUsername, testUser])
@@ -160,7 +158,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         <Text p={2} color="red.500">
                                             Error loading users
                                         </Text>
-                                    ) : users.length === 0 ? (
+                                    ) : users.length === 0 && searchTerm.length >= 1 ? (
                                         <Text p={2}>No users found</Text>
                                     ) : (
                                         users.map((user) => (
