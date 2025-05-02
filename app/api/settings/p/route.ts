@@ -18,6 +18,7 @@ type ProjectSignalStrength = {
 }
 
 type Project = {
+    id: number
     url_slug: string
     display_name: string
     project_logo_url: string
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest) {
             .from("projects")
             .select(
                 `
+                id,
                 url_slug,
                 display_name,
                 project_logo_url,
@@ -71,6 +73,7 @@ export async function GET(request: NextRequest) {
 
         // Format the projects to match UI naming conventions
         const formattedProject = {
+            id: targetProject.id,
             urlSlug: targetProject.url_slug,
             displayName: targetProject.display_name,
             projectLogoUrl: targetProject.project_logo_url,

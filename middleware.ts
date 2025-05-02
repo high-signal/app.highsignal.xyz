@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { NextRequest } from "next/server"
-import { getRoutePermissions, Role } from "./security/routePermissions"
+import { getRoutePermissions } from "./security/routePermissions"
 import { verifyAuthentication } from "./security/verifyAuth"
 import { fetchUserData } from "./utils/fetchUserData"
 

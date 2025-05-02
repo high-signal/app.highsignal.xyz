@@ -9,7 +9,7 @@ const MODEL = "gpt-4-1106-preview"
 // === SETUP OPENAI ===
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 
-async function analyzeUserData(userData, username, displayName, maxValue, previousDays) {
+async function analyzeUserData(userData, username, displayName, maxValue, previousDays, testingData) {
     console.log("displayName", displayName)
 
     // If filteredActivityData is empty, return null
@@ -57,6 +57,15 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
         "improvements": "To improve their score, ${displayName} could ask more questions and provide more examples.",
         "value": ${Math.floor(maxValue * 0.6)}
       }
+    }
+
+    ${
+        testingData && testingData.testingPrompt
+            ? `
+            This additional data has been provided by the project owner to help you to evaluate user engagement:
+            ${testingData.testingPrompt}
+            `
+            : ""
     }
     `
 

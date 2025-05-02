@@ -1,20 +1,28 @@
 import { HStack, Text, Switch, VStack, Box, Textarea, Button, Image, Spinner } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowDown, faArrowRight, faChevronRight } from "@fortawesome/free-solid-svg-icons"
+import { faArrowDown, faArrowRight, faChevronRight, faRefresh } from "@fortawesome/free-solid-svg-icons"
 import { useState, useRef, useEffect } from "react"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import { useGetUsers } from "../../hooks/useGetUsers"
 
 import SignalStrength from "../signal-display/signal-strength/SignalStrength"
 import { ASSETS } from "../../config/constants"
+import { getAccessToken } from "@privy-io/react-auth"
 
-export default function SignalStrengthSettings({ signalStrength }: { signalStrength: SignalStrengthProjectData }) {
+export default function SignalStrengthSettings({
+    project,
+    signalStrength,
+}: {
+    project: ProjectData
+    signalStrength: SignalStrengthProjectData
+}) {
     const [isOpen, setIsOpen] = useState(false)
     const [selectedUsername, setSelectedUsername] = useState<string>("")
     const [searchTerm, setSearchTerm] = useState<string>("")
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
+    const [newUserSelectedTrigger, setNewUserSelectedTrigger] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null!)
     const { users, loading, error } = useGetUsers("lido", debouncedSearchTerm, true, isFocused)
     const {
@@ -25,6 +33,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
 
     const [newPrompt, setNewPrompt] = useState<string>("")
     const [testResult, setTestResult] = useState<SignalStrengthUserData | null>(null)
+    const [testResultsLoading, setTestResultsLoading] = useState(false)
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -37,7 +46,58 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
         if (selectedUsername && testUser.length > 0 && testUser[0].username === selectedUsername) {
             setSelectedUser(testUser[0])
         }
-    }, [selectedUsername, testUser])
+    }, [selectedUsername, testUser, newUserSelectedTrigger])
+
+    const fetchTestResult = async () => {
+        setTestResultsLoading(true)
+        setTestResult(null)
+
+        const token = await getAccessToken()
+        const testingResponse = await fetch(`/api/settings/p/signal-strengths/testing?project=${project.urlSlug}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                targetUsername: selectedUser?.username,
+                signalStrengthName: signalStrength.name,
+                testingPrompt: newPrompt,
+            }),
+        })
+
+        // If response is 200, start a polling loop to check if the test is complete
+        if (testingResponse.ok) {
+            const pollTestResult = async () => {
+                const testResultResponse = await fetch(
+                    `/api/settings/p/signal-strengths/testing?project=${project.urlSlug}&signalStrengthName=${signalStrength.name}&targetUsername=${selectedUser?.username}`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    },
+                )
+
+                if (testResultResponse.status === 200) {
+                    const testResult = await testResultResponse.json()
+                    setTestResult(testResult.testResults)
+                    setTestResultsLoading(false)
+                } else if (testResultResponse.status === 202) {
+                    // If no result yet, poll again after 1 second
+                    setTimeout(pollTestResult, 1000)
+                } else {
+                    console.error("Error fetching test result:", testResultResponse.statusText)
+                    setTestResultsLoading(false)
+                }
+            }
+
+            // Start the polling loop
+            // Add a small delay as the poll does not need to start immediately
+            setTimeout(pollTestResult, 3000)
+        }
+    }
 
     return (
         <VStack w="100%" gap={0}>
@@ -121,6 +181,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 onChange={(e) => {
                                     setSearchTerm(e.target.value)
                                     setSelectedUser(null)
+                                    setTestResult(null)
                                 }}
                                 handleClear={() => {
                                     setSearchTerm("")
@@ -170,6 +231,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                                 _hover={{ bg: "gray.700" }}
                                                 onMouseDown={(e) => {
                                                     e.preventDefault()
+                                                    setNewUserSelectedTrigger(!newUserSelectedTrigger)
                                                     setSelectedUsername(user.username || "")
                                                     setSearchTerm(user.username || "")
                                                     setIsFocused(false)
@@ -256,6 +318,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 Current Prompt
                             </Text>
                             <Textarea
+                                minH={"120px"}
                                 placeholder="No prompt set"
                                 borderRadius={"10px"}
                                 borderWidth={2}
@@ -295,6 +358,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 New Prompt
                             </Text>
                             <Textarea
+                                minH={"120px"}
                                 borderRadius={"10px"}
                                 borderWidth={2}
                                 value={newPrompt}
@@ -346,29 +410,32 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 )}
                             </VStack>
                             <VStack w={"100%"} maxW={"600px"} gap={0}>
-                                <Box w={"100%"} px={3}>
+                                <HStack w={"100%"} px={3} position="relative">
                                     <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
                                         Testing Result
                                     </Text>
-                                </Box>
+                                    {testResult && selectedUser && (
+                                        <Button
+                                            py={0}
+                                            px={2}
+                                            size={"xs"}
+                                            fontSize={"sm"}
+                                            borderRadius={"full"}
+                                            onClick={fetchTestResult}
+                                            loading={testResultsLoading}
+                                            position="absolute"
+                                            right={10}
+                                        >
+                                            <FontAwesomeIcon icon={faRefresh} size="xl" />
+                                            Refresh
+                                        </Button>
+                                    )}
+                                </HStack>
                                 {testResult ? (
                                     <SignalStrength
-                                        username={"test"}
-                                        userData={{
-                                            value: "70",
-                                            description: "new description",
-                                            improvements: "new improvements",
-                                            name: "test",
-                                            summary: "new summary",
-                                        }}
-                                        projectData={{
-                                            maxValue: 100,
-                                            name: "test",
-                                            displayName: `${signalStrength.displayName}`,
-                                            status: "active",
-                                            enabled: true,
-                                            previousDays: 10,
-                                        }}
+                                        username={selectedUser?.username || ""}
+                                        userData={testResult}
+                                        projectData={signalStrength}
                                         isUserConnected={true}
                                         refreshUserData={() => {}}
                                     />
@@ -380,15 +447,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                             fontWeight={"bold"}
                                             fontSize={"md"}
                                             borderRadius={"full"}
-                                            onClick={() => {
-                                                setTestResult({
-                                                    value: "70",
-                                                    description: "new description",
-                                                    improvements: "new improvements",
-                                                    name: "test",
-                                                    summary: "new summary",
-                                                })
-                                            }}
+                                            onClick={fetchTestResult}
+                                            loading={testResultsLoading}
                                         >
                                             Run test analysis using new prompt
                                         </Button>

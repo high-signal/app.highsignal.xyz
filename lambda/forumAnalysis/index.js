@@ -16,7 +16,7 @@ exports.handler = async (event) => {
         console.log("Received event:", event)
         const raw = event.body ?? event
         const body = typeof raw === "string" ? JSON.parse(raw) : raw
-        const { user_id, project_id, forum_username } = body
+        const { user_id, project_id, forum_username, testingData } = body
 
         if (!user_id || !project_id || !forum_username) {
             return {
@@ -25,7 +25,7 @@ exports.handler = async (event) => {
             }
         }
 
-        await analyzeForumUserActivity(user_id, project_id, forum_username)
+        await analyzeForumUserActivity(user_id, project_id, forum_username, testingData)
 
         return {
             statusCode: 200,

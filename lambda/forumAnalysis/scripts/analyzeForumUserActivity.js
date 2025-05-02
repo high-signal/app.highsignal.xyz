@@ -3,12 +3,11 @@ const { fetchUserActivity } = require("./fetchUserActivity")
 const { updateUserData } = require("./updateUserData")
 const { updateRequired } = require("./updateRequired")
 const { analyzeUserData } = require("./analyzeUserData")
-
+const { updateUserTestingData } = require("./updateUserTestingData")
 const { createClient } = require("@supabase/supabase-js")
-//const { NextResponse } = require("next/server")
 
 // Function to analyze forum user activity
-async function analyzeForumUserActivity(user_id, project_id, forum_username) {
+async function analyzeForumUserActivity(user_id, project_id, forum_username, testingData) {
     const SIGNAL_STRENGTH_NAME = "discourse_forum"
 
     try {
@@ -118,7 +117,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username) {
         )[0].updated_at
 
         // === Check if update is required ===
-        if (!updateRequired(lastUpdated, latestActivityDate)) {
+        if (!testingData && !updateRequired(lastUpdated, latestActivityDate)) {
             console.log("User data is up to date. No analysis needed.")
             return
         }
@@ -138,6 +137,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username) {
             displayName,
             maxValue,
             previousDays,
+            testingData,
         )
 
         // === Validity check on maxValue ===
@@ -150,17 +150,29 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username) {
 
         // === Store the analysis results in the database ===
         if (analysisResults && !analysisResults.error) {
-            await updateUserData(
-                supabase,
-                project_id,
-                signal_strength_id,
-                forum_username,
-                userData,
-                latestActivityDate,
-                analysisResults,
-            )
+            if (testingData) {
+                await updateUserTestingData(
+                    supabase,
+                    project_id,
+                    signal_strength_id,
+                    forum_username,
+                    userData,
+                    analysisResults,
+                    testingData,
+                )
+            } else {
+                await updateUserData(
+                    supabase,
+                    project_id,
+                    signal_strength_id,
+                    forum_username,
+                    userData,
+                    latestActivityDate,
+                    analysisResults,
+                )
 
-            console.log("User data successfully updated")
+                console.log("User data successfully updated")
+            }
         } else {
             console.error(`Analysis failed for ${forum_username}:`, analysisResults?.error || "Unknown error")
         }

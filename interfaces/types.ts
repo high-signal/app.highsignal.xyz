@@ -39,6 +39,7 @@ interface SignalStrengthUserData {
 }
 
 interface ProjectData {
+    id?: number
     urlSlug: string
     displayName: string
     projectLogoUrl: string
@@ -48,6 +49,7 @@ interface ProjectData {
 }
 
 interface SignalStrengthProjectData {
+    id?: number
     name: string
     displayName: string
     status: string

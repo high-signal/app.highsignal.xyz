@@ -1,7 +1,17 @@
 // @ts-ignore
 import { analyzeForumUserActivity } from "../../lambda/forumAnalysis/scripts/analyzeForumUserActivity"
 
-export async function triggerForumAnalysis(user_id: string, project_id: string, forum_username: string) {
+interface TestingData {
+    requestingUserId: string
+    testingPrompt: string
+}
+
+export async function triggerForumAnalysis(
+    user_id: string,
+    project_id: string,
+    forum_username: string,
+    testingData?: TestingData,
+) {
     const LAMBDA_ENDPOINT = process.env.LAMBDA_ENDPOINT_DISCOURSE_FORUM_ANALYSIS
     const API_KEY = process.env.LAMBDA_API_KEY
 
@@ -20,6 +30,7 @@ export async function triggerForumAnalysis(user_id: string, project_id: string, 
                     project_id,
                     forum_username,
                     async: true,
+                    ...(testingData && { testingData }),
                 }),
             })
 
@@ -42,7 +53,7 @@ export async function triggerForumAnalysis(user_id: string, project_id: string, 
         }
     } else {
         // Execute locally
-        analyzeForumUserActivity(user_id, project_id, forum_username)
+        analyzeForumUserActivity(user_id, project_id, forum_username, testingData)
         return {
             success: true,
             message: "Analysis initiated successfully",
@@ -50,6 +61,7 @@ export async function triggerForumAnalysis(user_id: string, project_id: string, 
                 user_id,
                 project_id,
                 forum_username,
+                ...(testingData && { testingData }),
             },
         }
     }
