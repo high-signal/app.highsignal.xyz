@@ -126,6 +126,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     setSearchTerm("")
                                     setSelectedUsername("")
                                     setSelectedUser(null)
+                                    setTestResult(null)
                                 }}
                                 onFocus={() => setIsFocused(true)}
                                 // Add a small delay so the button is clicked before the input is blurred
@@ -246,12 +247,14 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         alignItems={"start"}
                         gap={5}
                         px={3}
-                        pt={3}
+                        pt={5}
                         borderTopRadius={{ base: "0px", md: "16px" }}
                         flexWrap={"wrap"}
                     >
                         <VStack w={"100%"} maxW={"500px"} alignItems={"center"}>
-                            <Text px={2}>CurrentPrompt</Text>
+                            <Text px={2} fontWeight={"bold"}>
+                                Current Prompt
+                            </Text>
                             <Textarea
                                 placeholder="No prompt set"
                                 borderRadius={"10px"}
@@ -288,7 +291,9 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             </HStack>
                         </Button>
                         <VStack w={"100%"} maxW={"500px"} alignItems={"center"}>
-                            <Text px={2}>New Prompt</Text>
+                            <Text px={2} fontWeight={"bold"}>
+                                New Prompt
+                            </Text>
                             <Textarea
                                 borderRadius={"10px"}
                                 borderWidth={2}
@@ -310,19 +315,10 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         pt={5}
                     >
                         <HStack w={"100%"} justifyContent={"space-around"} alignItems={"start"} flexWrap={"wrap"}>
-                            <VStack w={"100%"} maxW={"600px"} gap={2} borderRadius={"16px"}>
+                            <VStack w={"100%"} maxW={"600px"} gap={0}>
                                 <Box w={"100%"} px={3}>
-                                    <Text
-                                        w={"100%"}
-                                        py={2}
-                                        textAlign={"center"}
-                                        bg={"gray.800"}
-                                        borderRadius={"full"}
-                                        fontWeight={"bold"}
-                                        borderWidth={3}
-                                        borderColor={"transparent"}
-                                    >
-                                        Current Result
+                                    <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
+                                        Current Analysis
                                     </Text>
                                 </Box>
                                 {selectedUser ? (
@@ -345,22 +341,13 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     />
                                 ) : (
                                     <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
-                                        <Text>No test user selected</Text>
-                                        <Text>Please select a user to test</Text>
+                                        <Text>Select a test user to view their current analysis</Text>
                                     </VStack>
                                 )}
                             </VStack>
-                            <VStack w={"100%"} maxW={"600px"} gap={2}>
+                            <VStack w={"100%"} maxW={"600px"} gap={0}>
                                 <Box w={"100%"} px={3}>
-                                    <Text
-                                        w={"100%"}
-                                        py={2}
-                                        textAlign={"center"}
-                                        borderWidth={3}
-                                        borderColor={"blue.500"}
-                                        borderRadius={"full"}
-                                        fontWeight={"bold"}
-                                    >
+                                    <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
                                         Testing Result
                                     </Text>
                                 </Box>
@@ -385,7 +372,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         isUserConnected={true}
                                         refreshUserData={() => {}}
                                     />
-                                ) : selectedUser && newPrompt ? (
+                                ) : selectedUser ? (
                                     <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
                                         <Button
                                             className="rainbow-animation"
@@ -413,8 +400,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     </VStack>
                                 ) : (
                                     <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
-                                        <Text>No test user selected</Text>
-                                        <Text>Please select a user to test</Text>
+                                        <Text>Select a test user to test their new analysis</Text>
                                     </VStack>
                                 )}
                             </VStack>
