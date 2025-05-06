@@ -4,7 +4,7 @@ import { HStack, Box, Image, Text, Menu, Portal, Spinner } from "@chakra-ui/reac
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCog, faGear, faSignOut } from "@fortawesome/free-solid-svg-icons"
+import { faCog, faGear, faSignOut, faBars } from "@fortawesome/free-solid-svg-icons"
 import { faCircleUser } from "@fortawesome/free-regular-svg-icons"
 import { usePrivy } from "@privy-io/react-auth"
 import { useUser } from "../../contexts/UserContext"
@@ -19,7 +19,7 @@ const userButtonStyles = {
     justifyContent: "center",
     h: "50px",
     _hover: {
-        borderColor: "gray.500",
+        borderColor: "gray.600",
     },
 }
 
@@ -109,24 +109,30 @@ export default function UserMenuButton() {
                     <HStack
                         {...userButtonStyles}
                         cursor="pointer"
-                        maxW="50px"
+                        maxW="120px"
                         border={"none"}
+                        bg={"contentBackground"}
                         transform={{ base: "scale(1)", sm: isMenuOpen ? "scale(1.1)" : "scale(1)" }}
                         transition="transform 0.2s ease-in-out"
                         _hover={{
                             transform: { base: "scale(1)", sm: "scale(1.1)" },
                         }}
                     >
-                        <Image
-                            src={
-                                !loggedInUser.profileImageUrl || loggedInUser.profileImageUrl === ""
-                                    ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                    : loggedInUser.profileImageUrl
-                            }
-                            alt={`User ${loggedInUser.displayName} Profile Image`}
-                            fit="cover"
-                            transition="transform 0.2s ease-in-out"
-                        />
+                        <Box maxW="50px" borderRadius="full" overflow="hidden">
+                            <Image
+                                src={
+                                    !loggedInUser.profileImageUrl || loggedInUser.profileImageUrl === ""
+                                        ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                        : loggedInUser.profileImageUrl
+                                }
+                                alt={`User ${loggedInUser.displayName} Profile Image`}
+                                fit="cover"
+                                transition="transform 0.2s ease-in-out"
+                            />
+                        </Box>
+                        <Box pr={3}>
+                            <FontAwesomeIcon icon={faBars} />
+                        </Box>
                     </HStack>
                 </Menu.Trigger>
                 <Portal>

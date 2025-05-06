@@ -62,11 +62,12 @@ export default function Header({}) {
                 justifyContent={"space-between"}
                 alignItems={"center"}
                 px={3}
+                gap={0}
             >
                 <HStack gap={{ base: 2, sm: 10 }} flexGrow={1}>
                     <Box onClick={() => router.push("/")} cursor="pointer">
                         <HStack gap={2} justifyContent={"center"} alignItems={"center"}>
-                            <Image src={ASSETS.LOGO} alt="Logo" boxSize={"45px"} borderRadius="full" />
+                            <Image src={ASSETS.LOGO} alt="Logo" boxSize={"50px"} borderRadius="full" />
                             <Text
                                 minW="80px"
                                 fontWeight="bold"
