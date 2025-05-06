@@ -323,7 +323,7 @@ export default function SignalStrengthSettings({
                                 borderRadius={"10px"}
                                 borderWidth={2}
                                 disabled
-                                value={signalStrength.prompt}
+                                value={signalStrength.prompt || ""}
                             />
                         </VStack>
                         <Button
@@ -361,7 +361,7 @@ export default function SignalStrengthSettings({
                                 minH={"120px"}
                                 borderRadius={"10px"}
                                 borderWidth={2}
-                                value={newPrompt}
+                                value={newPrompt || ""}
                                 onChange={(e) => {
                                     setNewPrompt(e.target.value)
                                     setTestResult(null)
