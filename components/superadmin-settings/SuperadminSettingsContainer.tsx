@@ -18,28 +18,21 @@ export default function ProjectSettingsContainer() {
     const params = useParams()
     const router = useRouter()
 
-    const [project, setProject] = useState<ProjectData | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    // Get project data
+    // Get super admin settings data
     useEffect(() => {
         const fetchUserData = async () => {
             if (!loggedInUser) {
                 setIsLoading(false)
-                setError("Please log in to access project settings")
-                return
-            }
-
-            const urlSlug = params?.project as string
-            if (!urlSlug) {
-                setError("No project name provided")
+                setError("Please log in to access super admin settings")
                 return
             }
 
             try {
                 const token = await getAccessToken()
-                const response = await fetch(`/api/settings/p?project=${urlSlug}`, {
+                const response = await fetch(`/api/settings/superadmin`, {
                     method: "GET",
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -48,14 +41,11 @@ export default function ProjectSettingsContainer() {
 
                 if (!response.ok) {
                     const errorData = await response.json()
-                    console.error("Failed to fetch project data:", errorData)
-                    throw new Error(errorData.error || "Failed to fetch project data")
+                    console.error("Failed to fetch super admin settings data:", errorData)
+                    throw new Error(errorData.error || "Failed to fetch super admin settings data")
                 }
-
-                const data = await response.json()
-                setProject(data)
             } catch (err) {
-                console.error("Error in fetchUserData:", err)
+                console.error("Error in fetchSuperAdminSettings:", err)
                 setError(err instanceof Error ? err.message : "An error occurred")
             } finally {
                 setIsLoading(false)
@@ -65,7 +55,7 @@ export default function ProjectSettingsContainer() {
         if (!loggedInUserLoading) {
             fetchUserData()
         }
-    }, [loggedInUser, loggedInUserLoading, params?.project, getAccessToken, router])
+    }, [loggedInUser, loggedInUserLoading, getAccessToken, router])
 
     if (isLoading) {
         return (
@@ -87,31 +77,21 @@ export default function ProjectSettingsContainer() {
         )
     }
 
-    if (!project) {
-        return (
-            <ContentContainer>
-                <VStack>
-                    <Text>Project not found</Text>
-                </VStack>
-            </ContentContainer>
-        )
-    }
-
     return (
         <ContentContainer>
             <SettingsTabbedContent
-                title="Project Settings"
+                title="Super Admin Settings"
                 defaultValue="general"
                 tabs={[
                     {
                         value: "general",
                         label: "General",
-                        content: <GeneralSettingsContainer project={project} />,
+                        content: <GeneralSettingsContainer />,
                     },
                     {
                         value: "signal",
                         label: "Signal Strengths",
-                        content: <SignalStrengthSettingsContainer project={project} />,
+                        content: <SignalStrengthSettingsContainer />,
                     },
                 ]}
             />

@@ -4,7 +4,7 @@ import { HStack, Box, Image, Text, Menu, Portal, Spinner } from "@chakra-ui/reac
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCog, faGear, faSignOut, faBars } from "@fortawesome/free-solid-svg-icons"
+import { faGear, faSignOut, faBars, faScrewdriverWrench } from "@fortawesome/free-solid-svg-icons"
 import { faCircleUser } from "@fortawesome/free-regular-svg-icons"
 import { usePrivy } from "@privy-io/react-auth"
 import { useUser } from "../../contexts/UserContext"
@@ -31,9 +31,18 @@ interface MenuItemProps {
     onClick?: () => void
     disabled?: boolean
     borderBottom?: boolean
+    textColor?: string
 }
 
-const MenuItem = ({ isHeading = false, icon, label, value, onClick, disabled }: MenuItemProps) => (
+const MenuItem = ({
+    isHeading = false,
+    icon,
+    label,
+    value,
+    onClick,
+    disabled,
+    textColor = undefined,
+}: MenuItemProps) => (
     <Menu.Item
         px={4}
         pt={3}
@@ -45,6 +54,7 @@ const MenuItem = ({ isHeading = false, icon, label, value, onClick, disabled }: 
         disabled={disabled}
         opacity={disabled ? 0.8 : 1}
         fontWeight={disabled ? "bold" : "normal"}
+        color={textColor}
     >
         <HStack>
             {icon ? (
@@ -152,13 +162,20 @@ export default function UserMenuButton() {
                         <Menu.Content borderRadius={"16px"} p={0}>
                             {loggedInUser.isSuperAdmin && (
                                 <>
-                                    <MenuItem label="Super Admin" value="superAdmin" disabled isHeading />
+                                    <MenuItem
+                                        label="Super Admin"
+                                        value="superAdmin"
+                                        disabled
+                                        isHeading
+                                        textColor="orange.500"
+                                    />
                                     <MenuItem
                                         key={"superAdminSettings"}
-                                        icon={faCog}
+                                        icon={faScrewdriverWrench}
                                         label={"Settings"}
                                         value={"superAdminSettings"}
                                         onClick={() => router.push(`/settings/superadmin`)}
+                                        textColor="orange.500"
                                     />
                                     <Box h="20px" w="100%" />
                                 </>

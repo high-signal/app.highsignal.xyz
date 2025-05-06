@@ -58,3 +58,11 @@ interface SignalStrengthProjectData {
     previousDays: number
     prompt?: string
 }
+
+interface SignalStrengthData {
+    id: number
+    name: string
+    displayName: string
+    status: string
+    prompt: string
+}

@@ -88,6 +88,23 @@ export const routePermissions: RoutePermission[] = [
         },
     },
     {
+        path: "/api/settings/superadmin",
+        methods: {
+            GET: {
+                requiresAuth: true,
+                allowedAccess: ["superAdmin"],
+            },
+            POST: {
+                requiresAuth: true,
+                allowedAccess: ["superAdmin"],
+            },
+            PATCH: {
+                requiresAuth: true,
+                allowedAccess: ["superAdmin"],
+            },
+        },
+    },
+    {
         path: "/api/users",
         methods: {
             // Public read access to user data
