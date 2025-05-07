@@ -1,3 +1,4 @@
+import { getAccessToken } from "@privy-io/react-auth"
 import { useState, useEffect, useCallback } from "react"
 
 export const useGetUsers = (
@@ -5,6 +6,7 @@ export const useGetUsers = (
     username?: string,
     fuzzy: boolean = false,
     shouldFetch: boolean = true,
+    isSuperAdminRequesting: boolean = false,
 ) => {
     const [users, setUsers] = useState<UserData[]>([])
     const [loading, setLoading] = useState(true)
@@ -17,7 +19,10 @@ export const useGetUsers = (
                     setLoading(true)
                 }
 
-                const url = new URL("/api/users", window.location.origin)
+                const url = new URL(
+                    isSuperAdminRequesting ? "/api/superadmin/users" : "/api/users",
+                    window.location.origin,
+                )
                 url.searchParams.append("project", project)
                 if (username) {
                     url.searchParams.append("user", username)
@@ -26,7 +31,14 @@ export const useGetUsers = (
                     }
                 }
 
-                const response = await fetch(url.toString())
+                const token = isSuperAdminRequesting ? await getAccessToken() : null
+                const response = await fetch(url.toString(), {
+                    method: "GET",
+                    headers: {
+                        ...(isSuperAdminRequesting && token ? { Authorization: `Bearer ${token}` } : {}),
+                    },
+                })
+
                 if (!response.ok) {
                     throw new Error("Failed to fetch data")
                 }

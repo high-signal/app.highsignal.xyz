@@ -1,6 +1,7 @@
+import { getAccessToken } from "@privy-io/react-auth"
 import { useState, useEffect } from "react"
 
-export const useGetProjects = (project: string) => {
+export const useGetProjects = (project: string, isSuperAdminRequesting: boolean = false) => {
     const [projects, setProjects] = useState<ProjectData[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -11,12 +12,21 @@ export const useGetProjects = (project: string) => {
                 setLoading(true)
             }
 
-            const url = new URL("/api/projects", window.location.origin)
+            const url = new URL(
+                isSuperAdminRequesting ? "/api/superadmin/projects" : "/api/projects",
+                window.location.origin,
+            )
             if (project) {
                 url.searchParams.append("project", project)
             }
 
-            const response = await fetch(url.toString())
+            const token = isSuperAdminRequesting ? await getAccessToken() : null
+            const response = await fetch(url.toString(), {
+                method: "GET",
+                headers: {
+                    ...(isSuperAdminRequesting && token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+            })
             if (!response.ok) {
                 throw new Error("Failed to fetch data")
             }

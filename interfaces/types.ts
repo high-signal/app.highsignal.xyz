@@ -35,6 +35,9 @@ interface SignalStrengthUserData {
     summary: string
     description: string
     improvements: string
+    explainedReasoning?: string
+    model?: string
+    prompt?: string
     lastChecked?: number
 }
 
@@ -57,6 +60,7 @@ interface SignalStrengthProjectData {
     enabled: boolean
     previousDays: number
     prompt?: string
+    model?: string
 }
 
 interface SignalStrengthData {
@@ -64,5 +68,6 @@ interface SignalStrengthData {
     name: string
     displayName: string
     status: string
-    prompt: string
+    model?: string
+    prompt?: string
 }

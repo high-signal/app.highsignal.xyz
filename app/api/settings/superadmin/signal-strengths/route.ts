@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
             displayName: signalStrength.display_name,
             status: signalStrength.status,
             prompt: signalStrength.prompt,
+            model: signalStrength.model,
         }))
 
         return NextResponse.json({ success: true, signalStrengths: formattedSignalStrengths }, { status: 200 })

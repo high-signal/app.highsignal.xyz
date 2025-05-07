@@ -14,11 +14,13 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     const [selectedUsername, setSelectedUsername] = useState<string>("")
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
     const [newUserSelectedTrigger, setNewUserSelectedTrigger] = useState(false)
+
+    // When a test user is selected, fetch the user data with superadmin fields
     const {
         users: testUser,
         loading: testUserLoading,
         error: testUserError,
-    } = useGetUsers("lido", selectedUsername, false, selectedUsername.length > 0)
+    } = useGetUsers("lido", selectedUsername, false, selectedUsername.length > 0, true)
 
     const [project, setProject] = useState<ProjectData | null>(null)
 
@@ -184,6 +186,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             <Text px={2} fontWeight={"bold"}>
                                 Current Prompt
                             </Text>
+                            <Text>Model: {signalStrength.model}</Text>
                             <Textarea
                                 minH={"120px"}
                                 placeholder="No prompt set"
