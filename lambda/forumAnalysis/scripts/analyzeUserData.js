@@ -4,13 +4,40 @@ const { processObjectForHtml } = require("./processObjectForHtml")
 
 // === CONFIG ===
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
-const MODEL = "gpt-4-1106-preview"
 
 // === SETUP OPENAI ===
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 
-async function analyzeUserData(userData, username, displayName, maxValue, previousDays, testingData) {
+async function analyzeUserData(
+    signalStrengthData,
+    userData,
+    username,
+    displayName,
+    maxValue,
+    previousDays,
+    testingData,
+) {
     console.log("displayName", displayName)
+
+    console.log("testingData", testingData)
+
+    let model
+    if (testingData.testingModel) {
+        model = testingData.testingModel
+    } else if (signalStrengthData.model) {
+        model = signalStrengthData.model
+    } else {
+        return { error: "No model set in DB" }
+    }
+
+    let temperature
+    if (testingData.testingTemperature) {
+        temperature = testingData.testingTemperature
+    } else if (signalStrengthData.temperature) {
+        temperature = signalStrengthData.temperature
+    } else {
+        return { error: "No temperature set in DB" }
+    }
 
     // If filteredActivityData is empty, return null
     if (userData.length === 0) {
@@ -98,9 +125,9 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
     try {
         console.log("Making OpenAI API call...")
         const res = await openai.chat.completions.create({
-            model: MODEL,
+            model: model,
             messages,
-            temperature: 0.2,
+            temperature: temperature,
         })
 
         const response = res.choices[0].message.content.trim()
@@ -113,11 +140,9 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
             // Add the prompt and model to the response
             const responseWithDataAdded = {
                 prompt: basePrompt,
-                model: MODEL,
+                model: model,
                 ...JSON.parse(cleanResponse),
             }
-
-            console.log("responseWithDataAdded", responseWithDataAdded)
 
             // Return the results
             console.log("Analysis complete for user:", username)

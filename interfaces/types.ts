@@ -61,6 +61,7 @@ interface SignalStrengthProjectData {
     previousDays: number
     prompt?: string
     model?: string
+    temperature?: number
 }
 
 interface SignalStrengthData {
@@ -70,4 +71,5 @@ interface SignalStrengthData {
     status: string
     model?: string
     prompt?: string
+    temperature?: number
 }

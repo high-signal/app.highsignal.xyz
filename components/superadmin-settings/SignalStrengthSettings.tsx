@@ -4,6 +4,7 @@ import { faArrowDown, faArrowRight, faChevronRight, faRefresh } from "@fortaweso
 import { useState, useEffect } from "react"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import UserPicker from "../ui/UserPicker"
+import SingleLineTextInput from "../ui/SingleLineTextInput"
 
 import SignalStrength from "../signal-display/signal-strength/SignalStrength"
 import { getAccessToken } from "@privy-io/react-auth"
@@ -24,6 +25,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
 
     const [project, setProject] = useState<ProjectData | null>(null)
 
+    const [newModel, setNewModel] = useState<string>("")
+    const [newTemperature, setNewTemperature] = useState<string>("")
     const [newPrompt, setNewPrompt] = useState<string>("")
     const [testResult, setTestResult] = useState<SignalStrengthUserData | null>(null)
     const [testResultsLoading, setTestResultsLoading] = useState(false)
@@ -51,6 +54,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                     targetUsername: selectedUser?.username,
                     signalStrengthName: signalStrength.name,
                     testingPrompt: newPrompt,
+                    testingModel: newModel,
+                    testingTemperature: Number(newTemperature),
                 }),
             },
         )
@@ -187,6 +192,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 Current Prompt
                             </Text>
                             <Text>Model: {signalStrength.model}</Text>
+                            <Text>Temperature: {signalStrength.temperature}</Text>
                             <Textarea
                                 minH={"120px"}
                                 placeholder="No prompt set"
@@ -227,6 +233,22 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             <Text px={2} fontWeight={"bold"}>
                                 New Prompt
                             </Text>
+                            <SingleLineTextInput
+                                value={newModel}
+                                onChange={(e) => {
+                                    setNewModel(e.target.value)
+                                    setTestResult(null)
+                                }}
+                                placeholder="New model... (optional)"
+                            />
+                            <SingleLineTextInput
+                                value={newTemperature}
+                                onChange={(e) => {
+                                    setNewTemperature(e.target.value)
+                                    setTestResult(null)
+                                }}
+                                placeholder="New temperature... (optional)"
+                            />
                             <Textarea
                                 minH={"120px"}
                                 borderRadius={"10px"}

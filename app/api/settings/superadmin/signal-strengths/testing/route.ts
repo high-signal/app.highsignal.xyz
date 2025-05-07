@@ -75,7 +75,8 @@ export async function POST(request: NextRequest) {
         const projectUrlSlug = request.nextUrl.searchParams.get("project")!
 
         // Parse the request body
-        const { targetUsername, signalStrengthName, testingPrompt } = await request.json()
+        const { targetUsername, signalStrengthName, testingPrompt, testingModel, testingTemperature } =
+            await request.json()
 
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -122,6 +123,8 @@ export async function POST(request: NextRequest) {
         const testingData = {
             requestingUserId: requestingUser.id,
             testingPrompt: sanitizedTestingPrompt,
+            testingModel: testingModel,
+            testingTemperature: testingTemperature,
         }
 
         // Format the request body and pass it to the lambda function

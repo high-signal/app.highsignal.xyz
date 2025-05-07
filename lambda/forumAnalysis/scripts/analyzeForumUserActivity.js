@@ -15,7 +15,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
 
         const { data: signalStrengthData, error: signalError } = await supabase
             .from("signal_strengths")
-            .select("id")
+            .select("*")
             .eq("name", SIGNAL_STRENGTH_NAME)
             .single()
 
@@ -132,6 +132,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
 
         // === Analyze user data with AI ===
         const analysisResults = await analyzeUserData(
+            signalStrengthData,
             filteredActivityData,
             forum_username,
             displayName,
@@ -158,6 +159,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
                     forum_username,
                     userData,
                     analysisResults,
+                    signalStrengthData,
                     testingData,
                 )
             } else {

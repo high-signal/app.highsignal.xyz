@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -17,8 +17,9 @@ export async function GET(request: NextRequest) {
             name: signalStrength.name,
             displayName: signalStrength.display_name,
             status: signalStrength.status,
-            prompt: signalStrength.prompt,
             model: signalStrength.model,
+            temperature: signalStrength.temperature,
+            prompt: signalStrength.prompt,
         }))
 
         return NextResponse.json({ success: true, signalStrengths: formattedSignalStrengths }, { status: 200 })

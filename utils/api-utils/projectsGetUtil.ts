@@ -11,6 +11,7 @@ type ProjectSignalStrength = {
             enabled: boolean
             previous_days: number
             model?: string // Only present if isSuperAdminRequesting is true
+            temperature?: number // Only present if isSuperAdminRequesting is true
             prompt?: string // Only present if isSuperAdminRequesting is true
         }>
     }
@@ -94,6 +95,9 @@ export async function getProjects(request: Request, isSuperAdminRequesting: bool
                         previousDays: ps.signal_strengths.project_signal_strengths[0]?.previous_days,
                         ...(isSuperAdminRequesting
                             ? { model: ps.signal_strengths.project_signal_strengths[0]?.model }
+                            : {}),
+                        ...(isSuperAdminRequesting
+                            ? { temperature: ps.signal_strengths.project_signal_strengths[0]?.temperature }
                             : {}),
                         ...(isSuperAdminRequesting
                             ? { prompt: ps.signal_strengths.project_signal_strengths[0]?.prompt }
