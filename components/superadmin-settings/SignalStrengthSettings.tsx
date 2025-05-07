@@ -27,6 +27,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
 
     const [newModel, setNewModel] = useState<string>("")
     const [newTemperature, setNewTemperature] = useState<string>("")
+    const [newMaxChars, setNewMaxChars] = useState<string>("")
     const [newPrompt, setNewPrompt] = useState<string>("")
     const [testResult, setTestResult] = useState<SignalStrengthUserData | null>(null)
     const [testResultsLoading, setTestResultsLoading] = useState(false)
@@ -55,7 +56,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                     signalStrengthName: signalStrength.name,
                     testingPrompt: newPrompt,
                     testingModel: newModel,
-                    testingTemperature: Number(newTemperature),
+                    testingTemperature: newTemperature ? Number(newTemperature) : undefined,
+                    testingMaxChars: newMaxChars ? Number(newMaxChars) : undefined,
                 }),
             },
         )
@@ -200,7 +202,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         flexWrap={{ base: "wrap", sm: "nowrap" }}
                     >
                         <HStack w={"100%"} justifyContent={"center"}>
-                            <VStack w={"fit-content"} alignItems={"start"} gap={3}>
+                            <VStack w={"fit-content"} alignItems={"start"} gap={2}>
                                 <Text fontWeight={"bold"} textAlign={"center"} w={"100%"}>
                                     Current Settings
                                 </Text>
@@ -232,9 +234,22 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     <Text w={"120px"}>Temperature</Text>
                                     <Text>{signalStrength.temperature}</Text>
                                 </HStack>
+                                <HStack
+                                    w={"fit-content"}
+                                    h={"35px"}
+                                    bg={"pageBackground"}
+                                    justifyContent={"center"}
+                                    gap={0}
+                                    py={1}
+                                    px={3}
+                                    borderRadius={"full"}
+                                >
+                                    <Text w={"120px"}>Max Chars</Text>
+                                    <Text>{signalStrength.maxChars}</Text>
+                                </HStack>
                             </VStack>
                         </HStack>
-                        <VStack w={"100%"} alignItems={"center"} gap={3}>
+                        <VStack w={"100%"} alignItems={"center"} gap={2}>
                             <Text fontWeight={"bold"}>New Settings</Text>
                             <SingleLineTextInput
                                 maxW={"300px"}
@@ -244,6 +259,10 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     setTestResult(null)
                                 }}
                                 placeholder="New model... (optional)"
+                                handleClear={() => {
+                                    setNewModel("")
+                                    setTestResult(null)
+                                }}
                             />
                             <SingleLineTextInput
                                 maxW={"300px"}
@@ -253,6 +272,23 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     setTestResult(null)
                                 }}
                                 placeholder="New temperature... (optional)"
+                                handleClear={() => {
+                                    setNewTemperature("")
+                                    setTestResult(null)
+                                }}
+                            />
+                            <SingleLineTextInput
+                                maxW={"300px"}
+                                value={newMaxChars}
+                                onChange={(e) => {
+                                    setNewMaxChars(e.target.value)
+                                    setTestResult(null)
+                                }}
+                                placeholder="New max chars... (optional)"
+                                handleClear={() => {
+                                    setNewMaxChars("")
+                                    setTestResult(null)
+                                }}
                             />
                         </VStack>
                     </HStack>
@@ -270,10 +306,14 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         <VStack w={"100%"}>
                             <Text fontWeight={"bold"}>Current Prompt</Text>
                             <Textarea
-                                minH={"120px"}
+                                minH={"30dvh"}
+                                fontFamily={"monospace"}
                                 placeholder="No prompt set"
                                 borderRadius={"10px"}
                                 borderWidth={2}
+                                _selection={{
+                                    bg: "gray.600",
+                                }}
                                 disabled
                                 value={signalStrength.prompt || ""}
                             />
@@ -303,11 +343,15 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             </HStack>
                         </Button>
                         <VStack w={"100%"}>
-                            <Text fontWeight={"bold"}>New Prompt</Text>
+                            <Text fontWeight={"bold"}>New Prompt (optional)</Text>
                             <Textarea
-                                minH={"120px"}
+                                minH={"30dvh"}
+                                fontFamily={"monospace"}
                                 borderRadius={"10px"}
                                 borderWidth={2}
+                                _selection={{
+                                    bg: "gray.600",
+                                }}
                                 value={newPrompt || ""}
                                 onChange={(e) => {
                                     setNewPrompt(e.target.value)
@@ -325,7 +369,13 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         alignItems={"center"}
                         gap={2}
                     >
-                        <HStack w={"100%"} justifyContent={"space-around"} alignItems={"start"} flexWrap={"wrap"}>
+                        <HStack
+                            w={"100%"}
+                            justifyContent={"space-around"}
+                            alignItems={"start"}
+                            flexWrap={"wrap"}
+                            pb={5}
+                        >
                             <VStack w={"100%"} maxW={"600px"} gap={0}>
                                 <Box w={"100%"} px={3}>
                                     <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
@@ -356,6 +406,22 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
                                         <Text>Select a test user to view their current analysis</Text>
                                     </VStack>
+                                )}
+                                {selectedUser && (
+                                    <>
+                                        <Box w={"100%"} px={3}>
+                                            <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
+                                                Current Analysis Logs
+                                            </Text>
+                                        </Box>
+                                        <Text as="pre" whiteSpace="pre-wrap" fontFamily="monospace" fontSize="sm">
+                                            {
+                                                selectedUser.signalStrengths?.find(
+                                                    (s) => s.name === signalStrength.name,
+                                                )?.logs
+                                            }
+                                        </Text>
+                                    </>
                                 )}
                             </VStack>
                             <VStack w={"100%"} maxW={"600px"} gap={0}>
@@ -413,6 +479,18 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
                                         <Text>Select a test user to test their new analysis</Text>
                                     </VStack>
+                                )}
+                                {testResult && (
+                                    <>
+                                        <Box w={"100%"} px={3}>
+                                            <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
+                                                Testing Result Logs
+                                            </Text>
+                                        </Box>
+                                        <Text as="pre" whiteSpace="pre-wrap" fontFamily="monospace" fontSize="sm">
+                                            {testResult.logs}
+                                        </Text>
+                                    </>
                                 )}
                             </VStack>
                         </HStack>

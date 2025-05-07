@@ -19,10 +19,8 @@ async function analyzeUserData(
 ) {
     console.log("displayName", displayName)
 
-    console.log("testingData", testingData)
-
     let model
-    if (testingData.testingModel) {
+    if (testingData && testingData.testingModel) {
         model = testingData.testingModel
     } else if (signalStrengthData.model) {
         model = signalStrengthData.model
@@ -31,12 +29,30 @@ async function analyzeUserData(
     }
 
     let temperature
-    if (testingData.testingTemperature) {
+    if (testingData && testingData.testingTemperature !== undefined) {
         temperature = testingData.testingTemperature
     } else if (signalStrengthData.temperature) {
         temperature = signalStrengthData.temperature
     } else {
         return { error: "No temperature set in DB" }
+    }
+
+    let basePrompt
+    if (testingData && testingData.testingPrompt) {
+        basePrompt = eval("`" + testingData.testingPrompt + "`")
+    } else if (signalStrengthData.prompt) {
+        basePrompt = eval("`" + signalStrengthData.prompt + "`")
+    } else {
+        return { error: "No prompt set in DB" }
+    }
+
+    let maxChars
+    if (testingData && testingData.testingMaxChars) {
+        maxChars = testingData.testingMaxChars
+    } else if (signalStrengthData.max_chars) {
+        maxChars = signalStrengthData.max_chars
+    } else {
+        return { error: "No max_chars set in DB" }
     }
 
     // If filteredActivityData is empty, return null
@@ -52,52 +68,6 @@ async function analyzeUserData(
         }
     }
 
-    // === PROMPT ===
-    const basePrompt = `
-    You are an assistant reviewing user activity data. Evaluate the overall quality and tone of the user's contributions. The score doesn't have to be round numbers (5, 20, etc.) but should be whole numbers, it should be a gradient based on those criteria. Give the user a score from 0-${maxValue} with the following criteria:
-
-    Criteria:
-    - 0: Aggressive, spam, hostile, or scam content.
-    - ${Math.floor(maxValue * 0.1)}: Low-quality one-liners like "thanks" or "cool".
-    - ${Math.floor(maxValue * 0.3)}: Slightly better but still low-effort.
-    - ${Math.floor(maxValue * 0.8)}: Decent, helpful or on-topic contributions.
-    - ${maxValue}: Thoughtful, constructive, insightful, or detailed comments.
-
-    If a user has a lot of high quality contributions, give them a score of ${maxValue}. Be slightly more generous than strict.
-
-    IMPORTANT: You must respond with ONLY a valid JSON object. Do not include any other text, markdown formatting, or backticks. The response should start with { and end with }.
-
-    The summary and description should only mention the user display name "${displayName}" not the username "${username}".
-    The username "${username}" must be used as the key in the JSON object.
-
-    The JSON object should have the username as the key, and the value should be an object containing:
-    1. summary: A short sentence describing the overall quality and tone of their activity (3-5 words)
-    2. description: A short description of the user's activity (2-3 sentences)
-    3. improvements: Improvement suggestions (1-2 sentences)
-    4. value: A numeric score between 0 and ${maxValue}. It must not have decimals.
-    5. explainedReasoning: An explanation of the score and why it was given. Show your logic and working.
-
-    Example format:
-    {
-      "${username}": {
-        "summary": "Provides detailed technical feedback",
-        "description": "${displayName} is a great contributor to the community. They provide detailed technical feedback and constructive suggestions.",
-        "improvements": "To improve their score, ${displayName} could ask more questions and provide more examples.",
-        "value": ${Math.floor(maxValue * 0.6)},
-        "explainedReasoning": "A score of ${Math.floor(maxValue * 0.6)} was given because the user provides detailed technical feedback and constructive suggestions. Points were deducted for not asking enough questions and providing enough examples. The part of the prompt that weighted most heavily on the score was the helpfulness of the feedback and the quality of the suggestions."
-      }
-    }
-
-    ${
-        testingData && testingData.testingPrompt
-            ? `
-            This additional data has been provided by the project owner to help you to evaluate user engagement:
-            ${testingData.testingPrompt}
-            `
-            : ""
-    }
-    `
-
     // Process the userData to strip HTML
     const processedUserData = processObjectForHtml(userData)
 
@@ -107,8 +77,13 @@ async function analyzeUserData(
     console.log("userDataString.length", userDataString.length)
 
     // TODO: Increase limit
-    const truncatedData = userDataString.substring(0, 10000) + (userDataString.length > 10000 ? "..." : "")
+    const truncatedData = userDataString.substring(0, maxChars - 3) + (userDataString.length > maxChars ? "..." : "")
     console.log(`Using truncated data (${truncatedData.length} chars) for testing`)
+
+    const logs = `forumUsername: ${username}
+userDataString.length: ${userDataString.length}
+truncatedData.length: ${truncatedData.length}
+`
 
     const messages = [
         {
@@ -139,8 +114,11 @@ async function analyzeUserData(
         try {
             // Add the prompt and model to the response
             const responseWithDataAdded = {
-                prompt: basePrompt,
                 model: model,
+                temperature: temperature,
+                prompt: basePrompt,
+                maxChars: maxChars,
+                logs: logs,
                 ...JSON.parse(cleanResponse),
             }
 

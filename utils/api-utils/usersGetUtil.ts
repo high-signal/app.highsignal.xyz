@@ -28,6 +28,9 @@ type User = {
         explained_reasoning?: string // Only present if isSuperAdminRequesting is true
         model?: string // Only present if isSuperAdminRequesting is true
         prompt?: string // Only present if isSuperAdminRequesting is true
+        temperature?: number // Only present if isSuperAdminRequesting is true
+        max_chars?: number // Only present if isSuperAdminRequesting is true
+        logs?: string // Only present if isSuperAdminRequesting is true
         last_checked: number
         signal_strengths: {
             id: string
@@ -121,6 +124,9 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
                         explained_reasoning,
                         model,
                         prompt,
+                        temperature,
+                        max_chars,
+                        logs,
                         last_checked,
                         signal_strengths!inner (
                             id,
@@ -178,6 +184,9 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
                             ...(isSuperAdminRequesting ? { explainedReasoning: uss.explained_reasoning } : {}),
                             ...(isSuperAdminRequesting ? { model: uss.model } : {}),
                             ...(isSuperAdminRequesting ? { prompt: uss.prompt } : {}),
+                            ...(isSuperAdminRequesting ? { temperature: uss.temperature } : {}),
+                            ...(isSuperAdminRequesting ? { maxChars: uss.max_chars } : {}),
+                            ...(isSuperAdminRequesting ? { logs: uss.logs } : {}),
                             lastChecked: uss.last_checked,
                         })) || [],
                 }

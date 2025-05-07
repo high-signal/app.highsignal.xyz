@@ -159,7 +159,6 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
                     forum_username,
                     userData,
                     analysisResults,
-                    signalStrengthData,
                     testingData,
                 )
             } else {

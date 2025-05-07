@@ -13,6 +13,7 @@ type ProjectSignalStrength = {
             model?: string // Only present if isSuperAdminRequesting is true
             temperature?: number // Only present if isSuperAdminRequesting is true
             prompt?: string // Only present if isSuperAdminRequesting is true
+            max_chars?: number // Only present if isSuperAdminRequesting is true
         }>
     }
 }
@@ -101,6 +102,9 @@ export async function getProjects(request: Request, isSuperAdminRequesting: bool
                             : {}),
                         ...(isSuperAdminRequesting
                             ? { prompt: ps.signal_strengths.project_signal_strengths[0]?.prompt }
+                            : {}),
+                        ...(isSuperAdminRequesting
+                            ? { maxChars: ps.signal_strengths.project_signal_strengths[0]?.max_chars }
                             : {}),
                     })) || [],
             }

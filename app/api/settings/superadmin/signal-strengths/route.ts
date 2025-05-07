@@ -20,6 +20,7 @@ export async function GET() {
             model: signalStrength.model,
             temperature: signalStrength.temperature,
             prompt: signalStrength.prompt,
+            maxChars: signalStrength.max_chars,
         }))
 
         return NextResponse.json({ success: true, signalStrengths: formattedSignalStrengths }, { status: 200 })

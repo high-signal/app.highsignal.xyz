@@ -5,7 +5,6 @@ async function updateUserTestingData(
     username,
     user,
     analysisResults,
-    signalStrengthData,
     testingData,
 ) {
     try {
@@ -24,9 +23,11 @@ async function updateUserTestingData(
                 description: analysisResults[username].description,
                 improvements: analysisResults[username].improvements,
                 explained_reasoning: analysisResults[username].explainedReasoning,
-                test_model: testingData.testingModel || signalStrengthData.model,
-                test_temperature: testingData.testingTemperature || signalStrengthData.temperature,
-                test_prompt: testingData.testingPrompt || signalStrengthData.prompt,
+                logs: analysisResults.logs,
+                test_model: analysisResults.model,
+                test_temperature: analysisResults.temperature,
+                test_prompt: analysisResults.prompt,
+                test_max_chars: analysisResults.maxChars,
             },
             {
                 onConflict: "user_id,project_id,signal_strength_id,requesting_user_id",

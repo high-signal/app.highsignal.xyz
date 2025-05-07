@@ -38,6 +38,9 @@ interface SignalStrengthUserData {
     explainedReasoning?: string
     model?: string
     prompt?: string
+    temperature?: number
+    maxChars?: number
+    logs?: string
     lastChecked?: number
 }
 
@@ -62,6 +65,7 @@ interface SignalStrengthProjectData {
     prompt?: string
     model?: string
     temperature?: number
+    maxChars?: number
 }
 
 interface SignalStrengthData {
@@ -72,4 +76,6 @@ interface SignalStrengthData {
     model?: string
     prompt?: string
     temperature?: number
+    maxChars?: number
+    logs?: string
 }
