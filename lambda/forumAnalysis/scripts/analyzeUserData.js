@@ -44,10 +44,11 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
     The username "${username}" must be used as the key in the JSON object.
 
     The JSON object should have the username as the key, and the value should be an object containing:
-    1. A short sentence describing the overall quality and tone of their activity (3-5 words)
-    2. A short description of the user's activity (2-3 sentences)
-    3. Improvement suggestions (1-2 sentences)
-    4. A numeric score between 0 and ${maxValue} (not rounded). It must not have decimals.
+    1. summary: A short sentence describing the overall quality and tone of their activity (3-5 words)
+    2. description: A short description of the user's activity (2-3 sentences)
+    3. improvements: Improvement suggestions (1-2 sentences)
+    4. value: A numeric score between 0 and ${maxValue}. It must not have decimals.
+    5. explainedReasoning: An explanation of the score and why it was given. Show your logic and working.
 
     Example format:
     {
@@ -55,7 +56,8 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
         "summary": "Provides detailed technical feedback",
         "description": "${displayName} is a great contributor to the community. They provide detailed technical feedback and constructive suggestions.",
         "improvements": "To improve their score, ${displayName} could ask more questions and provide more examples.",
-        "value": ${Math.floor(maxValue * 0.6)}
+        "value": ${Math.floor(maxValue * 0.6)},
+        "explainedReasoning": "A score of ${Math.floor(maxValue * 0.6)} was given because the user provides detailed technical feedback and constructive suggestions. Points were deducted for not asking enough questions and providing enough examples. The part of the prompt that weighted most heavily on the score was the helpfulness of the feedback and the quality of the suggestions."
       }
     }
 
@@ -108,11 +110,18 @@ async function analyzeUserData(userData, username, displayName, maxValue, previo
         const cleanResponse = response.replace(/^```json\n?|\n?```$/g, "").trim()
 
         try {
-            const results = JSON.parse(cleanResponse)
+            // Add the prompt and model to the response
+            const responseWithDataAdded = {
+                prompt: basePrompt,
+                model: MODEL,
+                ...JSON.parse(cleanResponse),
+            }
+
+            console.log("responseWithDataAdded", responseWithDataAdded)
 
             // Return the results
             console.log("Analysis complete for user:", username)
-            return results
+            return responseWithDataAdded
         } catch (parseError) {
             console.error("Failed to parse JSON response:", parseError.message)
             console.error("Cleaned response:", cleanResponse)

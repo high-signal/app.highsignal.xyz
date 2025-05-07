@@ -22,6 +22,8 @@ async function updateUserTestingData(
                 summary: analysisResults[username].summary,
                 description: analysisResults[username].description,
                 improvements: analysisResults[username].improvements,
+                explained_reasoning: analysisResults[username].explainedReasoning,
+                model: analysisResults.model,
             },
             {
                 onConflict: "user_id,project_id,signal_strength_id,requesting_user_id",
