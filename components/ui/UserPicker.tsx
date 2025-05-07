@@ -6,10 +6,12 @@ import { ASSETS } from "../../config/constants"
 
 interface UserPickerProps {
     onUserSelect: (user: UserData) => void
+    onClear?: () => void
     signalStrengthName?: string
+    disabled?: boolean
 }
 
-export default function UserPicker({ onUserSelect, signalStrengthName }: UserPickerProps) {
+export default function UserPicker({ onUserSelect, signalStrengthName, disabled = false, onClear }: UserPickerProps) {
     const [searchTerm, setSearchTerm] = useState<string>("")
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
@@ -23,6 +25,14 @@ export default function UserPicker({ onUserSelect, signalStrengthName }: UserPic
         return () => clearTimeout(timer)
     }, [searchTerm])
 
+    useEffect(() => {
+        if (disabled) {
+            setIsFocused(false)
+            setSearchTerm("")
+            setDebouncedSearchTerm("")
+        }
+    }, [disabled])
+
     return (
         <Box position="relative" minW={{ base: "100%", md: "250px" }} flexGrow={1}>
             <SingleLineTextInput
@@ -34,6 +44,9 @@ export default function UserPicker({ onUserSelect, signalStrengthName }: UserPic
                 }}
                 handleClear={() => {
                     setSearchTerm("")
+                    if (onClear) {
+                        onClear()
+                    }
                 }}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => {
@@ -42,7 +55,21 @@ export default function UserPicker({ onUserSelect, signalStrengthName }: UserPic
                     }, 50)
                 }}
             />
-            {isFocused && (
+            {disabled && (
+                <Box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="pageBackground"
+                    opacity={0.8}
+                    borderRadius="full"
+                    zIndex={1}
+                    cursor="not-allowed"
+                />
+            )}
+            {isFocused && !disabled && (
                 <Box
                     position="absolute"
                     top="100%"
@@ -53,7 +80,7 @@ export default function UserPicker({ onUserSelect, signalStrengthName }: UserPic
                     borderWidth={1}
                     borderRadius="10px"
                     boxShadow="md"
-                    zIndex={1}
+                    zIndex={5}
                     maxH="200px"
                     overflowY="auto"
                 >

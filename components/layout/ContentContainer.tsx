@@ -20,7 +20,7 @@ export default function ContentContainer({ children }: ContentContainerProps) {
                 justifyContent={"center"}
                 gap={5}
                 w={"100%"}
-                maxW="1400px"
+                maxW={{ base: "100%", sm: "95dvw" }}
                 pt={{ base: 0, sm: 5 }}
             >
                 {children}

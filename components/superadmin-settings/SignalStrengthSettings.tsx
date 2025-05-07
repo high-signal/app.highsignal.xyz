@@ -1,6 +1,6 @@
 import { HStack, Text, VStack, Box, Textarea, Button } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowDown, faArrowRight, faChevronRight, faRefresh } from "@fortawesome/free-solid-svg-icons"
+import { faArrowRight, faChevronRight, faRefresh } from "@fortawesome/free-solid-svg-icons"
 import { useState, useEffect } from "react"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import UserPicker from "../ui/UserPicker"
@@ -141,15 +141,21 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         maxW={"100%"}
                         bg={"contentBackground"}
                         alignItems={"center"}
-                        px={5}
-                        py={5}
+                        px={7}
+                        py={2}
                         flexWrap={"wrap"}
                         gap={3}
                     >
-                        <Text>Test Project</Text>
+                        <Text w={"100px"}>Test Project</Text>
                         <ProjectPicker
                             onProjectSelect={(project) => {
                                 setProject(project)
+                            }}
+                            onClear={() => {
+                                setProject(null)
+                                setSelectedUsername("")
+                                setSelectedUser(null)
+                                setTestResult(null)
                             }}
                         />
                     </HStack>
@@ -158,12 +164,12 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         maxW={"100%"}
                         bg={"contentBackground"}
                         alignItems={"center"}
-                        px={5}
-                        py={5}
+                        px={7}
+                        py={2}
                         flexWrap={"wrap"}
                         gap={3}
                     >
-                        <Text>Test User</Text>
+                        <Text w={"100px"}>Test User</Text>
                         <UserPicker
                             onUserSelect={(user) => {
                                 setNewUserSelectedTrigger(!newUserSelectedTrigger)
@@ -171,7 +177,13 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 setSelectedUser(null)
                                 setTestResult(null)
                             }}
+                            onClear={() => {
+                                setSelectedUsername("")
+                                setSelectedUser(null)
+                                setTestResult(null)
+                            }}
                             signalStrengthName={signalStrength.name}
+                            disabled={!project}
                         />
                     </HStack>
                     {/* Prompt Options */}
@@ -180,19 +192,83 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         maxW={"100%"}
                         bg={"contentBackground"}
                         justifyContent={"center"}
-                        alignItems={"start"}
+                        alignItems={"end"}
                         gap={5}
-                        px={3}
+                        px={5}
                         pt={5}
                         borderTopRadius={{ base: "0px", md: "16px" }}
-                        flexWrap={"wrap"}
+                        flexWrap={{ base: "wrap", sm: "nowrap" }}
                     >
-                        <VStack w={"100%"} maxW={"500px"} alignItems={"center"}>
-                            <Text px={2} fontWeight={"bold"}>
-                                Current Prompt
-                            </Text>
-                            <Text>Model: {signalStrength.model}</Text>
-                            <Text>Temperature: {signalStrength.temperature}</Text>
+                        <HStack w={"100%"} justifyContent={"center"}>
+                            <VStack w={"fit-content"} alignItems={"start"} gap={3}>
+                                <Text fontWeight={"bold"} textAlign={"center"} w={"100%"}>
+                                    Current Settings
+                                </Text>
+                                <HStack
+                                    w={"fit-content"}
+                                    h={"35px"}
+                                    bg={"pageBackground"}
+                                    justifyContent={"center"}
+                                    gap={0}
+                                    py={1}
+                                    px={3}
+                                    borderRadius={"full"}
+                                >
+                                    <Text w={"120px"}>Model</Text>
+                                    <Text whiteSpace="nowrap" overflow={"scroll"} maxW={{ base: "200px", sm: "100%" }}>
+                                        {signalStrength.model}
+                                    </Text>
+                                </HStack>
+                                <HStack
+                                    w={"fit-content"}
+                                    h={"35px"}
+                                    bg={"pageBackground"}
+                                    justifyContent={"center"}
+                                    gap={0}
+                                    py={1}
+                                    px={3}
+                                    borderRadius={"full"}
+                                >
+                                    <Text w={"120px"}>Temperature</Text>
+                                    <Text>{signalStrength.temperature}</Text>
+                                </HStack>
+                            </VStack>
+                        </HStack>
+                        <VStack w={"100%"} alignItems={"center"} gap={3}>
+                            <Text fontWeight={"bold"}>New Settings</Text>
+                            <SingleLineTextInput
+                                maxW={"300px"}
+                                value={newModel}
+                                onChange={(e) => {
+                                    setNewModel(e.target.value)
+                                    setTestResult(null)
+                                }}
+                                placeholder="New model... (optional)"
+                            />
+                            <SingleLineTextInput
+                                maxW={"300px"}
+                                value={newTemperature}
+                                onChange={(e) => {
+                                    setNewTemperature(e.target.value)
+                                    setTestResult(null)
+                                }}
+                                placeholder="New temperature... (optional)"
+                            />
+                        </VStack>
+                    </HStack>
+                    {/* Prompt Text Areas */}
+                    <HStack
+                        w={"100%"}
+                        maxW={"100%"}
+                        bg={"contentBackground"}
+                        alignItems={"start"}
+                        justifyContent={"center"}
+                        px={5}
+                        py={5}
+                        flexWrap={{ base: "wrap", sm: "nowrap" }}
+                    >
+                        <VStack w={"100%"}>
+                            <Text fontWeight={"bold"}>Current Prompt</Text>
                             <Textarea
                                 minH={"120px"}
                                 placeholder="No prompt set"
@@ -203,52 +279,31 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             />
                         </VStack>
                         <Button
+                            position={{ base: "relative", sm: "absolute" }}
+                            left={{ base: "auto", sm: "50%" }}
+                            transform={{ base: "none", sm: "translateX(-50%)" }}
+                            transition="none"
                             borderRadius={"full"}
                             px={2}
                             py={0}
-                            h={"30px"}
-                            mt={{ base: 0, sm: "35px" }}
+                            h={"25px"}
                             onClick={() => {
                                 setNewPrompt(signalStrength.prompt || "")
                                 setTestResult(null)
                             }}
                         >
                             <HStack gap={1}>
-                                <Box display={{ base: "none", md: "block" }}>
+                                <Box transform={{ base: "rotate(90deg)", sm: "none" }}>
                                     <FontAwesomeIcon icon={faArrowRight} />
                                 </Box>
-                                <Box display={{ base: "block", md: "none" }}>
-                                    <FontAwesomeIcon icon={faArrowDown} />
-                                </Box>
-                                <Text>Copy</Text>
-                                <Box display={{ base: "none", md: "block" }}>
+                                <Text>Copy prompt</Text>
+                                <Box transform={{ base: "rotate(90deg)", sm: "none" }}>
                                     <FontAwesomeIcon icon={faArrowRight} />
-                                </Box>
-                                <Box display={{ base: "block", md: "none" }}>
-                                    <FontAwesomeIcon icon={faArrowDown} />
                                 </Box>
                             </HStack>
                         </Button>
-                        <VStack w={"100%"} maxW={"500px"} alignItems={"center"}>
-                            <Text px={2} fontWeight={"bold"}>
-                                New Prompt
-                            </Text>
-                            <SingleLineTextInput
-                                value={newModel}
-                                onChange={(e) => {
-                                    setNewModel(e.target.value)
-                                    setTestResult(null)
-                                }}
-                                placeholder="New model... (optional)"
-                            />
-                            <SingleLineTextInput
-                                value={newTemperature}
-                                onChange={(e) => {
-                                    setNewTemperature(e.target.value)
-                                    setTestResult(null)
-                                }}
-                                placeholder="New temperature... (optional)"
-                            />
+                        <VStack w={"100%"}>
+                            <Text fontWeight={"bold"}>New Prompt</Text>
                             <Textarea
                                 minH={"120px"}
                                 borderRadius={"10px"}
@@ -261,6 +316,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             />
                         </VStack>
                     </HStack>
+
                     {/* Testing Output  */}
                     <VStack
                         w={"100%"}
@@ -268,7 +324,6 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         borderBottomRadius={"16px"}
                         alignItems={"center"}
                         gap={2}
-                        pt={5}
                     >
                         <HStack w={"100%"} justifyContent={"space-around"} alignItems={"start"} flexWrap={"wrap"}>
                             <VStack w={"100%"} maxW={"600px"} gap={0}>

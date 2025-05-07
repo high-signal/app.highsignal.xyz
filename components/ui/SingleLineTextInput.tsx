@@ -7,9 +7,10 @@ interface SingleLineTextInputProps {
     value: string
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
+    handleClear?: () => void
     onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void
     onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
-    handleClear?: () => void
+    maxW?: string
     placeholder?: string
     rightElement?: ReactNode
     isEditable?: boolean
@@ -23,6 +24,7 @@ export default function SingleLineTextInput({
     handleClear,
     onFocus,
     onBlur,
+    maxW = "100%",
     placeholder = "",
     rightElement,
     isEditable = true,
@@ -31,7 +33,7 @@ export default function SingleLineTextInput({
     const showClearButton = Boolean(handleClear) && Boolean(value)
 
     return (
-        <Box position="relative" w="100%">
+        <Box position="relative" w="100%" maxW={maxW}>
             <Input
                 ref={ref}
                 value={value}

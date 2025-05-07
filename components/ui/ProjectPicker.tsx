@@ -6,9 +6,10 @@ import { ASSETS } from "../../config/constants"
 
 interface ProjectPickerProps {
     onProjectSelect: (project: ProjectData) => void
+    onClear?: () => void
 }
 
-export default function ProjectPicker({ onProjectSelect }: ProjectPickerProps) {
+export default function ProjectPicker({ onProjectSelect, onClear }: ProjectPickerProps) {
     const [searchTerm, setSearchTerm] = useState<string>("")
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
@@ -33,6 +34,9 @@ export default function ProjectPicker({ onProjectSelect }: ProjectPickerProps) {
                 }}
                 handleClear={() => {
                     setSearchTerm("")
+                    if (onClear) {
+                        onClear()
+                    }
                 }}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => {
@@ -52,7 +56,7 @@ export default function ProjectPicker({ onProjectSelect }: ProjectPickerProps) {
                     borderWidth={1}
                     borderRadius="10px"
                     boxShadow="md"
-                    zIndex={1}
+                    zIndex={5}
                     maxH="200px"
                     overflowY="auto"
                 >

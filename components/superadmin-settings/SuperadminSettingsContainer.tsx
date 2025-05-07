@@ -81,13 +81,13 @@ export default function ProjectSettingsContainer() {
         <ContentContainer>
             <SettingsTabbedContent
                 title="Super Admin Settings"
-                defaultValue="general"
+                defaultValue="signal"
                 tabs={[
-                    {
-                        value: "general",
-                        label: "General",
-                        content: <GeneralSettingsContainer />,
-                    },
+                    // {
+                    //     value: "general",
+                    //     label: "General",
+                    //     content: <GeneralSettingsContainer />,
+                    // },
                     {
                         value: "signal",
                         label: "Signal Strengths",

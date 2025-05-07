@@ -42,7 +42,7 @@ export default function SignalStrengthSettingsContainer() {
     }, [])
 
     return (
-        <SettingsSectionContainer maxWidth="1300px">
+        <SettingsSectionContainer maxWidth="100%">
             {isLoading ? (
                 <Spinner />
             ) : signalStrengths && signalStrengths.length > 0 ? (
