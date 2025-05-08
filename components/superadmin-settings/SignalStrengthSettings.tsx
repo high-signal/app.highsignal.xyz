@@ -107,30 +107,28 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                 borderBottomRadius={isOpen ? "0px" : "16px"}
                 flexWrap={"wrap"}
             >
-                <HStack w={"250px"}>
-                    <HStack
-                        cursor={signalStrength.status !== "dev" ? "pointer" : "disabled"}
-                        onClick={() => signalStrength.status !== "dev" && setIsOpen(!isOpen)}
-                        bg={signalStrength.status === "active" ? "gray.800" : undefined}
-                        _hover={signalStrength.status !== "dev" ? { bg: "gray.700" } : undefined}
-                        py={2}
-                        px={3}
-                        borderRadius={"8px"}
-                        gap={3}
+                <HStack
+                    cursor={signalStrength.status !== "dev" ? "pointer" : "disabled"}
+                    onClick={() => signalStrength.status !== "dev" && setIsOpen(!isOpen)}
+                    bg={signalStrength.status === "active" ? "gray.800" : undefined}
+                    _hover={signalStrength.status !== "dev" ? { bg: "gray.700" } : undefined}
+                    py={2}
+                    px={3}
+                    borderRadius={"8px"}
+                    gap={3}
+                >
+                    <Box transition="transform 0.2s" transform={`rotate(${isOpen ? 90 : 0}deg)`}>
+                        <FontAwesomeIcon icon={faChevronRight} />
+                    </Box>
+                    <Text
+                        w="fit-content"
+                        fontWeight="bold"
+                        fontSize="lg"
+                        whiteSpace="nowrap"
+                        color={signalStrength.status === "dev" ? "textColor" : undefined}
                     >
-                        <Box transition="transform 0.2s" transform={`rotate(${isOpen ? 90 : 0}deg)`}>
-                            <FontAwesomeIcon icon={faChevronRight} />
-                        </Box>
-                        <Text
-                            w="fit-content"
-                            fontWeight="bold"
-                            fontSize="lg"
-                            whiteSpace="nowrap"
-                            color={signalStrength.status === "dev" ? "textColor" : undefined}
-                        >
-                            {signalStrength.displayName}
-                        </Text>
-                    </HStack>
+                        {signalStrength.displayName}
+                    </Text>
                 </HStack>
                 <HStack
                     justifyContent="center"
@@ -432,7 +430,13 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 )}
                             </VStack>
                             <VStack w={"100%"} maxW={"600px"} gap={0}>
-                                <HStack w={"100%"} px={3} position="relative">
+                                <HStack
+                                    w={"100%"}
+                                    px={3}
+                                    position="relative"
+                                    flexWrap={"wrap"}
+                                    justifyContent={"center"}
+                                >
                                     <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
                                         Testing Result
                                     </Text>
@@ -445,11 +449,11 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                             borderRadius={"full"}
                                             onClick={fetchTestResult}
                                             loading={testResultsLoading}
-                                            position="absolute"
-                                            right={10}
+                                            position={{ base: "relative", sm: "absolute" }}
+                                            right={{ base: "auto", sm: 10 }}
                                         >
                                             <FontAwesomeIcon icon={faRefresh} size="xl" />
-                                            Refresh
+                                            Re-run test
                                         </Button>
                                     )}
                                 </HStack>
