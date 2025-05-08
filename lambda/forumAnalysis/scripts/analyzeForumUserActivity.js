@@ -151,29 +151,17 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
 
         // === Store the analysis results in the database ===
         if (analysisResults && !analysisResults.error) {
-            if (testingData) {
-                await updateUserTestingData(
-                    supabase,
-                    project_id,
-                    signal_strength_id,
-                    forum_username,
-                    userData,
-                    analysisResults,
-                    testingData,
-                )
-            } else {
-                await updateUserData(
-                    supabase,
-                    project_id,
-                    signal_strength_id,
-                    forum_username,
-                    userData,
-                    latestActivityDate,
-                    analysisResults,
-                )
-
-                console.log("User data successfully updated")
-            }
+            await updateUserData(
+                supabase,
+                project_id,
+                signal_strength_id,
+                forum_username,
+                userData,
+                latestActivityDate,
+                analysisResults,
+                testingData,
+            )
+            console.log("User data successfully updated")
         } else {
             console.error(`Analysis failed for ${forum_username}:`, analysisResults?.error || "Unknown error")
         }

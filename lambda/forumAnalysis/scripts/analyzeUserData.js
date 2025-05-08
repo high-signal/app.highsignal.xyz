@@ -115,13 +115,15 @@ truncatedData.length: ${truncatedData.length}
         try {
             // Add the prompt and model to the response
             const responseWithDataAdded = {
+                requestId: res.id,
+                created: res.created,
+                promptTokens: res.usage.prompt_tokens,
+                completionTokens: res.usage.completion_tokens,
+                logs: logs,
                 model: model,
                 temperature: temperature,
                 prompt: basePrompt,
                 maxChars: maxChars,
-                promptTokens: res.usage.prompt_tokens,
-                completionTokens: res.usage.completion_tokens,
-                logs: logs,
                 ...JSON.parse(cleanResponse),
             }
 

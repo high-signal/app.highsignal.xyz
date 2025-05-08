@@ -19,25 +19,29 @@ type User = {
         }
     }>
     user_signal_strengths: Array<{
-        signal_strength_id: string
-        project_id: string
-        value: number
-        summary: string
-        description: string
-        improvements: string
-        explained_reasoning?: string // Only present if isSuperAdminRequesting is true
-        model?: string // Only present if isSuperAdminRequesting is true
-        prompt?: string // Only present if isSuperAdminRequesting is true
-        temperature?: number // Only present if isSuperAdminRequesting is true
-        max_chars?: number // Only present if isSuperAdminRequesting is true
-        logs?: string // Only present if isSuperAdminRequesting is true
-        prompt_tokens?: number // Only present if isSuperAdminRequesting is true
-        completion_tokens?: number // Only present if isSuperAdminRequesting is true
-        last_checked: number
         signal_strengths: {
             id: string
             name: string
         }
+        value: number
+        summary: string
+        description: string
+        improvements: string
+        // *** Super Admin only start ***
+        request_id: string
+        created: number
+        user_id: string
+        project_id: string
+        signal_strength_id: string
+        explained_reasoning?: string
+        prompt_tokens?: number
+        completion_tokens?: number
+        logs?: string
+        model?: string
+        temperature?: number
+        prompt?: string
+        max_chars?: number
+        // *** Super Admin only end ***
     }>
 }
 
@@ -116,27 +120,13 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
                         project_id
                     )
                     ),
-                    user_signal_strengths (
-                        signal_strength_id,
-                        project_id,
-                        value,
-                        summary,
-                        description,
-                        improvements,
-                        explained_reasoning,
-                        model,
-                        prompt,
-                        temperature,
-                        max_chars,
-                        logs,
-                        prompt_tokens,
-                        completion_tokens,
-                        last_checked,
+                    user_signal_strengths!user_signal_strengths_user_id_fkey (
                         signal_strengths!inner (
                             id,
                             name
-                        )
-                    )
+                        ),
+                        *
+                    ).order('created', { ascending: false }).limit(1)
                 `,
             )
             .in("id", userIds)
@@ -185,15 +175,23 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
                             summary: uss.summary,
                             description: uss.description,
                             improvements: uss.improvements,
-                            ...(isSuperAdminRequesting ? { explainedReasoning: uss.explained_reasoning } : {}),
-                            ...(isSuperAdminRequesting ? { model: uss.model } : {}),
-                            ...(isSuperAdminRequesting ? { prompt: uss.prompt } : {}),
-                            ...(isSuperAdminRequesting ? { temperature: uss.temperature } : {}),
-                            ...(isSuperAdminRequesting ? { maxChars: uss.max_chars } : {}),
-                            ...(isSuperAdminRequesting ? { logs: uss.logs } : {}),
-                            ...(isSuperAdminRequesting ? { promptTokens: uss.prompt_tokens } : {}),
-                            ...(isSuperAdminRequesting ? { completionTokens: uss.completion_tokens } : {}),
-                            lastChecked: uss.last_checked,
+                            ...(isSuperAdminRequesting
+                                ? {
+                                      requestId: uss.request_id,
+                                      created: uss.created,
+                                      user_id: uss.user_id,
+                                      project_id: uss.project_id,
+                                      signal_strength_id: uss.signal_strength_id,
+                                      explainedReasoning: uss.explained_reasoning,
+                                      model: uss.model,
+                                      prompt: uss.prompt,
+                                      temperature: uss.temperature,
+                                      maxChars: uss.max_chars,
+                                      logs: uss.logs,
+                                      promptTokens: uss.prompt_tokens,
+                                      completionTokens: uss.completion_tokens,
+                                  }
+                                : {}),
                         })) || [],
                 }
             })
