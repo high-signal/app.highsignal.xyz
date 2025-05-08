@@ -66,7 +66,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
         if (testingResponse.ok) {
             const pollTestResult = async () => {
                 const testResultResponse = await fetch(
-                    `/api/settings/superadmin/signal-strengths/testing?project=${project?.urlSlug}&signalStrengthName=${signalStrength.name}&targetUsername=${selectedUser?.username}`,
+                    `/api/superadmin/users/?project=${project?.urlSlug}&user=${selectedUser?.username}&showTestDataOnly=true`,
                     {
                         method: "GET",
                         headers: {
@@ -76,16 +76,14 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                     },
                 )
 
-                if (testResultResponse.status === 200) {
-                    const testResult = await testResultResponse.json()
-                    setTestResult(testResult.testResults)
+                const testResult = await testResultResponse.json()
+
+                if (testResult[0].signalStrengths?.find((s: SignalStrengthData) => s.name === signalStrength.name)) {
+                    setTestResult(testResult[0].signalStrengths?.find((s: any) => s.name === signalStrength.name))
                     setTestResultsLoading(false)
-                } else if (testResultResponse.status === 202) {
+                } else {
                     // If no result yet, poll again after 1 second
                     setTimeout(pollTestResult, 1000)
-                } else {
-                    console.error("Error fetching test result:", testResultResponse.statusText)
-                    setTestResultsLoading(false)
                 }
             }
 

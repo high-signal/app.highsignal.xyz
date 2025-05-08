@@ -30,31 +30,26 @@ async function updateUserData(
         }
 
         // Store the analysis results in the user_signal_strengths table
-        const { error: signalError } = await supabase.from("user_signal_strengths").upsert(
-            {
-                value: analysisResults[username].value,
-                summary: analysisResults[username].summary,
-                description: analysisResults[username].description,
-                improvements: analysisResults[username].improvements,
-                request_id: analysisResults.requestId,
-                created: analysisResults.created,
-                user_id: user.user_id,
-                project_id: PROJECT_ID,
-                signal_strength_id: SIGNAL_STRENGTH_ID,
-                explained_reasoning: analysisResults[username].explainedReasoning,
-                prompt_tokens: analysisResults.promptTokens,
-                completion_tokens: analysisResults.completionTokens,
-                logs: analysisResults.logs,
-                ...(testingData?.requestingUserId && { test_requesting_user: testingData.requestingUserId }),
-                model: testingData?.testingModel || analysisResults.model,
-                temperature: testingData?.testingTemperature || analysisResults.temperature,
-                prompt: testingData?.testingPrompt || analysisResults.prompt,
-                max_chars: testingData?.testingMaxChars || analysisResults.maxChars,
-            },
-            {
-                onConflict: "request_id",
-            },
-        )
+        const { error: signalError } = await supabase.from("user_signal_strengths").insert({
+            value: analysisResults[username].value,
+            summary: analysisResults[username].summary,
+            description: analysisResults[username].description,
+            improvements: analysisResults[username].improvements,
+            request_id: analysisResults.requestId,
+            created: analysisResults.created,
+            user_id: user.user_id,
+            project_id: PROJECT_ID,
+            signal_strength_id: SIGNAL_STRENGTH_ID,
+            explained_reasoning: analysisResults[username].explainedReasoning,
+            prompt_tokens: analysisResults.promptTokens,
+            completion_tokens: analysisResults.completionTokens,
+            logs: analysisResults.logs,
+            ...(testingData?.requestingUserId && { test_requesting_user: testingData.requestingUserId }),
+            model: testingData?.testingModel || analysisResults.model,
+            temperature: testingData?.testingTemperature || analysisResults.temperature,
+            prompt: testingData?.testingPrompt || analysisResults.prompt,
+            max_chars: testingData?.testingMaxChars || analysisResults.maxChars,
+        })
 
         if (signalError) {
             console.error(`Error storing signal strength for ${username}:`, signalError.message)

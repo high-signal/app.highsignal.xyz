@@ -3,71 +3,6 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js"
 import { sanitize } from "../../../../../../utils/sanitize"
 import { triggerForumAnalysis } from "../../../../../../utils/lambda-utils/forumAnalysis"
 
-export async function GET(request: NextRequest) {
-    try {
-        // Get the requesting user from the request header
-        const privyId = request.headers.get("x-privy-id")!
-        const projectUrlSlug = request.nextUrl.searchParams.get("project")!
-        const signalStrengthName = request.nextUrl.searchParams.get("signalStrengthName")!
-        const targetUsername = request.nextUrl.searchParams.get("targetUsername")!
-
-        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-
-        const requestingUser = await getRequestingUserFromDb(supabase, privyId)
-        if (!requestingUser) {
-            return NextResponse.json({ error: "Requesting user not found" }, { status: 404 })
-        }
-
-        const targetUser = await getTargetUserFromDb(supabase, targetUsername)
-        if (!targetUser) {
-            return NextResponse.json({ error: "Target user not found" }, { status: 404 })
-        }
-
-        const signalStrength = await getSignalStrengthFromDb(supabase, projectUrlSlug, signalStrengthName)
-        if (!signalStrength) {
-            return NextResponse.json({ error: "Signal strength not found" }, { status: 404 })
-        }
-
-        const project = await getProjectFromDb(supabase, projectUrlSlug)
-        if (!project) {
-            return NextResponse.json({ error: "Project not found" }, { status: 404 })
-        }
-
-        const { data: testResults, error: testResultsError } = await supabase
-            .from("user_signal_strengths_tests")
-            .select("*")
-            .eq("requesting_user_id", requestingUser.id)
-            .eq("user_id", targetUser.id)
-            .eq("signal_strength_id", signalStrength.id)
-            .eq("project_id", project.id)
-            .single()
-
-        if (testResultsError) {
-            if (testResultsError.code === "PGRST116") {
-                // No results found - this is an expected state
-                return NextResponse.json(
-                    {
-                        success: true,
-                        message: "Test results are being processed",
-                        testResults: null,
-                    },
-                    { status: 202 },
-                )
-            }
-            console.error("Error fetching signal strength test results:", testResultsError)
-            return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-        }
-
-        return NextResponse.json(
-            { success: true, message: "Signal strength test result found", testResults },
-            { status: 200 },
-        )
-    } catch (error) {
-        console.error("Error fetching project settings:", error)
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-    }
-}
-
 export async function POST(request: NextRequest) {
     try {
         // Get the requesting user from the request header
@@ -100,30 +35,32 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Signal strength not found" }, { status: 404 })
         }
 
+        // If there is testing data, delete the existing user_signal_strengths row
+        const { error: deleteError } = await supabase
+            .from("user_signal_strengths")
+            .delete()
+            .eq("test_requesting_user", requestingUser.id)
+            .eq("signal_strength_id", signalStrength.id)
+
+        if (deleteError) {
+            console.error(
+                `Error deleting user_signal_strengths row for ${requestingUser.username}:`,
+                deleteError.message,
+            )
+        }
+
         const forumUser = await getForumUserFromDb(supabase, targetUser.id, project.id)
         if (!forumUser) {
             return NextResponse.json({ error: "Forum user not found" }, { status: 404 })
         }
 
-        // Delete any existing test results for this user and signal strength
-        await supabase
-            .from("user_signal_strengths_tests")
-            .delete()
-            .eq("user_id", targetUser.id)
-            .eq("signal_strength_id", signalStrength.id)
-            .eq("project_id", project.id)
-            .eq("requesting_user_id", requestingUser.id)
-
         // ***************
         // SECURITY CHECK
         // ***************
-        // Sanitize new prompt
-        const sanitizedTestingPrompt = sanitize(testingPrompt)
-
         const testingData = {
             requestingUserId: requestingUser.id,
-            testingPrompt: sanitizedTestingPrompt,
-            testingModel: testingModel,
+            testingPrompt: sanitize(testingPrompt),
+            testingModel: sanitize(testingModel),
             testingTemperature: testingTemperature,
             testingMaxChars: testingMaxChars,
         }

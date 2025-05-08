@@ -48,15 +48,12 @@ type SignalStrength = {
     // *** Super Admin only end ***
 }
 
-export async function getUsers(
-    request: Request,
-    isSuperAdminRequesting: boolean = false,
-    showTestDataOnly: boolean = false,
-) {
+export async function getUsers(request: Request, isSuperAdminRequesting: boolean = false) {
     const { searchParams } = new URL(request.url)
     const projectSlug = searchParams.get("project")
     const username = searchParams.get("user")
     const fuzzy = searchParams.get("fuzzy") === "true"
+    const showTestDataOnly = searchParams.get("showTestDataOnly") === "true" || false
 
     // Pagination
     const page = parseInt(searchParams.get("page") || "1")
