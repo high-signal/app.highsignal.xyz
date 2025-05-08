@@ -43,6 +43,8 @@ async function updateUserData(
                 prompt: analysisResults.prompt,
                 max_chars: analysisResults.maxChars,
                 logs: analysisResults.logs,
+                prompt_tokens: analysisResults.promptTokens,
+                completion_tokens: analysisResults.completionTokens,
                 last_updated: latestActivityDate,
                 last_checked: null,
             },

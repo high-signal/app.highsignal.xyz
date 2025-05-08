@@ -41,6 +41,8 @@ interface SignalStrengthUserData {
     temperature?: number
     maxChars?: number
     logs?: string
+    promptTokens?: number
+    completionTokens?: number
     lastChecked?: number
 }
 

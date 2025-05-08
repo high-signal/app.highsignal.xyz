@@ -31,6 +31,8 @@ type User = {
         temperature?: number // Only present if isSuperAdminRequesting is true
         max_chars?: number // Only present if isSuperAdminRequesting is true
         logs?: string // Only present if isSuperAdminRequesting is true
+        prompt_tokens?: number // Only present if isSuperAdminRequesting is true
+        completion_tokens?: number // Only present if isSuperAdminRequesting is true
         last_checked: number
         signal_strengths: {
             id: string
@@ -127,6 +129,8 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
                         temperature,
                         max_chars,
                         logs,
+                        prompt_tokens,
+                        completion_tokens,
                         last_checked,
                         signal_strengths!inner (
                             id,
@@ -187,6 +191,8 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
                             ...(isSuperAdminRequesting ? { temperature: uss.temperature } : {}),
                             ...(isSuperAdminRequesting ? { maxChars: uss.max_chars } : {}),
                             ...(isSuperAdminRequesting ? { logs: uss.logs } : {}),
+                            ...(isSuperAdminRequesting ? { promptTokens: uss.prompt_tokens } : {}),
+                            ...(isSuperAdminRequesting ? { completionTokens: uss.completion_tokens } : {}),
                             lastChecked: uss.last_checked,
                         })) || [],
                 }

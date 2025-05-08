@@ -13,7 +13,7 @@ async function analyzeUserData(
     userData,
     username,
     displayName,
-    maxValue,
+    maxValue, // Used in the evaluation of the prompt
     previousDays,
     testingData,
 ) {
@@ -76,14 +76,8 @@ async function analyzeUserData(
 
     console.log("userDataString.length", userDataString.length)
 
-    // TODO: Increase limit
     const truncatedData = userDataString.substring(0, maxChars - 3) + (userDataString.length > maxChars ? "..." : "")
     console.log(`Using truncated data (${truncatedData.length} chars) for testing`)
-
-    const logs = `forumUsername: ${username}
-userDataString.length: ${userDataString.length}
-truncatedData.length: ${truncatedData.length}
-`
 
     const messages = [
         {
@@ -105,6 +99,13 @@ truncatedData.length: ${truncatedData.length}
             temperature: temperature,
         })
 
+        console.log("res", res)
+
+        const logs = `forumUsername: ${username}
+userDataString.length: ${userDataString.length}
+truncatedData.length: ${truncatedData.length}
+`
+
         const response = res.choices[0].message.content.trim()
         console.log("Raw response:", response)
 
@@ -118,6 +119,8 @@ truncatedData.length: ${truncatedData.length}
                 temperature: temperature,
                 prompt: basePrompt,
                 maxChars: maxChars,
+                promptTokens: res.usage.prompt_tokens,
+                completionTokens: res.usage.completion_tokens,
                 logs: logs,
                 ...JSON.parse(cleanResponse),
             }

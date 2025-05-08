@@ -495,12 +495,19 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     <>
                                         <Box w={"100%"} px={3}>
                                             <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
-                                                Testing Result Logs
+                                                Test Result Logs
                                             </Text>
                                         </Box>
                                         <Text as="pre" whiteSpace="pre-wrap" fontFamily="monospace" fontSize="sm">
                                             {testResult.logs}
                                         </Text>
+                                        {/* <Text>
+                                            Prompt tokens: {testResult.prompt_tokens}
+                                            <br />
+                                            Completion tokens: {testResult.completion_tokens}
+                                            <br />
+                                            Explained Reason: {testResult.explained_reasoning}
+                                        </Text> */}
                                     </>
                                 )}
                             </VStack>

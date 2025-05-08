@@ -28,6 +28,8 @@ async function updateUserTestingData(
                 test_temperature: analysisResults.temperature,
                 test_prompt: analysisResults.prompt,
                 test_max_chars: analysisResults.maxChars,
+                prompt_tokens: analysisResults.promptTokens,
+                completion_tokens: analysisResults.completionTokens,
             },
             {
                 onConflict: "user_id,project_id,signal_strength_id,requesting_user_id",
