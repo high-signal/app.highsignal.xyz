@@ -4,6 +4,7 @@ import { faArrowDown, faArrowRight, faChevronRight, faRefresh } from "@fortaweso
 import { useState, useRef, useEffect } from "react"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import { useGetUsers } from "../../hooks/useGetUsers"
+import SignalStrengthConfig from "./SignalStrengthConfig"
 
 import SignalStrength from "../signal-display/signal-strength/SignalStrength"
 import { ASSETS } from "../../config/constants"
@@ -113,17 +114,18 @@ export default function SignalStrengthSettings({
             >
                 <HStack w={"250px"}>
                     <HStack
-                        cursor={signalStrength.status !== "dev" ? "pointer" : "disabled"}
-                        onClick={() => signalStrength.status !== "dev" && setIsOpen(!isOpen)}
-                        _hover={signalStrength.status !== "dev" ? { bg: "gray.800" } : undefined}
+                        // cursor={signalStrength.status !== "dev" ? "pointer" : "disabled"}
+                        cursor={"default"}
+                        // onClick={() => signalStrength.status !== "dev" && setIsOpen(!isOpen)}
+                        // _hover={signalStrength.status !== "dev" ? { bg: "gray.800" } : undefined}
                         py={2}
                         px={3}
                         borderRadius={"8px"}
                         gap={3}
                     >
-                        <Box transition="transform 0.2s" transform={`rotate(${isOpen ? 90 : 0}deg)`}>
+                        {/* <Box transition="transform 0.2s" transform={`rotate(${isOpen ? 90 : 0}deg)`}>
                             <FontAwesomeIcon icon={faChevronRight} />
-                        </Box>
+                        </Box> */}
                         <Text
                             w="fit-content"
                             fontWeight="bold"
@@ -135,29 +137,7 @@ export default function SignalStrengthSettings({
                         </Text>
                     </HStack>
                 </HStack>
-                {signalStrength.status !== "dev" && signalStrength.enabled ? (
-                    <HStack justifyContent="start" w="100px">
-                        <SingleLineTextInput
-                            value={signalStrength.maxValue.toString()}
-                            onChange={() => {}}
-                            onKeyDown={() => {}}
-                            isEditable={true}
-                        />
-                        <Text whiteSpace="nowrap">/ 100</Text>
-                    </HStack>
-                ) : (
-                    <Text>Coming soon 🏗️</Text>
-                )}
-                <Switch.Root
-                    defaultChecked={signalStrength.status === "active" && signalStrength.enabled}
-                    disabled={signalStrength.status != "active"}
-                >
-                    <Switch.HiddenInput />
-                    <Switch.Control>
-                        <Switch.Thumb />
-                    </Switch.Control>
-                    <Switch.Label />
-                </Switch.Root>
+                <SignalStrengthConfig signalStrength={signalStrength} />
             </HStack>
             {isOpen && (
                 <VStack w="100%" pb={2} gap={0}>
@@ -412,7 +392,7 @@ export default function SignalStrengthSettings({
                             <VStack w={"100%"} maxW={"600px"} gap={0}>
                                 <HStack w={"100%"} px={3} position="relative">
                                     <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
-                                        Testing Result
+                                        Test Result
                                     </Text>
                                     {testResult && selectedUser && (
                                         <Button
