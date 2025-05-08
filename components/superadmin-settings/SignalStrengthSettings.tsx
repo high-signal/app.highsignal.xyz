@@ -38,6 +38,32 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
         }
     }, [selectedUsername, testUser, newUserSelectedTrigger])
 
+    const ExtraData = ({ title, data }: { title: string; data: SignalStrengthUserData | undefined }) => (
+        <VStack w={"100%"} maxW={"600px"} gap={1} px={5}>
+            <Box w={"100%"} px={3}>
+                <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
+                    {title}
+                </Text>
+            </Box>
+            <VStack w={"100%"} gap={5}>
+                <VStack w={"100%"} gap={1}>
+                    <Text fontWeight={"bold"} w={"100%"}>
+                        Explained Reason:
+                    </Text>
+                    <Text>{data?.explainedReasoning}</Text>
+                </VStack>
+
+                <Text as="pre" whiteSpace="pre-wrap" fontFamily="monospace" fontSize="sm">
+                    {data?.logs}
+                    <br />
+                    Prompt tokens: {data?.promptTokens}
+                    <br />
+                    Completion tokens: {data?.completionTokens}
+                </Text>
+            </VStack>
+        </VStack>
+    )
+
     const fetchTestResult = async () => {
         setTestResultsLoading(true)
         setTestResult(null)
@@ -411,20 +437,10 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     </VStack>
                                 )}
                                 {selectedUser && (
-                                    <>
-                                        <Box w={"100%"} px={3}>
-                                            <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
-                                                Current Analysis Logs
-                                            </Text>
-                                        </Box>
-                                        <Text as="pre" whiteSpace="pre-wrap" fontFamily="monospace" fontSize="sm">
-                                            {
-                                                selectedUser.signalStrengths?.find(
-                                                    (s) => s.name === signalStrength.name,
-                                                )?.logs
-                                            }
-                                        </Text>
-                                    </>
+                                    <ExtraData
+                                        title="Current Analysis Logs"
+                                        data={selectedUser.signalStrengths?.find((s) => s.name === signalStrength.name)}
+                                    />
                                 )}
                             </VStack>
                             <VStack w={"100%"} maxW={"600px"} gap={0}>
@@ -489,25 +505,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         <Text>Select a test user to test their new analysis</Text>
                                     </VStack>
                                 )}
-                                {testResult && (
-                                    <>
-                                        <Box w={"100%"} px={3}>
-                                            <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
-                                                Test Result Logs
-                                            </Text>
-                                        </Box>
-                                        <Text as="pre" whiteSpace="pre-wrap" fontFamily="monospace" fontSize="sm">
-                                            {testResult.logs}
-                                        </Text>
-                                        {/* <Text>
-                                            Prompt tokens: {testResult.prompt_tokens}
-                                            <br />
-                                            Completion tokens: {testResult.completion_tokens}
-                                            <br />
-                                            Explained Reason: {testResult.explained_reasoning}
-                                        </Text> */}
-                                    </>
-                                )}
+                                {testResult && <ExtraData title="Test Result Logs" data={testResult} />}
                             </VStack>
                         </HStack>
                     </VStack>
