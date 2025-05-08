@@ -23,8 +23,12 @@ export default function SignalStrengthContainer({
         }
     })
 
-    // Sort matched signal strengths first by user data value, then by project data maxValue
+    // Sort matched signal strengths first by status (active first), then by user data value, then by project data maxValue, then alphabetically
     const sortedMatchedSignalStrengths = [...matchedSignalStrengths].sort((a, b) => {
+        // First sort by status - active comes first
+        if (a.projectData.status === "active" && b.projectData.status !== "active") return -1
+        if (a.projectData.status !== "active" && b.projectData.status === "active") return 1
+
         // Get user values, defaulting to "0" if not available
         const userValueA = a.userData ? parseFloat(a.userData.value) : 0
         const userValueB = b.userData ? parseFloat(b.userData.value) : 0
@@ -35,7 +39,12 @@ export default function SignalStrengthContainer({
         }
 
         // If user values are the same, sort by project maxValue (descending)
-        return b.projectData.maxValue - a.projectData.maxValue
+        if (b.projectData.maxValue !== a.projectData.maxValue) {
+            return b.projectData.maxValue - a.projectData.maxValue
+        }
+
+        // If maxValues are the same, sort alphabetically by name
+        return a.projectData.name.localeCompare(b.projectData.name)
     })
 
     return (
