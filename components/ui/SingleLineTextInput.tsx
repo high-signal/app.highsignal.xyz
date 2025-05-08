@@ -53,9 +53,6 @@ export default function SingleLineTextInput({
                     boxShadow: "none",
                     outline: "none",
                 }}
-                _selection={{
-                    bg: "gray.600",
-                }}
                 bg={value && isEditable ? "gray.800" : "pageBackground"}
                 pr={showClearButton ? "30px" : "0px"}
                 h="35px"

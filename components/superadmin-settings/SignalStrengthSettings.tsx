@@ -111,7 +111,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                     <HStack
                         cursor={signalStrength.status !== "dev" ? "pointer" : "disabled"}
                         onClick={() => signalStrength.status !== "dev" && setIsOpen(!isOpen)}
-                        _hover={signalStrength.status !== "dev" ? { bg: "gray.800" } : undefined}
+                        bg={signalStrength.status === "active" ? "gray.800" : undefined}
+                        _hover={signalStrength.status !== "dev" ? { bg: "gray.700" } : undefined}
                         py={2}
                         px={3}
                         borderRadius={"8px"}
@@ -131,8 +132,20 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         </Text>
                     </HStack>
                 </HStack>
-                <HStack justifyContent="start" w="100px">
-                    <Text whiteSpace="nowrap">{signalStrength.status}</Text>
+                <HStack
+                    justifyContent="center"
+                    bg={signalStrength.status === "active" ? "green.500" : "gray.700"}
+                    border={"2px solid"}
+                    borderColor={signalStrength.status === "active" ? "#029E03" : "gray.500"}
+                    borderRadius={"full"}
+                    px={3}
+                    py={1}
+                    fontWeight={"semibold"}
+                    cursor={"default"}
+                >
+                    <Text whiteSpace="nowrap">
+                        {signalStrength.status.charAt(0).toUpperCase() + signalStrength.status.slice(1)}
+                    </Text>
                 </HStack>
             </HStack>
             {isOpen && (
@@ -311,9 +324,6 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 placeholder="No prompt set"
                                 borderRadius={"10px"}
                                 borderWidth={2}
-                                _selection={{
-                                    bg: "gray.600",
-                                }}
                                 disabled
                                 value={signalStrength.prompt || ""}
                             />
@@ -349,9 +359,6 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 fontFamily={"monospace"}
                                 borderRadius={"10px"}
                                 borderWidth={2}
-                                _selection={{
-                                    bg: "gray.600",
-                                }}
                                 value={newPrompt || ""}
                                 onChange={(e) => {
                                     setNewPrompt(e.target.value)

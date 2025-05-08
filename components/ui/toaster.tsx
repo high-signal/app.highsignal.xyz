@@ -25,14 +25,7 @@ export default function Toaster() {
                             alignItems="center"
                         >
                             {toast.title && (
-                                <Toast.Title
-                                    mr={4}
-                                    ml={toast.description ? 4 : 0}
-                                    w={"max-content"}
-                                    _selection={{
-                                        bg: "gray.600",
-                                    }}
-                                >
+                                <Toast.Title mr={4} ml={toast.description ? 4 : 0} w={"max-content"}>
                                     {typeof toast.title === "string" ? (
                                         <>
                                             <span style={{ paddingRight: "5px" }}>{toast.title.charAt(0)}</span>
@@ -44,14 +37,7 @@ export default function Toaster() {
                                 </Toast.Title>
                             )}
                             {toast.description && (
-                                <Toast.Description
-                                    _selection={{
-                                        bg: "gray.600",
-                                    }}
-                                    textAlign={"center"}
-                                >
-                                    {toast.description}
-                                </Toast.Description>
+                                <Toast.Description textAlign={"center"}>{toast.description}</Toast.Description>
                             )}
                             {toast.action && (
                                 <Toast.ActionTrigger borderRadius="full" border={"2px solid"} cursor="pointer">

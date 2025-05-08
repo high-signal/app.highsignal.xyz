@@ -101,6 +101,9 @@ export const customConfig = createSystem(defaultConfig, {
                 contentBorder: {
                     value: { _light: "#EDF2F7", _dark: "#008C8B" },
                 },
+                selectionColor: {
+                    value: { _light: "{colors.blue.200}", _dark: "{colors.gray.600}" },
+                },
                 scoreColor: {
                     high: {
                         value: { _light: "{colors.orange.500}", _dark: "{colors.orange.500}" },
@@ -122,6 +125,9 @@ export const customConfig = createSystem(defaultConfig, {
             width: "100vw",
             overflowX: "hidden",
             fontFamily: "fonts.body",
+        },
+        "::selection": {
+            backgroundColor: "{colors.selectionColor}",
         },
         ".rainbow-animation": {
             backgroundImage: "linear-gradient(270deg, pink, purple, blue, red, blue, purple, pink) !important",
