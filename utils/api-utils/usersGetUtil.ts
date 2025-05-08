@@ -2,6 +2,8 @@ import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import { calculateSignalFromScore } from "../../utils/calculateSignal"
 
+import { APP_CONFIG } from "../../config/constants"
+
 type User = {
     id: string
     username: string
@@ -18,46 +20,47 @@ type User = {
             project_id: string
         }
     }>
-    user_signal_strengths: Array<{
-        signal_strengths: {
-            id: string
-            name: string
-        }
-        value: number
-        summary: string
-        description: string
-        improvements: string
-        // *** Super Admin only start ***
-        request_id: string
-        created: number
-        user_id: string
-        project_id: string
-        signal_strength_id: string
-        explained_reasoning?: string
-        prompt_tokens?: number
-        completion_tokens?: number
-        logs?: string
-        model?: string
-        temperature?: number
-        prompt?: string
-        max_chars?: number
-        // *** Super Admin only end ***
-    }>
 }
 
-export async function getUsers(request: Request, isSuperAdminRequesting: boolean = false) {
+type SignalStrength = {
+    signal_strengths: {
+        id: string
+        name: string
+    }
+    value: number
+    summary: string
+    description: string
+    improvements: string
+    // *** Super Admin only start ***
+    request_id: string
+    created: number
+    user_id: string
+    project_id: string
+    signal_strength_id: string
+    explained_reasoning?: string
+    prompt_tokens?: number
+    completion_tokens?: number
+    logs?: string
+    model?: string
+    temperature?: number
+    prompt?: string
+    max_chars?: number
+    // *** Super Admin only end ***
+}
+
+export async function getUsers(
+    request: Request,
+    isSuperAdminRequesting: boolean = false,
+    showTestDataOnly: boolean = false,
+) {
     const { searchParams } = new URL(request.url)
     const projectSlug = searchParams.get("project")
     const username = searchParams.get("user")
     const fuzzy = searchParams.get("fuzzy") === "true"
 
-    // TODO: Add these filters to the query
-    const signalStrengthName = searchParams.get("signalStrengthName")
-    const signalStrengthScores = searchParams.get("signalStrengthScores")
-
     // Pagination
     const page = parseInt(searchParams.get("page") || "1")
-    const resultsPerPage = 10
+    const resultsPerPage = APP_CONFIG.DEFAULT_PAGINATION_LIMIT
     const from = (page - 1) * resultsPerPage
     const to = from + resultsPerPage - 1
 
@@ -73,6 +76,8 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
             .select(
                 `
                     user_id,
+                    username,
+                    display_name,
                     project_id,
                     rank,
                     total_score,
@@ -88,6 +93,15 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
             .order("rank", { ascending: true })
             .range(from, to)
 
+        // Filter by username or display name if provided
+        if (username) {
+            if (fuzzy) {
+                projectScoresQuery = projectScoresQuery.ilike("display_name", `%${username}%`)
+            } else {
+                projectScoresQuery = projectScoresQuery.eq("username", username)
+            }
+        }
+
         const { data: userProjectScores, error: scoresError } = await projectScoresQuery
 
         if (scoresError) {
@@ -101,6 +115,7 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
 
         const userIds = userProjectScores.map((score) => score.user_id)
 
+        // Get user details
         let userDetailsQuery = supabase
             .from("users")
             .select(
@@ -119,25 +134,10 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
                         value,
                         project_id
                     )
-                    ),
-                    user_signal_strengths!user_signal_strengths_user_id_fkey (
-                        signal_strengths!inner (
-                            id,
-                            name
-                        ),
-                        *
-                    ).order('created', { ascending: false }).limit(1)
+                    )
                 `,
             )
             .in("id", userIds)
-
-        if (username) {
-            if (fuzzy) {
-                userDetailsQuery = userDetailsQuery.ilike("display_name", `%${username}%`)
-            } else {
-                userDetailsQuery = userDetailsQuery.eq("username", username)
-            }
-        }
 
         const { data: userDetails, error: usersError } = await userDetailsQuery
 
@@ -146,10 +146,74 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
             return NextResponse.json({ error: "Error fetching users" }, { status: 500 })
         }
 
+        // Get all available signal strengths
+        const { data: signalStrengthIds, error: signalStrengthIdsError } = await supabase
+            .from("signal_strengths")
+            .select("id")
+
+        if (signalStrengthIdsError) {
+            console.error("signalStrengthIdsError", signalStrengthIdsError)
+            return NextResponse.json({ error: "Error fetching signal strength ids" }, { status: 500 })
+        }
+
+        const signalStrengthIdValues = signalStrengthIds?.map((item) => item.id) || []
+
+        // Get signal strengths
+        const signalStrengthsResults = await Promise.all(
+            // For each user
+            userIds.map(async (userId) => {
+                const signalData = await Promise.all(
+                    // For each signal strength
+                    signalStrengthIdValues.map(async (signalStrengthId) => {
+                        let query = supabase
+                            .from("user_signal_strengths")
+                            .select(
+                                `
+                                signal_strengths!inner (
+                                    id,
+                                    name
+                                ),
+                                *
+                                `,
+                            )
+                            .eq("user_id", userId)
+                            .eq("project_id", userProjectScores[0]?.project_id)
+                            .eq("signal_strength_id", signalStrengthId)
+
+                        if (showTestDataOnly) {
+                            query = query.not("test_requesting_user", "is", null)
+                        } else {
+                            query = query.is("test_requesting_user", null)
+                        }
+
+                        const { data, error } = await query.order("created", { ascending: false }).limit(1)
+
+                        if (error) {
+                            console.error("signalStrengthsError", error)
+                            return null
+                        }
+
+                        return data?.[0] || null
+                    }),
+                )
+
+                return signalData.filter(Boolean)
+            }),
+        )
+
+        const signalStrengths = signalStrengthsResults.flat()
+
+        if (!signalStrengths) {
+            return NextResponse.json({ error: "Error fetching signal strengths" }, { status: 500 })
+        }
+
         const formattedUsers = userProjectScores
             .map((score) => {
                 const user = (userDetails as unknown as User[])?.find((u) => u.id === score.user_id)
                 if (!user) return null
+
+                const userSignalStrengths = signalStrengths?.filter((ss) => ss.user_id === user.id) || []
+
                 return {
                     id: user.id,
                     username: user.username,
@@ -168,31 +232,30 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
                             imageAlt: ups.peak_signals.image_alt,
                             value: ups.peak_signals.value,
                         })) || [],
-                    signalStrengths:
-                        user.user_signal_strengths?.map((uss) => ({
-                            name: uss.signal_strengths.name,
-                            value: uss.value,
-                            summary: uss.summary,
-                            description: uss.description,
-                            improvements: uss.improvements,
-                            ...(isSuperAdminRequesting
-                                ? {
-                                      requestId: uss.request_id,
-                                      created: uss.created,
-                                      user_id: uss.user_id,
-                                      project_id: uss.project_id,
-                                      signal_strength_id: uss.signal_strength_id,
-                                      explainedReasoning: uss.explained_reasoning,
-                                      model: uss.model,
-                                      prompt: uss.prompt,
-                                      temperature: uss.temperature,
-                                      maxChars: uss.max_chars,
-                                      logs: uss.logs,
-                                      promptTokens: uss.prompt_tokens,
-                                      completionTokens: uss.completion_tokens,
-                                  }
-                                : {}),
-                        })) || [],
+                    signalStrengths: userSignalStrengths.map((uss) => ({
+                        name: uss.signal_strengths.name,
+                        value: uss.value,
+                        summary: uss.summary,
+                        description: uss.description,
+                        improvements: uss.improvements,
+                        ...(isSuperAdminRequesting
+                            ? {
+                                  requestId: uss.request_id,
+                                  created: uss.created,
+                                  user_id: uss.user_id,
+                                  project_id: uss.project_id,
+                                  signal_strength_id: uss.signal_strength_id,
+                                  explainedReasoning: uss.explained_reasoning,
+                                  model: uss.model,
+                                  prompt: uss.prompt,
+                                  temperature: uss.temperature,
+                                  maxChars: uss.max_chars,
+                                  logs: uss.logs,
+                                  promptTokens: uss.prompt_tokens,
+                                  completionTokens: uss.completion_tokens,
+                              }
+                            : {}),
+                    })),
                 }
             })
             .filter(Boolean) // Remove nulls if any usernames didn't match filter
