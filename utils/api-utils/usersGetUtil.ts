@@ -27,6 +27,7 @@ type SignalStrength = {
         id: string
         name: string
     }
+    last_checked: number
     value: number
     summary: string
     description: string
@@ -227,6 +228,7 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
                         })) || [],
                     signalStrengths: userSignalStrengths.map((uss) => ({
                         name: uss.signal_strengths.name,
+                        ...(uss.last_checked ? { lastChecked: uss.last_checked } : {}),
                         value: uss.value,
                         summary: uss.summary,
                         description: uss.description,

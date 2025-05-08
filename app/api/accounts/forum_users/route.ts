@@ -45,9 +45,11 @@ export async function POST(request: Request) {
                     project_id: project_id,
                     signal_strength_id: signalStrengthData.id,
                     last_checked: Math.floor(Date.now() / 1000),
+                    request_id: `last_checked_${user_id}_${project_id}_${signalStrengthData.id}`,
+                    created: 99999999999999,
                 },
                 {
-                    onConflict: "user_id,project_id,signal_strength_id",
+                    onConflict: "request_id",
                 },
             )
 

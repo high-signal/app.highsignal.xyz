@@ -27,6 +27,18 @@ async function updateUserData(
             } else {
                 console.log(`Successfully updated latestActivityDate in database for ${username}`)
             }
+
+            // Delete any last_checked values for this user and project
+            const { error: deleteError } = await supabase
+                .from("user_signal_strengths")
+                .delete()
+                .eq("request_id", `last_checked_${user.user_id}_${PROJECT_ID}_${SIGNAL_STRENGTH_ID}`)
+
+            if (deleteError) {
+                console.error(`Error deleting last_checked values for ${username}:`, deleteError.message)
+            } else {
+                console.log(`Successfully deleted last_checked values for ${username}`)
+            }
         }
 
         // Store the analysis results in the user_signal_strengths table
