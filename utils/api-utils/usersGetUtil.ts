@@ -195,6 +195,13 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
 
                 return signalData.filter(Boolean)
             }),
+
+            // TODO: Add historical data here.
+            // For each user, get just the scores and "created" values for each signal strength,
+            // then return that as an object array to be used as the full history of signal strengths for that user
+            // It should just be one query to get all the data
+            // I can add a limit e.g. past 100 days
+            // [ {created: 1715222400, value: 55}, {created: 1715136000, value: 40}, ... ]
         )
 
         const signalStrengths = signalStrengthsResults.flat()
@@ -233,6 +240,7 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
                         summary: uss.summary,
                         description: uss.description,
                         improvements: uss.improvements,
+                        // TODO: history: uss.history
                         ...(isSuperAdminRequesting
                             ? {
                                   requestId: uss.request_id,
