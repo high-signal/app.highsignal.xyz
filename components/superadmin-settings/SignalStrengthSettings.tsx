@@ -38,6 +38,21 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
         }
     }, [selectedUsername, testUser, newUserSelectedTrigger])
 
+    // When isOpen is false, set the test result to null
+    useEffect(() => {
+        if (!isOpen) {
+            setTestResult(null)
+            setSelectedUser(null)
+            setSelectedUsername("")
+            setProject(null)
+            setNewModel("")
+            setNewTemperature("")
+            setNewMaxChars("")
+            setNewPrompt("")
+            setTestResultsLoading(false)
+        }
+    }, [isOpen])
+
     const ExtraData = ({ title, data }: { title: string; data: SignalStrengthUserData | undefined }) => (
         <VStack w={"100%"} maxW={"600px"} gap={1} px={5}>
             <Box w={"100%"} px={3}>
