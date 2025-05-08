@@ -78,8 +78,6 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
                     project_id,
                     rank,
                     total_score,
-                    signal_strength_score,
-                    peak_signal_score,
                     projects!project_signal_strengths_project_id_fkey!inner (
                         id,
                         url_slug
@@ -218,8 +216,6 @@ export async function getUsers(request: Request, isSuperAdminRequesting: boolean
                     profileImageUrl: user.profile_image_url,
                     rank: score.rank,
                     score: score.total_score,
-                    signalStrengthScore: score.signal_strength_score,
-                    peakSignalScore: score.peak_signal_score,
                     signal: calculateSignalFromScore(score.total_score),
                     peakSignals:
                         user.user_peak_signals?.map((ups) => ({
