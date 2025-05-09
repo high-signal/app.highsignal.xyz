@@ -131,7 +131,7 @@ export default function SignalStrengthSettings({
                             fontWeight="bold"
                             fontSize="lg"
                             whiteSpace="nowrap"
-                            color={signalStrength.status === "dev" ? "textColor" : undefined}
+                            color={signalStrength.status === "dev" ? "textColorMuted" : undefined}
                         >
                             {signalStrength.displayName}
                         </Text>

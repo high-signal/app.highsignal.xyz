@@ -252,7 +252,7 @@ export default function SignalStrength({
                             alignItems={"start"}
                         >
                             {userData.description && (
-                                <Text color="textColor">
+                                <Text color="textColorMuted">
                                     {userData.description?.charAt(0).toUpperCase() + userData.description?.slice(1)}
                                 </Text>
                             )}
@@ -262,7 +262,7 @@ export default function SignalStrength({
                                         <FontAwesomeIcon icon={faLightbulb} size="lg" />
                                         <Text fontWeight={"bold"}>Suggestions on how to improve</Text>
                                     </HStack>
-                                    <Text color="textColor">
+                                    <Text color="textColorMuted">
                                         {userData.improvements.charAt(0).toUpperCase() + userData.improvements.slice(1)}
                                     </Text>
                                 </VStack>

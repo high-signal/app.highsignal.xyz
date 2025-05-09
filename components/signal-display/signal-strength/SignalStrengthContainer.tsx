@@ -52,7 +52,7 @@ export default function SignalStrengthContainer({
             <Text fontSize="2xl" fontWeight={"bold"}>
                 📡 Signal Strength
             </Text>
-            <Text color="textColor" textAlign={"center"} px={2}>
+            <Text color="textColorMuted" textAlign={"center"} px={2}>
                 Signal strengths are live measures of engagement in the {projectData.displayName} community.
             </Text>
             <VStack gap={10} alignItems={"start"} w={"100%"}>

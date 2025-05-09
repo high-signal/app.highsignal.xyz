@@ -1,6 +1,6 @@
 "use client"
 
-import { HStack, Box, Image, Text, Menu, Portal, Spinner } from "@chakra-ui/react"
+import { HStack, Box, Image, Text, Menu, Portal, Spinner, Button } from "@chakra-ui/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -12,15 +12,10 @@ import { ASSETS } from "../../config/constants"
 
 // Common styles for the user button container
 const userButtonStyles = {
-    border: "2px solid",
-    borderColor: "gray.800",
     borderRadius: "full",
     overflow: "hidden",
     justifyContent: "center",
     h: "50px",
-    _hover: {
-        borderColor: "gray.600",
-    },
 }
 
 interface MenuItemProps {
@@ -29,31 +24,23 @@ interface MenuItemProps {
     label: string
     value: string
     onClick?: () => void
-    disabled?: boolean
     borderBottom?: boolean
     textColor?: string
 }
 
-const MenuItem = ({
-    isHeading = false,
-    icon,
-    label,
-    value,
-    onClick,
-    disabled,
-    textColor = undefined,
-}: MenuItemProps) => (
+const MenuItem = ({ isHeading = false, icon, label, value, onClick, textColor = undefined }: MenuItemProps) => (
     <Menu.Item
         px={4}
         pt={3}
         pb={isHeading ? 2 : 3}
-        cursor={disabled ? "default" : "pointer"}
+        cursor={isHeading ? "default" : "pointer"}
+        _hover={{ bg: "contentBackground" }}
         fontSize={"md"}
         value={value}
         onClick={onClick}
-        disabled={disabled}
-        opacity={disabled ? 0.8 : 1}
-        fontWeight={disabled ? "bold" : "normal"}
+        disabled={isHeading}
+        opacity={isHeading ? 0.8 : 1}
+        fontWeight={isHeading ? "bold" : "normal"}
         color={textColor}
     >
         <HStack>
@@ -106,9 +93,9 @@ export default function UserMenuButton() {
 
     if (loggedInUserLoading) {
         return (
-            <HStack {...userButtonStyles} w={"50px"}>
+            <Button defaultButton {...userButtonStyles} disabled opacity={1} w={"50px"}>
                 <Spinner />
-            </HStack>
+            </Button>
         )
     }
 
@@ -116,18 +103,7 @@ export default function UserMenuButton() {
         return (
             <Menu.Root onOpenChange={(details) => setIsMenuOpen(details.open)}>
                 <Menu.Trigger asChild>
-                    <HStack
-                        {...userButtonStyles}
-                        cursor="pointer"
-                        maxW="120px"
-                        border={"none"}
-                        bg={"contentBackground"}
-                        transform={{ base: "scale(1)", sm: isMenuOpen ? "scale(1.1)" : "scale(1)" }}
-                        transition="transform 0.2s ease-in-out"
-                        _hover={{
-                            transform: { base: "scale(1)", sm: "scale(1.1)" },
-                        }}
-                    >
+                    <Button defaultButton {...userButtonStyles} maxW="120px" border={"none"}>
                         <Box maxW="50px" borderRadius="full" overflow="hidden">
                             <Image
                                 src={
@@ -143,7 +119,7 @@ export default function UserMenuButton() {
                         <Box pr={3}>
                             <FontAwesomeIcon icon={faBars} />
                         </Box>
-                    </HStack>
+                    </Button>
                 </Menu.Trigger>
                 <Portal>
                     {isMenuOpen && (
@@ -159,16 +135,10 @@ export default function UserMenuButton() {
                         />
                     )}
                     <Menu.Positioner>
-                        <Menu.Content borderRadius={"16px"} p={0}>
+                        <Menu.Content borderRadius={"16px"} p={0} bg={"pageBackground"}>
                             {loggedInUser.isSuperAdmin && (
                                 <>
-                                    <MenuItem
-                                        label="Super Admin"
-                                        value="superAdmin"
-                                        disabled
-                                        isHeading
-                                        textColor="orange.500"
-                                    />
+                                    <MenuItem label="Super Admin" value="superAdmin" isHeading textColor="orange.500" />
                                     <MenuItem
                                         key={"superAdminSettings"}
                                         icon={faScrewdriverWrench}
@@ -182,7 +152,7 @@ export default function UserMenuButton() {
                             )}
                             {loggedInUser.projectAdmins && loggedInUser.projectAdmins.length > 0 && (
                                 <>
-                                    <MenuItem label="Project Admin" value="projects" disabled isHeading />
+                                    <MenuItem label="Project Admin" value="projects" isHeading />
                                     {loggedInUser.projectAdmins.map((project) => (
                                         <MenuItem
                                             key={project.projectId}
@@ -195,7 +165,7 @@ export default function UserMenuButton() {
                                     <Box h="20px" w="100%" />
                                 </>
                             )}
-                            <MenuItem label={loggedInUser.displayName} value="username" disabled isHeading />
+                            <MenuItem label={loggedInUser.displayName} value="username" isHeading />
                             <MenuItem
                                 icon={faCircleUser}
                                 label="Profile"
@@ -217,8 +187,8 @@ export default function UserMenuButton() {
     }
 
     return (
-        <HStack {...userButtonStyles} cursor="pointer" w="80px" h="40px" onClick={login}>
+        <Button defaultButton {...userButtonStyles} w="80px" h="40px" onClick={login}>
             <Text fontWeight={"bold"}>Log in</Text>
-        </HStack>
+        </Button>
     )
 }

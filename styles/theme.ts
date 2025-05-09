@@ -1,5 +1,6 @@
-import { createSystem, defaultConfig } from "@chakra-ui/react"
+import { createSystem, defaultConfig, defineConfig, defineRecipe } from "@chakra-ui/react"
 import { keyframes } from "@emotion/react"
+import { buttonRecipe } from "./button"
 
 // Color Palette
 // https://javisperez.github.io/tailwindcolorshades/?corn=e7c60d&curious-blue=36A2EB&pomegranate=EC420C&malachite=00B800
@@ -10,22 +11,25 @@ const rainbowAnimation = keyframes`
         100% { background-position: 0% 50%; }
         `
 
-export const customConfig = createSystem(defaultConfig, {
+// Run this command when adding a new variant to fix the type error:
+// npx @chakra-ui/cli typegen ./styles/theme.ts
+
+export const customConfig = defineConfig({
     theme: {
         tokens: {
             colors: {
                 blue: {
-                    50: { value: "#F5FDFF" },
-                    100: { value: "#E8F8FC" },
-                    200: { value: "#CAEEFA" },
-                    300: { value: "#ABE2F7" },
-                    400: { value: "#6EC5F0" },
-                    500: { value: "#36A2EB" },
-                    600: { value: "#2C8BD4" },
-                    700: { value: "#1E69B0" },
-                    800: { value: "#144E8C" },
-                    900: { value: "#0A3369" },
-                    950: { value: "#051D45" },
+                    50: { value: "#F0FBFC" },
+                    100: { value: "#DFF4F7" },
+                    200: { value: "#B2E5ED" },
+                    300: { value: "#87D3E0" },
+                    400: { value: "#3FB2CC" },
+                    500: { value: "#028DB4" },
+                    600: { value: "#027BA3" },
+                    700: { value: "#015D87" },
+                    800: { value: "#01466E" },
+                    900: { value: "#012F52" },
+                    950: { value: "#001B36" },
                 },
                 red: {
                     50: { value: "#F7F3ED" },
@@ -87,13 +91,16 @@ export const customConfig = createSystem(defaultConfig, {
         semanticTokens: {
             colors: {
                 textColor: {
+                    value: { _light: "black", _dark: "white" },
+                },
+                textColorMuted: {
                     value: { _light: "black", _dark: "{colors.gray.400}" },
                 },
                 pageBackground: {
-                    value: { _light: "#FFFFFF", _dark: "#0A0A0A" },
+                    value: { _light: "{colors.blue.100}", _dark: "{colors.blue.950}" },
                 },
                 contentBackground: {
-                    value: { _light: "#EDF2F7", _dark: "{colors.gray.900}" },
+                    value: { _light: "{colors.blue.200}", _dark: "{colors.blue.900}" },
                 },
                 contentBackgroundHover: {
                     value: { _light: "#E2E8F0", _dark: "#2D3748" },
@@ -101,21 +108,35 @@ export const customConfig = createSystem(defaultConfig, {
                 contentBorder: {
                     value: { _light: "#EDF2F7", _dark: "#008C8B" },
                 },
+                button: {
+                    default: {
+                        value: { _light: "{colors.blue.300}", _dark: "{colors.blue.800}" },
+                    },
+                    hover: {
+                        value: { _light: "{colors.blue.400}", _dark: "{colors.blue.700}" },
+                    },
+                    active: {
+                        value: { _light: "{colors.blue.500}", _dark: "{colors.blue.600}" },
+                    },
+                },
                 selectionColor: {
                     value: { _light: "{colors.blue.200}", _dark: "{colors.gray.600}" },
                 },
                 scoreColor: {
                     high: {
-                        value: { _light: "{colors.orange.500}", _dark: "{colors.orange.500}" },
+                        value: { _light: "{colors.blue.500}", _dark: "{colors.blue.500}" },
                     },
                     mid: {
-                        value: { _light: "{colors.blue.400}", _dark: "{colors.blue.800}" },
+                        value: { _light: "{colors.orange.500}", _dark: "{colors.orange.500}" },
                     },
                     low: {
                         value: { _light: "{colors.gray.400}", _dark: "{colors.gray.400}" },
                     },
                 },
             },
+        },
+        recipes: {
+            button: buttonRecipe,
         },
     },
     globalCss: {
@@ -137,3 +158,7 @@ export const customConfig = createSystem(defaultConfig, {
         },
     },
 })
+
+export const systemConfig = createSystem(defaultConfig, customConfig)
+
+export default systemConfig

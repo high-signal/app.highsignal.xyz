@@ -1,13 +1,11 @@
 "use client"
 
-import { HStack, Image, Text, Box, VStack } from "@chakra-ui/react"
+import { HStack, Image, Text, Box, VStack, Button } from "@chakra-ui/react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faXTwitter, IconDefinition } from "@fortawesome/free-brands-svg-icons"
 
-import { ColorModeToggle } from "../color-mode/ColorModeToggle"
 import UserMenuButton from "./UserMenuButton"
 
 import Link from "next/link"
@@ -79,38 +77,30 @@ export default function Header({}) {
                             </Text>
                         </HStack>
                     </Box>
-                    <HStack flexGrow={{ base: 1, sm: 0 }} justifyContent={"center"}>
-                        <HStack
-                            gap={5}
+                    <HStack flexGrow={{ base: 1, sm: 0 }} justifyContent={"center"} gap={2}>
+                        <Button
                             px={4}
                             py={1}
                             w="fit-content"
-                            bg="gray.800"
                             borderRadius="full"
-                            cursor="pointer"
-                            _hover={{
-                                bg: "gray.700",
-                                _active: { bg: "gray.600" },
-                            }}
-                            _active={{ bg: "gray.600" }}
-                            transition="all 0.1s ease"
                             onClick={() => {
                                 router.push(`/p/lido/`)
                             }}
                             alignItems="center"
                             fontSize="lg"
+                            aria-label="View leaderboard"
+                            defaultButton
                         >
                             <Text>View leaderboard</Text>
-                        </HStack>
+                        </Button>
                     </HStack>
                 </HStack>
-                <HStack gap={{ base: 2, md: 6 }} alignItems={"top"}>
+                <HStack gap={{ base: 2, md: 6 }} alignItems={"center"}>
                     {/* <HStack direction="row" wrap="wrap" gap={2} justifyContent="right" pr={{ base: 0, md: 2 }}>
                         {socialLinks.map((link, index) => (
                             <IconLinkButton key={index} {...link} />
                         ))}
                     </HStack> */}
-                    {/* <ColorModeToggle /> */}
                     <UserMenuButton />
                 </HStack>
             </HStack>

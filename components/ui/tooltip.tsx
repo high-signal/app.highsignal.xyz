@@ -42,7 +42,7 @@ export const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(function T
                         }}
                         fontSize={"14px"}
                         borderRadius={"full"}
-                        color="textColor"
+                        color="textColorMuted"
                         border={"2px solid"}
                         borderColor={tooltipBorder}
                         boxShadow={"none"}

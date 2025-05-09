@@ -66,12 +66,12 @@ export default function PeakSignalsContainer({
                 </HStack>
                 <Text fontFamily={"monospace"}>{projectData.peakSignalsMaxValue}</Text>
             </HStack>
-            <Text color="textColor" textAlign={"center"} px={2}>
+            <Text color="textColorMuted" textAlign={"center"} px={2}>
                 Peak signals highlight achievements in the {projectData.displayName} community.
             </Text>
             {peakSignals.length === 0 && (
                 <Text
-                    color="textColor"
+                    color="textColorMuted"
                     bg={"contentBackground"}
                     borderRadius={{ base: "50px", md: "60px" }}
                     py={2}
