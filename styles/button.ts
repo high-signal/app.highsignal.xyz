@@ -26,6 +26,7 @@ const sharedButtonStyles = {
     px: 0,
     py: 0,
     focusRing: "none",
+    border: "none",
 }
 
 export const buttonRecipe = defineRecipe({

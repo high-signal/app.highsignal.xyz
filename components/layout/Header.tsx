@@ -83,16 +83,17 @@ export default function Header({}) {
                             px={4}
                             py={1}
                             w="fit-content"
+                            h="35px"
                             borderRadius="full"
                             onClick={() => {
                                 router.push(`/p/lido/`)
                             }}
                             alignItems="center"
-                            fontSize="lg"
+                            fontSize="md"
                             aria-label="View leaderboard"
                             defaultButton
                         >
-                            <Text>View leaderboard</Text>
+                            View leaderboard
                         </Button>
                     </HStack>
                 </HStack>
