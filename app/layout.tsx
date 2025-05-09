@@ -9,6 +9,7 @@ const isDev = process.env.NODE_ENV === "development"
 
 // Only using server side rendering in production
 // In dev, only use client side rendering to avoid hydration errors caused by using --turbo
+// https://www.chakra-ui.com/docs/get-started/frameworks/next-app#setup-provider
 const Provider = isDev
     ? dynamic(() => import("./provider").then((mod) => mod.Provider), { ssr: false })
     : require("./provider").Provider
