@@ -1,6 +1,6 @@
 "use client"
 
-import { Button } from "@chakra-ui/react"
+import { Box, Switch } from "@chakra-ui/react"
 import { useTheme } from "next-themes"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -20,15 +20,35 @@ export function ColorModeToggle() {
     }
 
     return (
-        <Button
-            defaultButton
-            aria-label="Toggle color mode"
-            borderRadius={"full"}
-            onClick={toggleColorMode}
-            color={theme === "light" ? pageBackground._dark : pageBackground._light}
-            fontSize={"2xl"}
-        >
-            <FontAwesomeIcon icon={theme === "light" ? faMoon : faSun} />
-        </Button>
+        <Switch.Root size="lg" onChange={toggleColorMode} defaultChecked={theme === "light"} transform="scale(1.2)">
+            <Switch.HiddenInput />
+            <Switch.Control bg={"button.default"}>
+                <Switch.Thumb bg={"pageBackground"} boxShadow={"none"}>
+                    <Switch.ThumbIndicator
+                        fallback={
+                            <Box
+                                color={pageBackground._light}
+                                boxSize={"100%"}
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                            >
+                                <FontAwesomeIcon icon={faSun} color={pageBackground._light} />
+                            </Box>
+                        }
+                    >
+                        <Box
+                            color={pageBackground._dark}
+                            boxSize={"100%"}
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                        >
+                            <FontAwesomeIcon icon={faMoon} color={pageBackground._dark} />
+                        </Box>
+                    </Switch.ThumbIndicator>
+                </Switch.Thumb>
+            </Switch.Control>
+        </Switch.Root>
     )
 }

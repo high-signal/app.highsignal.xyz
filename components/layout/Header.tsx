@@ -10,6 +10,7 @@ import UserMenuButton from "./UserMenuButton"
 
 import Link from "next/link"
 import { ASSETS, SOCIAL_LINKS } from "../../config/constants"
+import { ColorModeToggle } from "../color-mode/ColorModeToggle"
 
 const iconMap = {
     faXTwitter,
@@ -101,6 +102,9 @@ export default function Header({}) {
                             <IconLinkButton key={index} {...link} />
                         ))}
                     </HStack> */}
+                    <Box display={{ base: "none", sm: "block" }}>
+                        <ColorModeToggle />
+                    </Box>
                     <UserMenuButton />
                 </HStack>
             </HStack>
