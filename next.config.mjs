@@ -5,11 +5,11 @@ export default {
     experimental: {
         optimizePackageImports: ["@chakra-ui/react"], // Optimizes Chakra UI imports to reduce bundle size
     },
-    webpack: (config) => {
-        // ...
-        config.externals["@solana/web3.js"] = "commonjs @solana/web3.js"
-        return config
-    },
+    // Commented out as it is not needed for the project but Privy said it might be needed at some point
+    // webpack: (config) => {
+    //     config.externals["@solana/web3.js"] = "commonjs @solana/web3.js"
+    //     return config
+    // },
 
     // Add Content Security Policy headers
     async headers() {

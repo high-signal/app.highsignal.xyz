@@ -1,19 +1,24 @@
+"use client"
+
 import type { ReactNode } from "react"
-
-import { ThemeProvider } from "next-themes"
-import { Provider } from "./provider"
+import dynamic from "next/dynamic"
 import { rubik } from "./fonts"
-
 import Head from "./head"
+
+const isDev = process.env.NODE_ENV === "development"
+
+// Only using server side rendering in production
+// In dev, only use client side rendering to avoid hydration errors caused by using --turbo
+const Provider = isDev
+    ? dynamic(() => import("./provider").then((mod) => mod.Provider), { ssr: false })
+    : require("./provider").Provider
 
 export default function RootLayout({ children }: { children: ReactNode }) {
     return (
         <html lang="en" suppressHydrationWarning className={rubik.className}>
             <Head />
             <body suppressHydrationWarning>
-                <ThemeProvider attribute="class">
-                    <Provider>{children}</Provider>
-                </ThemeProvider>
+                <Provider>{children}</Provider>
             </body>
         </html>
     )
