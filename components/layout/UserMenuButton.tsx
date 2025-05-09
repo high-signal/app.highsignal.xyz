@@ -117,7 +117,7 @@ export default function UserMenuButton() {
                             />
                         </Box>
                         <Box pr={3}>
-                            <FontAwesomeIcon icon={faBars} />
+                            <FontAwesomeIcon icon={faBars} size="lg" />
                         </Box>
                     </Button>
                 </Menu.Trigger>

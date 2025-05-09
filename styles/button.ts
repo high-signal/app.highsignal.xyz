@@ -17,9 +17,6 @@ const sharedButtonStyles = {
             backgroundColor: "{colors.button.active}",
         },
     },
-    _focus: {
-        backgroundColor: "{colors.button.hover}",
-    },
     _active: {
         backgroundColor: "{colors.button.active}",
     },
