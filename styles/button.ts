@@ -5,9 +5,12 @@ import { defineRecipe } from "@chakra-ui/react"
 
 const sharedButtonStyles = {
     backgroundColor: "{colors.button.default}",
-    color: "{colors.textColor}",
-    cursor: "pointer",
     transition: "all 0.2s ease",
+    px: 0,
+    py: 0,
+    focusRing: "none",
+    border: "none",
+    color: "{colors.textColor}",
     _hover: {
         backgroundColor: "{colors.button.hover}",
         _active: {
@@ -23,10 +26,6 @@ const sharedButtonStyles = {
     _expanded: {
         backgroundColor: "{colors.button.active}",
     },
-    px: 0,
-    py: 0,
-    focusRing: "none",
-    border: "none",
 }
 
 export const buttonRecipe = defineRecipe({
@@ -34,6 +33,21 @@ export const buttonRecipe = defineRecipe({
         defaultButton: {
             true: {
                 ...sharedButtonStyles,
+            },
+        },
+        closeButton: {
+            true: {
+                ...sharedButtonStyles,
+                backgroundColor: "{colors.closeButton.default}",
+                _hover: {
+                    backgroundColor: "{colors.closeButton.hover}",
+                    _active: {
+                        backgroundColor: "{colors.closeButton.active}",
+                    },
+                },
+                _active: {
+                    backgroundColor: "{colors.closeButton.active}",
+                },
             },
         },
     },

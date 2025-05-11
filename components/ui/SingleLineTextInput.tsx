@@ -1,5 +1,5 @@
-import { Box, Input } from "@chakra-ui/react"
-import { faCircleXmark } from "@fortawesome/free-solid-svg-icons"
+import { Box, Button, Input } from "@chakra-ui/react"
+import { faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ReactNode } from "react"
 
@@ -61,21 +61,28 @@ export default function SingleLineTextInput({
                 readOnly={!isEditable}
                 cursor={isEditable ? "text" : "disabled"}
                 userSelect={isEditable ? "text" : "none"}
+                color="textColor"
             />
             {showClearButton && (
-                <Box
+                <Button
+                    closeButton
                     position="absolute"
-                    right="6px"
+                    right="8px"
                     top="50%"
-                    transform="translateY(-50%)"
-                    cursor="pointer"
+                    transform="translateY(-52%)"
                     onClick={handleClear}
-                    color="closeButton.default"
-                    _hover={{ color: "closeButton.hover" }}
-                    _active={{ color: "closeButton.active" }}
+                    borderRadius="full"
+                    color={bg}
+                    w="20px"
+                    h="20px"
+                    minW="20px"
+                    maxW="20px"
+                    justifyContent={"center"}
+                    alignItems={"center"}
+                    display="flex"
                 >
-                    <FontAwesomeIcon icon={faCircleXmark} size="lg" />
-                </Box>
+                    <FontAwesomeIcon icon={faXmark} />
+                </Button>
             )}
         </Box>
     )
