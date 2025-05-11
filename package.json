@@ -13,7 +13,7 @@
     "export": "next export",
     "start": "next build && next start",
     "lint": "next lint",
-    "postinstall": "chakra-cli typegen ./styles/theme.ts"
+    "postinstall": "chakra typegen ./styles/theme.ts"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.8.1",
