@@ -12,7 +12,8 @@
     "build": "next build",
     "export": "next export",
     "start": "next build && next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "chakra-cli typegen ./styles/theme.ts"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.8.1",
