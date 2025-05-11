@@ -15,6 +15,7 @@ interface SingleLineTextInputProps {
     rightElement?: ReactNode
     isEditable?: boolean
     ref?: React.RefObject<HTMLInputElement>
+    bg?: string
 }
 
 export default function SingleLineTextInput({
@@ -29,6 +30,7 @@ export default function SingleLineTextInput({
     rightElement,
     isEditable = true,
     ref,
+    bg = "contentBackground",
 }: SingleLineTextInputProps) {
     const showClearButton = Boolean(handleClear) && Boolean(value)
 
@@ -46,14 +48,14 @@ export default function SingleLineTextInput({
                 fontSize="md"
                 borderRadius="full"
                 borderRightRadius={rightElement ? "none" : "full"}
-                border={"2px solid"}
-                borderColor="gray.800"
+                border={"3px solid"}
+                borderColor="transparent"
                 _focus={{
-                    borderColor: isEditable ? "gray.300" : "gray.800",
+                    borderColor: isEditable ? "input.border" : "transparent",
                     boxShadow: "none",
                     outline: "none",
                 }}
-                bg={value && isEditable ? "gray.800" : "pageBackground"}
+                bg={bg}
                 pr={showClearButton ? "30px" : "0px"}
                 h="35px"
                 readOnly={!isEditable}
@@ -68,8 +70,9 @@ export default function SingleLineTextInput({
                     transform="translateY(-50%)"
                     cursor="pointer"
                     onClick={handleClear}
-                    color="gray.200"
-                    _hover={{ color: "white" }}
+                    color="closeButton.default"
+                    _hover={{ color: "closeButton.hover" }}
+                    _active={{ color: "closeButton.active" }}
                 >
                     <FontAwesomeIcon icon={faCircleXmark} size="lg" />
                 </Box>

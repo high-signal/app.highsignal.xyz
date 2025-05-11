@@ -106,17 +106,36 @@ export const customConfig = defineConfig({
                     value: { _light: "#E2E8F0", _dark: "#2D3748" },
                 },
                 contentBorder: {
-                    value: { _light: "#EDF2F7", _dark: "#008C8B" },
+                    value: { _light: "{colors.gray.400}", _dark: "{colors.gray.600}" },
                 },
                 button: {
                     default: {
                         value: { _light: "{colors.blue.300}", _dark: "{colors.blue.800}" },
                     },
                     hover: {
-                        value: { _light: "{colors.blue.400}", _dark: "{colors.blue.700}" },
+                        value: { _light: "{colors.blue.200}", _dark: "{colors.blue.700}" },
                     },
                     active: {
-                        value: { _light: "{colors.blue.500}", _dark: "{colors.blue.600}" },
+                        value: { _light: "{colors.blue.300}", _dark: "{colors.blue.600}" },
+                    },
+                },
+                closeButton: {
+                    default: {
+                        value: { _light: "{colors.gray.400}", _dark: "{colors.gray.300}" },
+                    },
+                    hover: {
+                        value: { _light: "{colors.gray.400}", _dark: "{colors.gray.200}" },
+                    },
+                    active: {
+                        value: { _light: "{colors.gray.400}", _dark: "{colors.gray.100}" },
+                    },
+                },
+                input: {
+                    border: {
+                        value: { _light: "{colors.blue.400}", _dark: "{colors.blue.500}" },
+                    },
+                    background: {
+                        value: { _light: "{colors.blue.400}", _dark: "{colors.blue.500}" },
                     },
                 },
                 selectionColor: {

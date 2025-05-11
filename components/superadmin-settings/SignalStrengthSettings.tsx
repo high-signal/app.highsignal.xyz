@@ -313,6 +313,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     setNewModel("")
                                     setTestResult(null)
                                 }}
+                                bg="pageBackground"
                             />
                             <SingleLineTextInput
                                 maxW={"300px"}
@@ -326,6 +327,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     setNewTemperature("")
                                     setTestResult(null)
                                 }}
+                                bg="pageBackground"
                             />
                             <SingleLineTextInput
                                 maxW={"300px"}
@@ -339,6 +341,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     setNewMaxChars("")
                                     setTestResult(null)
                                 }}
+                                bg="pageBackground"
                             />
                         </VStack>
                     </HStack>

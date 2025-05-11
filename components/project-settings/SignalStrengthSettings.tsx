@@ -176,6 +176,7 @@ export default function SignalStrengthSettings({
                                         setIsFocused(false)
                                     }, 50)
                                 }}
+                                bg={"pageBackground"}
                             />
                             {isFocused && (
                                 <Box

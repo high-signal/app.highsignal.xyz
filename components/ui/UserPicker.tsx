@@ -54,6 +54,7 @@ export default function UserPicker({ onUserSelect, signalStrengthName, disabled 
                         setIsFocused(false)
                     }, 50)
                 }}
+                bg="pageBackground"
             />
             {disabled && (
                 <Box

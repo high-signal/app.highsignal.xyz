@@ -26,10 +26,10 @@ const TableHeader = ({
     px?: { base: number; sm: number }
 }) => (
     <Table.ColumnHeader
-        color="gray.200"
+        color="textColorMuted"
         fontSize="lg"
         borderBottom="2px solid"
-        borderColor="gray.500"
+        borderColor="contentBorder"
         textAlign={textAlign}
         display={display}
         minW={maxW}
@@ -138,7 +138,7 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                 </Table.Header>
                 <Table.Body>
                     {loading || isSearching ? (
-                        <Table.Row>
+                        <Table.Row bg="transparent">
                             <Table.Cell colSpan={5} py={0} h={"50vh"}>
                                 <VStack gap={2} h={"100%"} justifyContent="start" py={10}>
                                     <Spinner size="md" />
@@ -146,9 +146,9 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                             </Table.Cell>
                         </Table.Row>
                     ) : users.length === 0 ? (
-                        <Table.Row>
+                        <Table.Row bg="transparent">
                             <Table.Cell colSpan={5} textAlign="center" py={10}>
-                                <Text color="gray.400">
+                                <Text color="textColorMuted">
                                     {searchTerm ? `No users found with the name "${searchTerm}"` : "No users found"}
                                 </Text>
                             </Table.Cell>
@@ -161,19 +161,19 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                 bg="transparent"
                                 // Needs both to work on mobile and desktop
                                 _hover={{
-                                    bg: "gray.800",
-                                    _active: { bg: "gray.700" },
+                                    bg: "button.hover",
+                                    _active: { bg: "button.active" },
                                 }}
-                                _active={{ bg: "gray.700" }}
+                                _active={{ bg: "button.active" }}
                                 transition="all 0.1s ease"
                                 onClick={() => {
                                     router.push(`/p/${project.urlSlug}/${user.username}${window.location.search}`)
                                 }}
                                 borderBottom="1px solid"
-                                borderColor="gray.500"
+                                borderColor="contentBorder"
                             >
                                 <Table.Cell borderBottom="none" py={"6px"} px={{ base: 0, sm: 4 }} textAlign="center">
-                                    <Text fontSize="lg" fontWeight="bold" color="white">
+                                    <Text fontSize="lg" fontWeight="bold" color="textColor">
                                         {user.rank}
                                     </Text>
                                 </Table.Cell>
@@ -190,14 +190,14 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                                 fit="cover"
                                             />
                                         </Box>
-                                        <Text fontSize="lg" color="white" truncate>
+                                        <Text fontSize="lg" color="textColor" truncate>
                                             {user.displayName}
                                         </Text>
                                     </HStack>
                                 </Table.Cell>
                                 <Table.Cell borderBottom="none" py={0} px={0} maxW={signalColumnWidth}>
                                     <HStack justifyContent="center" alignItems="center" fontSize="xl" fontWeight="bold">
-                                        <Text color={`scoreColor.${user.signal || "gray.500"}`}>
+                                        <Text color={`scoreColor.${user.signal || "textColorMuted"}`}>
                                             {(user.signal || "").charAt(0).toUpperCase() + (user.signal || "").slice(1)}
                                         </Text>
                                     </HStack>
@@ -216,7 +216,7 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                             border="3px solid"
                                             borderRadius="15px"
                                             borderColor={`scoreColor.${user.signal || ""}`}
-                                            color="white"
+                                            color="textColor"
                                             w="fit-content"
                                             fontSize="lg"
                                         >

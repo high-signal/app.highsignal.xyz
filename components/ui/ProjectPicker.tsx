@@ -44,6 +44,7 @@ export default function ProjectPicker({ onProjectSelect, onClear }: ProjectPicke
                         setIsFocused(false)
                     }, 50)
                 }}
+                bg="pageBackground"
             />
             {isFocused && (
                 <Box
