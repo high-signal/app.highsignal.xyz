@@ -177,9 +177,15 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                         {user.rank}
                                     </Text>
                                 </Table.Cell>
-                                <Table.Cell borderBottom="none" py={"6px"} maxW={displayNameColumnWidth}>
+                                <Table.Cell borderBottom="none" py={"6px"} pr={0} maxW={displayNameColumnWidth}>
                                     <HStack gap={3}>
-                                        <Box position="relative" boxSize="40px" borderRadius="full" overflow="hidden">
+                                        <Box
+                                            position="relative"
+                                            boxSize="40px"
+                                            minW="40px"
+                                            borderRadius="full"
+                                            overflow="hidden"
+                                        >
                                             <Image
                                                 src={
                                                     !user.profileImageUrl || user.profileImageUrl === ""
