@@ -46,9 +46,9 @@ export default function Header({}) {
     const router = useRouter()
 
     return (
-        <VStack gap={0} w="100%" justifyContent={"center"} alignItems={"center"} zIndex={2}>
+        <VStack gap={0} w="100%" justifyContent={"center"} alignItems={"center"}>
             {process.env.NODE_ENV === "development" && (
-                <HStack w="100%" justifyContent={"center"} alignItems={"center"} bg={"orange.700"}>
+                <HStack w="100%" justifyContent={"center"} alignItems={"center"} bg={"orange.700"} zIndex={3}>
                     <Text>Dev Environment</Text>
                 </HStack>
             )}

@@ -103,7 +103,7 @@ export default function UserMenuButton() {
         return (
             <Menu.Root onOpenChange={(details) => setIsMenuOpen(details.open)}>
                 <Menu.Trigger asChild>
-                    <Button defaultButton {...userButtonStyles} maxW="120px" border={"none"}>
+                    <Button defaultButton {...userButtonStyles} maxW="120px" border={"none"} zIndex={3}>
                         <Box maxW="50px" borderRadius="full" overflow="hidden">
                             <Image
                                 src={
@@ -121,19 +121,19 @@ export default function UserMenuButton() {
                         </Box>
                     </Button>
                 </Menu.Trigger>
+                {isMenuOpen && (
+                    <Box
+                        position="fixed"
+                        top={0}
+                        left={0}
+                        right={0}
+                        bottom={0}
+                        bg="rgba(0, 0, 0, 0.5)"
+                        backdropFilter="blur(3px)"
+                        zIndex={2}
+                    />
+                )}
                 <Portal>
-                    {isMenuOpen && (
-                        <Box
-                            position="fixed"
-                            top={0}
-                            left={0}
-                            right={0}
-                            bottom={0}
-                            bg="rgba(0, 0, 0, 0.4)"
-                            backdropFilter="blur(4px)"
-                            zIndex={1}
-                        />
-                    )}
                     <Menu.Positioner>
                         <Menu.Content borderRadius={"16px"} p={0} bg={"pageBackground"}>
                             {loggedInUser.isSuperAdmin && (
