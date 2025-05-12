@@ -44,7 +44,7 @@ export default function SettingsTabbedContent({
                                     _active: { bg: "button.active" },
                                     _selected: { bg: "button.active" },
                                 }}
-                                _selected={{ bg: "button.active" }}
+                                _selected={{ bg: "button.active", color: "textColor" }}
                                 _active={{ bg: "button.active" }}
                             >
                                 {tab.label}

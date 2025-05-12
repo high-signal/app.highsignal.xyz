@@ -171,9 +171,14 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                 </Button>
                 <HStack
                     justifyContent="center"
-                    bg={signalStrength.status === "active" ? "green.500" : "gray.700"}
+                    bg={
+                        signalStrength.status === "active" ? "lozenge.background.active" : "lozenge.background.disabled"
+                    }
                     border={"2px solid"}
-                    borderColor={signalStrength.status === "active" ? "#029E03" : "gray.500"}
+                    color={signalStrength.status === "active" ? "lozenge.text.active" : "lozenge.text.disabled"}
+                    borderColor={
+                        signalStrength.status === "active" ? "lozenge.border.active" : "lozenge.border.disabled"
+                    }
                     borderRadius={"full"}
                     px={3}
                     py={1}

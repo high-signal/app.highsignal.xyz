@@ -132,17 +132,11 @@ export default function SignalStrength({
                 {!countdown && !userDataRefreshTriggered && projectData.status === "active" && (
                     <HStack
                         gap={"2px"}
-                        bg={
-                            completedBarWidth !== "0%"
-                                ? "signalStrength.background.active"
-                                : "signalStrength.background.disabled"
-                        }
+                        bg={completedBarWidth !== "0%" ? "lozenge.background.active" : "lozenge.background.disabled"}
                         fontSize="xl"
                         px={2}
                         borderRadius="8px"
-                        color={
-                            completedBarWidth !== "0%" ? "signalStrength.text.active" : "signalStrength.text.disabled"
-                        }
+                        color={completedBarWidth !== "0%" ? "lozenge.text.active" : "lozenge.text.disabled"}
                     >
                         {completedBarWidth !== "0%" && <Text>+</Text>}
                         <Text>{userData.value}</Text>
@@ -161,7 +155,7 @@ export default function SignalStrength({
                 <HStack
                     w="100%"
                     h="30px"
-                    bg="signalStrength.background.disabled"
+                    bg="lozenge.background.disabled"
                     borderRadius="md"
                     overflow="hidden"
                     className={userDataRefreshTriggered || countdown ? "rainbow-animation" : ""}
@@ -182,7 +176,7 @@ export default function SignalStrength({
                             s
                         </Text>
                     ) : projectData.status === "active" && !isUserConnected ? (
-                        <Text color={"signalStrength.text.disabled"} w={"100%"} textAlign={"center"} fontSize={"md"}>
+                        <Text color={"lozenge.text.disabled"} w={"100%"} textAlign={"center"} fontSize={"md"}>
                             Account not connected
                         </Text>
                     ) : projectData.status === "dev" ? (
@@ -195,7 +189,7 @@ export default function SignalStrength({
                         <Box
                             w={completedBarWidth}
                             h="100%"
-                            bg="signalStrength.background.active"
+                            bg="lozenge.background.active"
                             border={
                                 completedBarWidth === "100%"
                                     ? "2px solid"
@@ -211,7 +205,7 @@ export default function SignalStrength({
                                       : "3px solid"
                             }
                             borderRadius={completedBarWidth === "100%" ? "md" : "none"}
-                            borderColor={"signalStrength.border"}
+                            borderColor={"lozenge.border.active"}
                         />
                     )}
                 </HStack>

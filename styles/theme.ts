@@ -161,8 +161,8 @@ export const customConfig = defineConfig({
                     },
                 },
 
-                // Signal Strength colors
-                signalStrength: {
+                // Lozenge colors
+                lozenge: {
                     background: {
                         active: {
                             value: { _light: "{colors.green.500}", _dark: "{colors.green.950}" },
@@ -176,11 +176,16 @@ export const customConfig = defineConfig({
                             value: { _light: "white", _dark: "{colors.green.500}" },
                         },
                         disabled: {
-                            value: { _light: "{colors.gray.300}", _dark: "{colors.gray.400}" },
+                            value: { _light: "{colors.gray.700}", _dark: "{colors.gray.400}" },
                         },
                     },
                     border: {
-                        value: { _light: "{colors.green.800}", _dark: "{colors.green.500}" },
+                        active: {
+                            value: { _light: "{colors.green.800}", _dark: "{colors.green.500}" },
+                        },
+                        disabled: {
+                            value: { _light: "{colors.gray.700}", _dark: "{colors.gray.400}" },
+                        },
                     },
                 },
 
