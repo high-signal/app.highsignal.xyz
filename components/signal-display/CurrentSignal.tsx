@@ -35,6 +35,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
             >
                 {isSignalStrengthLoading ? (
                     <Skeleton
+                        defaultSkeleton
                         w={{ base: "200px", sm: "250px" }}
                         h={{ base: "70px", sm: "85px" }}
                         borderRadius={"25px"}
@@ -48,7 +49,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                     </Text>
                 )}
                 {isSignalStrengthLoading ? (
-                    <Skeleton w={"100px"} h={{ base: "70px", sm: "85px" }} borderRadius={"25px"} />
+                    <Skeleton defaultSkeleton w={"100px"} h={{ base: "70px", sm: "85px" }} borderRadius={"25px"} />
                 ) : (
                     <Text px={4} py={0} border={"5px solid"} borderRadius="25px" borderColor={`scoreColor.${signal}`}>
                         {signalValue}

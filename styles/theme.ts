@@ -183,10 +183,26 @@ export const customConfig = defineConfig({
                         value: { _light: "{colors.green.800}", _dark: "{colors.green.500}" },
                     },
                 },
+
+                // Skeleton colors
+                skeleton: {
+                    default: {
+                        value: { _light: "{colors.blue.300}", _dark: "{colors.blue.700}" },
+                    },
+                },
             },
         },
         recipes: {
             button: buttonRecipe,
+            skeleton: defineRecipe({
+                variants: {
+                    defaultSkeleton: {
+                        true: {
+                            backgroundColor: "{colors.skeleton.default}",
+                        },
+                    },
+                },
+            }),
         },
     },
     globalCss: {

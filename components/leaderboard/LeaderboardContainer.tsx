@@ -38,7 +38,7 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                         {error ? (
                             <Text fontSize="sm">Error: {error}</Text>
                         ) : (
-                            <Skeleton height="40px" width="200px" borderRadius="full" />
+                            <Skeleton defaultSkeleton height="40px" width="200px" borderRadius="full" />
                         )}
                     </HStack>
                 )}
