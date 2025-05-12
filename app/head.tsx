@@ -1,3 +1,5 @@
+import { ASSETS } from "../config/constants"
+
 export default function Head() {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
     const siteName = process.env.NEXT_PUBLIC_SITE_NAME
@@ -11,6 +13,16 @@ export default function Head() {
             {/* Mobile browser header color */}
             <meta name="theme-color" content={"colors.pageBackground"} media="(prefers-color-scheme: light)" />
             <meta name="theme-color" content={"colors.pageBackground"} media="(prefers-color-scheme: dark)" />
+
+            {/* Link to PWA manifest */}
+            <link rel="manifest" href="/api/manifest.json" />
+
+            {/* iOS-specific meta tags for PWA */}
+            <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+            <link rel="apple-touch-icon" href={ASSETS.LOGO} />
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+            <meta name="apple-mobile-web-app-title" content={siteName} />
 
             {/* Favicon & Icons */}
             <link rel="icon" href="/static/logo/favicon.ico" sizes="any" />

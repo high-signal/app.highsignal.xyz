@@ -36,6 +36,15 @@ export const routePermissions: RoutePermission[] = [
         },
     },
     {
+        path: "/api/manifest.json",
+        methods: {
+            // Public read access to PWA manifest
+            GET: {
+                requiresAuth: false,
+            },
+        },
+    },
+    {
         path: "/api/me",
         methods: {
             GET: {

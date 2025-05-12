@@ -2,6 +2,8 @@ import { createSystem, defaultConfig, defineConfig, defineRecipe } from "@chakra
 import { keyframes } from "@emotion/react"
 import { buttonRecipe } from "./button"
 
+import { COLORS } from "../config/constants"
+
 // Color Palette
 // https://javisperez.github.io/tailwindcolorshades/?corn=e7c60d&curious-blue=36A2EB&pomegranate=EC420C&malachite=00B800
 
@@ -29,7 +31,7 @@ export const customConfig = defineConfig({
                     700: { value: "#015D87" },
                     800: { value: "#01466E" },
                     900: { value: "#012F52" },
-                    950: { value: "#001B36" },
+                    950: { value: COLORS.PAGE_BACKGROUND_DARK },
                 },
                 red: {
                     50: { value: "#F7F3ED" },

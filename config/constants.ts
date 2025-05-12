@@ -2,6 +2,11 @@
  * Application-wide constants and configuration values
  */
 
+// Global colors
+export const COLORS = {
+    PAGE_BACKGROUND_DARK: "#001B36",
+} as const
+
 // Default images and assets
 export const ASSETS = {
     DEFAULT_PROJECT_IMAGE:
