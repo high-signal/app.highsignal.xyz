@@ -146,19 +146,19 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                 borderBottomRadius={isOpen ? "0px" : "16px"}
                 flexWrap={"wrap"}
             >
-                <HStack
-                    cursor={signalStrength.status !== "dev" ? "pointer" : "disabled"}
-                    onClick={() => signalStrength.status !== "dev" && setIsOpen(!isOpen)}
-                    bg={signalStrength.status === "active" ? "gray.800" : undefined}
-                    _hover={signalStrength.status !== "dev" ? { bg: "gray.700" } : undefined}
+                <Button
+                    defaultButton
                     py={2}
-                    px={3}
+                    pl={2}
+                    pr={4}
                     borderRadius={"8px"}
                     gap={3}
+                    onClick={() => signalStrength.status !== "dev" && setIsOpen(!isOpen)}
+                    disabled={signalStrength.status === "dev"}
                 >
-                    <Box transition="transform 0.2s" transform={`rotate(${isOpen ? 90 : 0}deg)`}>
-                        <FontAwesomeIcon icon={faChevronRight} />
-                    </Box>
+                    <VStack transition="transform 0.2s" transform={`rotate(${isOpen ? 90 : 0}deg)`}>
+                        <FontAwesomeIcon icon={faChevronRight} size="lg" />
+                    </VStack>
                     <Text
                         w="fit-content"
                         fontWeight="bold"
@@ -168,7 +168,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                     >
                         {signalStrength.displayName}
                     </Text>
-                </HStack>
+                </Button>
                 <HStack
                     justifyContent="center"
                     bg={signalStrength.status === "active" ? "green.500" : "gray.700"}
@@ -362,13 +362,15 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 minH={"30dvh"}
                                 fontFamily={"monospace"}
                                 placeholder="No prompt set"
+                                border={"none"}
                                 borderRadius={"10px"}
-                                borderWidth={2}
                                 disabled
                                 value={signalStrength.prompt || ""}
+                                bg="pageBackground"
                             />
                         </VStack>
                         <Button
+                            defaultButton
                             position={{ base: "relative", sm: "absolute" }}
                             left={{ base: "auto", sm: "50%" }}
                             transform={{ base: "none", sm: "translateX(-50%)" }}
@@ -397,8 +399,15 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             <Textarea
                                 minH={"30dvh"}
                                 fontFamily={"monospace"}
+                                border={"3px solid"}
+                                borderColor="transparent"
+                                _focus={{
+                                    borderColor: "input.border",
+                                    boxShadow: "none",
+                                    outline: "none",
+                                }}
                                 borderRadius={"10px"}
-                                borderWidth={2}
+                                bg="pageBackground"
                                 value={newPrompt || ""}
                                 onChange={(e) => {
                                     setNewPrompt(e.target.value)
