@@ -10,7 +10,7 @@ export default function LeaderboardContainer({ project }: { project: string }) {
     const currentProject = projects[0]
 
     return (
-        <VStack gap={5} w="100%" maxW="800px" borderRadius="20px">
+        <VStack gap={5} w="100%" maxW="650px" borderRadius="20px">
             <VStack
                 fontSize="3xl"
                 px={6}
