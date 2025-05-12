@@ -10,6 +10,8 @@ const sharedButtonStyles = {
     py: 0,
     focusRing: "none",
     border: "none",
+    h: "fit-content",
+    w: "fit-content",
     color: "{colors.textColor}",
     _hover: {
         backgroundColor: "{colors.button.hover}",
@@ -26,13 +28,16 @@ const sharedButtonStyles = {
     _expanded: {
         backgroundColor: "{colors.button.active}",
     },
-    h: "fit-content",
-    w: "fit-content",
 }
 
 export const buttonRecipe = defineRecipe({
     variants: {
         defaultButton: {
+            true: {
+                ...sharedButtonStyles,
+            },
+        },
+        primaryButton: {
             true: {
                 ...sharedButtonStyles,
             },

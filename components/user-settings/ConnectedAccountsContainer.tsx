@@ -185,17 +185,17 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     pl={2}
                                     pr={0}
                                     border={"2px solid"}
-                                    bg="green.500"
-                                    color="#029E03"
-                                    borderColor="#029E03"
+                                    bg="signalStrength.background.active"
+                                    color="signalStrength.text.active"
+                                    borderColor="signalStrength.border"
                                     borderRightRadius="full"
                                     cursor={isForumSubmitting ? "default" : "pointer"}
-                                    _hover={{ bg: "green.700" }}
+                                    _hover={{ bg: "signalStrength.background.active" }}
                                     disabled={isForumSubmitting}
                                 >
                                     <HStack gap={1}>
                                         {isForumSubmitting ? (
-                                            <Spinner size="sm" color="#029E03" />
+                                            <Spinner size="sm" color="signalStrength.text.active" />
                                         ) : (
                                             <>
                                                 <Text fontWeight="bold">Connected</Text>

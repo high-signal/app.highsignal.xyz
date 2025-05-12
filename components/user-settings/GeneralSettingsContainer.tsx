@@ -187,12 +187,13 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
                 }}
             />
             <Button
-                colorScheme="blue"
+                primaryButton
                 onClick={saveChanges}
                 loading={isSubmitting}
                 disabled={!hasChanges || isSubmitting}
                 w="100%"
                 borderRadius="full"
+                h={"40px"}
             >
                 Save Changes
             </Button>
