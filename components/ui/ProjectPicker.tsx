@@ -53,7 +53,7 @@ export default function ProjectPicker({ onProjectSelect, onClear }: ProjectPicke
                     left={0}
                     right={0}
                     mt={1}
-                    bg="contentBackground"
+                    bg="pageBackground"
                     borderWidth={1}
                     borderRadius="10px"
                     boxShadow="md"
@@ -77,7 +77,7 @@ export default function ProjectPicker({ onProjectSelect, onClear }: ProjectPicke
                                 key={project.urlSlug}
                                 p={2}
                                 cursor="pointer"
-                                _hover={{ bg: "gray.700" }}
+                                _hover={{ bg: "contentBackground" }}
                                 onMouseDown={(e) => {
                                     e.preventDefault()
                                     setSearchTerm(project.displayName)

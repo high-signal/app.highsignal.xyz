@@ -77,7 +77,7 @@ export default function UserPicker({ onUserSelect, signalStrengthName, disabled 
                     left={0}
                     right={0}
                     mt={1}
-                    bg="contentBackground"
+                    bg="pageBackground"
                     borderWidth={1}
                     borderRadius="10px"
                     boxShadow="md"
@@ -101,7 +101,7 @@ export default function UserPicker({ onUserSelect, signalStrengthName, disabled 
                                 key={user.username}
                                 p={2}
                                 cursor="pointer"
-                                _hover={{ bg: "gray.700" }}
+                                _hover={{ bg: "contentBackground" }}
                                 onMouseDown={(e) => {
                                     e.preventDefault()
                                     setSearchTerm(user.username || "")
@@ -137,17 +137,17 @@ export default function UserPicker({ onUserSelect, signalStrengthName, disabled 
                                             let fontSize
                                             if (value === null || value === undefined) {
                                                 display = "Not connected"
-                                                color = "gray.400"
+                                                color = "lozenge.text.disabled"
                                                 bg = "pageBackground"
                                                 fontSize = "xs"
                                             } else if (Number(value) == 0) {
                                                 display = value
-                                                color = "gray.400"
-                                                bg = "pageBackground"
+                                                color = "lozenge.text.disabled"
+                                                bg = "lozenge.background.disabled"
                                             } else {
                                                 display = value
-                                                color = "#029E03"
-                                                bg = "green.500"
+                                                color = "lozenge.text.active"
+                                                bg = "lozenge.background.active"
                                             }
 
                                             return (

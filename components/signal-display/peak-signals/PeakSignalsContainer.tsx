@@ -25,11 +25,11 @@ export default function PeakSignalsContainer({
                 </Text>
                 <HStack
                     gap={"2px"}
-                    bg={completedBarWidth !== "0%" ? "green.500" : "gray.800"}
+                    bg={completedBarWidth !== "0%" ? "lozenge.background.active" : "lozenge.background.disabled"}
                     fontSize="xl"
                     px={2}
                     borderRadius="8px"
-                    color={completedBarWidth !== "0%" ? "#029E03" : "gray.400"}
+                    color={completedBarWidth !== "0%" ? "lozenge.text.active" : "lozenge.text.disabled"}
                 >
                     {completedBarWidth !== "0%" && <Text>+</Text>}
                     <Text>{currentUser.peakSignalScore}</Text>
@@ -49,7 +49,7 @@ export default function PeakSignalsContainer({
                     <Box
                         w={completedBarWidth}
                         h="100%"
-                        bg="green.500"
+                        bg="lozenge.background.active"
                         border={
                             completedBarWidth === "100%" ? "2px solid" : completedBarWidth === "0%" ? "none" : "none"
                         }
@@ -61,7 +61,7 @@ export default function PeakSignalsContainer({
                                   : "3px solid"
                         }
                         borderRadius={completedBarWidth === "100%" ? "md" : "none"}
-                        borderColor="#029E03"
+                        borderColor="lozenge.border.active"
                     />
                 </HStack>
                 <Text fontFamily={"monospace"}>{projectData.peakSignalsMaxValue}</Text>

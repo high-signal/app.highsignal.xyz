@@ -47,7 +47,14 @@ export default function PeakSignal({ peakSignal }: { peakSignal: PeakSignalUserD
                 <Text fontSize={"lg"} px={1} whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis" width="100%">
                     {peakSignal.displayName}
                 </Text>
-                <HStack gap={"2px"} bg={"green.500"} fontSize="xl" px={3} borderRadius="full" color="#029E03">
+                <HStack
+                    gap={"2px"}
+                    bg={"lozenge.background.active"}
+                    fontSize="xl"
+                    px={3}
+                    borderRadius="full"
+                    color="lozenge.text.active"
+                >
                     <Text>{peakSignal.value}</Text>
                 </HStack>
             </VStack>
