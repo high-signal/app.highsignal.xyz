@@ -159,6 +159,8 @@ export default function SignalStrength({
                     borderRadius="md"
                     overflow="hidden"
                     className={userDataRefreshTriggered || countdown ? "rainbow-animation" : ""}
+                    border="3px solid"
+                    borderColor={completedBarWidth === "100%" ? "lozenge.border.active" : "pageBackground"}
                 >
                     {userDataRefreshTriggered ? (
                         <HStack w={"100%"} justifyContent={"center"}>
@@ -190,21 +192,9 @@ export default function SignalStrength({
                             w={completedBarWidth}
                             h="100%"
                             bg="lozenge.background.active"
-                            border={
-                                completedBarWidth === "100%"
-                                    ? "2px solid"
-                                    : completedBarWidth === "0%"
-                                      ? "none"
-                                      : "none"
-                            }
                             borderRight={
-                                completedBarWidth === "100%"
-                                    ? "2px solid"
-                                    : completedBarWidth === "0%"
-                                      ? "none"
-                                      : "3px solid"
+                                completedBarWidth === "100%" || completedBarWidth === "0%" ? "none" : "3px solid"
                             }
-                            borderRadius={completedBarWidth === "100%" ? "md" : "none"}
                             borderColor={"lozenge.border.active"}
                         />
                     )}

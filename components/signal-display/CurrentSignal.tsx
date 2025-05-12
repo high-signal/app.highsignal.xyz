@@ -94,8 +94,8 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                         w={"100%"}
                         border={"3px solid"}
                         borderRadius={"10px"}
-                        borderColor={"contentBorder"}
-                        overflow={(signalValue || 0) < 20 ? "hidden" : "visible"}
+                        borderColor={signalValue === 100 ? `scoreColor.${signal}` : "contentBorder"}
+                        overflow="hidden"
                         position="relative"
                     >
                         <Box
@@ -103,9 +103,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                             w={`${signalValue}%`}
                             h={"100%"}
                             textAlign="center"
-                            border={signalValue === 100 ? "2px solid" : "none"}
-                            borderRight={signalValue === 100 ? "2px solid" : "3px solid"}
-                            borderRightRadius={signalValue === 100 ? "md" : "none"}
+                            borderRight={signalValue === 100 ? "none" : "3px solid"}
                             borderColor={`scoreColor.${signal}`}
                             _before={{
                                 content: '""',
@@ -115,7 +113,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                                 right: 0,
                                 bottom: 0,
                                 bg: `scoreColor.${signal}`,
-                                opacity: 0.3,
+                                opacity: 0.5,
                                 borderLeftRadius: "7px",
                             }}
                         />
