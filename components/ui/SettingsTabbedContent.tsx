@@ -28,11 +28,25 @@ export default function SettingsTabbedContent({
             <Text fontSize="3xl" fontWeight="bold" pt={5}>
                 {title}
             </Text>
-            <Tabs.Root lazyMount unmountOnExit defaultValue={defaultValue} variant={"outline"} w={"100%"}>
+            <Tabs.Root lazyMount unmountOnExit defaultValue={defaultValue} variant={"enclosed"} w={"100%"}>
                 <Box display="flex" justifyContent="center" w="100%">
-                    <Tabs.List w={listWidth}>
+                    <Tabs.List w={listWidth} bg={"contentBackground"} borderRadius={"10px"} gap={2} p={2}>
                         {tabs.map((tab) => (
-                            <Tabs.Trigger key={tab.value} value={tab.value} fontSize={"md"}>
+                            <Tabs.Trigger
+                                key={tab.value}
+                                value={tab.value}
+                                fontSize={"md"}
+                                bg={"pageBackground"}
+                                boxShadow={"none"}
+                                borderRadius={"8px"}
+                                _hover={{
+                                    bg: "button.hover",
+                                    _active: { bg: "button.active" },
+                                    _selected: { bg: "button.active" },
+                                }}
+                                _selected={{ bg: "button.active" }}
+                                _active={{ bg: "button.active" }}
+                            >
                                 {tab.label}
                             </Tabs.Trigger>
                         ))}
