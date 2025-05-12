@@ -65,6 +65,7 @@ async function analyzeUserData(
                 improvements: null,
                 value: 0,
             },
+            created: Math.floor(Date.now() / 1000),
         }
     }
 
