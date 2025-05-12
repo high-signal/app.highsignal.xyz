@@ -26,6 +26,8 @@ const sharedButtonStyles = {
     _expanded: {
         backgroundColor: "{colors.button.active}",
     },
+    h: "fit-content",
+    w: "fit-content",
 }
 
 export const buttonRecipe = defineRecipe({

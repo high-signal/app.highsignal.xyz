@@ -11,7 +11,7 @@ export default function UserInfo({ profileImageUrl, name }: UserInfoProps) {
         <HStack justifyContent={"center"} w={"100%"} maxW="600px" pb={2}>
             <HStack
                 border={"4px solid"}
-                borderColor={"gray.800"}
+                borderColor={"contentBorder"}
                 py={0}
                 pr={6}
                 w={"fit-content"}

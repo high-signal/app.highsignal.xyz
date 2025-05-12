@@ -77,7 +77,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                         w={"100%"}
                         border={"3px solid"}
                         borderRadius={"10px"}
-                        borderColor={"gray.800"}
+                        borderColor={"contentBorder"}
                         justifyContent={"center"}
                         className="rainbow-animation"
                     >
@@ -93,7 +93,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                         w={"100%"}
                         border={"3px solid"}
                         borderRadius={"10px"}
-                        borderColor={"gray.800"}
+                        borderColor={"contentBorder"}
                         overflow={(signalValue || 0) < 20 ? "hidden" : "visible"}
                         position="relative"
                     >
@@ -124,7 +124,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                             top="0"
                             bottom="0"
                             borderLeft="3px dashed"
-                            borderColor="gray.800"
+                            borderColor="contentBorder"
                         />
                         <Box
                             position="absolute"
@@ -132,7 +132,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                             top="0"
                             bottom="0"
                             borderLeft="3px dashed"
-                            borderColor="gray.800"
+                            borderColor="contentBorder"
                         />
                     </HStack>
                 )}

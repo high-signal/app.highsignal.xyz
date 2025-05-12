@@ -53,7 +53,7 @@ export default function SignalDisplayContainer({ project, username }: { project:
                 <Box w="100%" h={{ base: "30px", sm: "20px" }} />
                 <CurrentSignal currentUser={currentUser} />
                 <HStack w="100%" justifyContent="space-between">
-                    <Text color="white" textAlign="center">
+                    <Text textAlign="center">
                         Placeholder text for the user summary. Placeholder text for the user summary. Placeholder text
                         for the user summary. Placeholder text for the user summary. Placeholder text for the user
                         summary. Placeholder text for the user summary.

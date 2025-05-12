@@ -45,17 +45,17 @@ export const customConfig = defineConfig({
                     950: { value: "#1C0502" },
                 },
                 green: {
-                    50: { value: "#F1F5ED" },
-                    100: { value: "#E4EBDF" },
-                    200: { value: "#B9C9AF" },
-                    300: { value: "#92AB87" },
-                    400: { value: "#496B43" },
-                    500: { value: "#142B14" },
-                    600: { value: "#102610" },
-                    700: { value: "#0C210C" },
-                    800: { value: "#071A07" },
-                    900: { value: "#041404" },
-                    950: { value: "#020D02" },
+                    50: { value: "#EDFAF3" },
+                    100: { value: "#DCF5E7" },
+                    200: { value: "#AEE8C4" },
+                    300: { value: "#82D99C" },
+                    400: { value: "#3ABA4D" },
+                    500: { value: "#029E03" },
+                    600: { value: "#018F01" },
+                    700: { value: "#017501" },
+                    800: { value: "#015E01" },
+                    900: { value: "#004700" },
+                    950: { value: "#002E00" },
                 },
                 gold: {
                     50: { value: "#FFFEF2" },
@@ -90,24 +90,31 @@ export const customConfig = defineConfig({
         },
         semanticTokens: {
             colors: {
+                // Text colors
                 textColor: {
                     value: { _light: "black", _dark: "white" },
                 },
                 textColorMuted: {
                     value: { _light: "black", _dark: "{colors.gray.400}" },
                 },
+                selectionColor: {
+                    value: { _light: "{colors.blue.200}", _dark: "{colors.gray.600}" },
+                },
+
+                // Background colors
                 pageBackground: {
                     value: { _light: "{colors.blue.100}", _dark: "{colors.blue.950}" },
                 },
                 contentBackground: {
                     value: { _light: "{colors.blue.200}", _dark: "{colors.blue.900}" },
                 },
-                contentBackgroundHover: {
-                    value: { _light: "#E2E8F0", _dark: "#2D3748" },
-                },
+
+                // Border colors
                 contentBorder: {
-                    value: { _light: "{colors.gray.400}", _dark: "{colors.gray.600}" },
+                    value: { _light: "{colors.blue.500}", _dark: "{colors.blue.700}" },
                 },
+
+                // Button colors
                 button: {
                     default: {
                         value: { _light: "{colors.blue.300}", _dark: "{colors.blue.800}" },
@@ -130,6 +137,8 @@ export const customConfig = defineConfig({
                         value: { _light: "{colors.gray.400}", _dark: "{colors.gray.300}" },
                     },
                 },
+
+                // Input colors
                 input: {
                     border: {
                         value: { _light: "{colors.blue.400}", _dark: "{colors.blue.500}" },
@@ -138,9 +147,8 @@ export const customConfig = defineConfig({
                         value: { _light: "{colors.blue.400}", _dark: "{colors.blue.500}" },
                     },
                 },
-                selectionColor: {
-                    value: { _light: "{colors.blue.200}", _dark: "{colors.gray.600}" },
-                },
+
+                // Score colors
                 scoreColor: {
                     high: {
                         value: { _light: "{colors.blue.500}", _dark: "{colors.blue.500}" },
@@ -150,6 +158,29 @@ export const customConfig = defineConfig({
                     },
                     low: {
                         value: { _light: "{colors.gray.400}", _dark: "{colors.gray.400}" },
+                    },
+                },
+
+                // Signal Strength colors
+                signalStrength: {
+                    background: {
+                        active: {
+                            value: { _light: "{colors.green.500}", _dark: "{colors.green.950}" },
+                        },
+                        disabled: {
+                            value: { _light: "{colors.gray.400}", _dark: "{colors.gray.700}" },
+                        },
+                    },
+                    text: {
+                        active: {
+                            value: { _light: "white", _dark: "{colors.green.500}" },
+                        },
+                        disabled: {
+                            value: { _light: "{colors.gray.300}", _dark: "{colors.gray.400}" },
+                        },
+                    },
+                    border: {
+                        value: { _light: "{colors.green.800}", _dark: "{colors.green.500}" },
                     },
                 },
             },

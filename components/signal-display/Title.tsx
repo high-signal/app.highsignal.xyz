@@ -1,4 +1,4 @@
-import { HStack, Text, Image } from "@chakra-ui/react"
+import { HStack, Text, Image, Button } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"
 import { useRouter } from "next/navigation"
@@ -8,22 +8,15 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
 
     return (
         <HStack position="relative" justifyContent="space-between" w="100%" maxW="600px" pb={3}>
-            <HStack
+            <Button
+                defaultButton
                 position="absolute"
                 left={0}
                 gap={2}
                 px={3}
                 py={2}
                 w="auto"
-                bg="gray.800"
                 borderRadius="full"
-                cursor="pointer"
-                _hover={{
-                    bg: "gray.700",
-                    _active: { bg: "gray.600" },
-                }}
-                _active={{ bg: "gray.600" }}
-                transition="all 0.1s ease"
                 onClick={() => {
                     router.push(`/p/${projectData.urlSlug}${window.location.search}`)
                 }}
@@ -31,7 +24,7 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
                 fontSize="xl"
             >
                 <FontAwesomeIcon icon={faArrowLeft} />
-            </HStack>
+            </Button>
             <HStack w="100%" justifyContent="center" gap={3}>
                 <Image
                     src={projectData.projectLogoUrl}

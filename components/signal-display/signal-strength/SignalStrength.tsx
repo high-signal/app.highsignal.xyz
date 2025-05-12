@@ -132,11 +132,17 @@ export default function SignalStrength({
                 {!countdown && !userDataRefreshTriggered && projectData.status === "active" && (
                     <HStack
                         gap={"2px"}
-                        bg={completedBarWidth !== "0%" ? "green.500" : "gray.800"}
+                        bg={
+                            completedBarWidth !== "0%"
+                                ? "signalStrength.background.active"
+                                : "signalStrength.background.disabled"
+                        }
                         fontSize="xl"
                         px={2}
                         borderRadius="8px"
-                        color={completedBarWidth !== "0%" ? "#029E03" : "gray.400"}
+                        color={
+                            completedBarWidth !== "0%" ? "signalStrength.text.active" : "signalStrength.text.disabled"
+                        }
                     >
                         {completedBarWidth !== "0%" && <Text>+</Text>}
                         <Text>{userData.value}</Text>
@@ -148,14 +154,14 @@ export default function SignalStrength({
                 justifyContent={"space-between"}
                 alignItems={"center"}
                 fontSize={"lg"}
-                color={"gray.400"}
+                color={"textColorMuted"}
                 px={1}
             >
                 <Text fontFamily={"monospace"}>0</Text>
                 <HStack
                     w="100%"
                     h="30px"
-                    bg="gray.800"
+                    bg="signalStrength.background.disabled"
                     borderRadius="md"
                     overflow="hidden"
                     className={userDataRefreshTriggered || countdown ? "rainbow-animation" : ""}
@@ -176,11 +182,11 @@ export default function SignalStrength({
                             s
                         </Text>
                     ) : projectData.status === "active" && !isUserConnected ? (
-                        <Text color="gray.400" w={"100%"} textAlign={"center"} fontSize={"md"}>
+                        <Text color={"signalStrength.text.disabled"} w={"100%"} textAlign={"center"} fontSize={"md"}>
                             Account not connected
                         </Text>
                     ) : projectData.status === "dev" ? (
-                        <HStack gap={3} color={"gray.400"} w={"100%"} justifyContent={"center"} fontSize={"md"}>
+                        <HStack gap={3} color={"textColorMuted"} w={"100%"} justifyContent={"center"} fontSize={"md"}>
                             <Text>🏗️</Text>
                             <Text>Coming soon</Text>
                             <Text>🏗️</Text>
@@ -189,7 +195,7 @@ export default function SignalStrength({
                         <Box
                             w={completedBarWidth}
                             h="100%"
-                            bg="green.500"
+                            bg="signalStrength.background.active"
                             border={
                                 completedBarWidth === "100%"
                                     ? "2px solid"
@@ -205,7 +211,7 @@ export default function SignalStrength({
                                       : "3px solid"
                             }
                             borderRadius={completedBarWidth === "100%" ? "md" : "none"}
-                            borderColor="#029E03"
+                            borderColor={"signalStrength.border"}
                         />
                     )}
                 </HStack>
@@ -226,14 +232,14 @@ export default function SignalStrength({
                         borderRadius={"10px"}
                         borderBottomRadius={hasContent ? (isOpen ? "none" : "10px") : "10px"}
                         onClick={hasContent ? () => setIsOpen(!isOpen) : undefined}
-                        _hover={hasContent ? { bg: "gray.800" } : undefined}
+                        _hover={hasContent ? { bg: "button.default" } : undefined}
                     >
                         {hasContent ? (
                             <Box transform={isOpen ? "rotate(90deg)" : "rotate(0deg)"} transition="transform 0.2s">
                                 <FontAwesomeIcon icon={faChevronRight} />
                             </Box>
                         ) : (
-                            <Box color="gray.400">
+                            <Box color="textColorMuted">
                                 <FontAwesomeIcon icon={faInfoCircle} size="lg" />
                             </Box>
                         )}
