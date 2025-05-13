@@ -11,6 +11,7 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
                     secondaryButton
                     position="absolute"
                     left={0}
+                    transform="translateY(-50%)"
                     gap={2}
                     px={3}
                     py={2}
