@@ -1,6 +1,6 @@
 "use client"
 
-import { HStack, Image, Text, Box, VStack, Button, useBreakpointValue } from "@chakra-ui/react"
+import { HStack, Image, Text, Box, VStack, Button } from "@chakra-ui/react"
 import Link from "next/link"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -44,27 +44,15 @@ const IconLinkButton = ({ href, label, icon }: { href: string; label: string; ic
 export default function Header({}) {
     const { showParticles } = useParticles()
 
-    const headerHeight = 500
-    const headerVisibleHeight = useBreakpointValue({ base: 62, md: 66 }) || 66
-
-    const offset =
-        process.env.NODE_ENV === "development"
-            ? `-${headerHeight - headerVisibleHeight - 24}px`
-            : `-${headerHeight - headerVisibleHeight}px`
-
     return (
         <VStack
+            bg={"pageBackground"}
             gap={0}
             w="100%"
-            justifyContent={"end"}
+            justifyContent={"center"}
             alignItems={"center"}
-            bg={"pageBackground"}
-            h={`${headerHeight}px`}
             zIndex={5}
-            overflow={"hidden"}
             position={"relative"}
-            top={offset}
-            mb={offset}
             borderBottom={"1px solid"}
             transition={"border-color 0.3s ease-in-out"}
             borderColor={showParticles ? "contentBorder" : "transparent"}
@@ -77,7 +65,7 @@ export default function Header({}) {
             <HStack
                 w="100%"
                 maxW="1400px"
-                pt={{ base: 1, md: 2 }}
+                pt={2}
                 pb={2}
                 justifyContent={"space-between"}
                 alignItems={"center"}

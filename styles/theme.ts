@@ -244,7 +244,7 @@ export const customConfig = defineConfig({
     globalCss: {
         "html, body": {
             backgroundColor: "{colors.pageBackground}",
-            height: "100dvh",
+            height: "fit-content",
             width: "100vw",
             overflowX: "hidden",
             fontFamily: "fonts.body",

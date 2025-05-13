@@ -12,7 +12,7 @@ interface ContentContainerProps {
 
 export default function ContentContainer({ children }: ContentContainerProps) {
     return (
-        <VStack minH="100dvh" gap={0} overflow={"hidden"}>
+        <VStack minH="100dvh" h={"fit-content"} gap={0} overflow={"hidden"}>
             <Toaster />
             <Header />
             <VStack
