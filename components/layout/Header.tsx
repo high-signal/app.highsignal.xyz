@@ -42,7 +42,7 @@ const IconLinkButton = ({ href, label, icon }: { href: string; label: string; ic
 }
 
 export default function Header({}) {
-    const { showParticles, setShowParticles } = useParticles()
+    const { showParticles } = useParticles()
 
     return (
         <VStack
@@ -52,7 +52,8 @@ export default function Header({}) {
             alignItems={"center"}
             bg={"pageBackground"}
             zIndex={5}
-            borderBottom={"2px solid"}
+            borderBottom={"1px solid"}
+            transition={"border-color 0.3s ease-in-out"}
             borderColor={showParticles ? "contentBorder" : "transparent"}
         >
             {process.env.NODE_ENV === "development" && (
@@ -63,8 +64,8 @@ export default function Header({}) {
             <HStack
                 w="100%"
                 maxW="1400px"
-                h={"70px"}
-                // py={4}
+                pt={{ base: 1, md: 2 }}
+                pb={2}
                 justifyContent={"space-between"}
                 alignItems={"center"}
                 px={3}
