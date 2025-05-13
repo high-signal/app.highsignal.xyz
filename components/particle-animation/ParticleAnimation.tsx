@@ -10,6 +10,7 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
         width: typeof window !== "undefined" ? window.innerWidth : 1920,
         height: typeof window !== "undefined" ? window.innerHeight : 1080,
     })
+    const [triggerAnimationRestart, setTriggerAnimationRestart] = useState(false)
 
     useLayoutEffect(() => {
         const updatePageWidth = () => {
@@ -23,6 +24,15 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
         window.addEventListener("resize", updatePageWidth)
 
         return () => window.removeEventListener("resize", updatePageWidth)
+    }, [])
+
+    // Force particle regeneration every 100 seconds to prevent animation from freezing
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTriggerAnimationRestart((prev) => !prev)
+        }, 100000) // 100 seconds
+
+        return () => clearInterval(interval)
     }, [])
 
     const animParticle = keyframes`
@@ -64,8 +74,8 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
             after3: generateParticles(pageSize.width / 6, 4),
             after4: generateParticles(pageSize.width / 21, 2),
         }),
-        [pageSize.width],
-    ) // Only re-run when pageSize.width changes
+        [pageSize.width, triggerAnimationRestart],
+    )
 
     return (
         <Box ref={containerRef} position="relative" width="100%" height="100%" overflow="visible">
