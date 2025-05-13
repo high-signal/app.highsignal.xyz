@@ -1,6 +1,7 @@
 "use client"
 
 import { HStack, Box, Image, Text, Menu, Portal, Spinner, Button } from "@chakra-ui/react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -140,46 +141,41 @@ export default function UserMenuButton() {
                         <Menu.Content borderRadius={"16px"} p={0} bg={"pageBackground"}>
                             {loggedInUser.isSuperAdmin && (
                                 <>
-                                    <MenuItem label="Super Admin" value="superAdmin" isHeading textColor="orange.500" />
-                                    <MenuItem
-                                        key={"superAdminSettings"}
-                                        icon={faScrewdriverWrench}
-                                        label={"Settings"}
-                                        value={"superAdminSettings"}
-                                        onClick={() => router.push(`/settings/superadmin`)}
-                                        textColor="orange.500"
-                                    />
+                                    <MenuItem isHeading label="Super Admin" value="superAdmin" textColor="orange.500" />
+                                    <Link href={`/settings/superadmin`}>
+                                        <MenuItem
+                                            key={"superAdminSettings"}
+                                            icon={faScrewdriverWrench}
+                                            label={"Settings"}
+                                            value={"superAdminSettings"}
+                                            textColor="orange.500"
+                                        />
+                                    </Link>
                                     <Box h="20px" w="100%" />
                                 </>
                             )}
                             {loggedInUser.projectAdmins && loggedInUser.projectAdmins.length > 0 && (
                                 <>
-                                    <MenuItem label="Project Admin" value="projects" isHeading />
+                                    <MenuItem isHeading label="Project Admin" value="projects" />
                                     {loggedInUser.projectAdmins.map((project) => (
-                                        <MenuItem
-                                            key={project.projectId}
-                                            icon={project.projectLogoUrl}
-                                            label={project.projectName}
-                                            value={`project-${project.projectId}`}
-                                            onClick={() => router.push(`/settings/p/${project.urlSlug}`)}
-                                        />
+                                        <Link key={project.projectId} href={`/settings/p/${project.urlSlug}`}>
+                                            <MenuItem
+                                                icon={project.projectLogoUrl}
+                                                label={project.projectName}
+                                                value={`project-${project.projectId}`}
+                                            />
+                                        </Link>
                                     ))}
                                     <Box h="20px" w="100%" />
                                 </>
                             )}
-                            <MenuItem label={loggedInUser.displayName} value="username" isHeading />
-                            <MenuItem
-                                icon={faCircleUser}
-                                label="Profile"
-                                value="profile"
-                                onClick={() => router.push(`/p/lido/${loggedInUser.username}`)}
-                            />
-                            <MenuItem
-                                icon={faGear}
-                                label="Settings"
-                                value="settings"
-                                onClick={() => router.push(`/settings/u/${loggedInUser.username}`)}
-                            />
+                            <MenuItem isHeading label={loggedInUser.displayName} value="username" />
+                            <Link href={`/p/lido/${loggedInUser.username}`}>
+                                <MenuItem icon={faCircleUser} label="Profile" value="profile" />
+                            </Link>
+                            <Link href={`/settings/u/${loggedInUser.username}`}>
+                                <MenuItem icon={faGear} label="Settings" value="settings" />
+                            </Link>
                             <MenuItem icon={faSignOut} label="Logout" value="logout" onClick={handleLogout} />
                         </Menu.Content>
                     </Menu.Positioner>

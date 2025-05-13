@@ -1,11 +1,11 @@
 import { HStack, VStack, Box, Text, Spinner, Button } from "@chakra-ui/react"
+import Link from "next/link"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
 import { useState, useEffect } from "react"
 
 import { useUser } from "../../../contexts/UserContext"
-import { useRouter } from "next/navigation"
 
 import { APP_CONFIG } from "../../../config/constants"
 
@@ -23,7 +23,6 @@ export default function SignalStrength({
     refreshUserData: () => void
 }) {
     const { loggedInUser } = useUser()
-    const router = useRouter()
 
     const percentageCompleted = (Number(userData.value) / Number(projectData.maxValue)) * 100
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
@@ -263,23 +262,19 @@ export default function SignalStrength({
             )}
             {projectData.status === "active" && !isUserConnected && loggedInUser?.username === username && (
                 <HStack w={"100%"} justifyContent={"center"} cursor={"disabled"}>
-                    <Button
-                        primaryButton
-                        justifyContent={"start"}
-                        // bg="orange.500"
-                        // _hover={{ bg: "orange.600" }}
-                        fontWeight={"bold"}
-                        fontSize={"sm"}
-                        borderRadius={"full"}
-                        px={3}
-                        py={1}
-                        // cursor={"pointer"}
-                        onClick={() => {
-                            router.push(`/settings/u/${username}`)
-                        }}
-                    >
-                        Connect your account
-                    </Button>
+                    <Link href={`/settings/u/${username}?tab=connectedAccounts`}>
+                        <Button
+                            primaryButton
+                            justifyContent={"start"}
+                            fontWeight={"bold"}
+                            fontSize={"sm"}
+                            borderRadius={"full"}
+                            px={3}
+                            py={1}
+                        >
+                            Connect your account
+                        </Button>
+                    </Link>
                 </HStack>
             )}
         </VStack>
