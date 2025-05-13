@@ -27,7 +27,7 @@ type Project = {
     project_signal_strengths: ProjectSignalStrength[]
 }
 
-export async function getProjects(request: Request, isSuperAdminRequesting: boolean = false) {
+export async function getProjectsUtil(request: Request, isSuperAdminRequesting: boolean = false) {
     const projectSlug = request ? new URL(request.url).searchParams.get("project") : null
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 

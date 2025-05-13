@@ -1,7 +1,7 @@
-import { getProjects } from "../../../utils/api-utils/projectsGetUtil"
+import { getProjectsUtil } from "../../../utils/api-utils/getProjectsUtil"
 
 // Unauthenticated GET request
 // Returns users for the given project
 export async function GET(request: Request) {
-    return getProjects(request)
+    return getProjectsUtil(request)
 }

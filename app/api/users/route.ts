@@ -1,11 +1,11 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
-import { getUsers } from "../../../utils/api-utils/usersGetUtil"
+import { getUsersUtil } from "../../../utils/api-utils/getUsersUtil"
 
 // Unauthenticated GET request
 // Returns user data for a given project
 export async function GET(request: Request) {
-    return getUsers(request)
+    return getUsersUtil(request)
 }
 
 // Authenticated POST request (uses logged in user privyId)

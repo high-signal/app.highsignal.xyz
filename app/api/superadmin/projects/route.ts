@@ -1,6 +1,6 @@
-import { getProjects } from "../../../../utils/api-utils/projectsGetUtil"
+import { getProjectsUtil } from "../../../../utils/api-utils/getProjectsUtil"
 
 // Returns projects with additional superadmin fields
 export async function GET(request: Request) {
-    return getProjects(request, true)
+    return getProjectsUtil(request, true)
 }

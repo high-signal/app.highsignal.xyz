@@ -1,6 +1,6 @@
-import { getUsers } from "../../../../utils/api-utils/usersGetUtil"
+import { getUsersUtil } from "../../../../utils/api-utils/getUsersUtil"
 
 // Returns user data for a given project with additional superadmin fields
 export async function GET(request: Request) {
-    return getUsers(request, true)
+    return getUsersUtil(request, true)
 }

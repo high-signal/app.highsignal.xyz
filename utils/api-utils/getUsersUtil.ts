@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
-import { calculateSignalFromScore } from "../../utils/calculateSignal"
+import { calculateSignalFromScore } from "../calculateSignal"
 
 import { APP_CONFIG } from "../../config/constants"
 
@@ -49,7 +49,7 @@ type SignalStrength = {
     // *** Super Admin only end ***
 }
 
-export async function getUsers(request: Request, isSuperAdminRequesting: boolean = false) {
+export async function getUsersUtil(request: Request, isSuperAdminRequesting: boolean = false) {
     const { searchParams } = new URL(request.url)
     const projectSlug = searchParams.get("project")
     const username = searchParams.get("user")
