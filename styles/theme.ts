@@ -103,6 +103,11 @@ export const customConfig = defineConfig({
                     value: { _light: "{colors.blue.200}", _dark: "{colors.gray.600}" },
                 },
 
+                // Particle colors
+                particleColor: {
+                    value: { _light: "{colors.blue.300}", _dark: "{colors.blue.800}" },
+                },
+
                 // Background colors
                 pageBackground: {
                     value: { _light: "{colors.blue.100}", _dark: "{colors.blue.950}" },

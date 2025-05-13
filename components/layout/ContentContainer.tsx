@@ -22,6 +22,7 @@ export default function ContentContainer({ children }: ContentContainerProps) {
                 w={"100%"}
                 maxW={{ base: "100%", sm: "95dvw" }}
                 pt={{ base: 0, sm: 5 }}
+                zIndex={1}
             >
                 {children}
             </VStack>

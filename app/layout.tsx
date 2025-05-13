@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import dynamic from "next/dynamic"
 import { rubik } from "./fonts"
 import Head from "./head"
+import RootParticleAnimation from "../components/particle-animation/RootParticleAnimation"
 
 const isDev = process.env.NODE_ENV === "development"
 
@@ -19,7 +20,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <html lang="en" suppressHydrationWarning className={rubik.className}>
             <Head />
             <body suppressHydrationWarning>
-                <Provider>{children}</Provider>
+                <Provider>
+                    <RootParticleAnimation />
+                    {children}
+                </Provider>
             </body>
         </html>
     )

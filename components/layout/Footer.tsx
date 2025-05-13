@@ -2,6 +2,7 @@ import { HStack, Link, Text, Box } from "@chakra-ui/react"
 
 import NextLink from "next/link"
 import { ColorModeToggle } from "../color-mode/ColorModeToggle"
+import ParticleToggle from "../particle-animation/ParticleToggle"
 
 export default function Footer() {
     return (
@@ -20,9 +21,10 @@ export default function Footer() {
                     </Link>
                 </Text>
             </HStack>
-            <Box position="absolute" right={5} bottom={5}>
+            <HStack position="absolute" right={5} bottom={5}>
+                <ParticleToggle />
                 <ColorModeToggle />
-            </Box>
+            </HStack>
         </Box>
     )
 }

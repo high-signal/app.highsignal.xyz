@@ -9,6 +9,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css"
 import { systemConfig } from "../styles/theme"
 import PrivyProvider from "../components/auth/PrivyProvider"
 import { UserProvider } from "../contexts/UserContext"
+import { ParticleProvider } from "../contexts/ParticleContext"
 
 export function Provider(props: ColorModeProviderProps) {
     return (
@@ -16,7 +17,9 @@ export function Provider(props: ColorModeProviderProps) {
             <GoogleAnalytics />
             <PrivyProvider>
                 <UserProvider>
-                    <ColorModeProvider {...props} />
+                    <ParticleProvider>
+                        <ColorModeProvider {...props} />
+                    </ParticleProvider>
                 </UserProvider>
             </PrivyProvider>
         </ChakraProvider>
