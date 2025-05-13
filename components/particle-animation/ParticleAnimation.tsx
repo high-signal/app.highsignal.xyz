@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useRef, useState, useLayoutEffect } from "react"
+import React, { useRef, useState, useLayoutEffect, useMemo } from "react"
 import { Box } from "@chakra-ui/react"
 import { keyframes } from "@emotion/react"
 
@@ -43,6 +43,30 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
         return particles
     }
 
+    // Memoize particle generation
+    const particles = useMemo(
+        () => ({
+            layer1: {
+                base: generateParticles(600, 8),
+                sm: generateParticles(1200, 8),
+            },
+            layer2: {
+                base: generateParticles(100, 4),
+                sm: generateParticles(210, 4),
+            },
+            layer3: {
+                base: generateParticles(100, 4),
+                sm: generateParticles(210, 4),
+            },
+            layer4: generateParticles(160, 2),
+            after1: generateParticles(480, 8),
+            after2: generateParticles(130, 4),
+            after3: generateParticles(290, 4),
+            after4: generateParticles(90, 2),
+        }),
+        [],
+    ) // Empty dependency array means this only runs once
+
     return (
         <Box ref={containerRef} position="relative" width="100%" height="100%" overflow="visible">
             <Box
@@ -50,14 +74,14 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
                 borderRadius="50%"
                 bg="transparent"
                 animation={`${animParticle} 100s linear infinite`}
-                boxShadow={{ base: generateParticles(600, 8), sm: generateParticles(1200, 8) }}
+                boxShadow={{ base: particles.layer1.base, sm: particles.layer1.sm }}
                 height="2px"
                 width="2px"
                 _after={{
                     content: '""',
                     borderRadius: "50%",
                     position: "absolute",
-                    boxShadow: generateParticles(480, 8),
+                    boxShadow: particles.after1,
                     height: "2px",
                     width: "2px",
                 }}
@@ -67,14 +91,14 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
                 borderRadius="50%"
                 bg="transparent"
                 animation={`${animParticle} 200s linear infinite`}
-                boxShadow={{ base: generateParticles(100, 4), sm: generateParticles(210, 4) }}
+                boxShadow={{ base: particles.layer2.base, sm: particles.layer2.sm }}
                 height="2px"
                 width="2px"
                 _after={{
                     content: '""',
                     borderRadius: "50%",
                     position: "absolute",
-                    boxShadow: generateParticles(130, 4),
+                    boxShadow: particles.after2,
                     height: "3px",
                     width: "3px",
                 }}
@@ -84,14 +108,14 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
                 borderRadius="50%"
                 bg="transparent"
                 animation={`${animParticle} 200s linear infinite`}
-                boxShadow={{ base: generateParticles(100, 4), sm: generateParticles(210, 4) }}
+                boxShadow={{ base: particles.layer3.base, sm: particles.layer3.sm }}
                 height="2px"
                 width="2px"
                 _after={{
                     content: '""',
                     borderRadius: "50%",
                     position: "absolute",
-                    boxShadow: generateParticles(290, 4),
+                    boxShadow: particles.after3,
                     height: "3px",
                     width: "3px",
                 }}
@@ -101,14 +125,14 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
                 borderRadius="50%"
                 bg="transparent"
                 animation={`${animParticle} 400s linear infinite`}
-                boxShadow={generateParticles(160, 2)}
+                boxShadow={particles.layer4}
                 height="1px"
                 width="1px"
                 _after={{
                     content: '""',
                     borderRadius: "50%",
                     position: "absolute",
-                    boxShadow: generateParticles(90, 2),
+                    boxShadow: particles.after4,
                     height: "1px",
                     width: "1px",
                 }}
