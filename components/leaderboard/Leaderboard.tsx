@@ -1,6 +1,7 @@
 "use client"
 
 import { VStack, HStack, Text, Box, Table, Image, Spinner } from "@chakra-ui/react"
+import Link from "next/link"
 import { Tooltip } from "../../components/ui/tooltip"
 
 import { useRouter, useSearchParams } from "next/navigation"
@@ -154,117 +155,141 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                             </Table.Cell>
                         </Table.Row>
                     ) : (
-                        users.map((user, index) => (
-                            <Table.Row
-                                key={index}
-                                cursor="pointer"
-                                bg="transparent"
-                                // Needs both to work on mobile and desktop
-                                _hover={{
-                                    bg: "button.secondary.hover",
-                                    _active: { bg: "button.secondary.active" },
-                                }}
-                                _active={{ bg: "button.secondary.active" }}
-                                transition="all 0.1s ease"
-                                onClick={() => {
-                                    router.push(`/p/${project.urlSlug}/${user.username}${window.location.search}`)
-                                }}
-                                borderBottom="1px solid"
-                                borderColor="contentBorder"
-                            >
-                                <Table.Cell borderBottom="none" py={"6px"} px={{ base: 0, sm: 4 }} textAlign="center">
-                                    <Text fontSize="lg" fontWeight="bold" color="textColor">
-                                        {user.rank}
-                                    </Text>
-                                </Table.Cell>
-                                <Table.Cell borderBottom="none" py={"6px"} pr={0} maxW={displayNameColumnWidth}>
-                                    <HStack gap={3}>
-                                        <Box
-                                            position="relative"
-                                            boxSize="40px"
-                                            minW="40px"
-                                            borderRadius="full"
-                                            overflow="hidden"
-                                        >
-                                            <Image
-                                                src={
-                                                    !user.profileImageUrl || user.profileImageUrl === ""
-                                                        ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                                        : user.profileImageUrl
-                                                }
-                                                alt={`User ${user.username} Profile Image`}
-                                                fit="cover"
-                                            />
-                                        </Box>
-                                        <Text fontSize="lg" color="textColor" truncate>
-                                            {user.displayName}
-                                        </Text>
-                                    </HStack>
-                                </Table.Cell>
-                                <Table.Cell borderBottom="none" py={0} px={0} maxW={signalColumnWidth}>
-                                    <HStack justifyContent="center" alignItems="center" fontSize="xl" fontWeight="bold">
-                                        <Text color={`scoreColor.${user.signal || "textColorMuted"}`}>
-                                            {(user.signal || "").charAt(0).toUpperCase() + (user.signal || "").slice(1)}
-                                        </Text>
-                                    </HStack>
-                                </Table.Cell>
-                                <Table.Cell
-                                    borderBottom="none"
-                                    textAlign="center"
-                                    py={0}
-                                    px={0}
-                                    maxW={scoreColumnWidth}
+                        users.map((user, index) => {
+                            const linkUrl = `/p/${project.urlSlug}/${user.username}${window.location.search}`
+
+                            return (
+                                <Table.Row
+                                    key={index}
+                                    cursor="pointer"
+                                    bg="transparent"
+                                    _hover={{
+                                        bg: "button.secondary.hover",
+                                        _active: { bg: "button.secondary.active" },
+                                    }}
+                                    _active={{ bg: "button.secondary.active" }}
+                                    transition="all 0.1s ease"
+                                    borderBottom="1px solid"
+                                    borderColor="contentBorder"
                                 >
-                                    <HStack justifyContent="center" alignItems="center">
-                                        <Text
-                                            px={2}
-                                            py={1}
-                                            border="3px solid"
-                                            borderRadius="15px"
-                                            borderColor={`scoreColor.${user.signal || ""}`}
-                                            color="textColor"
-                                            w="fit-content"
-                                            fontSize="lg"
-                                        >
-                                            {user.score}
-                                        </Text>
-                                    </HStack>
-                                </Table.Cell>
-                                <Table.Cell
-                                    borderBottom="none"
-                                    py={0}
-                                    maxW={peakSignalsColumnWidth}
-                                    display={{ base: "none", sm: project.peakSignalsEnabled ? "table-cell" : "none" }}
-                                >
-                                    <HStack justify="center" gap={2}>
-                                        {[...(user.peakSignals || [])]
-                                            .sort((a, b) => b.value - a.value)
-                                            .slice(0, 5)
-                                            .map((badge, index) => (
-                                                <Tooltip
-                                                    key={index}
-                                                    openDelay={100}
-                                                    closeDelay={0}
-                                                    content={badge.displayName}
-                                                    positioning={{
-                                                        placement: "top",
-                                                        offset: { mainAxis: 2 },
-                                                    }}
+                                    <Table.Cell
+                                        borderBottom="none"
+                                        py={"6px"}
+                                        px={{ base: 0, sm: 4 }}
+                                        textAlign="center"
+                                    >
+                                        <Link href={linkUrl}>
+                                            <Text fontSize="lg" fontWeight="bold" color="textColor">
+                                                {user.rank}
+                                            </Text>
+                                        </Link>
+                                    </Table.Cell>
+                                    <Table.Cell borderBottom="none" py={"6px"} pr={0} maxW={displayNameColumnWidth}>
+                                        <Link href={linkUrl}>
+                                            <HStack gap={3}>
+                                                <Box
+                                                    position="relative"
+                                                    boxSize="40px"
+                                                    minW="40px"
+                                                    borderRadius="full"
+                                                    overflow="hidden"
                                                 >
                                                     <Image
-                                                        key={index}
-                                                        src={badge.imageSrc}
-                                                        alt={badge.imageAlt}
-                                                        width={10}
-                                                        height={10}
-                                                        borderRadius="full"
+                                                        src={
+                                                            !user.profileImageUrl || user.profileImageUrl === ""
+                                                                ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                                                : user.profileImageUrl
+                                                        }
+                                                        alt={`User ${user.username} Profile Image`}
+                                                        fit="cover"
                                                     />
-                                                </Tooltip>
-                                            ))}
-                                    </HStack>
-                                </Table.Cell>
-                            </Table.Row>
-                        ))
+                                                </Box>
+                                                <Text fontSize="lg" color="textColor" truncate>
+                                                    {user.displayName}
+                                                </Text>
+                                            </HStack>
+                                        </Link>
+                                    </Table.Cell>
+                                    <Table.Cell borderBottom="none" py={0} px={0} maxW={signalColumnWidth}>
+                                        <Link href={linkUrl}>
+                                            <HStack
+                                                justifyContent="center"
+                                                alignItems="center"
+                                                fontSize="xl"
+                                                fontWeight="bold"
+                                            >
+                                                <Text color={`scoreColor.${user.signal || "textColorMuted"}`}>
+                                                    {(user.signal || "").charAt(0).toUpperCase() +
+                                                        (user.signal || "").slice(1)}
+                                                </Text>
+                                            </HStack>
+                                        </Link>
+                                    </Table.Cell>
+                                    <Table.Cell
+                                        borderBottom="none"
+                                        textAlign="center"
+                                        py={0}
+                                        px={0}
+                                        maxW={scoreColumnWidth}
+                                    >
+                                        <Link href={linkUrl}>
+                                            <HStack justifyContent="center" alignItems="center">
+                                                <Text
+                                                    px={2}
+                                                    py={1}
+                                                    border="3px solid"
+                                                    borderRadius="15px"
+                                                    borderColor={`scoreColor.${user.signal || ""}`}
+                                                    color="textColor"
+                                                    w="fit-content"
+                                                    fontSize="lg"
+                                                >
+                                                    {user.score}
+                                                </Text>
+                                            </HStack>
+                                        </Link>
+                                    </Table.Cell>
+                                    <Table.Cell
+                                        borderBottom="none"
+                                        py={0}
+                                        maxW={peakSignalsColumnWidth}
+                                        display={{
+                                            base: "none",
+                                            sm: project.peakSignalsEnabled ? "table-cell" : "none",
+                                        }}
+                                    >
+                                        <Link href={linkUrl}>
+                                            <HStack justify="center" gap={2}>
+                                                {[...(user.peakSignals || [])]
+                                                    .sort((a, b) => b.value - a.value)
+                                                    .slice(0, 5)
+                                                    .map((badge, index) => (
+                                                        <Tooltip
+                                                            key={index}
+                                                            openDelay={100}
+                                                            closeDelay={0}
+                                                            content={badge.displayName}
+                                                            positioning={{
+                                                                placement: "top",
+                                                                offset: { mainAxis: 2 },
+                                                            }}
+                                                        >
+                                                            <Image
+                                                                key={index}
+                                                                src={badge.imageSrc}
+                                                                alt={badge.imageAlt}
+                                                                width={10}
+                                                                height={10}
+                                                                borderRadius="full"
+                                                            />
+                                                        </Tooltip>
+                                                    ))}
+                                            </HStack>
+                                        </Link>
+                                    </Table.Cell>
+                                </Table.Row>
+                            )
+                        })
                     )}
                 </Table.Body>
             </Table.Root>
