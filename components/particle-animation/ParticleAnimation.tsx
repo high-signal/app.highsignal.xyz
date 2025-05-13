@@ -40,6 +40,11 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
     to { transform: translateY(${particleDirection === "down" ? "0" : "-100vh"}); }
     `
 
+    const fadeIn = keyframes`
+    from { opacity: 0; }
+    to { opacity: 1; }
+    `
+
     // Helper function to generate particle shadows within the viewport dimensions
     function generateParticles(maxParticles: number, pageSizeMultiplier: number) {
         const colorParticle = "{colors.particleColor}"
@@ -83,7 +88,7 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
                 position="absolute"
                 borderRadius="50%"
                 bg="transparent"
-                animation={`${animParticle} 100s linear infinite`}
+                animation={`${animParticle} 100s linear infinite, ${fadeIn} 0.5s ease-in`}
                 boxShadow={{ base: particles.layer1.base, sm: particles.layer1.sm }}
                 height="2px"
                 width="2px"
@@ -94,13 +99,14 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
                     boxShadow: particles.after1,
                     height: "2px",
                     width: "2px",
+                    animation: `${fadeIn} 0.5s ease-in`,
                 }}
             />
             <Box
                 position="absolute"
                 borderRadius="50%"
                 bg="transparent"
-                animation={`${animParticle} 200s linear infinite`}
+                animation={`${animParticle} 200s linear infinite, ${fadeIn} 0.5s ease-in`}
                 boxShadow={{ base: particles.layer2.base, sm: particles.layer2.sm }}
                 height="2px"
                 width="2px"
@@ -111,13 +117,14 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
                     boxShadow: particles.after2,
                     height: "3px",
                     width: "3px",
+                    animation: `${fadeIn} 0.5s ease-in`,
                 }}
             />
             <Box
                 position="absolute"
                 borderRadius="50%"
                 bg="transparent"
-                animation={`${animParticle} 200s linear infinite`}
+                animation={`${animParticle} 200s linear infinite, ${fadeIn} 0.5s ease-in`}
                 boxShadow={{ base: particles.layer3.base, sm: particles.layer3.sm }}
                 height="2px"
                 width="2px"
@@ -128,13 +135,14 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
                     boxShadow: particles.after3,
                     height: "3px",
                     width: "3px",
+                    animation: `${fadeIn} 0.5s ease-in`,
                 }}
             />
             <Box
                 position="absolute"
                 borderRadius="50%"
                 bg="transparent"
-                animation={`${animParticle} 400s linear infinite`}
+                animation={`${animParticle} 400s linear infinite, ${fadeIn} 0.5s ease-in`}
                 boxShadow={particles.layer4}
                 height="1px"
                 width="1px"
@@ -145,6 +153,7 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
                     boxShadow: particles.after4,
                     height: "1px",
                     width: "1px",
+                    animation: `${fadeIn} 0.5s ease-in`,
                 }}
             />
         </Box>

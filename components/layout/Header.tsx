@@ -54,7 +54,7 @@ export default function Header({}) {
             zIndex={5}
             position={"relative"}
             borderBottom={"1px solid"}
-            transition={"border-color 0.3s ease-in-out"}
+            transition={showParticles ? "border-color 0.5s ease-in" : "none"}
             borderColor={showParticles ? "contentBorder" : "transparent"}
         >
             {process.env.NODE_ENV === "development" && (

@@ -13,7 +13,7 @@ export default function ParticleToggle() {
         if (showParticles) {
             setTimeout(() => {
                 setIsLoading(false)
-            }, 1000)
+            }, 500)
         } else {
             setIsLoading(false)
         }
@@ -33,6 +33,7 @@ export default function ParticleToggle() {
                     setShowParticles(false)
                 }
             }}
+            _active={{ _hover: { bg: "button.secondary.hover" } }}
             transition="opacity 0.2s"
             fontSize={"xl"}
             borderRadius={"full"}

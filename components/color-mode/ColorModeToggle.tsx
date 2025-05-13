@@ -22,7 +22,7 @@ export function ColorModeToggle() {
     return (
         <Switch.Root size="lg" onChange={toggleColorMode} defaultChecked={theme === "light"} transform="scale(1.2)">
             <Switch.HiddenInput />
-            <Switch.Control bg={"button.secondary.default"}>
+            <Switch.Control bg={"button.secondary.default"} _hover={{ bg: "button.secondary.hover" }}>
                 <Switch.Thumb bg={"pageBackground"} boxShadow={"none"}>
                     <Switch.ThumbIndicator
                         fallback={

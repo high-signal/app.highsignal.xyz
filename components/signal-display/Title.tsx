@@ -5,7 +5,7 @@ import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"
 
 export default function Title({ projectData }: { projectData: ProjectData }) {
     return (
-        <HStack position="relative" justifyContent="space-between" w="100%" maxW="600px" pb={3}>
+        <HStack position="relative" justifyContent="center" w="100%" maxW="600px" pb={3}>
             <Link href={`/p/${projectData.urlSlug}${window.location.search}`}>
                 <Button
                     secondaryButton
@@ -23,7 +23,7 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
                     <FontAwesomeIcon icon={faArrowLeft} />
                 </Button>
             </Link>
-            <HStack w="100%" justifyContent="center" gap={3}>
+            <HStack w="fit-content" justifyContent="center" gap={3}>
                 <Image
                     src={projectData.projectLogoUrl}
                     alt={projectData.displayName}

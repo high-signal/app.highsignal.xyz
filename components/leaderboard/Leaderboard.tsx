@@ -140,15 +140,15 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                 <Table.Body>
                     {loading || isSearching ? (
                         <Table.Row bg="transparent">
-                            <Table.Cell colSpan={5} py={0} h={"50vh"}>
+                            <Table.Cell colSpan={5} py={0} h={"50vh"} borderColor="transparent">
                                 <VStack gap={2} h={"100%"} justifyContent="start" py={10}>
                                     <Spinner size="md" />
                                 </VStack>
                             </Table.Cell>
                         </Table.Row>
                     ) : users.length === 0 ? (
-                        <Table.Row bg="transparent">
-                            <Table.Cell colSpan={5} textAlign="center" py={10}>
+                        <Table.Row bg="pageBackground">
+                            <Table.Cell colSpan={5} textAlign="center" py={10} borderColor="contentBorder">
                                 <Text color="textColorMuted">
                                     {searchTerm ? `No users found with the name "${searchTerm}"` : "No users found"}
                                 </Text>
@@ -162,7 +162,7 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                 <Table.Row
                                     key={index}
                                     cursor="pointer"
-                                    bg="transparent"
+                                    bg={"pageBackground"}
                                     _hover={{
                                         bg: "button.secondary.hover",
                                         _active: { bg: "button.secondary.active" },

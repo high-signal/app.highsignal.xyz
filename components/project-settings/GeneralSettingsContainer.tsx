@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Button } from "@chakra-ui/react"
+import { Box, Button } from "@chakra-ui/react"
 import { toaster } from "../ui/toaster"
 
 import { useUser } from "../../contexts/UserContext"
@@ -186,17 +186,19 @@ export default function GeneralSettingsContainer({ project }: { project: Project
                     }
                 }}
             />
-            <Button
-                primaryButton
-                onClick={saveChanges}
-                loading={isSubmitting}
-                disabled={!hasChanges || isSubmitting}
-                w="100%"
-                borderRadius="full"
-                h={"40px"}
-            >
-                Save Changes
-            </Button>
+            <Box bg={"pageBackground"} w="100%" h={"fit-content"}>
+                <Button
+                    primaryButton
+                    onClick={saveChanges}
+                    loading={isSubmitting}
+                    disabled={!hasChanges || isSubmitting}
+                    w="100%"
+                    borderRadius="full"
+                    h={"40px"}
+                >
+                    Save Changes
+                </Button>
+            </Box>
         </SettingsSectionContainer>
     )
 }

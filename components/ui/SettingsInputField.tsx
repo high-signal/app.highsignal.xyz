@@ -38,7 +38,7 @@ export default function SettingsInputField({
                     <Text>{isPrivate ? "Private" : "Public"}</Text>
                 </HStack>
             </HStack>
-            <HStack w="100%" gap={0}>
+            <HStack w="100%" gap={0} bg={"pageBackground"}>
                 <SingleLineTextInput
                     value={value}
                     onChange={onChange}
