@@ -141,9 +141,10 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                 w="500px"
                 maxW={"100%"}
                 bg={"contentBackground"}
-                p={4}
-                borderRadius={"16px"}
-                borderBottomRadius={isOpen ? "0px" : "16px"}
+                py={4}
+                px={{ base: 2, sm: 4 }}
+                borderRadius={{ base: 0, sm: "16px" }}
+                borderBottomRadius={{ base: 0, sm: isOpen ? "0px" : "16px" }}
                 flexWrap={"wrap"}
             >
                 <Button
@@ -426,7 +427,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                     <VStack
                         w={"100%"}
                         bg={"contentBackground"}
-                        borderBottomRadius={"16px"}
+                        borderBottomRadius={{ base: 0, sm: "16px" }}
                         alignItems={"center"}
                         gap={2}
                     >

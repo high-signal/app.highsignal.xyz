@@ -30,7 +30,14 @@ export default function SettingsTabbedContent({
             </Text>
             <Tabs.Root lazyMount unmountOnExit defaultValue={defaultValue} variant={"enclosed"} w={"100%"}>
                 <Box display="flex" justifyContent="center" w="100%">
-                    <Tabs.List w={listWidth} bg={"contentBackground"} borderRadius={"10px"} gap={2} p={2}>
+                    <Tabs.List
+                        w={listWidth}
+                        bg={"contentBackground"}
+                        borderRadius={{ base: 0, sm: "16px" }}
+                        gap={2}
+                        p={2}
+                        mx={{ base: 0, sm: 2 }}
+                    >
                         {tabs.map((tab) => (
                             <Tabs.Trigger
                                 key={tab.value}
