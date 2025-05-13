@@ -1,4 +1,4 @@
-import { HStack, VStack, Box, Text, Spinner } from "@chakra-ui/react"
+import { HStack, VStack, Box, Text, Spinner, Button } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
@@ -216,7 +216,7 @@ export default function SignalStrength({
                         borderRadius={"10px"}
                         borderBottomRadius={hasContent ? (isOpen ? "none" : "10px") : "10px"}
                         onClick={hasContent ? () => setIsOpen(!isOpen) : undefined}
-                        _hover={hasContent ? { bg: "button.default" } : undefined}
+                        _hover={hasContent ? { bg: "button.secondary.default" } : undefined}
                     >
                         {hasContent ? (
                             <Box transform={isOpen ? "rotate(90deg)" : "rotate(0deg)"} transition="transform 0.2s">
@@ -263,22 +263,23 @@ export default function SignalStrength({
             )}
             {projectData.status === "active" && !isUserConnected && loggedInUser?.username === username && (
                 <HStack w={"100%"} justifyContent={"center"} cursor={"disabled"}>
-                    <Text
+                    <Button
+                        primaryButton
                         justifyContent={"start"}
-                        bg="orange.500"
-                        _hover={{ bg: "orange.600" }}
+                        // bg="orange.500"
+                        // _hover={{ bg: "orange.600" }}
                         fontWeight={"bold"}
                         fontSize={"sm"}
                         borderRadius={"full"}
                         px={3}
                         py={1}
-                        cursor={"pointer"}
+                        // cursor={"pointer"}
                         onClick={() => {
                             router.push(`/settings/u/${username}`)
                         }}
                     >
                         Connect your account
-                    </Text>
+                    </Button>
                 </HStack>
             )}
         </VStack>

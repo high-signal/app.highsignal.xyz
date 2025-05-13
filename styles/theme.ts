@@ -118,25 +118,49 @@ export const customConfig = defineConfig({
 
                 // Button colors
                 button: {
-                    default: {
-                        value: { _light: "{colors.blue.300}", _dark: "{colors.blue.800}" },
+                    primary: {
+                        default: {
+                            value: { _light: "{colors.orange.500}", _dark: "{colors.orange.500}" },
+                        },
+                        hover: {
+                            value: { _light: "{colors.orange.400}", _dark: "{colors.orange.600}" },
+                        },
+                        active: {
+                            value: { _light: "{colors.orange.500}", _dark: "{colors.orange.700}" },
+                        },
                     },
-                    hover: {
-                        value: { _light: "{colors.blue.200}", _dark: "{colors.blue.700}" },
+                    secondary: {
+                        default: {
+                            value: { _light: "{colors.blue.300}", _dark: "{colors.blue.800}" },
+                        },
+                        hover: {
+                            value: { _light: "{colors.blue.200}", _dark: "{colors.blue.700}" },
+                        },
+                        active: {
+                            value: { _light: "{colors.blue.300}", _dark: "{colors.blue.600}" },
+                        },
                     },
-                    active: {
-                        value: { _light: "{colors.blue.300}", _dark: "{colors.blue.600}" },
+                    success: {
+                        default: {
+                            value: { _light: "{colors.green.500}", _dark: "{colors.green.950}" },
+                        },
+                        hover: {
+                            value: { _light: "{colors.green.400}", _dark: "{colors.green.900}" },
+                        },
+                        active: {
+                            value: { _light: "{colors.green.500}", _dark: "{colors.green.900}" },
+                        },
                     },
-                },
-                closeButton: {
-                    default: {
-                        value: { _light: "{colors.gray.400}", _dark: "{colors.gray.300}" },
-                    },
-                    hover: {
-                        value: { _light: "black", _dark: "white" },
-                    },
-                    active: {
-                        value: { _light: "{colors.gray.400}", _dark: "{colors.gray.300}" },
+                    closeButton: {
+                        default: {
+                            value: { _light: "{colors.gray.400}", _dark: "{colors.gray.300}" },
+                        },
+                        hover: {
+                            value: { _light: "black", _dark: "white" },
+                        },
+                        active: {
+                            value: { _light: "{colors.gray.400}", _dark: "{colors.gray.300}" },
+                        },
                     },
                 },
 

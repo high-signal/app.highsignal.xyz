@@ -161,10 +161,10 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                 bg="transparent"
                                 // Needs both to work on mobile and desktop
                                 _hover={{
-                                    bg: "button.hover",
-                                    _active: { bg: "button.active" },
+                                    bg: "button.secondary.hover",
+                                    _active: { bg: "button.secondary.active" },
                                 }}
-                                _active={{ bg: "button.active" }}
+                                _active={{ bg: "button.secondary.active" }}
                                 transition="all 0.1s ease"
                                 onClick={() => {
                                     router.push(`/p/${project.urlSlug}/${user.username}${window.location.search}`)

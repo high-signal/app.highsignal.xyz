@@ -148,7 +148,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                 flexWrap={"wrap"}
             >
                 <Button
-                    defaultButton
+                    secondaryButton
                     py={2}
                     pl={2}
                     pr={4}
@@ -376,7 +376,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             />
                         </VStack>
                         <Button
-                            defaultButton
+                            secondaryButton
                             position={{ base: "relative", sm: "absolute" }}
                             left={{ base: "auto", sm: "50%" }}
                             transform={{ base: "none", sm: "translateX(-50%)" }}

@@ -91,7 +91,7 @@ export default function Header({}) {
                             alignItems="center"
                             fontSize="md"
                             aria-label="View leaderboard"
-                            defaultButton
+                            secondaryButton
                         >
                             View leaderboard
                         </Button>
@@ -103,9 +103,6 @@ export default function Header({}) {
                             <IconLinkButton key={index} {...link} />
                         ))}
                     </HStack> */}
-                    <Box display={{ base: "none", md: "block" }}>
-                        <ColorModeToggle />
-                    </Box>
                     <UserMenuButton />
                 </HStack>
             </HStack>

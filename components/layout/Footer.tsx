@@ -20,7 +20,7 @@ export default function Footer() {
                     </Link>
                 </Text>
             </HStack>
-            <Box position="absolute" right={5} bottom={5} display={{ base: "block", sm: "none" }}>
+            <Box position="absolute" right={5} bottom={5}>
                 <ColorModeToggle />
             </Box>
         </Box>

@@ -35,8 +35,8 @@ const MenuItem = ({ isHeading = false, icon, label, value, onClick, textColor = 
         pb={isHeading ? 2 : 3}
         cursor={isHeading ? "default" : "pointer"}
         transition={"all 0.2s ease"}
-        _active={{ bg: "button.active" }}
-        _highlighted={{ bg: "button.hover" }}
+        _active={{ bg: "button.secondary.active" }}
+        _highlighted={{ bg: "button.secondary.hover" }}
         fontSize={"md"}
         value={value}
         onClick={onClick}
@@ -95,7 +95,7 @@ export default function UserMenuButton() {
 
     if (loggedInUserLoading) {
         return (
-            <Button defaultButton {...userButtonStyles} disabled opacity={1} w={"50px"}>
+            <Button secondaryButton {...userButtonStyles} disabled opacity={1} w={"50px"}>
                 <Spinner />
             </Button>
         )
@@ -105,7 +105,7 @@ export default function UserMenuButton() {
         return (
             <Menu.Root onOpenChange={(details) => setIsMenuOpen(details.open)}>
                 <Menu.Trigger asChild>
-                    <Button defaultButton {...userButtonStyles} maxW="120px" border={"none"} zIndex={3}>
+                    <Button secondaryButton {...userButtonStyles} maxW="120px" border={"none"} zIndex={3}>
                         <Box maxW="50px" borderRadius="full" overflow="hidden">
                             <Image
                                 src={
@@ -189,7 +189,7 @@ export default function UserMenuButton() {
     }
 
     return (
-        <Button defaultButton {...userButtonStyles} w="80px" h="40px" onClick={login}>
+        <Button primaryButton {...userButtonStyles} w="70px" h="35px" onClick={login}>
             <Text fontWeight={"bold"}>Log in</Text>
         </Button>
     )

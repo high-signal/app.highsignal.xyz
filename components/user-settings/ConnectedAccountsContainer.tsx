@@ -159,15 +159,11 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                 rightElement={
                     !isConnected ? (
                         <Button
+                            primaryButton
                             h={"35px"}
                             w={"120px"}
-                            bg="orange.500"
-                            _hover={{ bg: "orange.600" }}
-                            color="white"
-                            borderColor="orange.500"
                             onClick={() => handleForumChange(forumUsername, targetUser.id!, 1)}
                             borderRightRadius="full"
-                            cursor={!forumUsername || isForumSubmitting ? "default" : "pointer"}
                             disabled={!forumUsername || isForumSubmitting}
                         >
                             {isForumSubmitting ? (
@@ -180,17 +176,18 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                         <Menu.Root>
                             <Menu.Trigger asChild>
                                 <Button
+                                    successButton
                                     h={"35px"}
                                     w={"120px"}
                                     pl={2}
                                     pr={0}
                                     border={"2px solid"}
-                                    bg="lozenge.background.active"
+                                    // bg="lozenge.background.active"
                                     color="lozenge.text.active"
                                     borderColor="lozenge.border.active"
                                     borderRightRadius="full"
-                                    cursor={isForumSubmitting ? "default" : "pointer"}
-                                    _hover={{ bg: "lozenge.background.active" }}
+                                    // cursor={isForumSubmitting ? "default" : "pointer"}
+                                    // _hover={{ bg: "lozenge.background.active" }}
                                     disabled={isForumSubmitting}
                                 >
                                     <HStack gap={1}>

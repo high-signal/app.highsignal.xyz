@@ -9,7 +9,7 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
     return (
         <HStack position="relative" justifyContent="space-between" w="100%" maxW="600px" pb={3}>
             <Button
-                defaultButton
+                secondaryButton
                 position="absolute"
                 left={0}
                 gap={2}

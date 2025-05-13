@@ -3,8 +3,8 @@ import { defineRecipe } from "@chakra-ui/react"
 // Run this command when adding a new variant to fix the type error:
 // npx @chakra-ui/cli typegen ./styles/theme.ts
 
-const sharedButtonStyles = {
-    backgroundColor: "{colors.button.default}",
+const createButtonStyles = (colors: { default: string; hover: string; active: string }) => ({
+    backgroundColor: colors.default,
     transition: "all 0.2s ease",
     px: 0,
     py: 0,
@@ -14,47 +14,58 @@ const sharedButtonStyles = {
     w: "fit-content",
     color: "{colors.textColor}",
     _hover: {
-        backgroundColor: "{colors.button.hover}",
+        backgroundColor: colors.hover,
         _active: {
-            backgroundColor: "{colors.button.active}",
+            backgroundColor: colors.active,
         },
         _expanded: {
-            backgroundColor: "{colors.button.active}",
+            backgroundColor: colors.active,
         },
     },
     _active: {
-        backgroundColor: "{colors.button.active}",
+        backgroundColor: colors.active,
     },
     _expanded: {
-        backgroundColor: "{colors.button.active}",
+        backgroundColor: colors.active,
     },
-}
+})
 
 export const buttonRecipe = defineRecipe({
     variants: {
-        defaultButton: {
-            true: {
-                ...sharedButtonStyles,
-            },
-        },
         primaryButton: {
             true: {
-                ...sharedButtonStyles,
+                ...createButtonStyles({
+                    default: "{colors.button.primary.default}",
+                    hover: "{colors.button.primary.hover}",
+                    active: "{colors.button.primary.active}",
+                }),
+            },
+        },
+        secondaryButton: {
+            true: {
+                ...createButtonStyles({
+                    default: "{colors.button.secondary.default}",
+                    hover: "{colors.button.secondary.hover}",
+                    active: "{colors.button.secondary.active}",
+                }),
+            },
+        },
+        successButton: {
+            true: {
+                ...createButtonStyles({
+                    default: "{colors.button.success.default}",
+                    hover: "{colors.button.success.hover}",
+                    active: "{colors.button.success.active}",
+                }),
             },
         },
         closeButton: {
             true: {
-                ...sharedButtonStyles,
-                backgroundColor: "{colors.closeButton.default}",
-                _hover: {
-                    backgroundColor: "{colors.closeButton.hover}",
-                    _active: {
-                        backgroundColor: "{colors.closeButton.active}",
-                    },
-                },
-                _active: {
-                    backgroundColor: "{colors.closeButton.active}",
-                },
+                ...createButtonStyles({
+                    default: "{colors.button.closeButton.default}",
+                    hover: "{colors.button.closeButton.hover}",
+                    active: "{colors.button.closeButton.active}",
+                }),
             },
         },
     },
