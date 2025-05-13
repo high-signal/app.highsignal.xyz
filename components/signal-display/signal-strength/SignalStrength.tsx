@@ -113,7 +113,7 @@ export default function SignalStrength({
             bg="contentBackground"
             py={3}
             px={3}
-            borderRadius={"16px"}
+            borderRadius={{ base: 0, md: "16px" }}
         >
             <HStack
                 alignItems={userDataRefreshTriggered ? "center" : "baseline"}

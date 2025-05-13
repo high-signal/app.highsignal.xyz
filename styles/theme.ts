@@ -31,7 +31,7 @@ export const customConfig = defineConfig({
                     700: { value: "#015D87" },
                     800: { value: "#01466E" },
                     900: { value: "#012F52" },
-                    950: { value: COLORS.PAGE_BACKGROUND_DARK },
+                    950: { value: COLORS.PAGE_BACKGROUND_DARK }, // Used in PWA config
                 },
                 red: {
                     50: { value: "#F7F3ED" },
