@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useRef, useState, useLayoutEffect, useMemo } from "react"
+import React, { useRef, useState, useLayoutEffect, useMemo, useEffect } from "react"
 import { Box } from "@chakra-ui/react"
 import { keyframes } from "@emotion/react"
 
@@ -26,9 +26,9 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
     }, [])
 
     const animParticle = keyframes`
-    from { transform: translateY(${particleDirection === "down" ? -pageSize.height : 0}px); }
-    to { transform: translateY(${particleDirection === "down" ? 0 : -pageSize.height}px); }
-  `
+    from { transform: translateY(${particleDirection === "down" ? "-100vh" : "0"}); }
+    to { transform: translateY(${particleDirection === "down" ? "0" : "-100vh"}); }
+    `
 
     // Helper function to generate particle shadows within the viewport dimensions
     function generateParticles(maxParticles: number, pageSizeMultiplier: number) {
@@ -47,25 +47,25 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
     const particles = useMemo(
         () => ({
             layer1: {
-                base: generateParticles(600, 8),
-                sm: generateParticles(1200, 8),
+                base: generateParticles(pageSize.width / 3, 8),
+                sm: generateParticles(pageSize.width / 1.6, 8),
             },
             layer2: {
-                base: generateParticles(100, 4),
-                sm: generateParticles(210, 4),
+                base: generateParticles(pageSize.width / 19, 4),
+                sm: generateParticles(pageSize.width / 9, 4),
             },
             layer3: {
-                base: generateParticles(100, 4),
-                sm: generateParticles(210, 4),
+                base: generateParticles(pageSize.width / 19, 4),
+                sm: generateParticles(pageSize.width / 9, 4),
             },
-            layer4: generateParticles(160, 2),
-            after1: generateParticles(480, 8),
-            after2: generateParticles(130, 4),
-            after3: generateParticles(290, 4),
-            after4: generateParticles(90, 2),
+            layer4: generateParticles(pageSize.width / 12, 2),
+            after1: generateParticles(pageSize.width / 4, 8),
+            after2: generateParticles(pageSize.width / 14, 4),
+            after3: generateParticles(pageSize.width / 6, 4),
+            after4: generateParticles(pageSize.width / 21, 2),
         }),
-        [],
-    ) // Empty dependency array means this only runs once
+        [pageSize.width],
+    ) // Only re-run when pageSize.width changes
 
     return (
         <Box ref={containerRef} position="relative" width="100%" height="100%" overflow="visible">
