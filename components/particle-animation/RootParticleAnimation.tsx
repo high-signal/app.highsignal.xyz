@@ -9,20 +9,21 @@ export default function RootParticleAnimation() {
 
     return (
         <Box
-            position="fixed"
-            top={0}
-            left={0}
-            w="100%"
-            h="100%"
-            opacity={showParticles ? 1 : 0}
-            transition="opacity 1s ease-in-out"
+            position="absolute"
+            top="0"
+            left="0"
+            width="100%"
+            height="100%"
+            overflow="hidden"
             zIndex={0}
-            pointerEvents="none"
             style={{
                 isolation: "isolate",
+                pointerEvents: "none",
             }}
         >
-            {showParticles && <ParticleAnimation particleDirection={"up"} />}
+            <Box position="absolute" top="0" left="0" width="100%" height="100%" transform="translateZ(0)">
+                {showParticles && <ParticleAnimation particleDirection="up" />}
+            </Box>
         </Box>
     )
 }
