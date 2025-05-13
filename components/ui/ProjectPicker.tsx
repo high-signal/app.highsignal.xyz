@@ -24,7 +24,7 @@ export default function ProjectPicker({ onProjectSelect, onClear }: ProjectPicke
     }, [searchTerm])
 
     return (
-        <Box position="relative" minW={{ base: "100%", md: "250px" }} flexGrow={1}>
+        <Box position="relative" minW={{ base: "100%", sm: "250px" }} flexGrow={1}>
             <SingleLineTextInput
                 ref={inputRef}
                 placeholder="Select project..."

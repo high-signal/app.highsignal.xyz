@@ -48,7 +48,7 @@ export default function SignalStrengthContainer({
     })
 
     return (
-        <VStack gap={3} px={{ base: 0, md: 3 }} w="100%" maxW="600px" alignItems={"center"} pb={"50px"}>
+        <VStack gap={3} px={{ base: 0, sm: 3 }} w="100%" maxW="600px" alignItems={"center"} pb={"50px"}>
             <Text fontSize="2xl" fontWeight={"bold"} px={3}>
                 📡 Signal Strength
             </Text>

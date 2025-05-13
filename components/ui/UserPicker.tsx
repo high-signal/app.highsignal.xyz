@@ -34,7 +34,7 @@ export default function UserPicker({ onUserSelect, signalStrengthName, disabled 
     }, [disabled])
 
     return (
-        <Box position="relative" minW={{ base: "100%", md: "250px" }} flexGrow={1}>
+        <Box position="relative" minW={{ base: "100%", sm: "250px" }} flexGrow={1}>
             <SingleLineTextInput
                 ref={inputRef}
                 placeholder="Select test user..."

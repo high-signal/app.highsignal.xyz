@@ -253,7 +253,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         gap={5}
                         px={5}
                         pt={5}
-                        borderTopRadius={{ base: "0px", md: "16px" }}
+                        borderTopRadius={{ base: "0px", sm: "16px" }}
                         flexWrap={{ base: "wrap", sm: "nowrap" }}
                     >
                         <HStack w={"100%"} justifyContent={"center"}>

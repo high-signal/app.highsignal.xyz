@@ -73,7 +73,7 @@ export default function PeakSignalsContainer({
                 <Text
                     color="textColorMuted"
                     bg={"contentBackground"}
-                    borderRadius={{ base: "50px", md: "60px" }}
+                    borderRadius={{ base: "50px", sm: "60px" }}
                     py={2}
                     px={4}
                 >
@@ -83,21 +83,21 @@ export default function PeakSignalsContainer({
             {peakSignals.length > 0 && (
                 <Grid
                     templateColumns={
-                        peakSignals.length === 1 ? { base: "1fr", md: "1fr" } : { base: "1fr", md: "1fr 1fr" }
+                        peakSignals.length === 1 ? { base: "1fr", sm: "1fr" } : { base: "1fr", sm: "1fr 1fr" }
                     }
                     gap={4}
-                    py={{ base: 2, md: 4 }}
-                    px={{ base: 2, md: 4 }}
+                    py={{ base: 2, sm: 4 }}
+                    px={{ base: 2, sm: 4 }}
                     bg={"contentBackground"}
-                    borderRadius={{ base: "50px", md: "60px" }}
-                    w={{ base: "100%", md: peakSignals.length === 1 ? "fit-content" : "100%" }}
+                    borderRadius={{ base: "50px", sm: "60px" }}
+                    w={{ base: "100%", sm: peakSignals.length === 1 ? "fit-content" : "100%" }}
                     maxW="100%"
                     overflow="hidden"
                 >
                     {sortedSignals.map((peakSignal, index) => (
                         <GridItem
                             key={index}
-                            gridColumn={isOddCount && isLastItem(index) ? { base: "1", md: "1 / span 2" } : undefined}
+                            gridColumn={isOddCount && isLastItem(index) ? { base: "1", sm: "1 / span 2" } : undefined}
                             display="flex"
                             justifyContent="center"
                             alignItems="center"

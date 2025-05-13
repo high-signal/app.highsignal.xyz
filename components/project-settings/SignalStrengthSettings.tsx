@@ -153,7 +153,7 @@ export default function SignalStrengthSettings({
                         gap={3}
                     >
                         <Text>Test User</Text>
-                        <Box position="relative" minW={{ base: "100%", md: "250px" }} flexGrow={1}>
+                        <Box position="relative" minW={{ base: "100%", sm: "250px" }} flexGrow={1}>
                             <SingleLineTextInput
                                 ref={inputRef}
                                 placeholder="Select test user..."
@@ -291,7 +291,7 @@ export default function SignalStrengthSettings({
                         gap={5}
                         px={3}
                         pt={5}
-                        borderTopRadius={{ base: "0px", md: "16px" }}
+                        borderTopRadius={{ base: "0px", sm: "16px" }}
                         flexWrap={"wrap"}
                     >
                         <VStack w={"100%"} maxW={"500px"} alignItems={"center"}>
@@ -319,17 +319,17 @@ export default function SignalStrengthSettings({
                             }}
                         >
                             <HStack gap={1}>
-                                <Box display={{ base: "none", md: "block" }}>
+                                <Box display={{ base: "none", sm: "block" }}>
                                     <FontAwesomeIcon icon={faArrowRight} />
                                 </Box>
-                                <Box display={{ base: "block", md: "none" }}>
+                                <Box display={{ base: "block", sm: "none" }}>
                                     <FontAwesomeIcon icon={faArrowDown} />
                                 </Box>
                                 <Text>Copy</Text>
-                                <Box display={{ base: "none", md: "block" }}>
+                                <Box display={{ base: "none", sm: "block" }}>
                                     <FontAwesomeIcon icon={faArrowRight} />
                                 </Box>
-                                <Box display={{ base: "block", md: "none" }}>
+                                <Box display={{ base: "block", sm: "none" }}>
                                     <FontAwesomeIcon icon={faArrowDown} />
                                 </Box>
                             </HStack>

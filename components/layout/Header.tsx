@@ -63,7 +63,7 @@ export default function Header({}) {
                 px={3}
                 gap={0}
             >
-                <HStack gap={{ base: 2, sm: 10 }} flexGrow={1}>
+                <HStack gap={{ base: 2, md: 10 }} flexGrow={1}>
                     <Box onClick={() => router.push("/")} cursor="pointer">
                         <HStack gap={2} justifyContent={"center"} alignItems={"center"}>
                             <Image src={ASSETS.LOGO} alt="Logo" boxSize={"50px"} borderRadius="full" />
@@ -72,13 +72,13 @@ export default function Header({}) {
                                 fontWeight="bold"
                                 fontSize="xl"
                                 whiteSpace={"nowrap"}
-                                display={{ base: "none", sm: "block" }}
+                                display={{ base: "none", md: "block" }}
                             >
                                 {process.env.NEXT_PUBLIC_SITE_NAME}
                             </Text>
                         </HStack>
                     </Box>
-                    <HStack flexGrow={{ base: 1, sm: 0 }} justifyContent={"center"} gap={2}>
+                    <HStack flexGrow={{ base: 1, md: 0 }} justifyContent={"center"} gap={2}>
                         <Button
                             px={4}
                             py={1}
@@ -103,7 +103,7 @@ export default function Header({}) {
                             <IconLinkButton key={index} {...link} />
                         ))}
                     </HStack> */}
-                    <Box display={{ base: "none", sm: "block" }}>
+                    <Box display={{ base: "none", md: "block" }}>
                         <ColorModeToggle />
                     </Box>
                     <UserMenuButton />
