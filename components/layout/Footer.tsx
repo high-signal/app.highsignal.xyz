@@ -7,7 +7,13 @@ import ParticleToggle from "../particle-animation/ParticleToggle"
 export default function Footer() {
     return (
         <Box position="relative" w="100%" pb={5} px={3}>
-            <HStack alignItems={"center"} gap={1} justifyContent={"center"}>
+            <HStack
+                alignItems={"center"}
+                gap={1}
+                justifyContent={{ base: "start", sm: "center" }}
+                pl={{ base: 10, sm: 0 }}
+                h={"28px"}
+            >
                 <Text fontWeight={"bold"}>
                     Built with ❤️ by{" "}
                     <Link
@@ -21,7 +27,7 @@ export default function Footer() {
                     </Link>
                 </Text>
             </HStack>
-            <HStack position="absolute" right={5} bottom={5}>
+            <HStack position="absolute" right={5} bottom={5} gap={5}>
                 <ParticleToggle />
                 <ColorModeToggle />
             </HStack>

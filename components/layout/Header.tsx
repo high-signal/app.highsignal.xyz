@@ -1,14 +1,15 @@
 "use client"
 
 import { HStack, Image, Text, Box, VStack, Button } from "@chakra-ui/react"
+import Link from "next/link"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faXTwitter, IconDefinition } from "@fortawesome/free-brands-svg-icons"
 
 import UserMenuButton from "./UserMenuButton"
 
-import Link from "next/link"
 import { ASSETS, SOCIAL_LINKS } from "../../config/constants"
+import { useParticles } from "../../contexts/ParticleContext"
 
 const iconMap = {
     faXTwitter,
@@ -41,8 +42,19 @@ const IconLinkButton = ({ href, label, icon }: { href: string; label: string; ic
 }
 
 export default function Header({}) {
+    const { showParticles, setShowParticles } = useParticles()
+
     return (
-        <VStack gap={0} w="100%" justifyContent={"center"} alignItems={"center"}>
+        <VStack
+            gap={0}
+            w="100%"
+            justifyContent={"center"}
+            alignItems={"center"}
+            bg={"pageBackground"}
+            zIndex={5}
+            borderBottom={"2px solid"}
+            borderColor={showParticles ? "contentBorder" : "transparent"}
+        >
             {process.env.NODE_ENV === "development" && (
                 <HStack w="100%" justifyContent={"center"} alignItems={"center"} bg={"orange.700"} zIndex={3}>
                     <Text>Dev Environment</Text>
@@ -51,9 +63,8 @@ export default function Header({}) {
             <HStack
                 w="100%"
                 maxW="1400px"
-                h={"60px"}
-                pt={4}
-                pb={2}
+                h={"70px"}
+                // py={4}
                 justifyContent={"space-between"}
                 alignItems={"center"}
                 px={3}
