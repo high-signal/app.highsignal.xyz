@@ -116,6 +116,7 @@ export default function UserMenuButton() {
                                 }
                                 alt={`User ${loggedInUser.displayName} Profile Image`}
                                 fit="cover"
+                                minW="50px"
                                 transition="transform 0.2s ease-in-out"
                             />
                         </Box>

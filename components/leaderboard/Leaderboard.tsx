@@ -36,6 +36,7 @@ const TableHeader = ({
         minW={maxW}
         maxW={maxW}
         px={px}
+        whiteSpace="nowrap"
     >
         {children}
     </Table.ColumnHeader>
@@ -140,7 +141,7 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                 <Table.Body>
                     {loading || isSearching ? (
                         <Table.Row bg="transparent">
-                            <Table.Cell colSpan={5} py={0} h={"50vh"} borderColor="transparent">
+                            <Table.Cell colSpan={5} py={0} h={"fit-content"} borderColor="transparent">
                                 <VStack gap={2} h={"100%"} justifyContent="start" py={10}>
                                     <Spinner size="md" />
                                 </VStack>

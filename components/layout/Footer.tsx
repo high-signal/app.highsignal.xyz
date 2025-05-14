@@ -6,15 +6,24 @@ import ParticleToggle from "../particle-animation/ParticleToggle"
 
 export default function Footer() {
     return (
-        <Box position="relative" w="100%" pb={5} px={3}>
+        <HStack
+            justifyContent={{ base: "space-around", sm: "center" }}
+            position="relative"
+            w="100%"
+            pb={5}
+            px={5}
+            flexWrap={"wrap-reverse"}
+            columnGap={10}
+            rowGap={5}
+        >
             <HStack
                 alignItems={"center"}
                 gap={1}
                 justifyContent={{ base: "start", sm: "center" }}
-                pl={{ base: 10, sm: 0 }}
                 h={"28px"}
+                justifySelf={"center"}
             >
-                <Text fontWeight={"bold"}>
+                <Text fontWeight={"bold"} textAlign={"center"}>
                     Built with ❤️ by{" "}
                     <Link
                         as={NextLink}
@@ -27,10 +36,15 @@ export default function Footer() {
                     </Link>
                 </Text>
             </HStack>
-            <HStack position="absolute" right={5} bottom={5} gap={5}>
+            <HStack
+                position={{ base: "relative", sm: "absolute" }}
+                right={{ base: 0, sm: 5 }}
+                bottom={{ base: 0, sm: 5 }}
+                gap={5}
+            >
                 <ParticleToggle />
                 <ColorModeToggle />
             </HStack>
-        </Box>
+        </HStack>
     )
 }

@@ -76,7 +76,13 @@ export default function Header({}) {
                     <Link href="/">
                         <Box>
                             <HStack gap={2} justifyContent={"center"} alignItems={"center"}>
-                                <Image src={ASSETS.LOGO} alt="Logo" boxSize={"50px"} borderRadius="full" />
+                                <Image
+                                    src={ASSETS.LOGO}
+                                    alt="Logo"
+                                    boxSize={"50px"}
+                                    minW={"50px"}
+                                    borderRadius="full"
+                                />
                                 <Text
                                     minW="80px"
                                     fontWeight="bold"
@@ -99,10 +105,10 @@ export default function Header({}) {
                                 borderRadius="full"
                                 alignItems="center"
                                 fontSize="md"
-                                aria-label="View leaderboard"
+                                aria-label="Leaderboard"
                                 secondaryButton
                             >
-                                View leaderboard
+                                Leaderboard
                             </Button>
                         </Link>
                     </HStack>
