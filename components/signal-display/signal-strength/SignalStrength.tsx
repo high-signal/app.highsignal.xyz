@@ -262,7 +262,7 @@ export default function SignalStrength({
             )}
             {projectData.status === "active" && !isUserConnected && loggedInUser?.username === username && (
                 <HStack w={"100%"} justifyContent={"center"} cursor={"disabled"}>
-                    <Link href={`/settings/u/${username}?tab=connectedAccounts`}>
+                    <Link href={`/settings/u/${username}?tab=connected-accounts`}>
                         <Button
                             primaryButton
                             justifyContent={"start"}

@@ -101,7 +101,6 @@ export default function ProjectSettingsContainer() {
         <ContentContainer>
             <SettingsTabbedContent
                 title="Project Settings"
-                defaultValue="general"
                 tabs={[
                     {
                         value: "general",

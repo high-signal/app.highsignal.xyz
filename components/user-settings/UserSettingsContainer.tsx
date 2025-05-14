@@ -100,7 +100,6 @@ export default function UserSettingsContainer() {
         <ContentContainer>
             <SettingsTabbedContent
                 title="User Settings"
-                defaultValue="general"
                 tabs={[
                     {
                         value: "general",

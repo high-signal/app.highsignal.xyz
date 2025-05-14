@@ -3,6 +3,7 @@
 import { Box, Text } from "@chakra-ui/react"
 import { Tabs } from "@chakra-ui/react"
 import { ReactNode } from "react"
+import { useSearchParams } from "next/navigation"
 
 interface TabItem {
     value: string
@@ -11,24 +12,22 @@ interface TabItem {
 }
 
 interface SettingsTabbedContentProps {
-    defaultValue: string
     tabs: TabItem[]
     listWidth?: string
     title: string
 }
 
-export default function SettingsTabbedContent({
-    defaultValue,
-    tabs,
-    listWidth = "500px",
-    title,
-}: SettingsTabbedContentProps) {
+export default function SettingsTabbedContent({ tabs, listWidth = "500px", title }: SettingsTabbedContentProps) {
+    const searchParams = useSearchParams()
+    const tabParam = searchParams.get("tab")
+    const defaultTab = tabParam && tabs.some((tab) => tab.value === tabParam) ? tabParam : tabs[0].value
+
     return (
         <>
             <Text fontSize="3xl" fontWeight="bold" pt={5}>
                 {title}
             </Text>
-            <Tabs.Root lazyMount unmountOnExit defaultValue={defaultValue} variant={"enclosed"} w={"100%"}>
+            <Tabs.Root lazyMount unmountOnExit defaultValue={defaultTab} variant={"enclosed"} w={"100%"}>
                 <Box display="flex" justifyContent="center" w="100%">
                     <Tabs.List
                         minW={{ base: "100%", sm: `min(${listWidth}, 100%)` }}
