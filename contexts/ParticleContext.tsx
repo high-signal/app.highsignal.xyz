@@ -19,7 +19,14 @@ export function ParticleProvider({ children }: { children: ReactNode }) {
     const [showParticles, setShowParticles] = useState(() => {
         if (typeof window !== "undefined") {
             const savedState = localStorage.getItem("showParticles")
-            return savedState !== null ? savedState === "true" : false
+
+            if (savedState === null) {
+                return true // Default setting for particles
+            } else if (savedState === "true") {
+                return true
+            } else {
+                return false
+            }
         }
         return false
     })
