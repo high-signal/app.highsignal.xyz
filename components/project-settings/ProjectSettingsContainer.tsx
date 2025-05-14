@@ -100,7 +100,7 @@ export default function ProjectSettingsContainer() {
     return (
         <ContentContainer>
             <SettingsTabbedContent
-                title="Project Settings"
+                title={`${project.displayName} Settings`}
                 tabs={[
                     {
                         value: "general",
