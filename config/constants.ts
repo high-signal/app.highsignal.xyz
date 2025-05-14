@@ -13,7 +13,8 @@ export const ASSETS = {
         "https://res.cloudinary.com/duenpn7gd/image/upload/v1745265905/profile-images/1/z4lgr9kyd3qn2mpp5ifj.webp",
     DEFAULT_PROFILE_IMAGE:
         "https://res.cloudinary.com/duenpn7gd/image/upload/v1745265905/profile-images/1/z4lgr9kyd3qn2mpp5ifj.webp",
-    LOGO: "https://res.cloudinary.com/duenpn7gd/image/upload/w_300,h_300,c_fill,q_auto,f_webp/v1746777605/logo-coin_jvr3ni.png",
+    LOGO_BASE_URL: "https://res.cloudinary.com/duenpn7gd/image/upload",
+    LOGO_ID: "logo-coin_jvr3ni.png",
 } as const
 
 // TODO: Application settings

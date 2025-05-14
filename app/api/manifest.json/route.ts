@@ -4,7 +4,7 @@ import { COLORS, ASSETS } from "../../../config/constants"
 
 export async function GET() {
     const siteName = process.env.NEXT_PUBLIC_SITE_NAME
-    const logoPath = ASSETS.LOGO
+    const logoPath = `${ASSETS.LOGO_BASE_URL}${process.env.NODE_ENV === "development" ? "/e_colorize:50,co_rgb:FF5400/w_300,h_300,c_fill,q_auto,f_webp/" : "/w_300,h_300,c_fill,q_auto,f_webp/"}${ASSETS.LOGO_ID}`
 
     const manifest = {
         name: siteName,

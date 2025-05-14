@@ -77,7 +77,7 @@ export default function Header({}) {
                         <Box>
                             <HStack gap={2} justifyContent={"center"} alignItems={"center"}>
                                 <Image
-                                    src={ASSETS.LOGO}
+                                    src={`${ASSETS.LOGO_BASE_URL}/w_300,h_300,c_fill,q_auto,f_webp/${ASSETS.LOGO_ID}`}
                                     alt="Logo"
                                     boxSize={"50px"}
                                     minW={"50px"}
