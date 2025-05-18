@@ -36,8 +36,8 @@ const MenuItem = ({ isHeading = false, icon, label, value, onClick, textColor = 
         pb={isHeading ? 2 : 3}
         cursor={isHeading ? "default" : "pointer"}
         transition={"all 0.2s ease"}
-        _active={{ bg: "button.secondary.active" }}
-        _highlighted={{ bg: "button.secondary.hover" }}
+        _active={{ bg: "button.contentButton.active" }}
+        _highlighted={{ bg: "button.contentButton.hover" }}
         fontSize={"md"}
         value={value}
         onClick={onClick}
