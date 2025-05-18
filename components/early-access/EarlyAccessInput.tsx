@@ -32,7 +32,7 @@ export default function EarlyAccessInput() {
 
     return (
         <VStack w="100%" pt={50} justifyContent="center" alignItems="center">
-            <VStack gap={6} w="90%" maxW="300px" p={6} mt={10}>
+            <VStack gap={6} w="90%" maxW="300px" p={6}>
                 <form onSubmit={handleSubmit} style={{ width: "100%" }}>
                     <VStack gap={4} transform="scale(1.2)" h={"100%"} minH={"300px"} justifyContent="start">
                         <Box mb={5}>
