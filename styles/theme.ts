@@ -152,7 +152,7 @@ export const customConfig = defineConfig({
                             value: { _light: "{colors.teal.300}", _dark: "{colors.teal.600}" },
                         },
                         hover: {
-                            value: { _light: "{colors.teal.400}", _dark: "{colors.teal.500}" },
+                            value: { _light: "{colors.teal.400}", _dark: "{colors.teal.400}" },
                         },
                         active: {
                             value: { _light: "{colors.teal.300}", _dark: "{colors.teal.600}" },

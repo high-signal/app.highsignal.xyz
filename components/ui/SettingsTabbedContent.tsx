@@ -49,11 +49,13 @@ export default function SettingsTabbedContent({ tabs, listWidth = "500px", title
                                 borderRadius={"8px"}
                                 _hover={{
                                     bg: "button.secondary.hover",
-                                    _active: { bg: "button.secondary.active" },
-                                    _selected: { bg: "button.secondary.active" },
+                                    color: "textColor",
                                 }}
-                                _selected={{ bg: "button.secondary.active", color: "textColor" }}
-                                _active={{ bg: "button.secondary.active" }}
+                                _selected={{
+                                    bg: "button.secondary.active",
+                                    _hover: { bg: "button.secondary.active" },
+                                    color: "textColor",
+                                }}
                             >
                                 {tab.label}
                             </Tabs.Trigger>
