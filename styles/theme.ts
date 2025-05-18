@@ -85,6 +85,19 @@ export const customConfig = defineConfig({
                     900: { value: "#731D00" },
                     950: { value: "#4A1000" },
                 },
+                teal: {
+                    50: { value: "#f0fbfc" },
+                    100: { value: "#dff5f7" },
+                    200: { value: "#b4e7ed" },
+                    300: { value: "#89d5e0" },
+                    400: { value: "#41b7cc" },
+                    500: { value: "#0697b6" },
+                    600: { value: "#0581a3" },
+                    700: { value: "#036287" },
+                    800: { value: "#02486e" },
+                    900: { value: "#013152" },
+                    950: { value: "#011d36" },
+                },
             },
             fonts: {
                 body: { value: "'Rubik', sans-serif" },
@@ -105,7 +118,7 @@ export const customConfig = defineConfig({
 
                 // Particle colors
                 particleColor: {
-                    value: { _light: "{colors.blue.300}", _dark: "{colors.blue.700}" },
+                    value: { _light: "{colors.teal.400}", _dark: "{colors.teal.700}" },
                 },
 
                 // Background colors
@@ -118,7 +131,7 @@ export const customConfig = defineConfig({
 
                 // Border colors
                 contentBorder: {
-                    value: { _light: "{colors.blue.500}", _dark: "{colors.blue.700}" },
+                    value: { _light: "{colors.blue.500}", _dark: "{colors.teal.700}" },
                 },
 
                 // Button colors
@@ -136,13 +149,24 @@ export const customConfig = defineConfig({
                     },
                     secondary: {
                         default: {
-                            value: { _light: "{colors.blue.300}", _dark: "{colors.blue.800}" },
+                            value: { _light: "{colors.teal.300}", _dark: "{colors.teal.600}" },
                         },
                         hover: {
-                            value: { _light: "{colors.blue.200}", _dark: "{colors.blue.700}" },
+                            value: { _light: "{colors.teal.400}", _dark: "{colors.teal.500}" },
                         },
                         active: {
-                            value: { _light: "{colors.blue.300}", _dark: "{colors.blue.600}" },
+                            value: { _light: "{colors.teal.300}", _dark: "{colors.teal.600}" },
+                        },
+                    },
+                    contentButton: {
+                        default: {
+                            value: { _light: "{colors.teal.300}", _dark: "{colors.teal.800}" },
+                        },
+                        hover: {
+                            value: { _light: "{colors.teal.400}", _dark: "{colors.teal.700}" },
+                        },
+                        active: {
+                            value: { _light: "{colors.teal.300}", _dark: "{colors.teal.800}" },
                         },
                     },
                     success: {
@@ -257,6 +281,12 @@ export const customConfig = defineConfig({
             backgroundSize: "1000% 1000% !important",
             textShadow: "0px 0px 5px black !important",
             animation: `${rainbowAnimation} 20s linear infinite !important`,
+        },
+        // Temp workaround for menu items
+        // Otherwise, the first item is focused when the menu is opened
+        "a:focus, a:focus-visible": {
+            outline: "none !important",
+            boxShadow: "none !important",
         },
     },
 })

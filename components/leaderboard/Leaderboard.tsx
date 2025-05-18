@@ -165,10 +165,10 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                     cursor="pointer"
                                     bg={"pageBackground"}
                                     _hover={{
-                                        bg: "button.secondary.hover",
-                                        _active: { bg: "button.secondary.active" },
+                                        bg: "button.contentButton.hover",
+                                        _active: { bg: "button.contentButton.active" },
                                     }}
-                                    _active={{ bg: "button.secondary.active" }}
+                                    _active={{ bg: "button.contentButton.active" }}
                                     transition="all 0.1s ease"
                                     borderBottom="1px solid"
                                     borderColor="contentBorder"

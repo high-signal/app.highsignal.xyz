@@ -45,6 +45,7 @@ const MenuItem = ({ isHeading = false, icon, label, value, onClick, textColor = 
         opacity={isHeading ? 0.8 : 1}
         fontWeight={isHeading ? "bold" : "normal"}
         color={textColor}
+        borderRadius={0}
     >
         <HStack>
             {icon ? (

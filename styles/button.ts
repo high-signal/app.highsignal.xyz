@@ -50,6 +50,15 @@ export const buttonRecipe = defineRecipe({
                 }),
             },
         },
+        contentButton: {
+            true: {
+                ...createButtonStyles({
+                    default: "{colors.button.contentButton.default}",
+                    hover: "{colors.button.contentButton.hover}",
+                    active: "{colors.button.contentButton.active}",
+                }),
+            },
+        },
         successButton: {
             true: {
                 ...createButtonStyles({
