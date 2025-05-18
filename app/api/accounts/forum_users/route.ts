@@ -34,7 +34,6 @@ export async function POST(request: Request) {
         }
 
         if (signalStrengthData?.id) {
-            // TODO: Fix this now it requires a request_id for creation
             // Before anything else, add the last_checked date to the user_signal_strengths table.
             // This is to give the best UX experience when the user is updating their forum username
             // so that when they navigate to their profile page, it shows the loading animation immediately.
