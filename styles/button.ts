@@ -22,8 +22,9 @@ const createButtonStyles = (colors: { default: string; hover: string; active: st
             backgroundColor: colors.active,
         },
     },
+    // Only used for touch devices
     _active: {
-        backgroundColor: colors.active,
+        backgroundColor: colors.hover,
     },
     _expanded: {
         backgroundColor: colors.active,
