@@ -113,7 +113,7 @@ export const customConfig = defineConfig({
                     value: { _light: "black", _dark: "{colors.gray.400}" },
                 },
                 selectionColor: {
-                    value: { _light: "{colors.blue.200}", _dark: "{colors.gray.600}" },
+                    value: { _light: "{colors.blue.300}", _dark: "{colors.teal.600}" },
                 },
 
                 // Particle colors
@@ -247,7 +247,7 @@ export const customConfig = defineConfig({
                 // Skeleton colors
                 skeleton: {
                     default: {
-                        value: { _light: "{colors.blue.300}", _dark: "{colors.blue.700}" },
+                        value: { _light: "{colors.teal.300}", _dark: "{colors.teal.700}" },
                     },
                 },
             },
