@@ -10,6 +10,11 @@ const { createClient } = require("@supabase/supabase-js")
 async function analyzeForumUserActivity(user_id, project_id, forum_username, testingData) {
     const SIGNAL_STRENGTH_NAME = "discourse_forum"
 
+    // If testingData.forum_username is provided, use it instead of the forum_username parameter
+    if (testingData.forum_username) {
+        forum_username = testingData.forum_username
+    }
+
     try {
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 

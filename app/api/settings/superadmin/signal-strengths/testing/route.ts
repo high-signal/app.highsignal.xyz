@@ -10,8 +10,15 @@ export async function POST(request: NextRequest) {
         const projectUrlSlug = request.nextUrl.searchParams.get("project")!
 
         // Parse the request body
-        const { targetUsername, signalStrengthName, testingPrompt, testingModel, testingTemperature, testingMaxChars } =
-            await request.json()
+        const {
+            targetUsername,
+            signalStrengthName,
+            testingPrompt,
+            testingModel,
+            testingTemperature,
+            testingMaxChars,
+            testingForumUsername,
+        } = await request.json()
 
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -49,9 +56,15 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        const forumUser = await getForumUserFromDb(supabase, targetUser.id, project.id)
-        if (!forumUser) {
-            return NextResponse.json({ error: "Forum user not found" }, { status: 404 })
+        let forumUsername
+        if (testingForumUsername) {
+            forumUsername = testingForumUsername
+        } else {
+            const forumUser = await getForumUserFromDb(supabase, targetUser.id, project.id)
+            if (!forumUser) {
+                return NextResponse.json({ error: "Forum user not found" }, { status: 404 })
+            }
+            forumUsername = forumUser.forum_username
         }
 
         // ***************
@@ -63,10 +76,11 @@ export async function POST(request: NextRequest) {
             testingModel: sanitize(testingModel),
             testingTemperature: testingTemperature,
             testingMaxChars: testingMaxChars,
+            testingForumUsername: forumUsername,
         }
 
         // Format the request body and pass it to the lambda function
-        await triggerForumAnalysis(targetUser.id, project.id, forumUser.forum_username, testingData)
+        await triggerForumAnalysis(targetUser.id, project.id, forumUsername, testingData)
 
         return NextResponse.json({ success: true, message: "Analysis initiated successfully" }, { status: 200 })
     } catch (error) {

@@ -15,6 +15,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     const [selectedUsername, setSelectedUsername] = useState<string>("")
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
     const [newUserSelectedTrigger, setNewUserSelectedTrigger] = useState(false)
+    const [newForumUsername, setNewForumUsername] = useState<string>("")
 
     // TEST TIMER ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     const [testTimerStart, setTestTimerStart] = useState<number | null>(null)
@@ -136,6 +137,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                     testingModel: newModel,
                     testingTemperature: newTemperature ? Number(newTemperature) : undefined,
                     testingMaxChars: newMaxChars ? Number(newMaxChars) : undefined,
+                    testingForumUsername: newForumUsername,
                 }),
             },
         )
@@ -288,7 +290,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         maxW={"100%"}
                         bg={"contentBackground"}
                         justifyContent={"center"}
-                        alignItems={"end"}
+                        alignItems={"start"}
                         gap={5}
                         px={5}
                         pt={5}
@@ -383,6 +385,20 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 placeholder="New max chars... (optional)"
                                 handleClear={() => {
                                     setNewMaxChars("")
+                                    setTestResult(null)
+                                }}
+                                bg="pageBackground"
+                            />
+                            <SingleLineTextInput
+                                maxW={"300px"}
+                                value={newForumUsername}
+                                onChange={(e) => {
+                                    setNewForumUsername(e.target.value)
+                                    setTestResult(null)
+                                }}
+                                placeholder="New forum username... (optional)"
+                                handleClear={() => {
+                                    setNewForumUsername("")
                                     setTestResult(null)
                                 }}
                                 bg="pageBackground"
