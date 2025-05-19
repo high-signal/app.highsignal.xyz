@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, ReactNode, useState } from "react"
+import { createContext, useContext, ReactNode, useState, useEffect } from "react"
 
 interface ParticleContextType {
     showParticles: boolean
@@ -15,26 +15,25 @@ const ParticleContext = createContext<ParticleContextType>({
 export const useParticles = () => useContext(ParticleContext)
 
 export function ParticleProvider({ children }: { children: ReactNode }) {
-    // Initialize state with localStorage value if available
-    const [showParticles, setShowParticles] = useState(() => {
-        if (typeof window !== "undefined") {
-            const savedState = localStorage.getItem("showParticles")
+    // Initialize state with a default value
+    const [showParticles, setShowParticles] = useState(false)
 
-            if (savedState === null) {
-                return true // Default setting for particles
-            } else if (savedState === "true") {
-                return true
-            } else {
-                return false
-            }
+    // Load localStorage value after mount
+    useEffect(() => {
+        const savedState = localStorage.getItem("showParticles")
+        if (savedState === null) {
+            setShowParticles(true) // Default setting for particles
+        } else {
+            setShowParticles(savedState === "true")
         }
-        return false
-    })
+    }, [])
 
     // Update localStorage when state changes
     const handleSetShowParticles = (show: boolean) => {
         setShowParticles(show)
-        localStorage.setItem("showParticles", show.toString())
+        if (typeof window !== "undefined") {
+            localStorage.setItem("showParticles", show.toString())
+        }
     }
 
     return (

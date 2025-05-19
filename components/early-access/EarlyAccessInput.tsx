@@ -1,7 +1,6 @@
 "use client"
 
 import { VStack, Image, Button, Text, Box, HStack } from "@chakra-ui/react"
-import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import { ASSETS } from "../../config/constants"
@@ -13,7 +12,9 @@ export default function EarlyAccessInput({ setHasAccess }: { setHasAccess: (hasA
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         if (code === "higher") {
-            localStorage.setItem("earlyAccessCode", "higher")
+            if (typeof window !== "undefined") {
+                localStorage.setItem("earlyAccessCode", "higher")
+            }
             setHasAccess(true)
         } else {
             setError("Invalid access code")

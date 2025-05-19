@@ -45,22 +45,22 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
     to { opacity: 1; }
     `
 
-    // Helper function to generate particle shadows within the viewport dimensions
-    function generateParticles(maxParticles: number, pageSizeMultiplier: number) {
-        const colorParticle = "{colors.particleColor}"
-        let particles = `0px 0px ${colorParticle}`
-
-        for (let i = 1; i <= maxParticles; i++) {
-            const x = Math.random() * pageSize.width
-            const y = Math.random() * (pageSizeMultiplier * pageSize.height)
-            particles += `, ${x}px ${y}px ${colorParticle}`
-        }
-        return particles
-    }
-
     // Memoize particle generation
-    const particles = useMemo(
-        () => ({
+    const particles = useMemo(() => {
+        // Helper function to generate particle shadows within the viewport dimensions
+        function generateParticles(maxParticles: number, pageSizeMultiplier: number) {
+            const colorParticle = "{colors.particleColor}"
+            let particles = `0px 0px ${colorParticle}`
+
+            for (let i = 1; i <= maxParticles; i++) {
+                const x = Math.random() * pageSize.width
+                const y = Math.random() * (pageSizeMultiplier * pageSize.height)
+                particles += `, ${x}px ${y}px ${colorParticle}`
+            }
+            return particles
+        }
+
+        return {
             layer1: {
                 base: generateParticles(pageSize.width / 3, 8),
                 sm: generateParticles(pageSize.width / 1.6, 8),
@@ -78,9 +78,8 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
             after2: generateParticles(pageSize.width / 14, 4),
             after3: generateParticles(pageSize.width / 6, 4),
             after4: generateParticles(pageSize.width / 21, 2),
-        }),
-        [pageSize.width, generateParticles],
-    )
+        }
+    }, [pageSize.width, pageSize.height])
 
     return (
         <Box ref={containerRef} position="relative" width="100%" height="100%" overflow="visible">

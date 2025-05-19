@@ -24,7 +24,7 @@ export default function ClientGate({ earlyAccessCodeUrlParam }: { earlyAccessCod
         return <></>
     }
 
-    if (hasAccess || process.env.NODE_ENV === "development") {
+    if (hasAccess) {
         return (
             <ContentContainer>
                 <LeaderboardContainer project="lido" />
