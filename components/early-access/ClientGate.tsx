@@ -18,7 +18,7 @@ export default function ClientGate({ earlyAccessCodeUrlParam }: { earlyAccessCod
         }
         console.log("Setting isLoading to false")
         setIsLoading(false)
-    }, [])
+    }, [earlyAccessCodeUrlParam])
 
     if (isLoading) {
         return <></>
