@@ -6,18 +6,15 @@ import { useState } from "react"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import { ASSETS } from "../../config/constants"
 
-export default function EarlyAccessInput() {
-    const router = useRouter()
-    const searchParams = useSearchParams()
+export default function EarlyAccessInput({ setHasAccess }: { setHasAccess: (hasAccess: boolean) => void }) {
     const [code, setCode] = useState("")
     const [error, setError] = useState("")
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         if (code === "higher") {
-            const params = new URLSearchParams(searchParams)
-            params.set("earlyAccessCode", code)
-            router.push(`?${params.toString()}`)
+            localStorage.setItem("earlyAccessCode", "higher")
+            setHasAccess(true)
         } else {
             setError("Invalid access code")
         }
