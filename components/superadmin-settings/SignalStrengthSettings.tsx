@@ -16,6 +16,40 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
     const [newUserSelectedTrigger, setNewUserSelectedTrigger] = useState(false)
 
+    // TEST TIMER ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+    const [testTimerStart, setTestTimerStart] = useState<number | null>(null)
+    const [testTimerStop, setTestTimerStop] = useState<number | null>(null)
+    const [testTimerDuration, setTestTimerDuration] = useState<number | null>(null)
+
+    useEffect(() => {
+        let intervalId: NodeJS.Timeout
+
+        if (testTimerStart && !testTimerStop) {
+            // Update timer every 100ms while test is running
+            intervalId = setInterval(() => {
+                const currentDuration = Date.now() - testTimerStart
+                setTestTimerDuration(currentDuration)
+            }, 100)
+        } else if (testTimerStart && testTimerStop) {
+            // Test is complete, set final duration
+            setTestTimerDuration(testTimerStop - testTimerStart)
+        }
+
+        // Cleanup interval when component unmounts or test stops
+        return () => {
+            if (intervalId) {
+                clearInterval(intervalId)
+            }
+        }
+    }, [testTimerStart, testTimerStop])
+
+    // Format duration to show seconds and tenths
+    const formatDuration = (duration: number | null) => {
+        if (duration === null) return "0.0s"
+        return `${(duration / 1000).toFixed(1)}s`
+    }
+    // TEST TIMER ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+
     // When a test user is selected, fetch the user data with superadmin fields
     const {
         users: testUser,
@@ -80,6 +114,9 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     )
 
     const fetchTestResult = async () => {
+        setTestTimerStart(Date.now())
+        setTestTimerStop(null)
+
         setTestResultsLoading(true)
         setTestResult(null)
 
@@ -122,6 +159,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                 if (testResult[0].signalStrengths?.find((s: SignalStrengthData) => s.name === signalStrength.name)) {
                     setTestResult(testResult[0].signalStrengths?.find((s: any) => s.name === signalStrength.name))
                     setTestResultsLoading(false)
+                    setTestTimerStop(Date.now())
                 } else {
                     // If no result yet, poll again after 1 second
                     setTimeout(pollTestResult, 1000)
@@ -485,7 +523,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     justifyContent={"center"}
                                 >
                                     <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
-                                        Testing Result
+                                        Test Results {testTimerStop ? `(${formatDuration(testTimerDuration)})` : ""}
                                     </Text>
                                     {testResult && selectedUser && (
                                         <Button
@@ -523,9 +561,12 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                             fontSize={"md"}
                                             borderRadius={"full"}
                                             onClick={fetchTestResult}
-                                            loading={testResultsLoading}
+                                            disabled={testResultsLoading}
+                                            fontFamily={testResultsLoading ? "monospace" : undefined}
                                         >
-                                            Run test analysis using new prompt
+                                            {testResultsLoading
+                                                ? formatDuration(testTimerDuration)
+                                                : "Run test analysis using new prompt"}
                                         </Button>
                                     </VStack>
                                 ) : selectedUser ? (
