@@ -79,7 +79,7 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
             after3: generateParticles(pageSize.width / 6, 4),
             after4: generateParticles(pageSize.width / 21, 2),
         }),
-        [pageSize.width, triggerAnimationRestart, generateParticles],
+        [pageSize.width, generateParticles],
     )
 
     return (
