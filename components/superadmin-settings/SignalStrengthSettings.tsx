@@ -73,18 +73,26 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
         }
     }, [selectedUsername, testUser, newUserSelectedTrigger])
 
+    function resetTest() {
+        setTestResult(null)
+        setSelectedUser(null)
+        setSelectedUsername("")
+        setProject(null)
+        setNewModel("")
+        setNewTemperature("")
+        setNewMaxChars("")
+        setNewPrompt("")
+        setTestResultsLoading(false)
+        setTestTimerStart(null)
+        setTestTimerStop(null)
+        setTestTimerDuration(null)
+        setNewForumUsername("")
+    }
+
     // When isOpen is false, set the test result to null
     useEffect(() => {
         if (!isOpen) {
-            setTestResult(null)
-            setSelectedUser(null)
-            setSelectedUsername("")
-            setProject(null)
-            setNewModel("")
-            setNewTemperature("")
-            setNewMaxChars("")
-            setNewPrompt("")
-            setTestResultsLoading(false)
+            resetTest()
         }
     }, [isOpen])
 
