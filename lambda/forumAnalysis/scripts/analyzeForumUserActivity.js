@@ -11,7 +11,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
     const SIGNAL_STRENGTH_NAME = "discourse_forum"
 
     // If testingData.forum_username is provided, use it instead of the forum_username parameter
-    if (testingData.forum_username) {
+    if (testingData && testingData.forum_username) {
         forum_username = testingData.forum_username
     }
 
