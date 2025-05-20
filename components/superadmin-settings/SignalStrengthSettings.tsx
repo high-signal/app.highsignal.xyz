@@ -425,7 +425,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         flexWrap={{ base: "wrap", sm: "nowrap" }}
                     >
                         <VStack w={"100%"}>
-                            <Text fontWeight={"bold"}>Current Prompt</Text>
+                            <Text fontWeight={"bold"}>Current Prompt (ID: {signalStrength.promptId})</Text>
                             <Textarea
                                 minH={"30dvh"}
                                 fontFamily={"monospace"}
@@ -503,7 +503,14 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             <VStack w={"100%"} maxW={"600px"} gap={0}>
                                 <Box w={"100%"} px={3}>
                                     <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
-                                        Current Analysis
+                                        Current Analysis{" "}
+                                        {project &&
+                                            selectedUser &&
+                                            "(ID: " +
+                                                selectedUser.signalStrengths?.find(
+                                                    (s) => s.name === signalStrength.name,
+                                                )?.promptId +
+                                                ")"}
                                     </Text>
                                 </Box>
                                 {project && selectedUser ? (

@@ -37,6 +37,7 @@ interface SignalStrengthUserData {
     improvements: string
     explainedReasoning?: string
     model?: string
+    promptId?: string
     prompt?: string
     temperature?: number
     maxChars?: number
@@ -64,6 +65,7 @@ interface SignalStrengthProjectData {
     maxValue: number
     enabled: boolean
     previousDays: number
+    promptId?: string
     prompt?: string
     model?: string
     temperature?: number
@@ -76,6 +78,7 @@ interface SignalStrengthData {
     displayName: string
     status: string
     model?: string
+    promptId?: string
     prompt?: string
     temperature?: number
     maxChars?: number

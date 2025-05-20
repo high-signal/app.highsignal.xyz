@@ -40,8 +40,8 @@ async function analyzeUserData(
     let basePrompt
     if (testingData && testingData.testingPrompt) {
         basePrompt = eval("`" + testingData.testingPrompt + "`")
-    } else if (signalStrengthData.prompt) {
-        basePrompt = eval("`" + signalStrengthData.prompt + "`")
+    } else if (signalStrengthData.prompts.prompt) {
+        basePrompt = eval("`" + signalStrengthData.prompts.prompt + "`")
     } else {
         return { error: "No prompt set in DB" }
     }
@@ -123,7 +123,7 @@ truncatedData.length: ${truncatedData.length}
                 logs: logs,
                 model: model,
                 temperature: temperature,
-                prompt: basePrompt,
+                promptId: signalStrengthData.prompt_id,
                 maxChars: maxChars,
                 ...JSON.parse(cleanResponse),
             }

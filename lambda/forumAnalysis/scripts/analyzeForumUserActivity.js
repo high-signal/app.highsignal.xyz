@@ -20,7 +20,14 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
 
         const { data: signalStrengthData, error: signalError } = await supabase
             .from("signal_strengths")
-            .select("*")
+            .select(
+                `
+                *,
+                prompts (
+                    prompt
+                )
+            `,
+            )
             .eq("name", SIGNAL_STRENGTH_NAME)
             .single()
 

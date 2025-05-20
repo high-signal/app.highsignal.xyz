@@ -59,7 +59,7 @@ async function updateUserData(
             ...(testingData?.requestingUserId && { test_requesting_user: testingData.requestingUserId }),
             model: testingData?.testingModel || analysisResults.model,
             temperature: testingData?.testingTemperature || analysisResults.temperature,
-            prompt: testingData?.testingPrompt || analysisResults.prompt,
+            prompt_id: analysisResults.promptId || null,
             max_chars: testingData?.testingMaxChars || analysisResults.maxChars,
         })
 

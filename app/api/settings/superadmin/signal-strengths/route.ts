@@ -5,9 +5,14 @@ export async function GET() {
     try {
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-        const { data: signalStrengths, error: signalStrengthsError } = await supabase
-            .from("signal_strengths")
-            .select("*")
+        const { data: signalStrengths, error: signalStrengthsError } = await supabase.from("signal_strengths").select(
+            `
+                *,
+                prompts (
+                    prompt
+                )
+            `,
+        )
 
         if (signalStrengthsError) {
             return NextResponse.json({ error: "Internal server error" }, { status: 500 })
@@ -19,7 +24,8 @@ export async function GET() {
             status: signalStrength.status,
             model: signalStrength.model,
             temperature: signalStrength.temperature,
-            prompt: signalStrength.prompt,
+            promptId: signalStrength.prompt_id,
+            prompt: signalStrength?.prompts?.prompt,
             maxChars: signalStrength.max_chars,
         }))
 

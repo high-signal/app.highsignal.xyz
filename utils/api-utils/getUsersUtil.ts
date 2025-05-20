@@ -22,32 +22,33 @@ type User = {
     }>
 }
 
-type SignalStrength = {
-    signal_strengths: {
-        id: string
-        name: string
-    }
-    last_checked: number
-    value: number
-    summary: string
-    description: string
-    improvements: string
-    // *** Super Admin only start ***
-    request_id: string
-    created: number
-    user_id: string
-    project_id: string
-    signal_strength_id: string
-    explained_reasoning?: string
-    prompt_tokens?: number
-    completion_tokens?: number
-    logs?: string
-    model?: string
-    temperature?: number
-    prompt?: string
-    max_chars?: number
-    // *** Super Admin only end ***
-}
+// type SignalStrength = {
+//     signal_strengths: {
+//         id: string
+//         name: string
+//     }
+//     last_checked: number
+//     value: number
+//     summary: string
+//     description: string
+//     improvements: string
+//     // *** Super Admin only start ***
+//     request_id: string
+//     created: number
+//     user_id: string
+//     project_id: string
+//     signal_strength_id: string
+//     explained_reasoning?: string
+//     prompt_tokens?: number
+//     completion_tokens?: number
+//     logs?: string
+//     model?: string
+//     temperature?: number
+//     prompt_id?: string
+//     prompt?: string
+//     max_chars?: number
+//     // *** Super Admin only end ***
+// }
 
 export async function getUsersUtil(request: Request, isSuperAdminRequesting: boolean = false) {
     const { searchParams } = new URL(request.url)
@@ -166,8 +167,10 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                             .select(
                                 `
                                 signal_strengths!inner (
-                                    id,
                                     name
+                                ),
+                                prompts!inner (
+                                    prompt
                                 ),
                                 *
                                 `,
@@ -225,14 +228,14 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                     rank: score.rank,
                     score: score.total_score,
                     signal: calculateSignalFromScore(score.total_score),
-                    peakSignals:
-                        user.user_peak_signals?.map((ups) => ({
-                            name: ups.peak_signals.name,
-                            displayName: ups.peak_signals.display_name,
-                            imageSrc: ups.peak_signals.image_src,
-                            imageAlt: ups.peak_signals.image_alt,
-                            value: ups.peak_signals.value,
-                        })) || [],
+                    // peakSignals:
+                    //     user.user_peak_signals?.map((ups) => ({
+                    //         name: ups.peak_signals.name,
+                    //         displayName: ups.peak_signals.display_name,
+                    //         imageSrc: ups.peak_signals.image_src,
+                    //         imageAlt: ups.peak_signals.image_alt,
+                    //         value: ups.peak_signals.value,
+                    //     })) || [],
                     signalStrengths: userSignalStrengths.map((uss) => ({
                         name: uss.signal_strengths.name,
                         ...(uss.last_checked ? { lastChecked: uss.last_checked } : {}),
@@ -250,7 +253,8 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                                   signal_strength_id: uss.signal_strength_id,
                                   explainedReasoning: uss.explained_reasoning,
                                   model: uss.model,
-                                  prompt: uss.prompt,
+                                  promptId: uss.prompt_id,
+                                  prompt: uss.prompts?.prompt,
                                   temperature: uss.temperature,
                                   maxChars: uss.max_chars,
                                   logs: uss.logs,
