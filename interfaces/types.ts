@@ -10,7 +10,10 @@ interface UserData {
     signal?: string
     projectData?: ProjectData
     peakSignals?: PeakSignalUserData[]
-    signalStrengths?: SignalStrengthUserData[]
+    signalStrengths?: {
+        signalStrengthName: string
+        data: SignalStrengthUserData[]
+    }[]
     forumUsers?: ForumUser[]
     isSuperAdmin?: boolean
     connectedAccounts?: ConnectedAccount[]
