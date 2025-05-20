@@ -240,6 +240,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                         name: uss.signal_strengths.name,
                         ...(uss.last_checked ? { lastChecked: uss.last_checked } : {}),
                         value: uss.value,
+                        maxValue: uss.max_value,
                         summary: uss.summary,
                         description: uss.description,
                         improvements: uss.improvements,
@@ -260,6 +261,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                                   logs: uss.logs,
                                   promptTokens: uss.prompt_tokens,
                                   completionTokens: uss.completion_tokens,
+                                  rawValue: uss.raw_value,
                               }
                             : {}),
                     })),

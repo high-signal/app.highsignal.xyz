@@ -6,6 +6,7 @@ async function updateUserData(
     user,
     latestActivityDate,
     analysisResults,
+    maxValue,
     testingData,
 ) {
     try {
@@ -44,6 +45,7 @@ async function updateUserData(
         // Store the analysis results in the user_signal_strengths table
         const { error: signalError } = await supabase.from("user_signal_strengths").insert({
             value: analysisResults[username].value,
+            max_value: maxValue,
             summary: analysisResults[username].summary,
             description: analysisResults[username].description,
             improvements: analysisResults[username].improvements,

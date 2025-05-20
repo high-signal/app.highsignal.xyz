@@ -171,6 +171,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
                 userData,
                 latestActivityDate,
                 analysisResults,
+                maxValue,
                 testingData,
             )
             console.log("User data successfully updated")
