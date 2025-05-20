@@ -169,7 +169,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                                 signal_strengths!inner (
                                     name
                                 ),
-                                prompts!inner (
+                                prompts (
                                     prompt
                                 ),
                                 *
@@ -186,6 +186,11 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                         }
 
                         const { data, error } = await query.order("created", { ascending: false }).limit(1)
+
+                        console.log("userId", userId)
+                        console.log("projectId", userProjectScores[0]?.project_id)
+                        console.log("signalStrengthId", signalStrengthId)
+                        console.log("data", data)
 
                         if (error) {
                             console.error("signalStrengthsError", error)
