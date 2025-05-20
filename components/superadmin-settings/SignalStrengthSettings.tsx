@@ -74,6 +74,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
         }
     }, [selectedUsername, testUser, newUserSelectedTrigger])
 
+    // When a user is selected, set the current forum username
     useEffect(() => {
         if (selectedUser) {
             setCurrentForumUsername(
@@ -320,7 +321,9 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         {selectedUser && (
                             <>
                                 <Text>Forum Username</Text>
-                                <Text fontWeight={"bold"}>{currentForumUsername}</Text>
+                                <Text fontWeight={"bold"} color={currentForumUsername ? "inherit" : "textColorMuted"}>
+                                    {currentForumUsername || "No forum username set"}
+                                </Text>
                             </>
                         )}
                     </HStack>
