@@ -59,8 +59,9 @@ export default function ProjectPicker({
                     right={0}
                     mt={1}
                     bg="pageBackground"
-                    borderWidth={1}
-                    borderRadius="10px"
+                    borderWidth={2}
+                    borderColor="contentBorder"
+                    borderRadius="16px"
                     boxShadow="md"
                     zIndex={5}
                     maxH="200px"
