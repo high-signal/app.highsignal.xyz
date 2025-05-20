@@ -19,6 +19,7 @@ type ProjectSignalStrength = {
 }
 
 type Project = {
+    id?: number
     url_slug: string
     display_name: string
     project_logo_url: string
@@ -37,6 +38,7 @@ export async function getProjectsUtil(request: Request, isSuperAdminRequesting: 
             .from("projects")
             .select(
                 `
+                id,
                 url_slug,
                 display_name,
                 project_logo_url,
@@ -81,6 +83,7 @@ export async function getProjectsUtil(request: Request, isSuperAdminRequesting: 
         // Format the projects to match UI naming conventions
         const formattedProjects = (projects as unknown as Project[]).map((project) => {
             return {
+                ...(isSuperAdminRequesting ? { id: project.id } : {}),
                 urlSlug: project.url_slug,
                 displayName: project.display_name,
                 projectLogoUrl: project.project_logo_url,

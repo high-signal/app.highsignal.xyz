@@ -15,6 +15,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     const [selectedUsername, setSelectedUsername] = useState<string>("")
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
     const [newUserSelectedTrigger, setNewUserSelectedTrigger] = useState(false)
+    const [currentForumUsername, setCurrentForumUsername] = useState<string>("")
     const [newForumUsername, setNewForumUsername] = useState<string>("")
 
     // TEST TIMER ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
@@ -72,6 +73,17 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
             setSelectedUser(testUser[0])
         }
     }, [selectedUsername, testUser, newUserSelectedTrigger])
+
+    useEffect(() => {
+        if (selectedUser) {
+            setCurrentForumUsername(
+                selectedUser?.connectedAccounts
+                    ?.find((accountType) => accountType.name === "forumUsers")
+                    ?.data?.find((forumUser) => Number(forumUser.projectId) === Number(project?.id))?.forumUsername ||
+                    "",
+            )
+        }
+    }, [selectedUser])
 
     function resetTest() {
         setTestResult(null)
@@ -252,7 +264,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         flexWrap={"wrap"}
                         gap={3}
                     >
-                        <Text w={"100px"}>Test Project</Text>
+                        <Text w={"100px"}>Project</Text>
                         <ProjectPicker
                             onProjectSelect={(project) => {
                                 setProject(project)
@@ -263,6 +275,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 setSelectedUser(null)
                                 setTestResult(null)
                             }}
+                            isSuperAdminRequesting={true}
                         />
                     </HStack>
                     <HStack
@@ -275,7 +288,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         flexWrap={"wrap"}
                         gap={3}
                     >
-                        <Text w={"100px"}>Test User</Text>
+                        <Text w={"100px"}>User</Text>
                         <UserPicker
                             onUserSelect={(user) => {
                                 setNewUserSelectedTrigger(!newUserSelectedTrigger)
@@ -290,7 +303,72 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             }}
                             signalStrengthName={signalStrength.name}
                             disabled={!project}
+                            isSuperAdminRequesting={true}
                         />
+                    </HStack>
+                    <HStack
+                        w={"500px"}
+                        maxW={"100%"}
+                        bg={"contentBackground"}
+                        alignItems={"center"}
+                        px={7}
+                        py={2}
+                        flexWrap={"wrap"}
+                        gap={3}
+                        minH={"40px"}
+                    >
+                        {selectedUser && (
+                            <>
+                                <Text>Forum Username</Text>
+                                <Text fontWeight={"bold"}>{currentForumUsername}</Text>
+                            </>
+                        )}
+                    </HStack>
+                    <HStack
+                        w={"500px"}
+                        maxW={"100%"}
+                        bg={"contentBackground"}
+                        alignItems={"center"}
+                        px={7}
+                        py={2}
+                        flexWrap={"wrap"}
+                        gap={3}
+                        minH={"44px"}
+                    >
+                        {selectedUser && (
+                            <>
+                                <Text>Manually Trigger User Analysis</Text>
+                                <Button
+                                    primaryButton
+                                    px={2}
+                                    py={1}
+                                    borderRadius={"full"}
+                                    onClick={async () => {
+                                        const token = await getAccessToken()
+                                        const response = await fetch(`/api/superadmin/accounts/trigger-update`, {
+                                            method: "PATCH",
+                                            headers: {
+                                                "Content-Type": "application/json",
+                                                Authorization: `Bearer ${token}`,
+                                            },
+                                            body: JSON.stringify({
+                                                signalStrengthName: signalStrength.name,
+                                                userId: selectedUser.id,
+                                                projectId: project?.id,
+                                                forumUsername: currentForumUsername,
+                                            }),
+                                        })
+
+                                        if (!response.ok) {
+                                            const errorData = await response.json()
+                                            console.error(errorData.error)
+                                        }
+                                    }}
+                                >
+                                    (Eridian ONLY - for testing)
+                                </Button>
+                            </>
+                        )}
                     </HStack>
                     {/* Prompt Options */}
                     <HStack

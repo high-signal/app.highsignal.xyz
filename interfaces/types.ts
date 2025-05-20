@@ -13,6 +13,12 @@ interface UserData {
     signalStrengths?: SignalStrengthUserData[]
     forumUsers?: ForumUser[]
     isSuperAdmin?: boolean
+    connectedAccounts?: ConnectedAccount[]
+}
+
+interface ConnectedAccount {
+    name: string
+    data: ForumUser[]
 }
 
 interface ForumUser {

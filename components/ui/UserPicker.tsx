@@ -9,14 +9,21 @@ interface UserPickerProps {
     onClear?: () => void
     signalStrengthName?: string
     disabled?: boolean
+    isSuperAdminRequesting?: boolean
 }
 
-export default function UserPicker({ onUserSelect, signalStrengthName, disabled = false, onClear }: UserPickerProps) {
+export default function UserPicker({
+    onUserSelect,
+    signalStrengthName,
+    disabled = false,
+    onClear,
+    isSuperAdminRequesting = false,
+}: UserPickerProps) {
     const [searchTerm, setSearchTerm] = useState<string>("")
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null!)
-    const { users, loading, error } = useGetUsers("lido", debouncedSearchTerm, true, isFocused)
+    const { users, loading, error } = useGetUsers("lido", debouncedSearchTerm, true, isFocused, isSuperAdminRequesting)
 
     useEffect(() => {
         const timer = setTimeout(() => {

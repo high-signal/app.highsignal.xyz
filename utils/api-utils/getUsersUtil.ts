@@ -56,6 +56,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
     const username = searchParams.get("user")
     const fuzzy = searchParams.get("fuzzy") === "true"
     const showTestDataOnly = searchParams.get("showTestDataOnly") === "true" || false
+    const showRawScoreCalcOnly = searchParams.get("showRawScoreCalcOnly") === "true" || false
 
     // Pagination
     const page = parseInt(searchParams.get("page") || "1")
@@ -143,6 +144,30 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
             return NextResponse.json({ error: "Error fetching users" }, { status: 500 })
         }
 
+        // If superadmin is requesting, get all connected accounts for the user
+        let connectedAccounts = []
+        if (isSuperAdminRequesting) {
+            // Get forum users
+            const { data: forumUsers, error: forumUsersError } = await supabase
+                .from("forum_users")
+                .select("user_id, project_id, forum_username")
+                .in("user_id", userIds)
+
+            if (forumUsersError) {
+                console.error("forumUsersError", forumUsersError)
+                return NextResponse.json({ error: "Error fetching forum users" }, { status: 500 })
+            }
+
+            connectedAccounts.push({
+                name: "forumUsers",
+                data: forumUsers.map((user) => ({
+                    userId: user.user_id,
+                    projectId: user.project_id,
+                    forumUsername: user.forum_username,
+                })),
+            })
+        }
+
         // Get all available signal strengths
         const { data: signalStrengthIds, error: signalStrengthIdsError } = await supabase
             .from("signal_strengths")
@@ -179,10 +204,18 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                             .eq("project_id", userProjectScores[0]?.project_id)
                             .eq("signal_strength_id", signalStrengthId)
 
-                        if (showTestDataOnly) {
+                        // Filter test data
+                        if (isSuperAdminRequesting && showTestDataOnly) {
                             query = query.not("test_requesting_user", "is", null)
                         } else {
                             query = query.is("test_requesting_user", null)
+                        }
+
+                        // Filter raw score calc
+                        if (isSuperAdminRequesting && showRawScoreCalcOnly) {
+                            query = query.not("raw_value", "is", null)
+                        } else {
+                            query = query.is("raw_value", null)
                         }
 
                         const { data, error } = await query.order("created", { ascending: false }).limit(1)
@@ -236,6 +269,16 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                     //         imageAlt: ups.peak_signals.image_alt,
                     //         value: ups.peak_signals.value,
                     //     })) || [],
+                    ...(isSuperAdminRequesting
+                        ? {
+                              connectedAccounts: connectedAccounts.map((account) => ({
+                                  name: account.name,
+                                  data: account.data
+                                      .filter((item) => item.userId === user.id)
+                                      .map(({ userId, ...rest }) => rest),
+                              })),
+                          }
+                        : {}),
                     signalStrengths: userSignalStrengths.map((uss) => ({
                         name: uss.signal_strengths.name,
                         ...(uss.last_checked ? { lastChecked: uss.last_checked } : {}),
@@ -262,6 +305,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                                   promptTokens: uss.prompt_tokens,
                                   completionTokens: uss.completion_tokens,
                                   rawValue: uss.raw_value,
+                                  testRequestingUser: uss.test_requesting_user,
                               }
                             : {}),
                     })),
