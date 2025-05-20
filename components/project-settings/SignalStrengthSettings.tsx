@@ -431,7 +431,7 @@ export default function SignalStrengthSettings({
                                             onClick={fetchTestResult}
                                             loading={testResultsLoading}
                                         >
-                                            Run test analysis using new prompt
+                                            Run test analysis
                                         </Button>
                                     </VStack>
                                 ) : selectedUser ? (

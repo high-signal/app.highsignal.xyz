@@ -678,7 +678,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         >
                                             {testResultsLoading
                                                 ? formatDuration(testTimerDuration)
-                                                : "Run test analysis using new prompt"}
+                                                : "Run test analysis"}
                                         </Button>
                                     </VStack>
                                 ) : selectedUser ? (
