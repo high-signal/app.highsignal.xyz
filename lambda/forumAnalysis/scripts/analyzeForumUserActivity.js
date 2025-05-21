@@ -176,7 +176,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
             )
 
             // For each day with data in dailyActivityData, run the analyzeUserData function
-            for (const day of dailyActivityData) {
+            const analysisPromises = dailyActivityData.map(async (day) => {
                 if (day.data.length > 0) {
                     // Check if the day is already in the database
                     const { data: existingData, error: existingError } = await supabase
@@ -190,7 +190,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
 
                     if (!testingData && existingData) {
                         console.log(`Day ${day.date} already exists in the database. Skipping raw score calculation...`)
-                        continue
+                        return
                     }
 
                     const analysisResults = await analyzeUserData(
@@ -229,16 +229,19 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
                             true, // isRawScoreCalc
                             day.date,
                         )
-                        console.log("User data successfully updated")
+                        console.log(`User data successfully updated for day ${day.date}`)
                         console.log("")
                     } else {
                         console.error(
-                            `Analysis failed for ${forum_username}:`,
+                            `Analysis failed for ${forum_username} on day ${day.date}:`,
                             analysisResults?.error || "Unknown error",
                         )
                     }
                 }
-            }
+            })
+
+            // Wait for all daily analyses to complete
+            await Promise.all(analysisPromises)
         }
 
         // After the raw daily analysis is complete, generate a smart score for the user
