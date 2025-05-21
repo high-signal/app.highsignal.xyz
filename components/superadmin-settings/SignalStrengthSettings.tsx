@@ -24,6 +24,9 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     const [testTimerStart, setTestTimerStart] = useState<number | null>(null)
     const [testTimerStop, setTestTimerStop] = useState<number | null>(null)
     const [testTimerDuration, setTestTimerDuration] = useState<number | null>(null)
+    const [testError, setTestError] = useState<string | null>(null)
+
+    const testMaxDuration = 30000 // 30 seconds
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout
@@ -32,6 +35,16 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
             // Update timer every 100ms while test is running
             intervalId = setInterval(() => {
                 const currentDuration = Date.now() - testTimerStart
+                // Stop if duration exceeds max duration
+                if (currentDuration > testMaxDuration) {
+                    setTestTimerStop(Date.now())
+                    setTestTimerDuration(testMaxDuration)
+                    setTestResultsLoading(false)
+                    setTestError(
+                        `Test timed out after ${testMaxDuration / 1000}s. Try again and check the inputs are correct.`,
+                    )
+                    return
+                }
                 setTestTimerDuration(currentDuration)
             }, 100)
         } else if (testTimerStart && testTimerStop) {
@@ -116,6 +129,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
         setTestTimerStop(null)
         setTestTimerDuration(null)
         setNewForumUsername("")
+        setTestError(null)
     }
 
     // When isOpen is false, set the test result to null
@@ -154,9 +168,11 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     const fetchTestResult = async () => {
         setTestTimerStart(Date.now())
         setTestTimerStop(null)
+        setTestTimerDuration(null)
 
         setTestResultsLoading(true)
         setTestResult(null)
+        setTestError(null)
 
         const token = await getAccessToken()
         const testingResponse = await fetch(
@@ -181,6 +197,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
 
         // If response is 200, start a polling loop to check if the test is complete
         if (testingResponse.ok) {
+            const testStartTime = Date.now()
             const pollTestResult = async () => {
                 const testResultResponse = await fetch(
                     `/api/superadmin/users/?project=${project?.urlSlug}&user=${selectedUser?.username}&showTestDataOnly=true`,
@@ -226,7 +243,11 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                     )
                 } else {
                     // If no result yet, poll again after 1 second
-                    setTimeout(pollTestResult, 1000)
+                    // Stop polling if the duration exceeds the max duration
+                    const currentDuration = Date.now() - testStartTime
+                    if (currentDuration < testMaxDuration) {
+                        setTimeout(pollTestResult, 1000)
+                    }
                 }
             }
 
@@ -696,7 +717,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     justifyContent={"center"}
                                 >
                                     <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
-                                        Test Results {testTimerStop ? `(${formatDuration(testTimerDuration)})` : ""}
+                                        Test Results{" "}
+                                        {testTimerStop && !testError ? `(${formatDuration(testTimerDuration)})` : ""}
                                     </Text>
                                     {testResult && selectedUser && (
                                         <Button
@@ -726,7 +748,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         refreshUserData={() => {}}
                                     />
                                 ) : selectedUser ? (
-                                    <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
+                                    <VStack w={"100%"} justifyContent={"start"} alignItems={"center"} pt={"50px"}>
                                         <Button
                                             className="rainbow-animation"
                                             color={"white"}
@@ -741,6 +763,17 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                                 ? formatDuration(testTimerDuration)
                                                 : "Run test analysis"}
                                         </Button>
+                                        {testError && (
+                                            <Text
+                                                pt={3}
+                                                px={5}
+                                                textAlign={"center"}
+                                                fontWeight={"bold"}
+                                                color="orange.500"
+                                            >
+                                                {testError}
+                                            </Text>
+                                        )}
                                     </VStack>
                                 ) : selectedUser ? (
                                     <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
