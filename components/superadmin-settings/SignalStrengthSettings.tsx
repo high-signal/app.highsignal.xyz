@@ -589,8 +589,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                             selectedUser &&
                                             "(ID: " +
                                                 selectedUser.signalStrengths?.find(
-                                                    (s) => s.name === signalStrength.name,
-                                                )?.promptId +
+                                                    (s) => s.signalStrengthName === signalStrength.name,
+                                                )?.data?.[0]?.promptId +
                                                 ")"}
                                     </Text>
                                 </Box>
@@ -599,8 +599,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         username={selectedUser.username || ""}
                                         userData={
                                             selectedUser.signalStrengths?.find(
-                                                (s) => s.name === signalStrength.name,
-                                            ) || {
+                                                (s) => s.signalStrengthName === signalStrength.name,
+                                            )?.data?.[0] || {
                                                 value: "0",
                                                 description: "No data",
                                                 improvements: "No data",
@@ -622,7 +622,11 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 {selectedUser && (
                                     <ExtraData
                                         title="Current Analysis Logs"
-                                        data={selectedUser.signalStrengths?.find((s) => s.name === signalStrength.name)}
+                                        data={
+                                            selectedUser.signalStrengths?.find(
+                                                (s) => s.signalStrengthName === signalStrength.name,
+                                            )?.data?.[0]
+                                        }
                                     />
                                 )}
                             </VStack>

@@ -15,11 +15,15 @@ export default function SignalStrengthContainer({
     // Match user signal strengths with project signal strengths by name
     const matchedSignalStrengths = projectSignalStrengths.map((projectStrength) => {
         const matchingUserStrength = (currentUser.signalStrengths || []).find(
-            (userStrength) => userStrength.name === projectStrength.name,
+            (userStrength) => userStrength.signalStrengthName === projectStrength.name,
         )
+
+        // Get the most recent data point if it exists
+        const latestData = matchingUserStrength?.data?.[0] || null
+
         return {
             projectData: projectStrength,
-            userData: matchingUserStrength,
+            userData: latestData || null,
         }
     })
 
