@@ -14,6 +14,15 @@ export type RoutePermission = {
 
 export const routePermissions: RoutePermission[] = [
     {
+        path: "/api/access-code-check",
+        methods: {
+            // Public to check if access code is valid
+            POST: {
+                requiresAuth: false,
+            },
+        },
+    },
+    {
         path: "/api/accounts",
         methods: {
             POST: {

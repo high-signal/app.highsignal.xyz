@@ -6,7 +6,7 @@ import RootParticleAnimation from "../components/particle-animation/RootParticle
 
 interface EarlyAccessContextType {
     hasAccess: boolean
-    setHasAccess: (hasAccess: boolean) => void
+    setHasAccess: (hasAccess: boolean, code?: string) => void
 }
 
 const EarlyAccessContext = createContext<EarlyAccessContextType>({
@@ -20,21 +20,42 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
     const [hasAccess, setHasAccess] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
 
+    // Check access code against the database
+    const handleCheckAccessCode = async (code: string) => {
+        const response = await fetch(`/api/access-code-check`, {
+            method: "POST",
+            body: JSON.stringify({ code }),
+        })
+
+        const data = await response.json()
+
+        if (data.success) {
+            setHasAccess(true)
+        } else {
+            setHasAccess(false)
+        }
+    }
+
     // Load localStorage value after mount
     useEffect(() => {
         const savedAccess = localStorage.getItem("earlyAccessCode")
-        if (savedAccess === "higher") {
-            setHasAccess(true)
+
+        // Check access code against the database
+        if (savedAccess) {
+            handleCheckAccessCode(savedAccess).finally(() => {
+                setIsLoading(false)
+            })
+        } else {
+            setIsLoading(false)
         }
-        setIsLoading(false)
     }, [])
 
     // Update localStorage when state changes
-    const handleSetHasAccess = (access: boolean) => {
+    const handleSetHasAccess = (access: boolean, code?: string) => {
         setHasAccess(access)
         if (typeof window !== "undefined") {
-            if (access) {
-                localStorage.setItem("earlyAccessCode", "higher")
+            if (access && code) {
+                localStorage.setItem("earlyAccessCode", code)
             } else {
                 localStorage.removeItem("earlyAccessCode")
             }

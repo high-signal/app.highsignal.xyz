@@ -9,15 +9,25 @@ import { useEarlyAccess } from "../../contexts/EarlyAccessContext"
 export default function EarlyAccessInput() {
     const [code, setCode] = useState("")
     const [error, setError] = useState("")
+    const [isLoading, setIsLoading] = useState(false)
     const { setHasAccess } = useEarlyAccess()
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (code === "higher") {
-            setHasAccess(true)
+        // Check access code against the database
+        setIsLoading(true)
+        const response = await fetch(`/api/access-code-check`, {
+            method: "POST",
+            body: JSON.stringify({ code }),
+        })
+        const data = await response.json()
+
+        if (data.success) {
+            setHasAccess(true, code)
         } else {
             setError("Invalid access code")
         }
+        setIsLoading(false)
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -52,7 +62,15 @@ export default function EarlyAccessInput() {
                             onChange={(e) => setCode(e.target.value.toLowerCase())}
                             onKeyDown={handleKeyDown}
                         />
-                        <Button primaryButton borderRadius="full" h={"30px"} w="100%" fontSize={"md"} type="submit">
+                        <Button
+                            primaryButton
+                            borderRadius="full"
+                            h={"30px"}
+                            w="100%"
+                            fontSize={"md"}
+                            type="submit"
+                            loading={isLoading}
+                        >
                             Submit
                         </Button>
                         {error && <Text color="red.400">{error}</Text>}
