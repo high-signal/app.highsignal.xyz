@@ -87,6 +87,7 @@ interface SignalStrengthProjectData {
 interface SignalStrengthData {
     id: number
     name: string
+    signalStrengthName?: string // TODO: Merge with name
     displayName: string
     status: string
     model?: string

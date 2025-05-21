@@ -12,12 +12,13 @@ async function analyzeUserData(
     signalStrengthData,
     userData,
     username,
-    displayName,
+    displayName, // Used in the evaluation of the prompt
     maxValue, // Used in the evaluation of the prompt
     previousDays,
     testingData,
+    dayDate,
 ) {
-    console.log("displayName", displayName)
+    console.log(`Day ${dayDate} analysis started...`)
 
     let model
     if (testingData && testingData.testingModel) {
@@ -75,10 +76,10 @@ async function analyzeUserData(
     // Convert userData to a string representation
     const userDataString = JSON.stringify(processedUserData, null, 2)
 
-    console.log("userDataString.length", userDataString.length)
+    // console.log("userDataString.length", userDataString.length)
 
     const truncatedData = userDataString.substring(0, maxChars - 3) + (userDataString.length > maxChars ? "..." : "")
-    console.log(`Using truncated data (${truncatedData.length} chars) for testing`)
+    // console.log(`Using truncated data (${truncatedData.length} chars) for testing`)
 
     const messages = [
         {
@@ -100,7 +101,7 @@ async function analyzeUserData(
             temperature: temperature,
         })
 
-        console.log("res", res)
+        // console.log("res", res)
 
         const logs = `forumUsername: ${username}
 userDataString.length: ${userDataString.length}
@@ -108,7 +109,7 @@ truncatedData.length: ${truncatedData.length}
 `
 
         const response = res.choices[0].message.content.trim()
-        console.log("Raw response:", response)
+        // console.log("Raw response:", response)
 
         // Try to clean the response if it has markdown backticks
         const cleanResponse = response.replace(/^```json\n?|\n?```$/g, "").trim()

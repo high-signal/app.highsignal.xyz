@@ -77,8 +77,6 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
 
     useEffect(() => {
         if (selectedUsername && rawUser.length > 0 && rawUser[0].username === selectedUsername) {
-            console.log("rawUser[0]", rawUser[0])
-
             setSelectedUserRawData(rawUser[0])
         }
     }, [selectedUsername, rawUser, newUserSelectedTrigger])
@@ -88,8 +86,9 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     const [newTemperature, setNewTemperature] = useState<string>("")
     const [newMaxChars, setNewMaxChars] = useState<string>("")
     const [newPrompt, setNewPrompt] = useState<string>("")
-    const [testResult, setTestResult] = useState<SignalStrengthUserData | null>(null)
+    const [testResult, setTestResult] = useState<SignalStrengthUserData[] | null>(null)
     const [testResultsLoading, setTestResultsLoading] = useState(false)
+    const [testResultRawData, setTestResultRawData] = useState<SignalStrengthUserData[] | null>(null)
 
     // When a user is selected, set the current forum username
     useEffect(() => {
@@ -196,10 +195,35 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
 
                 const testResult = await testResultResponse.json()
 
-                if (testResult[0].signalStrengths?.find((s: SignalStrengthData) => s.name === signalStrength.name)) {
-                    setTestResult(testResult[0].signalStrengths?.find((s: any) => s.name === signalStrength.name))
+                // If the smart score is found in the DB then the test is complete
+                const foundSignalStrength = testResult[0].signalStrengths?.find(
+                    (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
+                )
+
+                if (foundSignalStrength) {
+                    setTestResult(foundSignalStrength.data)
                     setTestResultsLoading(false)
                     setTestTimerStop(Date.now())
+
+                    // Then fetch the test result raw user data
+                    const testResultRawData = await fetch(
+                        `/api/superadmin/users/?project=${project?.urlSlug}&user=${selectedUser?.username}&showTestDataOnly=true&showRawScoreCalcOnly=true`,
+                        {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                        },
+                    )
+
+                    const testResultRawDataJson = await testResultRawData.json()
+
+                    setTestResultRawData(
+                        testResultRawDataJson[0].signalStrengths?.find(
+                            (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
+                        ).data,
+                    )
                 } else {
                     // If no result yet, poll again after 1 second
                     setTimeout(pollTestResult, 1000)
@@ -694,7 +718,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 {testResult ? (
                                     <SignalStrength
                                         username={selectedUser?.username || ""}
-                                        userData={testResult}
+                                        userData={testResult[0]}
                                         projectData={
                                             project?.signalStrengths?.find((s) => s.name === signalStrength.name)!
                                         }
@@ -728,7 +752,15 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         <Text>Select a test user to test their new analysis</Text>
                                     </VStack>
                                 )}
-                                {testResult && <ExtraData title="Test Result Logs" data={testResult} />}
+                                {testResult && (
+                                    <VStack w={"100%"} gap={5}>
+                                        <ExtraData title="Test Result Logs" data={testResult[0]} />
+                                        <HistoricalDataTable
+                                            userData={testResult}
+                                            rawUserData={testResultRawData || []}
+                                        />
+                                    </VStack>
+                                )}
                             </VStack>
                         </HStack>
                     </VStack>

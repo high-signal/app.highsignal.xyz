@@ -14,7 +14,9 @@ export default function HistoricalDataTable({
 
     return (
         <VStack gap={4}>
-            <Text>Historical Data</Text>
+            <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"} fontSize={"lg"}>
+                Historical Data
+            </Text>
             <Table.Root borderRadius={"12px"} overflow={"hidden"}>
                 <Table.Header>
                     <Table.Row bg={"pageBackground"}>
