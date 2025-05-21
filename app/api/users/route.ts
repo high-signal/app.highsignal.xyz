@@ -17,6 +17,10 @@ export async function POST(request: Request) {
         // Get the privyId of the logged in user from the headers (set by middleware)
         const privyId = request.headers.get("x-privy-id")!
 
+        // Get the earlyAccessCode from the query params
+        const { searchParams } = new URL(request.url)
+        const earlyAccessCode = searchParams.get("earlyAccessCode")
+
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
         // Check if privy_id already exists
@@ -89,6 +93,7 @@ export async function POST(request: Request) {
                     privy_id: privyId,
                     username: username,
                     display_name: displayName,
+                    ...(earlyAccessCode && { signup_code: earlyAccessCode }),
                 },
             ])
             .select()

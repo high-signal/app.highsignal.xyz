@@ -52,11 +52,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (authenticated && missingUser) {
             const createUser = async () => {
+                // Get the early earlyAccessCode from the browser local storage
+                // and store it in the database to track user signup funnel
+                const earlyAccessCode = localStorage.getItem("earlyAccessCode")
+
                 const token = await getAccessToken()
-
-                console.log("Creating user in database...")
-
-                const response = await fetch("/api/users", {
+                const response = await fetch("/api/users?earlyAccessCode=" + earlyAccessCode, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
