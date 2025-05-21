@@ -136,7 +136,9 @@ export default function UserPicker({
                                     </HStack>
                                     {signalStrengthName &&
                                         (() => {
-                                            const ss = user.signalStrengths?.find((s) => s.name === signalStrengthName)
+                                            const ss = user.signalStrengths?.find(
+                                                (s) => s.signalStrengthName === signalStrengthName,
+                                            )?.data?.[0]
                                             const value = ss?.value
 
                                             let display

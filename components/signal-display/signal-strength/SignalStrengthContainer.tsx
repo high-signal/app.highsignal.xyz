@@ -66,8 +66,10 @@ export default function SignalStrengthContainer({
                         username={currentUser.username || ""}
                         userData={
                             userData || {
+                                day: "",
                                 name: projectData.name,
                                 value: "0",
+                                maxValue: projectData.maxValue,
                                 summary: "",
                                 description: "",
                                 improvements: "",

@@ -219,7 +219,7 @@ export default function SignalStrengthSettings({
                                                     inputRef.current?.blur()
                                                 }}
                                             >
-                                                <HStack justifyContent={"space-between"} w={"100%"}>
+                                                {/* <HStack justifyContent={"space-between"} w={"100%"}>
                                                     <HStack>
                                                         <Image
                                                             src={
@@ -273,7 +273,7 @@ export default function SignalStrengthSettings({
                                                             </Text>
                                                         )
                                                     })()}
-                                                </HStack>
+                                                </HStack> */}
                                             </Box>
                                         ))
                                     )}
@@ -360,7 +360,7 @@ export default function SignalStrengthSettings({
                         pt={5}
                     >
                         <HStack w={"100%"} justifyContent={"space-around"} alignItems={"start"} flexWrap={"wrap"}>
-                            <VStack w={"100%"} maxW={"600px"} gap={0}>
+                            {/* <VStack w={"100%"} maxW={"600px"} gap={0}>
                                 <Box w={"100%"} px={3}>
                                     <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
                                         Current Analysis
@@ -389,7 +389,7 @@ export default function SignalStrengthSettings({
                                         <Text>Select a test user to view their current analysis</Text>
                                     </VStack>
                                 )}
-                            </VStack>
+                            </VStack> */}
                             <VStack w={"100%"} maxW={"600px"} gap={0}>
                                 <HStack w={"100%"} px={3} position="relative">
                                     <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>

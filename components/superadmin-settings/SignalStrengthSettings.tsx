@@ -9,11 +9,13 @@ import SingleLineTextInput from "../ui/SingleLineTextInput"
 import SignalStrength from "../signal-display/signal-strength/SignalStrength"
 import { getAccessToken } from "@privy-io/react-auth"
 import ProjectPicker from "../ui/ProjectPicker"
+import HistoricalDataTable from "./HistoricalDataTable"
 
 export default function SignalStrengthSettings({ signalStrength }: { signalStrength: SignalStrengthData }) {
     const [isOpen, setIsOpen] = useState(false)
     const [selectedUsername, setSelectedUsername] = useState<string>("")
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
+    const [selectedUserRawData, setSelectedUserRawData] = useState<UserData | null>(null)
     const [newUserSelectedTrigger, setNewUserSelectedTrigger] = useState(false)
     const [currentForumUsername, setCurrentForumUsername] = useState<string>("")
     const [newForumUsername, setNewForumUsername] = useState<string>("")
@@ -53,26 +55,41 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     // TEST TIMER ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 
     // When a test user is selected, fetch the user data with superadmin fields
+    // Get the standard user data
     const {
         users: testUser,
         loading: testUserLoading,
         error: testUserError,
     } = useGetUsers("lido", selectedUsername, false, selectedUsername.length > 0, true)
 
-    const [project, setProject] = useState<ProjectData | null>(null)
+    useEffect(() => {
+        if (selectedUsername && testUser.length > 0 && testUser[0].username === selectedUsername) {
+            setSelectedUser(testUser[0])
+        }
+    }, [selectedUsername, testUser, newUserSelectedTrigger])
 
+    // Get the raw user data
+    const {
+        users: rawUser,
+        loading: rawUserLoading,
+        error: rawUserError,
+    } = useGetUsers("lido", selectedUsername, false, selectedUsername.length > 0, true, true)
+
+    useEffect(() => {
+        if (selectedUsername && rawUser.length > 0 && rawUser[0].username === selectedUsername) {
+            console.log("rawUser[0]", rawUser[0])
+
+            setSelectedUserRawData(rawUser[0])
+        }
+    }, [selectedUsername, rawUser, newUserSelectedTrigger])
+
+    const [project, setProject] = useState<ProjectData | null>(null)
     const [newModel, setNewModel] = useState<string>("")
     const [newTemperature, setNewTemperature] = useState<string>("")
     const [newMaxChars, setNewMaxChars] = useState<string>("")
     const [newPrompt, setNewPrompt] = useState<string>("")
     const [testResult, setTestResult] = useState<SignalStrengthUserData | null>(null)
     const [testResultsLoading, setTestResultsLoading] = useState(false)
-
-    useEffect(() => {
-        if (selectedUsername && testUser.length > 0 && testUser[0].username === selectedUsername) {
-            setSelectedUser(testUser[0])
-        }
-    }, [selectedUsername, testUser, newUserSelectedTrigger])
 
     // When a user is selected, set the current forum username
     useEffect(() => {
@@ -84,7 +101,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                     "",
             )
         }
-    }, [selectedUser])
+    }, [selectedUser, project])
 
     function resetTest() {
         setTestResult(null)
@@ -606,6 +623,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                                 improvements: "No data",
                                                 name: signalStrength.name,
                                                 summary: "No data",
+                                                day: new Date().toISOString().split("T")[0],
+                                                maxValue: 0,
                                             }
                                         }
                                         projectData={
@@ -620,14 +639,28 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     </VStack>
                                 )}
                                 {selectedUser && (
-                                    <ExtraData
-                                        title="Current Analysis Logs"
-                                        data={
-                                            selectedUser.signalStrengths?.find(
-                                                (s) => s.signalStrengthName === signalStrength.name,
-                                            )?.data?.[0]
-                                        }
-                                    />
+                                    <VStack w={"100%"} gap={5}>
+                                        <ExtraData
+                                            title="Current Analysis Logs"
+                                            data={
+                                                selectedUser.signalStrengths?.find(
+                                                    (s) => s.signalStrengthName === signalStrength.name,
+                                                )?.data?.[0]
+                                            }
+                                        />
+                                        <HistoricalDataTable
+                                            userData={
+                                                selectedUser.signalStrengths?.find(
+                                                    (s) => s.signalStrengthName === signalStrength.name,
+                                                )?.data || []
+                                            }
+                                            rawUserData={
+                                                selectedUserRawData?.signalStrengths?.find(
+                                                    (s) => s.signalStrengthName === signalStrength.name,
+                                                )?.data || []
+                                            }
+                                        />
+                                    </VStack>
                                 )}
                             </VStack>
                             <VStack w={"100%"} maxW={"600px"} gap={0}>
