@@ -243,15 +243,11 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                     }),
                 )
 
-                console.log("signalData", signalData)
-
                 return signalData.filter(Boolean) as SignalStrengthGroup[]
             }),
         )
 
         const signalStrengths = signalStrengthsResults.flat()
-
-        // console.log("signalStrengths", signalStrengths)
 
         if (!signalStrengths) {
             return NextResponse.json({ error: "Error fetching signal strengths" }, { status: 500 })

@@ -16,7 +16,6 @@ export default function ClientGate({ earlyAccessCodeUrlParam }: { earlyAccessCod
         } else if (localStorage.getItem("earlyAccessCode") === "higher") {
             setHasAccess(true)
         }
-        console.log("Setting isLoading to false")
         setIsLoading(false)
     }, [earlyAccessCodeUrlParam])
 
