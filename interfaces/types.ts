@@ -10,9 +10,18 @@ interface UserData {
     signal?: string
     projectData?: ProjectData
     peakSignals?: PeakSignalUserData[]
-    signalStrengths?: SignalStrengthUserData[]
+    signalStrengths?: {
+        signalStrengthName: string
+        data: SignalStrengthUserData[]
+    }[]
     forumUsers?: ForumUser[]
     isSuperAdmin?: boolean
+    connectedAccounts?: ConnectedAccount[]
+}
+
+interface ConnectedAccount {
+    name: string
+    data: ForumUser[]
 }
 
 interface ForumUser {
@@ -30,8 +39,10 @@ interface PeakSignalUserData {
 }
 
 interface SignalStrengthUserData {
+    day: string
     name: string
     value: string
+    maxValue: number
     summary: string
     description: string
     improvements: string
@@ -45,6 +56,7 @@ interface SignalStrengthUserData {
     promptTokens?: number
     completionTokens?: number
     lastChecked?: number
+    rawValue?: number
 }
 
 interface ProjectData {
@@ -75,6 +87,7 @@ interface SignalStrengthProjectData {
 interface SignalStrengthData {
     id: number
     name: string
+    signalStrengthName?: string // TODO: Merge with name
     displayName: string
     status: string
     model?: string

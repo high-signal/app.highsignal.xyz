@@ -12,9 +12,9 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
     // If lastChecked for any of the signal strengths is less than X seconds ago, set isSignalStrengthLoading to true
     useEffect(() => {
         const isSignalStrengthLoading = (currentUser.signalStrengths || []).some((signalStrength) => {
-            if (!signalStrength.lastChecked) return false
+            if (!signalStrength.data[0].lastChecked) return false
             const now = Date.now()
-            const lastCheckedTime = signalStrength.lastChecked * 1000 // Convert to milliseconds
+            const lastCheckedTime = signalStrength.data[0].lastChecked * 1000 // Convert to milliseconds
             const timeElapsed = now - lastCheckedTime
             return timeElapsed < APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
         })

@@ -22,33 +22,43 @@ type User = {
     }>
 }
 
-// type SignalStrength = {
-//     signal_strengths: {
-//         id: string
-//         name: string
-//     }
-//     last_checked: number
-//     value: number
-//     summary: string
-//     description: string
-//     improvements: string
-//     // *** Super Admin only start ***
-//     request_id: string
-//     created: number
-//     user_id: string
-//     project_id: string
-//     signal_strength_id: string
-//     explained_reasoning?: string
-//     prompt_tokens?: number
-//     completion_tokens?: number
-//     logs?: string
-//     model?: string
-//     temperature?: number
-//     prompt_id?: string
-//     prompt?: string
-//     max_chars?: number
-//     // *** Super Admin only end ***
-// }
+type SignalStrengthData = {
+    signal_strengths: {
+        name: string
+    }
+    day: string
+    last_checked?: number
+    value: number
+    max_value: number
+    summary: string
+    description: string
+    improvements: string
+    // *** Super Admin only start ***
+    request_id?: string
+    created?: number
+    user_id?: string
+    project_id?: string
+    signal_strength_id?: string
+    explained_reasoning?: string
+    model?: string
+    prompt_id?: string
+    prompts?: {
+        prompt: string
+    }
+    temperature?: number
+    max_chars?: number
+    logs?: string
+    prompt_tokens?: number
+    completion_tokens?: number
+    raw_value?: number
+    test_requesting_user?: string
+    // *** Super Admin only end ***
+}
+
+type SignalStrengthGroup = {
+    signalStrengthId: string
+    data: SignalStrengthData[]
+}
 
 export async function getUsersUtil(request: Request, isSuperAdminRequesting: boolean = false) {
     const { searchParams } = new URL(request.url)
@@ -56,6 +66,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
     const username = searchParams.get("user")
     const fuzzy = searchParams.get("fuzzy") === "true"
     const showTestDataOnly = searchParams.get("showTestDataOnly") === "true" || false
+    const showRawScoreCalcOnly = searchParams.get("showRawScoreCalcOnly") === "true" || false
 
     // Pagination
     const page = parseInt(searchParams.get("page") || "1")
@@ -143,6 +154,30 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
             return NextResponse.json({ error: "Error fetching users" }, { status: 500 })
         }
 
+        // If superadmin is requesting, get all connected accounts for the user
+        let connectedAccounts = []
+        if (isSuperAdminRequesting) {
+            // Get forum users
+            const { data: forumUsers, error: forumUsersError } = await supabase
+                .from("forum_users")
+                .select("user_id, project_id, forum_username")
+                .in("user_id", userIds)
+
+            if (forumUsersError) {
+                console.error("forumUsersError", forumUsersError)
+                return NextResponse.json({ error: "Error fetching forum users" }, { status: 500 })
+            }
+
+            connectedAccounts.push({
+                name: "forumUsers",
+                data: forumUsers.map((user) => ({
+                    userId: user.user_id,
+                    projectId: user.project_id,
+                    forumUsername: user.forum_username,
+                })),
+            })
+        }
+
         // Get all available signal strengths
         const { data: signalStrengthIds, error: signalStrengthIdsError } = await supabase
             .from("signal_strengths")
@@ -179,32 +214,37 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                             .eq("project_id", userProjectScores[0]?.project_id)
                             .eq("signal_strength_id", signalStrengthId)
 
-                        if (showTestDataOnly) {
+                        // Filter test data
+                        if (isSuperAdminRequesting && showTestDataOnly) {
                             query = query.not("test_requesting_user", "is", null)
                         } else {
                             query = query.is("test_requesting_user", null)
                         }
 
-                        const { data, error } = await query.order("created", { ascending: false }).limit(1)
+                        // Filter raw score calc
+                        if (isSuperAdminRequesting && showRawScoreCalcOnly) {
+                            query = query.not("raw_value", "is", null)
+                        } else {
+                            query = query.is("raw_value", null)
+                        }
+
+                        // TODO: Make this dynamic based on the previous_days value for the signal strength for the project
+                        const { data, error } = await query.order("day", { ascending: false }).limit(90)
 
                         if (error) {
                             console.error("signalStrengthsError", error)
                             return null
                         }
 
-                        return data?.[0] || null
+                        return {
+                            signalStrengthId,
+                            data: data as SignalStrengthData[],
+                        }
                     }),
                 )
 
-                return signalData.filter(Boolean)
+                return signalData.filter(Boolean) as SignalStrengthGroup[]
             }),
-
-            // TODO: Add historical data here.
-            // For each user, get just the scores and "created" values for each signal strength,
-            // then return that as an object array to be used as the full history of signal strengths for that user
-            // It should just be one query to get all the data
-            // I can add a limit e.g. past 100 days
-            // [ {created: 1715222400, value: 55}, {created: 1715136000, value: 40}, ... ]
         )
 
         const signalStrengths = signalStrengthsResults.flat()
@@ -218,7 +258,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                 const user = (userDetails as unknown as User[])?.find((u) => u.id === score.user_id)
                 if (!user) return null
 
-                const userSignalStrengths = signalStrengths?.filter((ss) => ss.user_id === user.id) || []
+                const userSignalStrengths = signalStrengths?.filter((ss) => ss?.data[0]?.user_id === user.id) || []
 
                 return {
                     id: user.id,
@@ -228,40 +268,47 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                     rank: score.rank,
                     score: score.total_score,
                     signal: calculateSignalFromScore(score.total_score),
-                    // peakSignals:
-                    //     user.user_peak_signals?.map((ups) => ({
-                    //         name: ups.peak_signals.name,
-                    //         displayName: ups.peak_signals.display_name,
-                    //         imageSrc: ups.peak_signals.image_src,
-                    //         imageAlt: ups.peak_signals.image_alt,
-                    //         value: ups.peak_signals.value,
-                    //     })) || [],
+                    ...(isSuperAdminRequesting
+                        ? {
+                              connectedAccounts: connectedAccounts.map((account) => ({
+                                  name: account.name,
+                                  data: account.data
+                                      .filter((item) => item.userId === user.id)
+                                      .map(({ userId, ...rest }) => rest),
+                              })),
+                          }
+                        : {}),
                     signalStrengths: userSignalStrengths.map((uss) => ({
-                        name: uss.signal_strengths.name,
-                        ...(uss.last_checked ? { lastChecked: uss.last_checked } : {}),
-                        value: uss.value,
-                        summary: uss.summary,
-                        description: uss.description,
-                        improvements: uss.improvements,
-                        // TODO: history: uss.history
-                        ...(isSuperAdminRequesting
-                            ? {
-                                  requestId: uss.request_id,
-                                  created: uss.created,
-                                  user_id: uss.user_id,
-                                  project_id: uss.project_id,
-                                  signal_strength_id: uss.signal_strength_id,
-                                  explainedReasoning: uss.explained_reasoning,
-                                  model: uss.model,
-                                  promptId: uss.prompt_id,
-                                  prompt: uss.prompts?.prompt,
-                                  temperature: uss.temperature,
-                                  maxChars: uss.max_chars,
-                                  logs: uss.logs,
-                                  promptTokens: uss.prompt_tokens,
-                                  completionTokens: uss.completion_tokens,
-                              }
-                            : {}),
+                        signalStrengthName: uss.data[0]?.signal_strengths?.name || uss.signalStrengthId,
+                        data: uss.data.map((d) => ({
+                            day: d.day,
+                            ...(d.last_checked ? { lastChecked: d.last_checked } : {}),
+                            value: d.value,
+                            maxValue: d.max_value,
+                            summary: d.summary,
+                            description: d.description,
+                            improvements: d.improvements,
+                            ...(isSuperAdminRequesting
+                                ? {
+                                      requestId: d.request_id,
+                                      created: d.created,
+                                      user_id: d.user_id,
+                                      project_id: d.project_id,
+                                      signal_strength_id: d.signal_strength_id,
+                                      explainedReasoning: d.explained_reasoning,
+                                      model: d.model,
+                                      promptId: d.prompt_id,
+                                      prompt: d.prompts?.prompt,
+                                      temperature: d.temperature,
+                                      maxChars: d.max_chars,
+                                      logs: d.logs,
+                                      promptTokens: d.prompt_tokens,
+                                      completionTokens: d.completion_tokens,
+                                      rawValue: d.raw_value,
+                                      testRequestingUser: d.test_requesting_user,
+                                  }
+                                : {}),
+                        })),
                     })),
                 }
             })

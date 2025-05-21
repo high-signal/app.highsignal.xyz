@@ -3,7 +3,6 @@ const { fetchUserActivity } = require("./fetchUserActivity")
 const { updateUserData } = require("./updateUserData")
 const { updateRequired } = require("./updateRequired")
 const { analyzeUserData } = require("./analyzeUserData")
-const { updateUserTestingData } = require("./updateUserTestingData")
 const { createClient } = require("@supabase/supabase-js")
 
 // Function to analyze forum user activity
@@ -48,7 +47,14 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
         // Check if this signal strength is enabled for the project
         const { data: projectSignalData, error: projectSignalError } = await supabase
             .from("project_signal_strengths")
-            .select("enabled")
+            .select(
+                `
+                enabled,
+                projects (
+                    display_name
+                )
+            `,
+            )
             .eq("project_id", project_id)
             .eq("signal_strength_id", signal_strength_id)
             .single()
@@ -60,9 +66,18 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
         }
 
         // === Fetch signal strength config from Supabase ===
-        console.log(`Fetching signal strength config from Supabase for project ${project_id}...`)
         const signalStrengthConfig = await getSignalStrengthConfig(supabase, project_id, signal_strength_id)
-        console.log("signalStrengthConfig", signalStrengthConfig)
+        console.log("")
+        console.log("**************************************************")
+        console.log(
+            "Analyzing forum user activity for user",
+            user_id,
+            "and project",
+            project_id,
+            "and forum username",
+            forum_username,
+        )
+        console.log(`signalStrengthConfig for ${projectSignalData.projects.display_name}\n`, signalStrengthConfig)
 
         if (!signalStrengthConfig || signalStrengthConfig.length === 0) {
             console.error("Signal strength config not found")
@@ -75,15 +90,23 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
         const previousDays = signalStrengthConfig[0].previous_days
 
         if (!enabled) {
-            console.log("Signal strength is not enabled for this project")
+            console.log(
+                `Signal strength ${SIGNAL_STRENGTH_NAME} is not enabled for this project: ${projectSignalData.projects.display_name}`,
+            )
             return
         }
 
         // === Get user data from Supabase ===
-        console.log(`Fetching user data from Supabase for user ${user_id}...`)
         const { data: userData, error: userError } = await supabase
             .from("forum_users")
-            .select("*")
+            .select(
+                `
+                *,
+                users (
+                    display_name
+                )
+            `,
+            )
             .eq("user_id", user_id)
             .eq("project_id", project_id)
             .single()
@@ -93,35 +116,23 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
             return
         }
 
-        console.log("userData", userData)
+        console.log(`forum_users data for ${userData.users.display_name}`, userData)
 
         const lastUpdated = userData.last_updated
-
-        // === Get user display name from Supabase ===
-        console.log(`Fetching user display name from Supabase for user ${user_id}...`)
-        const { data: userDisplayName, error: userDisplayNameError } = await supabase
-            .from("users")
-            .select("display_name")
-            .eq("id", user_id)
-            .single()
-
-        if (userDisplayNameError) {
-            console.error("Error fetching user display name:", userDisplayNameError)
-            return
-        }
-
-        const displayName = userDisplayName.display_name
-        console.log("displayName", displayName)
+        const displayName = userData.users.display_name
 
         // === Fetch activity data from forum API ===
-        console.log(`Fetching activity for user: ${forum_username}`)
+        console.log(`Fetching forum activity data for ${displayName} (forum username: ${forum_username})`)
         const activityData = await fetchUserActivity(url, forum_username)
-        console.log(`Processed ${activityData?.length || 0} activities for ${forum_username}`)
+        console.log(
+            `Processed ${activityData?.length || 0} activities for ${displayName} (forum username: ${forum_username})`,
+        )
 
-        if (!activityData || activityData.length === 0) {
-            console.error("No activity data found for this user")
-            return
-        }
+        // TODO: See if I still need this
+        // if (!activityData || activityData.length === 0) {
+        //     console.error("No activity data found for this user")
+        //     return
+        // }
 
         // === Get the latest activity date for the update ===
         const latestActivityDate = activityData.sort(
@@ -130,27 +141,139 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
 
         // === Check if update is required ===
         if (!testingData && !updateRequired(lastUpdated, latestActivityDate)) {
-            console.log("User data is up to date. No analysis needed.")
-            return
+            console.log(
+                `${displayName} (forum username: ${forum_username}) forum data is up to date. No raw daily analysis needed.`,
+            )
+        } else {
+            // Filter activity data to the past X days
+            const filteredActivityData = activityData.filter(
+                (activity) =>
+                    new Date(activity.updated_at) > new Date(new Date().setDate(new Date().getDate() - previousDays)),
+            )
+
+            console.log(`Filtered activity data to the past ${previousDays} days: ${filteredActivityData.length}`)
+
+            // console.log("filteredActivityData", filteredActivityData)
+
+            // Create an array of filteredActivityData that contains one element per day
+            // starting from yesterday and going back previousDays
+            const dailyActivityData = []
+            for (let i = 0; i < previousDays; i++) {
+                const date = new Date(new Date().setDate(new Date().getDate() - (i + 1))) // Start yesterday
+                const activitiesForDay = filteredActivityData.filter((activity) => {
+                    const activityDate = new Date(activity.updated_at)
+                    return activityDate.toISOString().split("T")[0] === date.toISOString().split("T")[0]
+                })
+                dailyActivityData.push({
+                    date: date.toISOString().split("T")[0],
+                    data: activitiesForDay,
+                })
+            }
+
+            console.log(
+                "Number of days to analyze for raw score calculation:",
+                dailyActivityData.filter((day) => day.data && day.data.length > 0).length,
+            )
+
+            // For each day with data in dailyActivityData, run the analyzeUserData function
+            for (const day of dailyActivityData) {
+                if (day.data.length > 0) {
+                    // Check if the day is already in the database
+                    const { data: existingData, error: existingError } = await supabase
+                        .from("user_signal_strengths")
+                        .select("*")
+                        .eq("day", day.date)
+                        .eq("user_id", user_id)
+                        .eq("project_id", project_id)
+                        .eq("signal_strength_id", signal_strength_id)
+                        .single()
+
+                    if (!testingData && existingData) {
+                        console.log(`Day ${day.date} already exists in the database. Skipping raw score calculation...`)
+                        continue
+                    }
+
+                    const analysisResults = await analyzeUserData(
+                        signalStrengthData,
+                        day.data,
+                        forum_username,
+                        displayName,
+                        maxValue,
+                        previousDays,
+                        testingData,
+                        day.date,
+                    )
+
+                    // === Validity check on maxValue ===
+                    if (analysisResults && !analysisResults.error) {
+                        if (analysisResults[forum_username].value > maxValue) {
+                            console.log(
+                                `User ${forum_username} has a score greater than ${maxValue}. Setting to ${maxValue}.`,
+                            )
+                            analysisResults[forum_username].value = maxValue
+                        }
+                    }
+
+                    // === Store the analysis results in the database ===
+                    if (analysisResults && !analysisResults.error) {
+                        await updateUserData(
+                            supabase,
+                            project_id,
+                            signal_strength_id,
+                            forum_username,
+                            userData,
+                            latestActivityDate,
+                            analysisResults,
+                            maxValue,
+                            testingData,
+                            true, // isRawScoreCalc
+                            day.date,
+                        )
+                        console.log("User data successfully updated")
+                        console.log("")
+                    } else {
+                        console.error(
+                            `Analysis failed for ${forum_username}:`,
+                            analysisResults?.error || "Unknown error",
+                        )
+                    }
+                }
+            }
         }
 
-        // Filter activity data to the past X days
-        const filteredActivityData = activityData.filter(
-            (activity) =>
-                new Date(activity.updated_at) > new Date(new Date().setDate(new Date().getDate() - previousDays)),
-        )
+        // After the raw daily analysis is complete, generate a smart score for the user
 
-        console.log(`Filtered activity data to the past ${previousDays} days: ${filteredActivityData.length}`)
+        // TODO: Improve. This dumb method just gets the last day of the dailyActivityData array and generates a smart score for it
+        const latestActivityData = activityData[0]
+        const dateYesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
 
-        // === Analyze user data with AI ===
+        // If a smart score is already in the database for dateYesterday, skip the analysis
+        const { data: existingData, error: existingError } = await supabase
+            .from("user_signal_strengths")
+            .select("*")
+            .eq("day", dateYesterday)
+            .eq("user_id", user_id)
+            .eq("project_id", project_id)
+            .eq("signal_strength_id", signal_strength_id)
+            .not("value", "is", null)
+            .single()
+
+        if (!testingData && existingData) {
+            console.log(
+                `Smart score for ${displayName} (forum username: ${forum_username}) on ${dateYesterday} already exists in the database. Skipping...`,
+            )
+            console.log("Analysis complete.")
+            return
+        }
         const analysisResults = await analyzeUserData(
             signalStrengthData,
-            filteredActivityData,
+            latestActivityData,
             forum_username,
             displayName,
             maxValue,
             previousDays,
             testingData,
+            dateYesterday,
         )
 
         // === Validity check on maxValue ===
@@ -171,9 +294,13 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
                 userData,
                 latestActivityDate,
                 analysisResults,
+                maxValue,
                 testingData,
+                false, // isRawScoreCalc
+                dateYesterday,
             )
-            console.log("User data successfully updated")
+            console.log(`Smart score successfully updated for ${displayName} (forum username: ${forum_username})`)
+            console.log("Analysis complete.")
         } else {
             console.error(`Analysis failed for ${forum_username}:`, analysisResults?.error || "Unknown error")
         }

@@ -9,12 +9,15 @@ import SingleLineTextInput from "../ui/SingleLineTextInput"
 import SignalStrength from "../signal-display/signal-strength/SignalStrength"
 import { getAccessToken } from "@privy-io/react-auth"
 import ProjectPicker from "../ui/ProjectPicker"
+import HistoricalDataTable from "./HistoricalDataTable"
 
 export default function SignalStrengthSettings({ signalStrength }: { signalStrength: SignalStrengthData }) {
     const [isOpen, setIsOpen] = useState(false)
     const [selectedUsername, setSelectedUsername] = useState<string>("")
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
+    const [selectedUserRawData, setSelectedUserRawData] = useState<UserData | null>(null)
     const [newUserSelectedTrigger, setNewUserSelectedTrigger] = useState(false)
+    const [currentForumUsername, setCurrentForumUsername] = useState<string>("")
     const [newForumUsername, setNewForumUsername] = useState<string>("")
 
     // TEST TIMER ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
@@ -52,26 +55,52 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     // TEST TIMER ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 
     // When a test user is selected, fetch the user data with superadmin fields
+    // Get the standard user data
     const {
         users: testUser,
         loading: testUserLoading,
         error: testUserError,
     } = useGetUsers("lido", selectedUsername, false, selectedUsername.length > 0, true)
 
-    const [project, setProject] = useState<ProjectData | null>(null)
-
-    const [newModel, setNewModel] = useState<string>("")
-    const [newTemperature, setNewTemperature] = useState<string>("")
-    const [newMaxChars, setNewMaxChars] = useState<string>("")
-    const [newPrompt, setNewPrompt] = useState<string>("")
-    const [testResult, setTestResult] = useState<SignalStrengthUserData | null>(null)
-    const [testResultsLoading, setTestResultsLoading] = useState(false)
-
     useEffect(() => {
         if (selectedUsername && testUser.length > 0 && testUser[0].username === selectedUsername) {
             setSelectedUser(testUser[0])
         }
     }, [selectedUsername, testUser, newUserSelectedTrigger])
+
+    // Get the raw user data
+    const {
+        users: rawUser,
+        loading: rawUserLoading,
+        error: rawUserError,
+    } = useGetUsers("lido", selectedUsername, false, selectedUsername.length > 0, true, true)
+
+    useEffect(() => {
+        if (selectedUsername && rawUser.length > 0 && rawUser[0].username === selectedUsername) {
+            setSelectedUserRawData(rawUser[0])
+        }
+    }, [selectedUsername, rawUser, newUserSelectedTrigger])
+
+    const [project, setProject] = useState<ProjectData | null>(null)
+    const [newModel, setNewModel] = useState<string>("")
+    const [newTemperature, setNewTemperature] = useState<string>("")
+    const [newMaxChars, setNewMaxChars] = useState<string>("")
+    const [newPrompt, setNewPrompt] = useState<string>("")
+    const [testResult, setTestResult] = useState<SignalStrengthUserData[] | null>(null)
+    const [testResultsLoading, setTestResultsLoading] = useState(false)
+    const [testResultRawData, setTestResultRawData] = useState<SignalStrengthUserData[] | null>(null)
+
+    // When a user is selected, set the current forum username
+    useEffect(() => {
+        if (selectedUser) {
+            setCurrentForumUsername(
+                selectedUser?.connectedAccounts
+                    ?.find((accountType) => accountType.name === "forumUsers")
+                    ?.data?.find((forumUser) => Number(forumUser.projectId) === Number(project?.id))?.forumUsername ||
+                    "",
+            )
+        }
+    }, [selectedUser, project])
 
     function resetTest() {
         setTestResult(null)
@@ -166,10 +195,35 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
 
                 const testResult = await testResultResponse.json()
 
-                if (testResult[0].signalStrengths?.find((s: SignalStrengthData) => s.name === signalStrength.name)) {
-                    setTestResult(testResult[0].signalStrengths?.find((s: any) => s.name === signalStrength.name))
+                // If the smart score is found in the DB then the test is complete
+                const foundSignalStrength = testResult[0].signalStrengths?.find(
+                    (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
+                )
+
+                if (foundSignalStrength) {
+                    setTestResult(foundSignalStrength.data)
                     setTestResultsLoading(false)
                     setTestTimerStop(Date.now())
+
+                    // Then fetch the test result raw user data
+                    const testResultRawData = await fetch(
+                        `/api/superadmin/users/?project=${project?.urlSlug}&user=${selectedUser?.username}&showTestDataOnly=true&showRawScoreCalcOnly=true`,
+                        {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                        },
+                    )
+
+                    const testResultRawDataJson = await testResultRawData.json()
+
+                    setTestResultRawData(
+                        testResultRawDataJson[0].signalStrengths?.find(
+                            (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
+                        ).data,
+                    )
                 } else {
                     // If no result yet, poll again after 1 second
                     setTimeout(pollTestResult, 1000)
@@ -252,7 +306,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         flexWrap={"wrap"}
                         gap={3}
                     >
-                        <Text w={"100px"}>Test Project</Text>
+                        <Text w={"100px"}>Project</Text>
                         <ProjectPicker
                             onProjectSelect={(project) => {
                                 setProject(project)
@@ -263,6 +317,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 setSelectedUser(null)
                                 setTestResult(null)
                             }}
+                            isSuperAdminRequesting={true}
                         />
                     </HStack>
                     <HStack
@@ -275,7 +330,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         flexWrap={"wrap"}
                         gap={3}
                     >
-                        <Text w={"100px"}>Test User</Text>
+                        <Text w={"100px"}>User</Text>
                         <UserPicker
                             onUserSelect={(user) => {
                                 setNewUserSelectedTrigger(!newUserSelectedTrigger)
@@ -290,7 +345,74 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                             }}
                             signalStrengthName={signalStrength.name}
                             disabled={!project}
+                            isSuperAdminRequesting={true}
                         />
+                    </HStack>
+                    <HStack
+                        w={"500px"}
+                        maxW={"100%"}
+                        bg={"contentBackground"}
+                        alignItems={"center"}
+                        px={7}
+                        py={2}
+                        flexWrap={"wrap"}
+                        gap={3}
+                        minH={"40px"}
+                    >
+                        {selectedUser && (
+                            <>
+                                <Text>Forum Username</Text>
+                                <Text fontWeight={"bold"} color={currentForumUsername ? "inherit" : "textColorMuted"}>
+                                    {currentForumUsername || "No forum username set"}
+                                </Text>
+                            </>
+                        )}
+                    </HStack>
+                    <HStack
+                        w={"500px"}
+                        maxW={"100%"}
+                        bg={"contentBackground"}
+                        alignItems={"center"}
+                        px={7}
+                        py={2}
+                        flexWrap={"wrap"}
+                        gap={3}
+                        minH={"44px"}
+                    >
+                        {selectedUser && (
+                            <>
+                                <Text>Manually Trigger User Analysis</Text>
+                                <Button
+                                    primaryButton
+                                    px={2}
+                                    py={1}
+                                    borderRadius={"full"}
+                                    onClick={async () => {
+                                        const token = await getAccessToken()
+                                        const response = await fetch(`/api/superadmin/accounts/trigger-update`, {
+                                            method: "PATCH",
+                                            headers: {
+                                                "Content-Type": "application/json",
+                                                Authorization: `Bearer ${token}`,
+                                            },
+                                            body: JSON.stringify({
+                                                signalStrengthName: signalStrength.name,
+                                                userId: selectedUser.id,
+                                                projectId: project?.id,
+                                                forumUsername: currentForumUsername,
+                                            }),
+                                        })
+
+                                        if (!response.ok) {
+                                            const errorData = await response.json()
+                                            console.error(errorData.error)
+                                        }
+                                    }}
+                                >
+                                    (Eridian ONLY - for testing)
+                                </Button>
+                            </>
+                        )}
                     </HStack>
                     {/* Prompt Options */}
                     <HStack
@@ -508,8 +630,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                             selectedUser &&
                                             "(ID: " +
                                                 selectedUser.signalStrengths?.find(
-                                                    (s) => s.name === signalStrength.name,
-                                                )?.promptId +
+                                                    (s) => s.signalStrengthName === signalStrength.name,
+                                                )?.data?.[0]?.promptId +
                                                 ")"}
                                     </Text>
                                 </Box>
@@ -518,13 +640,15 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         username={selectedUser.username || ""}
                                         userData={
                                             selectedUser.signalStrengths?.find(
-                                                (s) => s.name === signalStrength.name,
-                                            ) || {
+                                                (s) => s.signalStrengthName === signalStrength.name,
+                                            )?.data?.[0] || {
                                                 value: "0",
                                                 description: "No data",
                                                 improvements: "No data",
                                                 name: signalStrength.name,
                                                 summary: "No data",
+                                                day: new Date().toISOString().split("T")[0],
+                                                maxValue: 0,
                                             }
                                         }
                                         projectData={
@@ -539,10 +663,28 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                     </VStack>
                                 )}
                                 {selectedUser && (
-                                    <ExtraData
-                                        title="Current Analysis Logs"
-                                        data={selectedUser.signalStrengths?.find((s) => s.name === signalStrength.name)}
-                                    />
+                                    <VStack w={"100%"} gap={5}>
+                                        <ExtraData
+                                            title="Current Analysis Logs"
+                                            data={
+                                                selectedUser.signalStrengths?.find(
+                                                    (s) => s.signalStrengthName === signalStrength.name,
+                                                )?.data?.[0]
+                                            }
+                                        />
+                                        <HistoricalDataTable
+                                            userData={
+                                                selectedUser.signalStrengths?.find(
+                                                    (s) => s.signalStrengthName === signalStrength.name,
+                                                )?.data || []
+                                            }
+                                            rawUserData={
+                                                selectedUserRawData?.signalStrengths?.find(
+                                                    (s) => s.signalStrengthName === signalStrength.name,
+                                                )?.data || []
+                                            }
+                                        />
+                                    </VStack>
                                 )}
                             </VStack>
                             <VStack w={"100%"} maxW={"600px"} gap={0}>
@@ -576,7 +718,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                 {testResult ? (
                                     <SignalStrength
                                         username={selectedUser?.username || ""}
-                                        userData={testResult}
+                                        userData={testResult[0]}
                                         projectData={
                                             project?.signalStrengths?.find((s) => s.name === signalStrength.name)!
                                         }
@@ -597,7 +739,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         >
                                             {testResultsLoading
                                                 ? formatDuration(testTimerDuration)
-                                                : "Run test analysis using new prompt"}
+                                                : "Run test analysis"}
                                         </Button>
                                     </VStack>
                                 ) : selectedUser ? (
@@ -610,7 +752,15 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                                         <Text>Select a test user to test their new analysis</Text>
                                     </VStack>
                                 )}
-                                {testResult && <ExtraData title="Test Result Logs" data={testResult} />}
+                                {testResult && (
+                                    <VStack w={"100%"} gap={5}>
+                                        <ExtraData title="Test Result Logs" data={testResult[0]} />
+                                        <HistoricalDataTable
+                                            userData={testResult}
+                                            rawUserData={testResultRawData || []}
+                                        />
+                                    </VStack>
+                                )}
                             </VStack>
                         </HStack>
                     </VStack>

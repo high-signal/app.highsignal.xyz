@@ -7,14 +7,19 @@ import { ASSETS } from "../../config/constants"
 interface ProjectPickerProps {
     onProjectSelect: (project: ProjectData) => void
     onClear?: () => void
+    isSuperAdminRequesting?: boolean
 }
 
-export default function ProjectPicker({ onProjectSelect, onClear }: ProjectPickerProps) {
+export default function ProjectPicker({
+    onProjectSelect,
+    onClear,
+    isSuperAdminRequesting = false,
+}: ProjectPickerProps) {
     const [searchTerm, setSearchTerm] = useState<string>("")
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null!)
-    const { projects, loading, error } = useGetProjects(debouncedSearchTerm)
+    const { projects, loading, error } = useGetProjects(debouncedSearchTerm, isSuperAdminRequesting)
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -54,8 +59,9 @@ export default function ProjectPicker({ onProjectSelect, onClear }: ProjectPicke
                     right={0}
                     mt={1}
                     bg="pageBackground"
-                    borderWidth={1}
-                    borderRadius="10px"
+                    borderWidth={2}
+                    borderColor="contentBorder"
+                    borderRadius="16px"
                     boxShadow="md"
                     zIndex={5}
                     maxH="200px"

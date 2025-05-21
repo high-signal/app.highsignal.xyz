@@ -6,7 +6,10 @@ async function updateUserData(
     user,
     latestActivityDate,
     analysisResults,
+    maxValue,
     testingData,
+    isRawScoreCalc = false,
+    dayDate,
 ) {
     try {
         console.log(`Updating database for user ${username}`)
@@ -43,7 +46,9 @@ async function updateUserData(
 
         // Store the analysis results in the user_signal_strengths table
         const { error: signalError } = await supabase.from("user_signal_strengths").insert({
-            value: analysisResults[username].value,
+            ...(!isRawScoreCalc && { value: analysisResults[username].value }),
+            ...(isRawScoreCalc && { raw_value: analysisResults[username].value }),
+            max_value: maxValue,
             summary: analysisResults[username].summary,
             description: analysisResults[username].description,
             improvements: analysisResults[username].improvements,
@@ -61,6 +66,7 @@ async function updateUserData(
             temperature: testingData?.testingTemperature || analysisResults.temperature,
             prompt_id: analysisResults.promptId || null,
             max_chars: testingData?.testingMaxChars || analysisResults.maxChars,
+            day: dayDate,
         })
 
         if (signalError) {

@@ -7,6 +7,7 @@ export const useGetUsers = (
     fuzzy: boolean = false,
     shouldFetch: boolean = true,
     isSuperAdminRequesting: boolean = false,
+    isRawData: boolean = false,
 ) => {
     const [users, setUsers] = useState<UserData[]>([])
     const [loading, setLoading] = useState(true)
@@ -29,6 +30,10 @@ export const useGetUsers = (
                     if (fuzzy) {
                         url.searchParams.append("fuzzy", "true")
                     }
+                }
+
+                if (isRawData) {
+                    url.searchParams.append("showRawScoreCalcOnly", "true")
                 }
 
                 const token = isSuperAdminRequesting ? await getAccessToken() : null

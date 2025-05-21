@@ -9,14 +9,21 @@ interface UserPickerProps {
     onClear?: () => void
     signalStrengthName?: string
     disabled?: boolean
+    isSuperAdminRequesting?: boolean
 }
 
-export default function UserPicker({ onUserSelect, signalStrengthName, disabled = false, onClear }: UserPickerProps) {
+export default function UserPicker({
+    onUserSelect,
+    signalStrengthName,
+    disabled = false,
+    onClear,
+    isSuperAdminRequesting = false,
+}: UserPickerProps) {
     const [searchTerm, setSearchTerm] = useState<string>("")
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null!)
-    const { users, loading, error } = useGetUsers("lido", debouncedSearchTerm, true, isFocused)
+    const { users, loading, error } = useGetUsers("lido", debouncedSearchTerm, true, isFocused, isSuperAdminRequesting)
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -78,8 +85,9 @@ export default function UserPicker({ onUserSelect, signalStrengthName, disabled 
                     right={0}
                     mt={1}
                     bg="pageBackground"
-                    borderWidth={1}
-                    borderRadius="10px"
+                    borderWidth={2}
+                    borderColor="contentBorder"
+                    borderRadius="16px"
                     boxShadow="md"
                     zIndex={5}
                     maxH="200px"
@@ -128,7 +136,9 @@ export default function UserPicker({ onUserSelect, signalStrengthName, disabled 
                                     </HStack>
                                     {signalStrengthName &&
                                         (() => {
-                                            const ss = user.signalStrengths?.find((s) => s.name === signalStrengthName)
+                                            const ss = user.signalStrengths?.find(
+                                                (s) => s.signalStrengthName === signalStrengthName,
+                                            )?.data?.[0]
                                             const value = ss?.value
 
                                             let display
