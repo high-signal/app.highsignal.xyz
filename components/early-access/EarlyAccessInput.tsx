@@ -4,17 +4,16 @@ import { VStack, Image, Button, Text, Box, HStack } from "@chakra-ui/react"
 import { useState } from "react"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import { ASSETS } from "../../config/constants"
+import { useEarlyAccess } from "../../contexts/EarlyAccessContext"
 
-export default function EarlyAccessInput({ setHasAccess }: { setHasAccess: (hasAccess: boolean) => void }) {
+export default function EarlyAccessInput() {
     const [code, setCode] = useState("")
     const [error, setError] = useState("")
+    const { setHasAccess } = useEarlyAccess()
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         if (code === "higher") {
-            if (typeof window !== "undefined") {
-                localStorage.setItem("earlyAccessCode", "higher")
-            }
             setHasAccess(true)
         } else {
             setError("Invalid access code")

@@ -1,12 +1,10 @@
-import ClientGate from "../components/early-access/ClientGate"
+import ContentContainer from "../components/layout/ContentContainer"
+import LeaderboardContainer from "../components/leaderboard/LeaderboardContainer"
 
-interface PageProps {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}
-
-export default async function Page({ searchParams }: PageProps) {
-    const params = await searchParams
-    const earlyAccessCodeUrlParam = params.earlyAccessCode
-
-    return <ClientGate earlyAccessCodeUrlParam={earlyAccessCodeUrlParam?.toString() ?? ""} />
+export default async function Page() {
+    return (
+        <ContentContainer>
+            <LeaderboardContainer project="lido" />
+        </ContentContainer>
+    )
 }

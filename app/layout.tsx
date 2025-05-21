@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Head />
             <body suppressHydrationWarning>
                 <Provider>
-                    <RootParticleAnimation />
+                    {/* <RootParticleAnimation /> Moved to EarlyAccessContext for now */}
                     {children}
                 </Provider>
             </body>
