@@ -128,11 +128,10 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
             `Processed ${activityData?.length || 0} activities for ${displayName} (forum username: ${forum_username})`,
         )
 
-        // TODO: See if I still need this
-        // if (!activityData || activityData.length === 0) {
-        //     console.error("No activity data found for this user")
-        //     return
-        // }
+        if (!activityData || activityData.length === 0) {
+            console.error(`No activity data found for ${displayName} (forum username: ${forum_username})`)
+            return
+        }
 
         // === Get the latest activity date for the update ===
         const latestActivityDate = activityData.sort(
