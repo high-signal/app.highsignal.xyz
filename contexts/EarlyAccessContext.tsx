@@ -46,12 +46,14 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
             // If localStorage check failed or no saved access, check logged in user
             if (privyReady) {
                 if (authenticated) {
-                    if (loggedInUser?.accessCode) {
-                        localStorage.setItem("earlyAccessCode", loggedInUser.accessCode)
-                        setHasAccess(true)
-                        setIsLoading(false)
-                    } else {
-                        setIsLoading(false)
+                    if (loggedInUser) {
+                        if (loggedInUser?.accessCode) {
+                            localStorage.setItem("earlyAccessCode", loggedInUser.accessCode)
+                            setHasAccess(true)
+                            setIsLoading(false)
+                        } else {
+                            setIsLoading(false)
+                        }
                     }
                 } else {
                     // If user is not logged in, set loading to false
