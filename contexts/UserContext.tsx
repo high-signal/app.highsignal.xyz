@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import { usePrivy } from "@privy-io/react-auth"
+import { useEarlyAccess } from "./EarlyAccessContext"
 
 interface User {
     id: string
@@ -9,6 +10,7 @@ interface User {
     displayName: string
     profileImageUrl?: string
     isSuperAdmin?: boolean
+    accessCode?: string
     projectAdmins?: {
         projectId: string
         projectName: string
@@ -24,6 +26,7 @@ interface UserContextType {
     setUserCreated: (username: string) => void
     error: string | null
     refreshUser: () => Promise<void>
+    setTriggerUserCreation: (value: boolean) => void
 }
 
 const UserContext = createContext<UserContextType>({
@@ -33,6 +36,7 @@ const UserContext = createContext<UserContextType>({
     setUserCreated: () => {},
     error: null,
     refreshUser: async () => {},
+    setTriggerUserCreation: () => {},
 })
 
 export const useUser = () => useContext(UserContext)
@@ -43,6 +47,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [loggedInUserLoading, setLoggedInUserLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [missingUser, setMissingUser] = useState(false)
+    const [triggerUserCreation, setTriggerUserCreation] = useState(false)
     const [userCreated, setUserCreated] = useState("")
 
     // If user is authenticated with Privy, but not in the database, create a new user in the database
@@ -72,14 +77,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
                     const newUser = await response.json()
                     setUserCreated(newUser.username)
                 } else {
-                    console.error("Failed to create user")
-                    // TODO: Show an error message to the user asking them to try again later
+                    console.warn("Failed to create user")
                 }
             }
-
             createUser()
         }
-    }, [authenticated, getAccessToken, missingUser])
+    }, [authenticated, getAccessToken, missingUser, triggerUserCreation])
 
     const fetchUser = async (backgroundRefresh: boolean = false) => {
         if (ready && !authenticated) {
@@ -133,7 +136,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     return (
         <UserContext.Provider
-            value={{ loggedInUser, loggedInUserLoading, userCreated, setUserCreated, error, refreshUser }}
+            value={{
+                loggedInUser,
+                loggedInUserLoading,
+                userCreated,
+                setUserCreated,
+                error,
+                refreshUser,
+                setTriggerUserCreation,
+            }}
         >
             {children}
         </UserContext.Provider>

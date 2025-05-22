@@ -1,14 +1,15 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
     try {
-        const { code } = await request.json()
+        const { searchParams } = new URL(request.url)
+        const code = searchParams.get("code")
 
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
         // Check if the access code exists in the database
-        const { data: existingAccessCode, error: accessCodeCheckError } = await supabase
+        const { data: validAccessCode, error: accessCodeCheckError } = await supabase
             .from("access_codes")
             .select("id")
             .eq("code", code)
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Error checking access code" }, { status: 500 })
         }
 
-        if (existingAccessCode) {
+        if (validAccessCode) {
             return NextResponse.json({ success: true }, { status: 200 })
         }
 

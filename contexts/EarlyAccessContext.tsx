@@ -3,6 +3,8 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from "react"
 import EarlyAccessInput from "../components/early-access/EarlyAccessInput"
 import RootParticleAnimation from "../components/particle-animation/RootParticleAnimation"
+import { useUser } from "../contexts/UserContext"
+import { usePrivy } from "@privy-io/react-auth"
 
 interface EarlyAccessContextType {
     hasAccess: boolean
@@ -20,35 +22,46 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
     const [hasAccess, setHasAccess] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
 
-    // Check access code against the database
-    const handleCheckAccessCode = async (code: string) => {
-        const response = await fetch(`/api/access-code-check`, {
-            method: "POST",
-            body: JSON.stringify({ code }),
-        })
-
-        const data = await response.json()
-
-        if (data.success) {
-            setHasAccess(true)
-        } else {
-            setHasAccess(false)
-        }
-    }
+    const { authenticated, ready: privyReady } = usePrivy()
+    const { loggedInUser } = useUser()
 
     // Load localStorage value after mount
     useEffect(() => {
-        const savedAccess = localStorage.getItem("earlyAccessCode")
+        const checkAccess = async () => {
+            // Check localStorage for early access code first
+            const savedAccess = localStorage.getItem("earlyAccessCode")
+            if (savedAccess) {
+                const response = await fetch(`/api/access-code?code=${savedAccess}`, {
+                    method: "GET",
+                })
+                const data = await response.json()
 
-        // Check access code against the database
-        if (savedAccess) {
-            handleCheckAccessCode(savedAccess).finally(() => {
-                setIsLoading(false)
-            })
-        } else {
-            setIsLoading(false)
+                if (data.success) {
+                    setHasAccess(true)
+                    setIsLoading(false)
+                    return
+                }
+            }
+
+            // If localStorage check failed or no saved access, check logged in user
+            if (privyReady) {
+                if (authenticated) {
+                    if (loggedInUser?.accessCode) {
+                        localStorage.setItem("earlyAccessCode", loggedInUser.accessCode)
+                        setHasAccess(true)
+                        setIsLoading(false)
+                    } else {
+                        setIsLoading(false)
+                    }
+                } else {
+                    // If user is not logged in, set loading to false
+                    setIsLoading(false)
+                }
+            }
         }
-    }, [])
+
+        checkAccess()
+    }, [loggedInUser, authenticated, privyReady])
 
     // Update localStorage when state changes
     const handleSetHasAccess = (access: boolean, code?: string) => {

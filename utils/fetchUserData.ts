@@ -12,6 +12,7 @@ type FormattedUserData = {
     displayName: string
     profileImageUrl: string
     isSuperAdmin: boolean
+    accessCode: string
     projectAdmins: Array<{
         projectId: string
         projectName: string
@@ -36,6 +37,7 @@ export async function fetchUserData(
                 display_name, 
                 profile_image_url, 
                 is_super_admin,
+                signup_code,
                 project_admins (
                     project_id,
                     projects (
@@ -64,6 +66,7 @@ export async function fetchUserData(
             displayName: userData.display_name,
             profileImageUrl: userData.profile_image_url,
             isSuperAdmin: userData.is_super_admin,
+            accessCode: userData.signup_code,
             projectAdmins: userData.project_admins.map((project) => {
                 const projects = project.projects as unknown as ProjectData
                 return {
