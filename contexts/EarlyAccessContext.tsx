@@ -23,7 +23,7 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true)
 
     const { authenticated, ready: privyReady } = usePrivy()
-    const { loggedInUser } = useUser()
+    const { loggedInUser, loggedInUserLoading } = useUser()
 
     // Load localStorage value after mount
     useEffect(() => {
@@ -46,7 +46,7 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
             // If localStorage check failed or no saved access, check logged in user
             if (privyReady) {
                 if (authenticated) {
-                    if (loggedInUser) {
+                    if (!loggedInUserLoading) {
                         if (loggedInUser?.accessCode) {
                             localStorage.setItem("earlyAccessCode", loggedInUser.accessCode)
                             setHasAccess(true)
@@ -63,7 +63,7 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
         }
 
         checkAccess()
-    }, [loggedInUser, authenticated, privyReady])
+    }, [loggedInUser, authenticated, privyReady, loggedInUserLoading])
 
     // Update localStorage when state changes
     const handleSetHasAccess = (access: boolean, code?: string) => {

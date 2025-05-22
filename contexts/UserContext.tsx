@@ -78,6 +78,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                     setUserCreated(newUser.username)
                 } else {
                     console.warn("Failed to create user")
+                    setLoggedInUserLoading(false)
                 }
             }
             createUser()
