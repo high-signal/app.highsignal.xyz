@@ -17,13 +17,15 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
     try {
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
+        // Returns all prompts for the signal strength
+        // Prompt filtering for each type and date is carried out for each analysis
         const { data: signalStrengthData, error: signalError } = await supabase
             .from("signal_strengths")
             .select(
                 `
                 *,
                 prompts (
-                    prompt
+                    *
                 )
             `,
             )
@@ -201,6 +203,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
                         previousDays,
                         testingData,
                         day.date,
+                        (type = "raw"),
                     )
 
                     // === Validity check on maxValue ===
@@ -276,6 +279,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
             previousDays,
             testingData,
             dateYesterday,
+            (type = "smart"),
         )
 
         // === Validity check on maxValue ===

@@ -17,8 +17,11 @@ async function analyzeUserData(
     previousDays,
     testingData,
     dayDate,
+    type,
 ) {
     console.log(`Day ${dayDate} analysis started...`)
+
+    let promptId
 
     let model
     if (testingData && testingData.testingModel) {
@@ -41,8 +44,17 @@ async function analyzeUserData(
     let basePrompt
     if (testingData && testingData.testingPrompt) {
         basePrompt = eval("`" + testingData.testingPrompt + "`")
-    } else if (signalStrengthData.prompts.prompt) {
-        basePrompt = eval("`" + signalStrengthData.prompts.prompt + "`")
+    } else if (signalStrengthData.prompts.find((prompt) => prompt.type === type)) {
+        // TODO: For now it just gets the latest prompt for the type
+        // but in future it should get the prompt for the date so that history is consistent
+        // e.g. if a user disconnects and reconnects their forum account, the prompt used to calculate
+        // their previous days raw scores should be the same each time
+        const promptData = signalStrengthData.prompts
+            .filter((prompt) => prompt.type === type)
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
+
+        promptId = promptData.id
+        basePrompt = eval("`" + promptData.prompt + "`")
     } else {
         return { error: "No prompt set in DB" }
     }
@@ -124,7 +136,7 @@ truncatedData.length: ${truncatedData.length}
                 logs: logs,
                 model: model,
                 temperature: temperature,
-                promptId: signalStrengthData.prompt_id,
+                promptId: promptId,
                 maxChars: maxChars,
                 ...JSON.parse(cleanResponse),
             }
