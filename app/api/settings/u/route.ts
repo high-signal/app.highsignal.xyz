@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
                 username, 
                 display_name,
                 profile_image_url,
+                default_profile,
                 forum_users (
                     user_id,
                     project_id,
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
             username: targetUser.username,
             displayName: targetUser.display_name,
             profileImageUrl: targetUser.profile_image_url,
+            defaultProfile: targetUser.default_profile,
             forumUsers: targetUser.forum_users.map((forumUser: any) => ({
                 userId: forumUser.user_id,
                 projectId: forumUser.project_id,
@@ -128,6 +130,9 @@ export async function PATCH(request: NextRequest) {
         const updateData: Record<string, any> = {}
         if (changedFields.username) updateData.username = sanitize(changedFields.username.toLowerCase())
         if (changedFields.displayName) updateData.display_name = sanitize(changedFields.displayName)
+
+        // If the user updates their username or display name, set their default profile flag to false
+        updateData.default_profile = false
 
         // Update user
         const { data: updatedUser, error: updateError } = await supabase

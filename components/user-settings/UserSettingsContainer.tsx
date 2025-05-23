@@ -99,7 +99,7 @@ export default function UserSettingsContainer() {
     return (
         <ContentContainer>
             <SettingsTabbedContent
-                title={`${targetUser.displayName} Settings`}
+                title={`Your settings`}
                 tabs={[
                     {
                         value: "general",

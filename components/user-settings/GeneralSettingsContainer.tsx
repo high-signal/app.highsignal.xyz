@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Box, Button } from "@chakra-ui/react"
+import { Box, Button, Text, VStack } from "@chakra-ui/react"
 import { toaster } from "../ui/toaster"
 
 import { useUser } from "../../contexts/UserContext"
@@ -160,6 +160,25 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
                 targetName={targetUser!.username!}
                 uploadApiPath="/api/settings/u/profile-image"
             />
+            {targetUser.defaultProfile && (
+                <VStack
+                    bg={"contentBackground"}
+                    p={4}
+                    borderRadius="16px"
+                    w="100%"
+                    border="5px solid"
+                    borderColor="contentBorder"
+                    textAlign="center"
+                    gap={4}
+                >
+                    <Text fontSize="2xl" fontWeight="bold">
+                        Welcome to High Signal 👋
+                    </Text>
+                    <Text>This is your profile page.</Text>
+                    <Text>A default profile image, username and display name have been created for you.</Text>
+                    <Text>You can change these here to fully set up your profile.</Text>
+                </VStack>
+            )}
             <SettingsInputField
                 label="Username"
                 description="Your username is unique and is used to identify you."

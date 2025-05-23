@@ -17,6 +17,7 @@ interface UserData {
     forumUsers?: ForumUser[]
     isSuperAdmin?: boolean
     connectedAccounts?: ConnectedAccount[]
+    defaultProfile?: boolean
 }
 
 interface ConnectedAccount {
