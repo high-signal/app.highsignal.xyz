@@ -24,6 +24,7 @@ export default function Head() {
                 href={`${ASSETS.LOGO_BASE_URL}${process.env.NODE_ENV === "development" ? "/e_colorize:50,co_rgb:FF5400/w_300,h_300,c_fill,q_auto,f_webp/" : "/w_300,h_300,c_fill,q_auto,f_webp/"}${ASSETS.LOGO_ID}`}
             />
             <meta name="apple-mobile-web-app-capable" content="yes" />
+            <meta name="mobile-web-app-capable" content="yes" />
             <meta name="apple-mobile-web-app-status-bar-style" content="default" />
             <meta name="apple-mobile-web-app-title" content={siteName} />
 
