@@ -280,14 +280,20 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                         : {}),
                     signalStrengths: userSignalStrengths.map((uss) => ({
                         signalStrengthName: uss.data[0]?.signal_strengths?.name || uss.signalStrengthId,
-                        data: uss.data.map((d) => ({
-                            day: d.day,
+                        data: uss.data.map((d, index) => ({
                             ...(d.last_checked ? { lastChecked: d.last_checked } : {}),
+                            // These are always available to the user for every result for historical charts
+                            day: d.day,
                             value: d.value,
                             maxValue: d.max_value,
-                            summary: d.summary,
-                            description: d.description,
-                            improvements: d.improvements,
+                            // Only show details for the latest result to the user
+                            ...(isSuperAdminRequesting || index === 0
+                                ? {
+                                      summary: d.summary,
+                                      description: d.description,
+                                      improvements: d.improvements,
+                                  }
+                                : {}),
                             ...(isSuperAdminRequesting
                                 ? {
                                       requestId: d.request_id,
