@@ -252,15 +252,16 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
         const latestActivityData = activityData[0]
         const dateYesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
 
-        // If a smart score is already in the database for dateYesterday, skip the analysis
+        // If a non-test smart score is already in the database for dateYesterday, skip the analysis
         const { data: existingData, error: existingError } = await supabase
             .from("user_signal_strengths")
-            .select("*")
+            .select("id")
             .eq("day", dateYesterday)
             .eq("user_id", user_id)
             .eq("project_id", project_id)
             .eq("signal_strength_id", signal_strength_id)
             .not("value", "is", null)
+            .is("test_requesting_user", null)
             .single()
 
         if (!testingData && existingData) {
@@ -270,6 +271,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
             console.log("Analysis complete.")
             return
         }
+
         const analysisResults = await analyzeUserData(
             signalStrengthData,
             latestActivityData,
