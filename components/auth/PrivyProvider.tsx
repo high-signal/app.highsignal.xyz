@@ -3,6 +3,8 @@
 import { PrivyProvider as PrivyAuthProvider } from "@privy-io/react-auth"
 import { ReactNode } from "react"
 
+import { ASSETS } from "../../config/constants"
+
 interface PrivyProviderProps {
     children: ReactNode
 }
@@ -14,11 +16,11 @@ export default function PrivyProvider({ children }: PrivyProviderProps) {
             config={{
                 loginMethods: ["email", "wallet", "twitter", "discord", "google", "github", "farcaster", "passkey"],
                 appearance: {
-                    // logo: "/static/logo/logo.png",
+                    logo: `${ASSETS.LOGO_BASE_URL}/w_300,h_300,c_fill,q_auto,f_webp/${ASSETS.LOGO_ID}`,
                     landingHeader: "High Signal",
                     loginMessage: "Sign in or create an account",
-                    theme: "dark",
-                    accentColor: "#A6A6A6",
+                    theme: "#012F52",
+                    accentColor: "#89d5e0",
                     walletChainType: "ethereum-only",
                 },
             }}
