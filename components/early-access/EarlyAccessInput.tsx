@@ -22,19 +22,6 @@ export default function EarlyAccessInput() {
     const { setTriggerUserCreation } = useUser()
     const { login, logout, authenticated, ready: privyReady } = usePrivy()
 
-    // Check url params for early access code
-    useEffect(() => {
-        const earlyAccessCode = searchParams.get("earlyAccessCode")
-        if (earlyAccessCode && earlyAccessCode !== "") {
-            setCode(earlyAccessCode)
-            handleSubmit(earlyAccessCode)
-        }
-    }, [searchParams])
-
-    useEffect(() => {
-        setIsButtonLoading(false)
-    }, [authenticated])
-
     const handleSubmit = async (code: string) => {
         // Check access code against the database
         setIsLoading(true)
@@ -58,6 +45,19 @@ export default function EarlyAccessInput() {
             handleSubmit(code)
         }
     }
+
+    // Check url params for early access code
+    useEffect(() => {
+        const earlyAccessCode = searchParams.get("earlyAccessCode")
+        if (earlyAccessCode && earlyAccessCode !== "") {
+            setCode(earlyAccessCode)
+            handleSubmit(earlyAccessCode)
+        }
+    }, [searchParams, handleSubmit])
+
+    useEffect(() => {
+        setIsButtonLoading(false)
+    }, [authenticated])
 
     return (
         <VStack gap={0} w="100%" pt={50} justifyContent="center" alignItems="center" position="relative" zIndex={1}>
