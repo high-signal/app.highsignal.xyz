@@ -4,6 +4,7 @@ const { updateUserData } = require("./updateUserData")
 const { updateRequired } = require("./updateRequired")
 const { analyzeUserData } = require("./analyzeUserData")
 const { createClient } = require("@supabase/supabase-js")
+const { clearLastChecked } = require("./clearLastChecked")
 
 // Function to analyze forum user activity
 async function analyzeForumUserActivity(user_id, project_id, forum_username, testingData) {
@@ -96,6 +97,28 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
                 `Signal strength ${SIGNAL_STRENGTH_NAME} is not enabled for this project: ${projectSignalData.projects.display_name}`,
             )
             return
+        }
+
+        // Set the last_checked value so that the user profile page shows the loading animation
+        // even when this update is triggered automatically each day
+        const { error: lastCheckError } = await supabase.from("user_signal_strengths").upsert(
+            {
+                user_id: user_id,
+                project_id: project_id,
+                signal_strength_id: signal_strength_id,
+                last_checked: Math.floor(Date.now() / 1000),
+                request_id: `last_checked_${user_id}_${project_id}_${signal_strength_id}`,
+                created: 99999999999999,
+            },
+            {
+                onConflict: "request_id",
+            },
+        )
+
+        if (lastCheckError) {
+            console.error(`Error updating last_checked for ${forum_username}:`, lastCheckError.message)
+        } else {
+            console.log(`Successfully updated last_checked for ${forum_username}`)
         }
 
         // === Get user data from Supabase ===
@@ -269,6 +292,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
                 `Smart score for ${displayName} (forum username: ${forum_username}) on ${dateYesterday} already exists in the database. Skipping...`,
             )
             console.log("Analysis complete.")
+            clearLastChecked(supabase, displayName, user_id, project_id, signal_strength_id)
             return
         }
 
@@ -312,6 +336,8 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
         } else {
             console.error(`Analysis failed for ${forum_username}:`, analysisResults?.error || "Unknown error")
         }
+
+        clearLastChecked(supabase, displayName, user_id, project_id, signal_strength_id)
     } catch (error) {
         console.error("Error in analyzeForumUserActivity:", error)
     }

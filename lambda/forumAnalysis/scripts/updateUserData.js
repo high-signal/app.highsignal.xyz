@@ -16,6 +16,9 @@ async function updateUserData(
 
         if (!testingData) {
             // Store the new last_updated date to be used to know when to re-run the AI analysis
+            // This will run for every update, so the first time it will run X times for each day
+            // but after that it will only run once per day as there will only be at most one raw score
+            // calculation per day
             const { error } = await supabase
                 .from("forum_users")
                 .update({
@@ -29,18 +32,6 @@ async function updateUserData(
                 console.error(`Error updating database for ${username}:`, error.message)
             } else {
                 console.log(`Successfully updated latestActivityDate in database for ${username}`)
-            }
-
-            // Delete any last_checked values for this user and project
-            const { error: deleteError } = await supabase
-                .from("user_signal_strengths")
-                .delete()
-                .eq("request_id", `last_checked_${user.user_id}_${PROJECT_ID}_${SIGNAL_STRENGTH_ID}`)
-
-            if (deleteError) {
-                console.error(`Error deleting last_checked values for ${username}:`, deleteError.message)
-            } else {
-                console.log(`Successfully deleted last_checked values for ${username}`)
             }
         }
 
