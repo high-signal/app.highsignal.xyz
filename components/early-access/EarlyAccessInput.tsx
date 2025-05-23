@@ -2,28 +2,40 @@
 
 import { VStack, Button, Text, HStack, Box, Spinner, Image, Flex } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
-import SingleLineTextInput from "../ui/SingleLineTextInput"
+import { useSearchParams } from "next/navigation"
+
 import { useEarlyAccess } from "../../contexts/EarlyAccessContext"
 import { usePrivy } from "@privy-io/react-auth"
 import { useUser } from "../../contexts/UserContext"
 import { ASSETS } from "../../config/constants"
 
+import SingleLineTextInput from "../ui/SingleLineTextInput"
+
 export default function EarlyAccessInput() {
+    const searchParams = useSearchParams()
+
     const [code, setCode] = useState("")
     const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
+    const [isButtonLoading, setIsButtonLoading] = useState(false)
     const { setHasAccess } = useEarlyAccess()
     const { setTriggerUserCreation } = useUser()
     const { login, logout, authenticated, ready: privyReady } = usePrivy()
 
-    const [isButtonLoading, setIsButtonLoading] = useState(false)
+    // Check url params for early access code
+    useEffect(() => {
+        const earlyAccessCode = searchParams.get("earlyAccessCode")
+        if (earlyAccessCode && earlyAccessCode !== "") {
+            setCode(earlyAccessCode)
+            handleSubmit(earlyAccessCode)
+        }
+    }, [searchParams])
 
     useEffect(() => {
         setIsButtonLoading(false)
     }, [authenticated])
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+    const handleSubmit = async (code: string) => {
         // Check access code against the database
         setIsLoading(true)
         const response = await fetch(`/api/access-code?code=${code}`, {
@@ -43,13 +55,13 @@ export default function EarlyAccessInput() {
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
             e.preventDefault()
-            handleSubmit(e as any)
+            handleSubmit(code)
         }
     }
 
     return (
         <VStack gap={0} w="100%" pt={50} justifyContent="center" alignItems="center" position="relative" zIndex={1}>
-            <HStack gap={2} justifyContent={"center"} alignItems={"center"} cursor={"default"} transform="scale(1.4)">
+            <VStack gap={1} justifyContent={"center"} alignItems={"center"} cursor={"default"} transform="scale(1.4)">
                 <Image
                     src={`${ASSETS.LOGO_BASE_URL}/w_300,h_300,c_fill,q_auto,f_webp/${ASSETS.LOGO_ID}`}
                     alt="Logo"
@@ -60,10 +72,16 @@ export default function EarlyAccessInput() {
                 <Text minW="80px" fontWeight="bold" fontSize="xl" whiteSpace={"nowrap"}>
                     {process.env.NEXT_PUBLIC_SITE_NAME}
                 </Text>
-            </HStack>
+            </VStack>
             <VStack gap={6} w="90%" maxW="300px" px={6} transform="scale(1.1)" mt={3}>
-                <form onSubmit={handleSubmit} style={{ width: "100%" }}>
-                    <VStack gap={4} h={"100%"} justifyContent="start">
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault()
+                        handleSubmit(code)
+                    }}
+                    style={{ width: "100%" }}
+                >
+                    <VStack gap={2} h={"100%"} justifyContent="start">
                         {error ? (
                             <Text color="orange.500" h={"24px"} pt={3}>
                                 {error}
@@ -71,12 +89,14 @@ export default function EarlyAccessInput() {
                         ) : (
                             <Box h={"24px"} bg={"green.500"}></Box>
                         )}
-                        <SingleLineTextInput
-                            placeholder="Enter access code"
-                            value={code}
-                            onChange={(e) => setCode(e.target.value.toLowerCase())}
-                            onKeyDown={handleKeyDown}
-                        />
+                        <Box pt={2} w="100%">
+                            <SingleLineTextInput
+                                placeholder="Enter access code"
+                                value={code}
+                                onChange={(e) => setCode(e.target.value.toLowerCase())}
+                                onKeyDown={handleKeyDown}
+                            />
+                        </Box>
                         <Button
                             secondaryButton
                             borderRadius="full"
@@ -95,7 +115,7 @@ export default function EarlyAccessInput() {
                 <>
                     <Flex
                         mt={5}
-                        gap={1}
+                        gap={authenticated ? 1 : 2}
                         pt={authenticated ? 3 : 0}
                         flexWrap={"wrap"}
                         flexDirection={{ base: "column", md: authenticated ? "row" : "column" }}
