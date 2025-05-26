@@ -1,7 +1,7 @@
 "use client"
 
 import { VStack, Button, Text, HStack, Box, Spinner, Image, Flex } from "@chakra-ui/react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 
 import { useEarlyAccess } from "../../contexts/EarlyAccessContext"
@@ -22,22 +22,25 @@ export default function EarlyAccessInput() {
     const { setTriggerUserCreation } = useUser()
     const { login, logout, authenticated, ready: privyReady } = usePrivy()
 
-    const handleSubmit = async (code: string) => {
-        // Check access code against the database
-        setIsLoading(true)
-        const response = await fetch(`/api/access-code?code=${code}`, {
-            method: "GET",
-        })
-        const data = await response.json()
+    const handleSubmit = useCallback(
+        async (code: string) => {
+            // Check access code against the database
+            setIsLoading(true)
+            const response = await fetch(`/api/access-code?code=${code}`, {
+                method: "GET",
+            })
+            const data = await response.json()
 
-        if (data.success) {
-            setHasAccess(true, code)
-            setTriggerUserCreation(true)
-        } else {
-            setError("Invalid access code")
-        }
-        setIsLoading(false)
-    }
+            if (data.success) {
+                setHasAccess(true, code)
+                setTriggerUserCreation(true)
+            } else {
+                setError("Invalid access code")
+            }
+            setIsLoading(false)
+        },
+        [setHasAccess, setTriggerUserCreation],
+    )
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
