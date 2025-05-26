@@ -122,12 +122,11 @@ export default function ProjectSettingsContainer() {
                         disabled: true,
                         content: <GeneralSettingsContainer />,
                     },
-                    ...signalStrengths.map((signalStrength) => ({
-                        value: signalStrength.name,
-                        label: signalStrength.displayName.split(" ")[0],
-                        disabled: signalStrength.status != "active",
-                        content: <SignalStrengthSettingsContainer signalStrength={signalStrength} />,
-                    })),
+                    {
+                        value: "signalStrengths",
+                        label: "Signal Strengths",
+                        content: <SignalStrengthSettingsContainer signalStrengths={signalStrengths} />,
+                    },
                 ]}
             />
         </ContentContainer>

@@ -15,7 +15,7 @@ interface TabItem {
 interface SettingsTabbedContentProps {
     tabs: TabItem[]
     listWidth?: string
-    title: string
+    title?: string
 }
 
 export default function SettingsTabbedContent({ tabs, listWidth = "500px", title }: SettingsTabbedContentProps) {
@@ -28,9 +28,11 @@ export default function SettingsTabbedContent({ tabs, listWidth = "500px", title
 
     return (
         <>
-            <Text fontSize="3xl" fontWeight="bold" pt={5}>
-                {title}
-            </Text>
+            {title && (
+                <Text fontSize="3xl" fontWeight="bold" pt={5}>
+                    {title}
+                </Text>
+            )}
             <Tabs.Root lazyMount unmountOnExit defaultValue={defaultTab} variant={"enclosed"} w={"100%"}>
                 <Box display="flex" justifyContent="center" w="100%">
                     <Tabs.List

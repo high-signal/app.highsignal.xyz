@@ -1,15 +1,25 @@
 "use client"
 
-import { Text, Spinner } from "@chakra-ui/react"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import SignalStrengthSettings from "./SignalStrengthSettings"
-import { useEffect, useState } from "react"
-import { getAccessToken } from "@privy-io/react-auth"
 
-export default function SignalStrengthSettingsContainer({ signalStrength }: { signalStrength: SignalStrengthData }) {
+import SettingsTabbedContent from "../ui/SettingsTabbedContent"
+
+export default function SignalStrengthSettingsContainer({
+    signalStrengths,
+}: {
+    signalStrengths: SignalStrengthData[]
+}) {
     return (
-        <SettingsSectionContainer maxWidth="100%" px={{ base: 0, sm: 4 }}>
-            <SignalStrengthSettings signalStrength={signalStrength} />
-        </SettingsSectionContainer>
+        <SettingsTabbedContent
+            tabs={[
+                ...signalStrengths.map((signalStrength) => ({
+                    value: signalStrength.name,
+                    label: signalStrength.displayName.split(" ")[0],
+                    disabled: signalStrength.status != "active",
+                    content: <SignalStrengthSettings signalStrength={signalStrength} />,
+                })),
+            ]}
+        />
     )
 }
