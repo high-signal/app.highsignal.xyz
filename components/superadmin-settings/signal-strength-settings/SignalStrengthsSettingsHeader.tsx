@@ -7,13 +7,16 @@ export default function SignalStrengthsSettingsHeader({
     project,
     selectedUser,
     signalStrength,
-    currentForumUsername,
 }: {
     project: ProjectData | null
     selectedUser: UserData | null
     signalStrength: SignalStrengthData
-    currentForumUsername: string
 }) {
+    const signalStrengthUsername =
+        selectedUser?.connectedAccounts
+            ?.find((accountType) => accountType.name === signalStrength.name)
+            ?.data?.find((forumUser) => Number(forumUser.projectId) === Number(project?.id))?.forumUsername || ""
+
     return (
         <VStack
             justifyContent={"center"}
@@ -57,7 +60,6 @@ export default function SignalStrengthsSettingsHeader({
                     </Text>
                 </HStack>
             </HStack>
-
             <HStack
                 maxW={"100%"}
                 bg={"pageBackground"}
@@ -70,10 +72,10 @@ export default function SignalStrengthsSettingsHeader({
             >
                 <HStack flexWrap={"wrap"} columnGap={3} rowGap={1} justifyContent={"center"}>
                     <Text>{signalStrength.displayName.split(" ")[0]} username</Text>
-                    <Text fontWeight={"bold"} color={currentForumUsername ? "inherit" : "textColorMuted"}>
-                        {selectedUser && currentForumUsername
-                            ? currentForumUsername
-                            : selectedUser && !currentForumUsername
+                    <Text fontWeight={"bold"} color={signalStrengthUsername ? "inherit" : "textColorMuted"}>
+                        {selectedUser && signalStrengthUsername
+                            ? signalStrengthUsername
+                            : selectedUser && !signalStrengthUsername
                               ? "Not connected"
                               : "Select a user"}
                     </Text>
@@ -100,7 +102,7 @@ export default function SignalStrengthsSettingsHeader({
                                         signalStrengthName: signalStrength.name,
                                         userId: selectedUser.id,
                                         projectId: project?.id,
-                                        forumUsername: currentForumUsername,
+                                        signalStrengthUsername: signalStrengthUsername,
                                     }),
                                 })
 

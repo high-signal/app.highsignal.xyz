@@ -24,8 +24,7 @@ export default function SignalStrengthSettings({
     newUserSelectedTrigger: boolean
 }) {
     const [selectedUserRawData, setSelectedUserRawData] = useState<UserData | null>(null)
-    const [currentForumUsername, setCurrentForumUsername] = useState<string>("")
-    const [newForumUsername, setNewForumUsername] = useState<string>("")
+    const [newSignalStrengthUsername, setNewSignalStrengthUsername] = useState<string>("")
 
     // TEST TIMER ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     const [testTimerStart, setTestTimerStart] = useState<number | null>(null)
@@ -83,20 +82,6 @@ export default function SignalStrengthSettings({
     const [testResultsLoading, setTestResultsLoading] = useState(false)
     const [testResultRawData, setTestResultRawData] = useState<SignalStrengthUserData[] | null>(null)
 
-    // When a user is selected, set the current forum username
-    useEffect(() => {
-        if (selectedUser) {
-            setCurrentForumUsername(
-                selectedUser?.connectedAccounts
-                    ?.find((accountType) => accountType.name === signalStrength.name)
-                    ?.data?.find((forumUser) => Number(forumUser.projectId) === Number(project?.id))?.forumUsername ||
-                    "",
-            )
-        } else {
-            setCurrentForumUsername("")
-        }
-    }, [selectedUser, project])
-
     function resetTest() {
         setTestResult(null)
         setNewModel("")
@@ -107,7 +92,7 @@ export default function SignalStrengthSettings({
         setTestTimerStart(null)
         setTestTimerStop(null)
         setTestTimerDuration(null)
-        setNewForumUsername("")
+        setNewSignalStrengthUsername("")
         setTestError(null)
     }
 
@@ -162,7 +147,7 @@ export default function SignalStrengthSettings({
                     testingModel: newModel,
                     testingTemperature: newTemperature ? Number(newTemperature) : undefined,
                     testingMaxChars: newMaxChars ? Number(newMaxChars) : undefined,
-                    testingForumUsername: newForumUsername,
+                    testingSignalStrengthUsername: newSignalStrengthUsername,
                 }),
             },
         )
@@ -235,7 +220,6 @@ export default function SignalStrengthSettings({
                 signalStrength={signalStrength}
                 project={project}
                 selectedUser={selectedUser}
-                currentForumUsername={currentForumUsername}
             />
             <VStack w="100%" pb={2} gap={0}>
                 {/* Prompt Options */}
@@ -344,14 +328,14 @@ export default function SignalStrengthSettings({
                         />
                         <SingleLineTextInput
                             maxW={"300px"}
-                            value={newForumUsername}
+                            value={newSignalStrengthUsername}
                             onChange={(e) => {
-                                setNewForumUsername(e.target.value)
+                                setNewSignalStrengthUsername(e.target.value)
                                 setTestResult(null)
                             }}
                             placeholder={`New ${signalStrength.displayName.split(" ")[0].toLowerCase()} username... (optional)`}
                             handleClear={() => {
-                                setNewForumUsername("")
+                                setNewSignalStrengthUsername("")
                                 setTestResult(null)
                             }}
                             bg="pageBackground"
@@ -474,7 +458,7 @@ export default function SignalStrengthSettings({
                                 />
                             ) : (
                                 <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
-                                    <Text>Select a test user to view their current analysis</Text>
+                                    <Text>Select a user to view their current analysis</Text>
                                 </VStack>
                             )}
                             {selectedUser && (
@@ -560,7 +544,7 @@ export default function SignalStrengthSettings({
                                 </VStack>
                             ) : (
                                 <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
-                                    <Text>Select a test user to test their new analysis</Text>
+                                    <Text>Select a user to test their new analysis</Text>
                                 </VStack>
                             )}
                             {testResult && (

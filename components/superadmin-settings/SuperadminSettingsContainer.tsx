@@ -89,7 +89,7 @@ export default function ProjectSettingsContainer() {
             setIsSignalStrengthsLoading(false)
         }
         fetchSignalStrengths()
-    }, [])
+    }, [getAccessToken])
 
     if (isLoading || isSignalStrengthsLoading) {
         return (

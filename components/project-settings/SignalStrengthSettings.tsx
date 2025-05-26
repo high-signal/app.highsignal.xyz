@@ -156,7 +156,7 @@ export default function SignalStrengthSettings({
                         <Box position="relative" minW={{ base: "100%", sm: "250px" }} flexGrow={1}>
                             <SingleLineTextInput
                                 ref={inputRef}
-                                placeholder="Select test user..."
+                                placeholder="Search users..."
                                 value={searchTerm}
                                 onChange={(e) => {
                                     setSearchTerm(e.target.value)

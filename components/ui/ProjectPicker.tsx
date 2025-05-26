@@ -32,7 +32,7 @@ export default function ProjectPicker({
         <Box position="relative" minW={{ base: "100%", sm: "250px" }} flexGrow={1}>
             <SingleLineTextInput
                 ref={inputRef}
-                placeholder="Select project..."
+                placeholder="Search projects..."
                 value={searchTerm}
                 onChange={(e) => {
                     setSearchTerm(e.target.value)

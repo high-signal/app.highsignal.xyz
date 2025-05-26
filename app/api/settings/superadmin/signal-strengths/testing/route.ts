@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
             testingModel,
             testingTemperature,
             testingMaxChars,
-            testingForumUsername,
+            testingSignalStrengthUsername,
         } = await request.json()
 
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -56,15 +56,20 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        let forumUsername
-        if (testingForumUsername) {
-            forumUsername = testingForumUsername
-        } else {
+        let signalStrengthUsername
+        if (testingSignalStrengthUsername) {
+            signalStrengthUsername = testingSignalStrengthUsername
+        } else if (signalStrength.name === "discourse_forum") {
             const forumUser = await getForumUserFromDb(supabase, targetUser.id, project.id)
             if (!forumUser) {
                 return NextResponse.json({ error: "Forum user not found" }, { status: 404 })
             }
-            forumUsername = forumUser.forum_username
+            signalStrengthUsername = forumUser.forum_username
+        } else {
+            return NextResponse.json(
+                { error: `Signal strength (${signalStrength.name}) username not configured for testing` },
+                { status: 404 },
+            )
         }
 
         // ***************
@@ -76,11 +81,18 @@ export async function POST(request: NextRequest) {
             testingModel: sanitize(testingModel),
             testingTemperature: testingTemperature,
             testingMaxChars: testingMaxChars,
-            testingForumUsername: forumUsername,
+            testingSignalStrengthUsername: signalStrengthUsername,
         }
 
         // Format the request body and pass it to the lambda function
-        await triggerForumAnalysis(targetUser.id, project.id, forumUsername, testingData)
+        if (signalStrength.name === "discourse_forum") {
+            await triggerForumAnalysis(targetUser.id, project.id, signalStrengthUsername, testingData)
+        } else {
+            return NextResponse.json(
+                { error: `Signal strength (${signalStrength.name}) not configured for testing` },
+                { status: 404 },
+            )
+        }
 
         return NextResponse.json({ success: true, message: "Analysis initiated successfully" }, { status: 200 })
     } catch (error) {
@@ -150,7 +162,7 @@ async function getForumUserFromDb(supabase: SupabaseClient, targetUserId: string
 async function getSignalStrengthFromDb(supabase: SupabaseClient, projectUrlSlug: string, signalStrengthName: string) {
     const { data: signalStrength, error: signalStrengthError } = await supabase
         .from("signal_strengths")
-        .select("id")
+        .select("id, name")
         .eq("name", signalStrengthName)
         .single()
 
