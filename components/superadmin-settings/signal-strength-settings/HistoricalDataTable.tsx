@@ -21,8 +21,8 @@ export default function HistoricalDataTable({
                 <Table.Header>
                     <Table.Row bg={"pageBackground"}>
                         <Table.ColumnHeader borderColor={"contentBorder"}>Day</Table.ColumnHeader>
-                        <Table.ColumnHeader borderColor={"contentBorder"}>Smart Value</Table.ColumnHeader>
                         <Table.ColumnHeader borderColor={"contentBorder"}>Raw Value</Table.ColumnHeader>
+                        <Table.ColumnHeader borderColor={"contentBorder"}>Smart Value</Table.ColumnHeader>
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
@@ -43,7 +43,7 @@ export default function HistoricalDataTable({
                                     borderBottom={day !== allDays[allDays.length - 1] ? undefined : "none"}
                                 >
                                     <Text textAlign={"center"}>
-                                        {processedData ? `${processedData.value}/${processedData.maxValue}` : "-"}
+                                        {rawData ? `${rawData.rawValue}/${rawData.maxValue}` : "-"}
                                     </Text>
                                 </Table.Cell>
                                 <Table.Cell
@@ -51,7 +51,7 @@ export default function HistoricalDataTable({
                                     borderBottom={day !== allDays[allDays.length - 1] ? undefined : "none"}
                                 >
                                     <Text textAlign={"center"}>
-                                        {rawData ? `${rawData.rawValue}/${rawData.maxValue}` : "-"}
+                                        {processedData ? `${processedData.value}/${processedData.maxValue}` : "-"}
                                     </Text>
                                 </Table.Cell>
                             </Table.Row>
