@@ -1,20 +1,64 @@
-import { HStack, Text, Box, Image, Spinner } from "@chakra-ui/react"
+import { HStack, Text, Box, Image, Spinner, VStack, Table } from "@chakra-ui/react"
 import { useState, useRef, useEffect } from "react"
 import SingleLineTextInput from "./SingleLineTextInput"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { ASSETS } from "../../config/constants"
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faTriangleExclamation, faTableList, faLinkSlash } from "@fortawesome/free-solid-svg-icons"
+import { faDiscord, faXTwitter } from "@fortawesome/free-brands-svg-icons"
+
 interface UserPickerProps {
+    signalStrengths: SignalStrengthData[]
     onUserSelect: (user: UserData) => void
     onClear?: () => void
-    // signalStrengthName?: string
     disabled?: boolean
     isSuperAdminRequesting?: boolean
 }
 
+// Mapping of signal strength names to FontAwesome icons
+const signalStrengthIcons: { [key: string]: any } = {
+    discourse_forum: faTableList,
+    discord: faDiscord,
+    x_twitter: faXTwitter,
+}
+
+const usernameWidth = { base: "100px", sm: "100px" }
+const signalStrengthWidth = { base: "30px", sm: "30px" }
+
+const TableHeader = ({
+    children,
+    textAlign = "left",
+    fontSize = "sm",
+    maxW,
+    px = { base: 0, sm: 2 },
+}: {
+    children: React.ReactNode
+    textAlign?: "left" | "center"
+    fontSize?: string
+    maxW?: { base: string; sm: string }
+    px?: { base: number; sm: number }
+}) => (
+    <Table.ColumnHeader
+        color="textColorMuted"
+        borderBottom="none"
+        textAlign={textAlign}
+        minW={maxW}
+        maxW={maxW}
+        w={maxW}
+        px={px}
+        pt={2}
+        pb={0}
+        fontSize={fontSize}
+        whiteSpace="nowrap"
+    >
+        {children}
+    </Table.ColumnHeader>
+)
+
 export default function UserPicker({
+    signalStrengths,
     onUserSelect,
-    // signalStrengthName,
     disabled = false,
     onClear,
     isSuperAdminRequesting = false,
@@ -85,99 +129,154 @@ export default function UserPicker({
                     right={0}
                     mt={1}
                     bg="pageBackground"
-                    borderWidth={2}
+                    borderWidth={3}
                     borderColor="contentBorder"
                     borderRadius="16px"
                     boxShadow="md"
                     zIndex={5}
-                    maxH="200px"
+                    maxH="50dvh"
                     overflowY="auto"
                 >
-                    {loading ? (
-                        <HStack w={"100%"} h={"30px"} ml={2}>
-                            <Spinner />
-                        </HStack>
-                    ) : error ? (
-                        <Text p={2} color="red.500">
-                            Error loading users
-                        </Text>
-                    ) : users.length === 0 && searchTerm.length >= 1 ? (
-                        <Text p={2}>No users found</Text>
-                    ) : (
-                        users.map((user) => (
-                            <Box
-                                key={user.username}
-                                p={2}
-                                cursor="pointer"
-                                _hover={{ bg: "contentBackground" }}
-                                onMouseDown={(e) => {
-                                    e.preventDefault()
-                                    setSearchTerm(user.username || "")
-                                    setIsFocused(false)
-                                    inputRef.current?.blur()
-                                    onUserSelect(user)
-                                }}
-                            >
-                                <HStack justifyContent={"space-between"} w={"100%"}>
-                                    <HStack>
-                                        <Image
-                                            src={
-                                                !user.profileImageUrl || user.profileImageUrl === ""
-                                                    ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                                    : user.profileImageUrl
-                                            }
-                                            alt={`User ${user.displayName} Profile Image`}
-                                            fit="cover"
-                                            transition="transform 0.2s ease-in-out"
-                                            w="25px"
-                                            borderRadius="full"
-                                        />
-                                        <Text>{user.username}</Text>
-                                    </HStack>
-                                    {/* TODO: Refactor this to use every signal strength + total score */}
-                                    {/* {signalStrengthName &&
-                                        (() => {
-                                            const ss = user.signalStrengths?.find(
-                                                (s) => s.signalStrengthName === signalStrengthName,
-                                            )?.data?.[0]
-                                            const value = ss?.value
-
-                                            let display
-                                            let color
-                                            let bg
-                                            let fontSize
-                                            if (value === null || value === undefined) {
-                                                display = "Not connected"
-                                                color = "lozenge.text.disabled"
-                                                bg = "pageBackground"
-                                                fontSize = "xs"
-                                            } else if (Number(value) == 0) {
-                                                display = value
-                                                color = "lozenge.text.disabled"
-                                                bg = "lozenge.background.disabled"
-                                            } else {
-                                                display = value
-                                                color = "lozenge.text.active"
-                                                bg = "lozenge.background.active"
-                                            }
-
-                                            return (
-                                                <Text
-                                                    bg={bg}
-                                                    color={color}
-                                                    px={2}
-                                                    py={1}
-                                                    borderRadius={"10px"}
-                                                    fontSize={fontSize || undefined}
-                                                >
-                                                    {display}
+                    <Table.Root>
+                        <Table.Header position="sticky" top={0} zIndex={1}>
+                            <Table.Row bg="pageBackground">
+                                <TableHeader px={{ base: 0, sm: 0 }} maxW={usernameWidth}>
+                                    <Box w={"100%"} borderBottom="2px solid" borderColor="contentBorder" pb={1}>
+                                        <Text pl={3}>Username</Text>
+                                    </Box>
+                                </TableHeader>
+                                {signalStrengths.map((signalStrength) => (
+                                    <TableHeader
+                                        key={signalStrength.name}
+                                        textAlign={"center"}
+                                        px={{ base: 0, sm: 0 }}
+                                        maxW={signalStrengthWidth}
+                                        fontSize={"lg"}
+                                    >
+                                        <Box w={"100%"} borderBottom="2px solid" borderColor="contentBorder" pb={1}>
+                                            <FontAwesomeIcon
+                                                icon={signalStrengthIcons[signalStrength.name] || faTriangleExclamation}
+                                            />
+                                        </Box>
+                                    </TableHeader>
+                                ))}
+                            </Table.Row>
+                        </Table.Header>
+                        <Table.Body>
+                            {loading ? (
+                                <Table.Row bg="pageBackground">
+                                    <Table.Cell>
+                                        <HStack w={"100%"} ml={1}>
+                                            <Spinner />
+                                        </HStack>
+                                    </Table.Cell>
+                                </Table.Row>
+                            ) : error ? (
+                                <Table.Row bg="pageBackground">
+                                    <Table.Cell>
+                                        <Text ml={"2px"} color="orange.500">
+                                            Error loading users
+                                        </Text>
+                                    </Table.Cell>
+                                </Table.Row>
+                            ) : users.length === 0 ? (
+                                <Table.Row bg="pageBackground">
+                                    <Table.Cell>
+                                        <Text ml={"2px"}>No users found</Text>
+                                    </Table.Cell>
+                                </Table.Row>
+                            ) : (
+                                users.map((user) => (
+                                    <Table.Row
+                                        key={user.username}
+                                        bg="pageBackground"
+                                        cursor="pointer"
+                                        _hover={{ bg: "contentBackground" }}
+                                        onMouseDown={(e) => {
+                                            e.preventDefault()
+                                            setSearchTerm(user.username || "")
+                                            setIsFocused(false)
+                                            inputRef.current?.blur()
+                                            onUserSelect(user)
+                                        }}
+                                    >
+                                        <Table.Cell minW={"100px"} maxW={"100px"} overflow={"hidden"} py={2}>
+                                            <HStack>
+                                                <Image
+                                                    src={
+                                                        !user.profileImageUrl || user.profileImageUrl === ""
+                                                            ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                                            : user.profileImageUrl
+                                                    }
+                                                    alt={`User ${user.displayName} Profile Image`}
+                                                    fit="cover"
+                                                    transition="transform 0.2s ease-in-out"
+                                                    w="25px"
+                                                    borderRadius="full"
+                                                />
+                                                <Text wordBreak="break-all" overflowWrap="break-word">
+                                                    {user.username}
                                                 </Text>
-                                            )
-                                        })()} */}
-                                </HStack>
-                            </Box>
-                        ))
-                    )}
+                                            </HStack>
+                                        </Table.Cell>
+                                        {signalStrengths.map((signalStrength) => (
+                                            <Table.Cell
+                                                key={signalStrength.name}
+                                                fontFamily={"monospace"}
+                                                maxW={signalStrengthWidth}
+                                                minW={signalStrengthWidth}
+                                                w={signalStrengthWidth}
+                                                px={0}
+                                                py={0}
+                                                textAlign={"center"}
+                                            >
+                                                {(() => {
+                                                    const ss = user.signalStrengths?.find(
+                                                        (s) => s.signalStrengthName === signalStrength.name,
+                                                    )?.data?.[0]
+                                                    const value = ss?.value
+
+                                                    let display
+                                                    let color
+                                                    let bg
+                                                    let fontSize
+                                                    if (value === null || value === undefined) {
+                                                        return (
+                                                            <Box color="textColorMuted">
+                                                                <FontAwesomeIcon icon={faLinkSlash} fontSize="xs" />
+                                                            </Box>
+                                                        )
+                                                    } else if (Number(value) == 0) {
+                                                        display = value
+                                                        color = "lozenge.text.disabled"
+                                                        bg = "lozenge.background.disabled"
+                                                    } else {
+                                                        display = value
+                                                        color = "lozenge.text.active"
+                                                        bg = "lozenge.background.active"
+                                                    }
+
+                                                    return (
+                                                        <Text
+                                                            bg={bg}
+                                                            color={color}
+                                                            px={1}
+                                                            py={1}
+                                                            mx={1}
+                                                            borderRadius={"10px"}
+                                                            fontSize={fontSize || undefined}
+                                                        >
+                                                            {display}
+                                                        </Text>
+                                                    )
+                                                })()}
+                                            </Table.Cell>
+                                        ))}
+                                    </Table.Row>
+                                ))
+                            )}
+                        </Table.Body>
+                    </Table.Root>
                 </Box>
             )}
         </Box>

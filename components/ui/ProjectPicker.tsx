@@ -59,7 +59,7 @@ export default function ProjectPicker({
                     right={0}
                     mt={1}
                     bg="pageBackground"
-                    borderWidth={2}
+                    borderWidth={3}
                     borderColor="contentBorder"
                     borderRadius="16px"
                     boxShadow="md"

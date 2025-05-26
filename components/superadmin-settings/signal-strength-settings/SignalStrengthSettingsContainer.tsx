@@ -83,6 +83,7 @@ export default function SignalStrengthSettingsContainer({
                         User
                     </Text>
                     <UserPicker
+                        signalStrengths={signalStrengths}
                         onUserSelect={(user) => {
                             setNewUserSelectedTrigger(!newUserSelectedTrigger)
                             setSelectedUsername(user.username || "")
@@ -94,7 +95,6 @@ export default function SignalStrengthSettingsContainer({
                             setSelectedUser(null)
                             // setTestResult(null)
                         }}
-                        // signalStrengthName={signalStrength.name}
                         disabled={!project}
                         isSuperAdminRequesting={true}
                     />
