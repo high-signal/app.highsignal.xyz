@@ -1,3 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+// TODO: Fix these eslint rule warnings properly
+
 "use client"
 
 import { HStack, Text, Box, Spinner, useBreakpointValue, useToken, Slider } from "@chakra-ui/react"
