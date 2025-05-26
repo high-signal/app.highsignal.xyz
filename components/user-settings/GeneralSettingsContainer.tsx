@@ -176,7 +176,7 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
                     </Text>
                     <Text>This is your profile page.</Text>
                     <Text>A default profile image, username and display name have been created for you.</Text>
-                    <Text>You can change these here to fully set up your profile.</Text>
+                    <Text>Change these here to finish setting up your profile.</Text>
                 </VStack>
             )}
             <SettingsInputField
