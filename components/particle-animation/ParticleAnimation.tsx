@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useRef, useState, useLayoutEffect, useMemo, useEffect } from "react"
-import { Box } from "@chakra-ui/react"
+import { Box, useBreakpointValue } from "@chakra-ui/react"
 import { keyframes } from "@emotion/react"
 
 const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "down" | "up" }) => {
@@ -16,18 +16,24 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
 
     const animationLengthSeconds = 100
 
+    // Use breakpoint value to determine if we're in mobile view
+    const isMobile = useBreakpointValue({ base: true, sm: false })
+
     useLayoutEffect(() => {
         const updatePageWidth = () => {
-            setPageSize({
-                width: window.innerWidth,
-            })
+            // Do not update particles on mobile page width change as it is triggered by pinch zoom
+            if (!isMobile) {
+                setPageSize({
+                    width: window.innerWidth,
+                })
+            }
         }
 
         updatePageWidth()
         window.addEventListener("resize", updatePageWidth)
 
         return () => window.removeEventListener("resize", updatePageWidth)
-    }, [])
+    }, [isMobile])
 
     const animParticle = keyframes`
     from { transform: translateY(${particleDirection === "down" ? "-100vh" : "0"}); }
