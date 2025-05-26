@@ -169,7 +169,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
             }
 
             connectedAccounts.push({
-                name: "forumUsers",
+                name: "discourse_forum",
                 data: forumUsers.map((user) => ({
                     userId: user.user_id,
                     projectId: user.project_id,

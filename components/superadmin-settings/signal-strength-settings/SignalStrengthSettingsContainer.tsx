@@ -105,12 +105,12 @@ export default function SignalStrengthSettingsContainer({
                     ...signalStrengths.map((signalStrength) => ({
                         value: signalStrength.name,
                         label: signalStrength.displayName.split(" ")[0],
-                        disabled: signalStrength.status != "active",
+                        // TODO: Allow switching between signal strengths without clearing inputs
+                        // disabled: signalStrength.status != "active",
                         content: (
                             <SignalStrengthSettings
                                 signalStrength={signalStrength}
                                 project={project}
-                                selectedUsername={selectedUsername}
                                 selectedUser={selectedUser}
                                 newUserSelectedTrigger={newUserSelectedTrigger}
                             />

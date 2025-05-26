@@ -1,3 +1,5 @@
+"use client"
+
 import { HStack, Text, VStack, Box, Textarea, Button } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faRefresh } from "@fortawesome/free-solid-svg-icons"
@@ -5,6 +7,7 @@ import { useState, useEffect } from "react"
 import { useGetUsers } from "../../../hooks/useGetUsers"
 import SingleLineTextInput from "../../ui/SingleLineTextInput"
 
+import SignalStrengthsSettingsHeader from "./SignalStrengthsSettingsHeader"
 import SignalStrength from "../../signal-display/signal-strength/SignalStrength"
 import { getAccessToken } from "@privy-io/react-auth"
 import HistoricalDataTable from "./HistoricalDataTable"
@@ -12,13 +15,11 @@ import HistoricalDataTable from "./HistoricalDataTable"
 export default function SignalStrengthSettings({
     signalStrength,
     project,
-    selectedUsername,
     selectedUser,
     newUserSelectedTrigger,
 }: {
     signalStrength: SignalStrengthData
     project: ProjectData | null
-    selectedUsername: string
     selectedUser: UserData | null
     newUserSelectedTrigger: boolean
 }) {
@@ -87,10 +88,12 @@ export default function SignalStrengthSettings({
         if (selectedUser) {
             setCurrentForumUsername(
                 selectedUser?.connectedAccounts
-                    ?.find((accountType) => accountType.name === "forumUsers")
+                    ?.find((accountType) => accountType.name === signalStrength.name)
                     ?.data?.find((forumUser) => Number(forumUser.projectId) === Number(project?.id))?.forumUsername ||
                     "",
             )
+        } else {
+            setCurrentForumUsername("")
         }
     }, [selectedUser, project])
 
@@ -228,114 +231,12 @@ export default function SignalStrengthSettings({
 
     return (
         <VStack w="100%" gap={0}>
-            <HStack
-                justify="space-between"
-                w="100%"
-                maxW={"100%"}
-                bg={"contentBackground"}
-                py={4}
-                px={{ base: 6, sm: 8 }}
-                borderRadius={{ base: 0, sm: "16px" }}
-                borderBottomRadius={{ base: 0, sm: "16px" }}
-                flexWrap={"wrap"}
-            >
-                <Text
-                    w="fit-content"
-                    fontWeight="bold"
-                    fontSize="lg"
-                    whiteSpace="nowrap"
-                    color={signalStrength.status === "dev" ? "textColorMuted" : undefined}
-                >
-                    {signalStrength.displayName}
-                </Text>
-                <HStack
-                    justifyContent="center"
-                    bg={
-                        signalStrength.status === "active" ? "lozenge.background.active" : "lozenge.background.disabled"
-                    }
-                    border={"2px solid"}
-                    color={signalStrength.status === "active" ? "lozenge.text.active" : "lozenge.text.disabled"}
-                    borderColor={
-                        signalStrength.status === "active" ? "lozenge.border.active" : "lozenge.border.disabled"
-                    }
-                    borderRadius={"full"}
-                    px={3}
-                    py={1}
-                    fontWeight={"semibold"}
-                    cursor={"default"}
-                >
-                    <Text whiteSpace="nowrap">
-                        {signalStrength.status.charAt(0).toUpperCase() + signalStrength.status.slice(1)}
-                    </Text>
-                </HStack>
-                {/* Testing Options */}
-                <HStack
-                    w={"500px"}
-                    maxW={"100%"}
-                    bg={"contentBackground"}
-                    alignItems={"center"}
-                    px={7}
-                    py={2}
-                    flexWrap={"wrap"}
-                    gap={3}
-                    minH={"40px"}
-                >
-                    {selectedUser && (
-                        <>
-                            <Text>Forum Username</Text>
-                            <Text fontWeight={"bold"} color={currentForumUsername ? "inherit" : "textColorMuted"}>
-                                {currentForumUsername || "No forum username set"}
-                            </Text>
-                        </>
-                    )}
-                </HStack>
-                <HStack
-                    w={"500px"}
-                    maxW={"100%"}
-                    bg={"contentBackground"}
-                    alignItems={"center"}
-                    px={7}
-                    py={2}
-                    flexWrap={"wrap"}
-                    gap={3}
-                    minH={"44px"}
-                >
-                    {selectedUser && (
-                        <>
-                            <Text>Manually Trigger User Analysis</Text>
-                            <Button
-                                primaryButton
-                                px={2}
-                                py={1}
-                                borderRadius={"full"}
-                                onClick={async () => {
-                                    const token = await getAccessToken()
-                                    const response = await fetch(`/api/superadmin/accounts/trigger-update`, {
-                                        method: "PATCH",
-                                        headers: {
-                                            "Content-Type": "application/json",
-                                            Authorization: `Bearer ${token}`,
-                                        },
-                                        body: JSON.stringify({
-                                            signalStrengthName: signalStrength.name,
-                                            userId: selectedUser.id,
-                                            projectId: project?.id,
-                                            forumUsername: currentForumUsername,
-                                        }),
-                                    })
-
-                                    if (!response.ok) {
-                                        const errorData = await response.json()
-                                        console.error(errorData.error)
-                                    }
-                                }}
-                            >
-                                (Eridian ONLY - for testing)
-                            </Button>
-                        </>
-                    )}
-                </HStack>
-            </HStack>
+            <SignalStrengthsSettingsHeader
+                signalStrength={signalStrength}
+                project={project}
+                selectedUser={selectedUser}
+                currentForumUsername={currentForumUsername}
+            />
             <VStack w="100%" pb={2} gap={0}>
                 {/* Prompt Options */}
                 <HStack
@@ -346,8 +247,7 @@ export default function SignalStrengthSettings({
                     alignItems={"start"}
                     gap={5}
                     px={5}
-                    pt={5}
-                    borderTopRadius={{ base: "0px", sm: "16px" }}
+                    py={{ base: 5, sm: 0 }}
                     flexWrap={{ base: "wrap", sm: "nowrap" }}
                 >
                     <HStack w={"100%"} justifyContent={"center"}>
@@ -449,7 +349,7 @@ export default function SignalStrengthSettings({
                                 setNewForumUsername(e.target.value)
                                 setTestResult(null)
                             }}
-                            placeholder="New forum username... (optional)"
+                            placeholder={`New ${signalStrength.displayName.split(" ")[0].toLowerCase()} username... (optional)`}
                             handleClear={() => {
                                 setNewForumUsername("")
                                 setTestResult(null)
