@@ -6,9 +6,12 @@ import { keyframes } from "@emotion/react"
 
 const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "down" | "up" }) => {
     const containerRef = useRef(null)
+
+    // Only use the initial height on the first render
+    // This is to avoid re-rendering on overscroll on mobile
+    const initialHeight = useRef(typeof window !== "undefined" ? window.innerHeight : 1080)
     const [pageSize, setPageSize] = useState({
         width: typeof window !== "undefined" ? window.innerWidth : 1920,
-        height: typeof window !== "undefined" ? window.innerHeight : 1080,
     })
     const [triggerAnimationRestart, setTriggerAnimationRestart] = useState(false)
 
@@ -16,7 +19,6 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
         const updatePageWidth = () => {
             setPageSize({
                 width: window.innerWidth,
-                height: window.innerHeight,
             })
         }
 
@@ -54,7 +56,7 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
 
             for (let i = 1; i <= maxParticles; i++) {
                 const x = Math.random() * pageSize.width
-                const y = Math.random() * (pageSizeMultiplier * pageSize.height)
+                const y = Math.random() * (pageSizeMultiplier * initialHeight.current)
                 particles += `, ${x}px ${y}px ${colorParticle}`
             }
             return particles
@@ -79,7 +81,7 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
             after3: generateParticles(pageSize.width / 6, 4),
             after4: generateParticles(pageSize.width / 21, 2),
         }
-    }, [pageSize.width, pageSize.height])
+    }, [pageSize.width])
 
     return (
         <Box ref={containerRef} position="relative" width="100%" height="100%" overflow="visible">
