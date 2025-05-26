@@ -9,7 +9,7 @@ import { usePrivy } from "@privy-io/react-auth"
 
 import ContentContainer from "../layout/ContentContainer"
 import GeneralSettingsContainer from "./GeneralSettingsContainer"
-import SignalStrengthSettingsContainer from "./SignalStrengthSettingsContainer"
+import SignalStrengthSettingsContainer from "./signal-strength-settings/SignalStrengthSettingsContainer"
 import SettingsTabbedContent from "../ui/SettingsTabbedContent"
 
 export default function ProjectSettingsContainer() {

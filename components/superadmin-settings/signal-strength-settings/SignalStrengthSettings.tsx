@@ -2,10 +2,10 @@ import { HStack, Text, VStack, Box, Textarea, Button } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faRefresh } from "@fortawesome/free-solid-svg-icons"
 import { useState, useEffect } from "react"
-import { useGetUsers } from "../../hooks/useGetUsers"
-import SingleLineTextInput from "../ui/SingleLineTextInput"
+import { useGetUsers } from "../../../hooks/useGetUsers"
+import SingleLineTextInput from "../../ui/SingleLineTextInput"
 
-import SignalStrength from "../signal-display/signal-strength/SignalStrength"
+import SignalStrength from "../../signal-display/signal-strength/SignalStrength"
 import { getAccessToken } from "@privy-io/react-auth"
 import HistoricalDataTable from "./HistoricalDataTable"
 
