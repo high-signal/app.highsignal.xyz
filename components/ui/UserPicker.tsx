@@ -7,14 +7,14 @@ import { ASSETS } from "../../config/constants"
 interface UserPickerProps {
     onUserSelect: (user: UserData) => void
     onClear?: () => void
-    signalStrengthName?: string
+    // signalStrengthName?: string
     disabled?: boolean
     isSuperAdminRequesting?: boolean
 }
 
 export default function UserPicker({
     onUserSelect,
-    signalStrengthName,
+    // signalStrengthName,
     disabled = false,
     onClear,
     isSuperAdminRequesting = false,
@@ -134,7 +134,8 @@ export default function UserPicker({
                                         />
                                         <Text>{user.username}</Text>
                                     </HStack>
-                                    {signalStrengthName &&
+                                    {/* TODO: Refactor this to use every signal strength + total score */}
+                                    {/* {signalStrengthName &&
                                         (() => {
                                             const ss = user.signalStrengths?.find(
                                                 (s) => s.signalStrengthName === signalStrengthName,
@@ -172,7 +173,7 @@ export default function UserPicker({
                                                     {display}
                                                 </Text>
                                             )
-                                        })()}
+                                        })()} */}
                                 </HStack>
                             </Box>
                         ))

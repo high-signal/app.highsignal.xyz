@@ -1,22 +1,28 @@
 import { HStack, Text, VStack, Box, Textarea, Button } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowRight, faChevronRight, faRefresh } from "@fortawesome/free-solid-svg-icons"
+import { faArrowRight, faRefresh } from "@fortawesome/free-solid-svg-icons"
 import { useState, useEffect } from "react"
 import { useGetUsers } from "../../hooks/useGetUsers"
-import UserPicker from "../ui/UserPicker"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 
 import SignalStrength from "../signal-display/signal-strength/SignalStrength"
 import { getAccessToken } from "@privy-io/react-auth"
-import ProjectPicker from "../ui/ProjectPicker"
 import HistoricalDataTable from "./HistoricalDataTable"
 
-export default function SignalStrengthSettings({ signalStrength }: { signalStrength: SignalStrengthData }) {
-    const [isOpen, setIsOpen] = useState(false)
-    const [selectedUsername, setSelectedUsername] = useState<string>("")
-    const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
+export default function SignalStrengthSettings({
+    signalStrength,
+    project,
+    selectedUsername,
+    selectedUser,
+    newUserSelectedTrigger,
+}: {
+    signalStrength: SignalStrengthData
+    project: ProjectData | null
+    selectedUsername: string
+    selectedUser: UserData | null
+    newUserSelectedTrigger: boolean
+}) {
     const [selectedUserRawData, setSelectedUserRawData] = useState<UserData | null>(null)
-    const [newUserSelectedTrigger, setNewUserSelectedTrigger] = useState(false)
     const [currentForumUsername, setCurrentForumUsername] = useState<string>("")
     const [newForumUsername, setNewForumUsername] = useState<string>("")
 
@@ -67,34 +73,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
     }
     // TEST TIMER ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 
-    // When a test user is selected, fetch the user data with superadmin fields
-    // Get the standard user data
-    const {
-        users: testUser,
-        loading: testUserLoading,
-        error: testUserError,
-    } = useGetUsers("lido", selectedUsername, false, selectedUsername.length > 0, true)
-
-    useEffect(() => {
-        if (selectedUsername && testUser.length > 0 && testUser[0].username === selectedUsername) {
-            setSelectedUser(testUser[0])
-        }
-    }, [selectedUsername, testUser, newUserSelectedTrigger])
-
-    // Get the raw user data
-    const {
-        users: rawUser,
-        loading: rawUserLoading,
-        error: rawUserError,
-    } = useGetUsers("lido", selectedUsername, false, selectedUsername.length > 0, true, true)
-
-    useEffect(() => {
-        if (selectedUsername && rawUser.length > 0 && rawUser[0].username === selectedUsername) {
-            setSelectedUserRawData(rawUser[0])
-        }
-    }, [selectedUsername, rawUser, newUserSelectedTrigger])
-
-    const [project, setProject] = useState<ProjectData | null>(null)
+    // const [project, setProject] = useState<ProjectData | null>(null)
     const [newModel, setNewModel] = useState<string>("")
     const [newTemperature, setNewTemperature] = useState<string>("")
     const [newMaxChars, setNewMaxChars] = useState<string>("")
@@ -117,9 +96,6 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
 
     function resetTest() {
         setTestResult(null)
-        setSelectedUser(null)
-        setSelectedUsername("")
-        setProject(null)
         setNewModel("")
         setNewTemperature("")
         setNewMaxChars("")
@@ -131,13 +107,6 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
         setNewForumUsername("")
         setTestError(null)
     }
-
-    // When isOpen is false, set the test result to null
-    useEffect(() => {
-        if (!isOpen) {
-            resetTest()
-        }
-    }, [isOpen])
 
     const ExtraData = ({ title, data }: { title: string; data: SignalStrengthUserData | undefined }) => (
         <VStack w={"100%"} maxW={"600px"} gap={1} px={5}>
@@ -267,7 +236,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                 py={4}
                 px={{ base: 6, sm: 8 }}
                 borderRadius={{ base: 0, sm: "16px" }}
-                borderBottomRadius={{ base: 0, sm: isOpen ? "0px" : "16px" }}
+                borderBottomRadius={{ base: 0, sm: "16px" }}
                 flexWrap={"wrap"}
             >
                 <Text
@@ -299,61 +268,7 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         {signalStrength.status.charAt(0).toUpperCase() + signalStrength.status.slice(1)}
                     </Text>
                 </HStack>
-            </HStack>
-            <VStack w="100%" pb={2} gap={0}>
                 {/* Testing Options */}
-                <HStack
-                    w={"500px"}
-                    maxW={"100%"}
-                    bg={"contentBackground"}
-                    alignItems={"center"}
-                    px={7}
-                    py={2}
-                    flexWrap={"wrap"}
-                    gap={3}
-                >
-                    <Text w={"100px"}>Project</Text>
-                    <ProjectPicker
-                        onProjectSelect={(project) => {
-                            setProject(project)
-                        }}
-                        onClear={() => {
-                            setProject(null)
-                            setSelectedUsername("")
-                            setSelectedUser(null)
-                            setTestResult(null)
-                        }}
-                        isSuperAdminRequesting={true}
-                    />
-                </HStack>
-                <HStack
-                    w={"500px"}
-                    maxW={"100%"}
-                    bg={"contentBackground"}
-                    alignItems={"center"}
-                    px={7}
-                    py={2}
-                    flexWrap={"wrap"}
-                    gap={3}
-                >
-                    <Text w={"100px"}>User</Text>
-                    <UserPicker
-                        onUserSelect={(user) => {
-                            setNewUserSelectedTrigger(!newUserSelectedTrigger)
-                            setSelectedUsername(user.username || "")
-                            setSelectedUser(null)
-                            setTestResult(null)
-                        }}
-                        onClear={() => {
-                            setSelectedUsername("")
-                            setSelectedUser(null)
-                            setTestResult(null)
-                        }}
-                        signalStrengthName={signalStrength.name}
-                        disabled={!project}
-                        isSuperAdminRequesting={true}
-                    />
-                </HStack>
                 <HStack
                     w={"500px"}
                     maxW={"100%"}
@@ -420,6 +335,8 @@ export default function SignalStrengthSettings({ signalStrength }: { signalStren
                         </>
                     )}
                 </HStack>
+            </HStack>
+            <VStack w="100%" pb={2} gap={0}>
                 {/* Prompt Options */}
                 <HStack
                     w={"100%"}
