@@ -33,7 +33,7 @@ export default function SettingsTabbedContent({ tabs, listWidth = "500px", title
                     {title}
                 </Text>
             )}
-            <Tabs.Root unmountOnExit defaultValue={defaultTab} variant={"enclosed"} w={"100%"}>
+            <Tabs.Root defaultValue={defaultTab} variant={"enclosed"} w={"100%"}>
                 <Box display="flex" justifyContent="center" w="100%">
                     <Tabs.List
                         minW={{ base: "100%", sm: `min(${listWidth}, 100%)` }}
