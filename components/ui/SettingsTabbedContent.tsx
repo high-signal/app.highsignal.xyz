@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation"
 interface TabItem {
     value: string
     label: string
+    disabled?: boolean
     content: ReactNode
 }
 
@@ -20,7 +21,10 @@ interface SettingsTabbedContentProps {
 export default function SettingsTabbedContent({ tabs, listWidth = "500px", title }: SettingsTabbedContentProps) {
     const searchParams = useSearchParams()
     const tabParam = searchParams.get("tab")
-    const defaultTab = tabParam && tabs.some((tab) => tab.value === tabParam) ? tabParam : tabs[0].value
+    const defaultTab =
+        tabParam && tabs.some((tab) => tab.value === tabParam)
+            ? tabParam
+            : tabs.find((tab) => !tab.disabled)?.value || tabs[0].value
 
     return (
         <>
@@ -42,6 +46,7 @@ export default function SettingsTabbedContent({ tabs, listWidth = "500px", title
                         {tabs.map((tab) => (
                             <Tabs.Trigger
                                 key={tab.value}
+                                disabled={tab.disabled}
                                 value={tab.value}
                                 fontSize={"md"}
                                 bg={"pageBackground"}

@@ -15,7 +15,6 @@ import SettingsTabbedContent from "../ui/SettingsTabbedContent"
 export default function ProjectSettingsContainer() {
     const { loggedInUser, loggedInUserLoading } = useUser()
     const { getAccessToken } = usePrivy()
-    const params = useParams()
     const router = useRouter()
 
     const [isLoading, setIsLoading] = useState(true)
@@ -57,7 +56,42 @@ export default function ProjectSettingsContainer() {
         }
     }, [loggedInUser, loggedInUserLoading, getAccessToken, router])
 
-    if (isLoading) {
+    // Get all signal strengths from the database
+    const [signalStrengths, setSignalStrengths] = useState<SignalStrengthData[]>([])
+    const [isSignalStrengthsLoading, setIsSignalStrengthsLoading] = useState(true)
+
+    // Lookup all signal strengths from the database
+    useEffect(() => {
+        const fetchSignalStrengths = async () => {
+            const token = await getAccessToken()
+
+            const response = await fetch("/api/settings/superadmin/signal-strengths", {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            const data = await response.json()
+            const sortedSignalStrengths = data.signalStrengths.sort((a: SignalStrengthData, b: SignalStrengthData) => {
+                // First sort by status priority
+                const statusPriority: Record<string, number> = { active: 0, dev: 1 }
+                const aPriority = statusPriority[a.status] ?? 2
+                const bPriority = statusPriority[b.status] ?? 2
+
+                if (aPriority !== bPriority) {
+                    return aPriority - bPriority
+                }
+
+                // Then sort alphabetically by display name
+                return a.displayName.localeCompare(b.displayName)
+            })
+            setSignalStrengths(sortedSignalStrengths)
+            setIsSignalStrengthsLoading(false)
+        }
+        fetchSignalStrengths()
+    }, [])
+
+    if (isLoading || isSignalStrengthsLoading) {
         return (
             <ContentContainer>
                 <VStack gap={10} w="100%" minH="300px" justifyContent="center" alignItems="center" borderRadius="20px">
@@ -82,16 +116,18 @@ export default function ProjectSettingsContainer() {
             <SettingsTabbedContent
                 title="Super Admin Settings"
                 tabs={[
-                    // {
-                    //     value: "general",
-                    //     label: "General",
-                    //     content: <GeneralSettingsContainer />,
-                    // },
                     {
-                        value: "signal",
-                        label: "Signal Strengths",
-                        content: <SignalStrengthSettingsContainer />,
+                        value: "general",
+                        label: "General",
+                        disabled: true,
+                        content: <GeneralSettingsContainer />,
                     },
+                    ...signalStrengths.map((signalStrength) => ({
+                        value: signalStrength.name,
+                        label: signalStrength.displayName.split(" ")[0],
+                        disabled: signalStrength.status != "active",
+                        content: <SignalStrengthSettingsContainer signalStrength={signalStrength} />,
+                    })),
                 ]}
             />
         </ContentContainer>
