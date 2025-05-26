@@ -43,10 +43,10 @@ export default function SettingsTabbedContent({ tabs, listWidth = "500px", title
                         p={2}
                         mx={{ base: 0, sm: 2 }}
                         flexWrap={"wrap"}
-                        justifyContent={{ base: "center", sm: "start" }}
                     >
                         {tabs.map((tab) => (
                             <Tabs.Trigger
+                                flexGrow={1}
                                 key={tab.value}
                                 disabled={tab.disabled}
                                 value={tab.value}

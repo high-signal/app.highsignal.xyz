@@ -52,7 +52,7 @@ export default function SignalStrengthSettingsContainer({
     return (
         <VStack gap={4} maxW={"100%"}>
             <VStack
-                gap={5}
+                gap={4}
                 maxW={"100%"}
                 borderRadius={{ base: "0px", sm: "16px" }}
                 bg={"contentBackground"}

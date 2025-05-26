@@ -81,8 +81,9 @@ export default function SignalStrengthsSettingsHeader({
                     </Text>
                 </HStack>
             </HStack>
-            <HStack maxW={"100%"} justifyContent={"center"} flexWrap={"wrap"} gap={3} minH={"35px"}>
-                {selectedUser && (
+            <Text>Show other project specific Signal Strength details here (max value, etc.)</Text>
+            {selectedUser && (
+                <HStack maxW={"100%"} justifyContent={"center"} flexWrap={"wrap"} gap={3} minH={"35px"}>
                     <>
                         <Text>Manually Trigger User Analysis</Text>
                         <Button
@@ -115,8 +116,8 @@ export default function SignalStrengthsSettingsHeader({
                             (Eridian ONLY - for testing)
                         </Button>
                     </>
-                )}
-            </HStack>
+                </HStack>
+            )}
         </VStack>
     )
 }

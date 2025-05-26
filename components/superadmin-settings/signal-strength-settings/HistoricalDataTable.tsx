@@ -1,9 +1,11 @@
 import { VStack, Text, Table } from "@chakra-ui/react"
 
 export default function HistoricalDataTable({
+    title,
     userData,
     rawUserData,
 }: {
+    title: string
     userData: SignalStrengthUserData[]
     rawUserData: SignalStrengthUserData[]
 }) {
@@ -13,9 +15,9 @@ export default function HistoricalDataTable({
     )
 
     return (
-        <VStack gap={4}>
-            <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"} fontSize={"lg"}>
-                Historical Data
+        <VStack gap={2} pb={5}>
+            <Text w={"100%"} textAlign={"center"} fontWeight={"bold"} fontSize={"lg"}>
+                {title}
             </Text>
             <Table.Root borderRadius={"12px"} overflow={"hidden"}>
                 <Table.Header>
