@@ -16,6 +16,8 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
     }
 
     try {
+        let logs = `forumUsername: ${forum_username}`
+
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
         // Returns all prompts for the signal strength
@@ -152,6 +154,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
         console.log(
             `Processed ${activityData?.length || 0} activities for ${displayName} (forum username: ${forum_username})`,
         )
+        logs += `\nTotal API activities:  ${activityData?.length || 0}`
 
         if (!activityData || activityData.length === 0) {
             console.error(`No activity data found for ${displayName} (forum username: ${forum_username})`)
@@ -176,6 +179,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
             )
 
             console.log(`Filtered activity data to the past ${previousDays} days: ${filteredActivityData.length}`)
+            logs += `\nActivity past ${previousDays} days: ${filteredActivityData.length}`
 
             // console.log("filteredActivityData", filteredActivityData)
 
@@ -198,6 +202,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
                 "Number of days to analyze for raw score calculation:",
                 dailyActivityData.filter((day) => day.data && day.data.length > 0).length,
             )
+            logs += `\nRaw score calc days: ${dailyActivityData.filter((day) => day.data && day.data.length > 0).length}\n`
 
             // For each day with data in dailyActivityData, run the analyzeUserData function
             const analysisPromises = dailyActivityData.map(async (day) => {
@@ -253,6 +258,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
                             testingData,
                             true, // isRawScoreCalc
                             day.date,
+                            "", // No logs for raw score calc at the moment
                         )
                         console.log(`User data successfully updated for day ${day.date}`)
                         console.log("")
@@ -306,6 +312,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
             testingData,
             dateYesterday,
             (type = "smart"),
+            logs,
         )
 
         // === Validity check on maxValue ===

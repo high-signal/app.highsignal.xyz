@@ -18,6 +18,7 @@ async function analyzeUserData(
     testingData,
     dayDate,
     type,
+    logs = "",
 ) {
     console.log(`Day ${dayDate} analysis started...`)
 
@@ -115,8 +116,7 @@ async function analyzeUserData(
 
         // console.log("res", res)
 
-        const logs = `forumUsername: ${username}
-userDataString.length: ${userDataString.length}
+        const analysisLogs = `${logs ? logs + "\n" : ""}userDataString.length: ${userDataString.length}
 truncatedData.length: ${truncatedData.length}
 `
 
@@ -133,7 +133,7 @@ truncatedData.length: ${truncatedData.length}
                 created: res.created,
                 promptTokens: res.usage.prompt_tokens,
                 completionTokens: res.usage.completion_tokens,
-                logs: logs,
+                logs: analysisLogs,
                 model: model,
                 temperature: temperature,
                 promptId: promptId,
