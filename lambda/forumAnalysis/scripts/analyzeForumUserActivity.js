@@ -67,6 +67,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
         if (projectSignalError || !projectSignalData || !projectSignalData.enabled) {
             console.log(`Signal strength ${SIGNAL_STRENGTH_NAME} is not enabled for this project`)
             // Continue without triggering analysis
+            clearLastChecked(supabase, user_id, project_id, signal_strength_id)
             return //NextResponse.json("Signal strength is not enabled for this project")
         }
 
@@ -86,6 +87,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
 
         if (!signalStrengthConfig || signalStrengthConfig.length === 0) {
             console.error("Signal strength config not found")
+            clearLastChecked(supabase, user_id, project_id, signal_strength_id)
             return
         }
 
@@ -98,6 +100,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
             console.log(
                 `Signal strength ${SIGNAL_STRENGTH_NAME} is not enabled for this project: ${projectSignalData.projects.display_name}`,
             )
+            clearLastChecked(supabase, user_id, project_id, signal_strength_id)
             return
         }
 
@@ -140,6 +143,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
 
         if (userError) {
             console.error("Error fetching user data:", userError)
+            clearLastChecked(supabase, user_id, project_id, signal_strength_id)
             return
         }
 
@@ -158,6 +162,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
 
         if (!activityData || activityData.length === 0) {
             console.error(`No activity data found for ${displayName} (forum username: ${forum_username})`)
+            clearLastChecked(supabase, user_id, project_id, signal_strength_id)
             return
         }
 
@@ -298,7 +303,7 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
                 `Smart score for ${displayName} (forum username: ${forum_username}) on ${dateYesterday} already exists in the database. Skipping...`,
             )
             console.log("Analysis complete.")
-            clearLastChecked(supabase, displayName, user_id, project_id, signal_strength_id)
+            clearLastChecked(supabase, user_id, project_id, signal_strength_id)
             return
         }
 
@@ -344,9 +349,10 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
             console.error(`Analysis failed for ${forum_username}:`, analysisResults?.error || "Unknown error")
         }
 
-        clearLastChecked(supabase, displayName, user_id, project_id, signal_strength_id)
+        clearLastChecked(supabase, user_id, project_id, signal_strength_id)
     } catch (error) {
         console.error("Error in analyzeForumUserActivity:", error)
+        clearLastChecked(supabase, user_id, project_id, signal_strength_id)
     }
 }
 
