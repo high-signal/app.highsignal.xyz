@@ -23,6 +23,7 @@ export default function SignalStrengthsSettingsCalculation({
     testError,
     testingInputData,
     setTestingInputData,
+    resetTest,
 }: {
     type: "raw" | "smart"
     signalStrength: SignalStrengthData
@@ -38,6 +39,7 @@ export default function SignalStrengthsSettingsCalculation({
     testError: string | null
     testingInputData: TestingInputData | null
     setTestingInputData: (testingInputData: TestingInputData) => void
+    resetTest: () => void
 }) {
     // Format duration to show seconds and tenths
     const formatDuration = (duration: number | null) => {
@@ -145,7 +147,7 @@ export default function SignalStrengthsSettingsCalculation({
                                 ...testingInputData,
                                 testingModel: e.target.value,
                             })
-                            setTestResult(null)
+                            resetTest()
                         }}
                         placeholder="New model... (optional)"
                         handleClear={() => {
@@ -153,7 +155,7 @@ export default function SignalStrengthsSettingsCalculation({
                                 ...testingInputData,
                                 testingModel: "",
                             })
-                            setTestResult(null)
+                            resetTest()
                         }}
                         bg="pageBackground"
                     />
@@ -165,7 +167,7 @@ export default function SignalStrengthsSettingsCalculation({
                                 ...testingInputData,
                                 testingTemperature: e.target.value,
                             })
-                            setTestResult(null)
+                            resetTest()
                         }}
                         placeholder="New temperature... (optional)"
                         handleClear={() => {
@@ -173,7 +175,7 @@ export default function SignalStrengthsSettingsCalculation({
                                 ...testingInputData,
                                 testingTemperature: undefined,
                             })
-                            setTestResult(null)
+                            resetTest()
                         }}
                         bg="pageBackground"
                     />
@@ -185,7 +187,7 @@ export default function SignalStrengthsSettingsCalculation({
                                 ...testingInputData,
                                 testingMaxChars: e.target.value,
                             })
-                            setTestResult(null)
+                            resetTest()
                         }}
                         placeholder="New max chars... (optional)"
                         handleClear={() => {
@@ -193,7 +195,7 @@ export default function SignalStrengthsSettingsCalculation({
                                 ...testingInputData,
                                 testingMaxChars: undefined,
                             })
-                            setTestResult(null)
+                            resetTest()
                         }}
                         bg="pageBackground"
                     />
@@ -238,7 +240,7 @@ export default function SignalStrengthsSettingsCalculation({
                             ...testingInputData,
                             testingPrompt: signalStrength.prompt || "",
                         })
-                        setTestResult(null)
+                        resetTest()
                     }}
                 >
                     <HStack gap={1}>
@@ -271,7 +273,7 @@ export default function SignalStrengthsSettingsCalculation({
                                 ...testingInputData,
                                 testingPrompt: e.target.value,
                             })
-                            setTestResult(null)
+                            resetTest()
                         }}
                     />
                 </VStack>

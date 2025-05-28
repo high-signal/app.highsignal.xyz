@@ -19,7 +19,6 @@ export default function SignalStrengthSettingsContainer({
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
     const [newUserSelectedTrigger, setNewUserSelectedTrigger] = useState(false)
 
-    // TODO: Move history to top
     const [selectedUserRawData, setSelectedUserRawData] = useState<UserData | null>(null)
 
     // When a test user is selected, fetch the user data with superadmin fields
@@ -73,7 +72,6 @@ export default function SignalStrengthSettingsContainer({
                             setProject(null)
                             setSelectedUsername("")
                             setSelectedUser(null)
-                            // setTestResult(null)
                         }}
                         isSuperAdminRequesting={true}
                     />
@@ -88,12 +86,10 @@ export default function SignalStrengthSettingsContainer({
                             setNewUserSelectedTrigger(!newUserSelectedTrigger)
                             setSelectedUsername(user.username || "")
                             setSelectedUser(null)
-                            // setTestResult(null)
                         }}
                         onClear={() => {
                             setSelectedUsername("")
                             setSelectedUser(null)
-                            // setTestResult(null)
                         }}
                         disabled={!project}
                         isSuperAdminRequesting={true}
@@ -111,6 +107,7 @@ export default function SignalStrengthSettingsContainer({
                                 signalStrength={signalStrength}
                                 project={project}
                                 selectedUser={selectedUser}
+                                selectedUserRawData={selectedUserRawData}
                                 newUserSelectedTrigger={newUserSelectedTrigger}
                             />
                         ),

@@ -1,7 +1,7 @@
 "use client"
 
 import { HStack, VStack, Text } from "@chakra-ui/react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { getAccessToken } from "@privy-io/react-auth"
 
 import { APP_CONFIG } from "../../../config/constants"
@@ -18,15 +18,22 @@ export default function SignalStrengthSettings({
     signalStrength,
     project,
     selectedUser,
-    newUserSelectedTrigger, // TODO: Do I still need this?
+    selectedUserRawData,
+    newUserSelectedTrigger,
 }: {
     signalStrength: SignalStrengthData
     project: ProjectData | null
     selectedUser: UserData | null
+    selectedUserRawData: UserData | null
     newUserSelectedTrigger: boolean
 }) {
-    const [selectedUserRawData, setSelectedUserRawData] = useState<UserData | null>(null)
     const [newSignalStrengthUsername, setNewSignalStrengthUsername] = useState<string>("")
+    const [testResult, setTestResult] = useState<SignalStrengthUserData[] | null>(null)
+    const [testResultsLoading, setTestResultsLoading] = useState(false)
+    const [testResultRawData, setTestResultRawData] = useState<SignalStrengthUserData[] | null>(null)
+
+    const [rawTestingInputData, setRawTestingInputData] = useState<TestingInputData | null>(null)
+    const [smartTestingInputData, setSmartTestingInputData] = useState<TestingInputData | null>(null)
 
     const signalStrengthUsername =
         selectedUser?.connectedAccounts
@@ -45,13 +52,6 @@ export default function SignalStrengthSettings({
         maxDuration: 30000,
         onTimeout: () => setTestResultsLoading(false),
     })
-
-    const [testResult, setTestResult] = useState<SignalStrengthUserData[] | null>(null)
-    const [testResultsLoading, setTestResultsLoading] = useState(false)
-    const [testResultRawData, setTestResultRawData] = useState<SignalStrengthUserData[] | null>(null)
-
-    const [rawTestingInputData, setRawTestingInputData] = useState<TestingInputData | null>(null)
-    const [smartTestingInputData, setSmartTestingInputData] = useState<TestingInputData | null>(null)
 
     const fetchTestResult = async () => {
         setTestTimerStart(Date.now())
@@ -145,19 +145,24 @@ export default function SignalStrengthSettings({
         }
     }
 
-    // function resetTest() {
-    //     setTestResult(null)
-    //     setNewModel("")
-    //     setNewTemperature("")
-    //     setNewMaxChars("")
-    //     setNewPrompt("")
-    //     setTestResultsLoading(false)
-    //     setTestTimerStart(null)
-    //     setTestTimerStop(null)
-    //     setTestTimerDuration(null)
-    //     setNewSignalStrengthUsername("")
-    //     setTestError(null)
-    // }
+    // Reset the new signal strength username when a new user is selected
+    useEffect(() => {
+        setNewSignalStrengthUsername("")
+    }, [newUserSelectedTrigger])
+
+    // Reset the test when a new user is selected or the new signal strength username is changed
+    useEffect(() => {
+        resetTest()
+    }, [newUserSelectedTrigger, newSignalStrengthUsername])
+
+    function resetTest() {
+        setTestResult(null)
+        setTestResultsLoading(false)
+        setTestTimerStart(null)
+        setTestTimerStop(null)
+        setTestTimerDuration(null)
+        setTestError(null)
+    }
 
     return (
         <VStack w="100%" gap={4}>
@@ -271,6 +276,7 @@ export default function SignalStrengthSettings({
                                     testError={testError}
                                     testingInputData={rawTestingInputData}
                                     setTestingInputData={setRawTestingInputData}
+                                    resetTest={resetTest}
                                 />
                             ),
                         },
@@ -293,6 +299,7 @@ export default function SignalStrengthSettings({
                                     testError={testError}
                                     testingInputData={smartTestingInputData}
                                     setTestingInputData={setSmartTestingInputData}
+                                    resetTest={resetTest}
                                 />
                             ),
                         },
