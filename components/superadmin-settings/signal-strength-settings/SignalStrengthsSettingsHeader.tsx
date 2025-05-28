@@ -29,36 +29,88 @@ export default function SignalStrengthsSettingsHeader({
             flexWrap={"wrap"}
             gap={4}
         >
-            <HStack gap={5} justifyContent={"space-between"} w={{ base: "100%", sm: "auto" }}>
-                <Text
-                    w="fit-content"
-                    fontWeight="bold"
-                    fontSize="lg"
-                    whiteSpace="nowrap"
-                    color={signalStrength.status === "dev" ? "textColorMuted" : undefined}
-                >
-                    {signalStrength.displayName}
-                </Text>
-                <HStack
-                    justifyContent="center"
-                    bg={
-                        signalStrength.status === "active" ? "lozenge.background.active" : "lozenge.background.disabled"
-                    }
-                    border={"2px solid"}
-                    color={signalStrength.status === "active" ? "lozenge.text.active" : "lozenge.text.disabled"}
-                    borderColor={
-                        signalStrength.status === "active" ? "lozenge.border.active" : "lozenge.border.disabled"
-                    }
-                    borderRadius={"full"}
-                    px={3}
-                    py={1}
-                    fontWeight={"semibold"}
-                    cursor={"default"}
-                >
-                    <Text whiteSpace="nowrap">
-                        {signalStrength.status.charAt(0).toUpperCase() + signalStrength.status.slice(1)}
+            <HStack flexWrap={"wrap"} gap={4} justifyContent={"space-between"} w="100%">
+                <HStack gap={5} justifyContent={"space-between"} w={{ base: "100%", sm: "auto" }}>
+                    <Text
+                        w="fit-content"
+                        fontWeight="bold"
+                        fontSize="lg"
+                        whiteSpace="nowrap"
+                        color={signalStrength.status === "dev" ? "textColorMuted" : undefined}
+                    >
+                        {signalStrength.displayName}
                     </Text>
+                    <HStack
+                        justifyContent="center"
+                        bg={
+                            signalStrength.status === "active"
+                                ? "lozenge.background.active"
+                                : "lozenge.background.disabled"
+                        }
+                        border={"2px solid"}
+                        color={signalStrength.status === "active" ? "lozenge.text.active" : "lozenge.text.disabled"}
+                        borderColor={
+                            signalStrength.status === "active" ? "lozenge.border.active" : "lozenge.border.disabled"
+                        }
+                        borderRadius={"full"}
+                        px={3}
+                        py={1}
+                        fontWeight={"semibold"}
+                        cursor={"default"}
+                    >
+                        <Text whiteSpace="nowrap">
+                            {signalStrength.status.charAt(0).toUpperCase() + signalStrength.status.slice(1)}
+                        </Text>
+                    </HStack>
                 </HStack>
+                {(() => {
+                    const projectSignalStrength = project?.signalStrengths?.find(
+                        (data) => data.name === signalStrength.name,
+                    )
+                    return (
+                        <HStack gap={{ base: 0, sm: 10 }}>
+                            {(() => {
+                                const data = [
+                                    {
+                                        label: "Status",
+                                        value: projectSignalStrength?.enabled ? "Enabled" : "Disabled",
+                                    },
+                                    {
+                                        label: "Max Value",
+                                        value: projectSignalStrength?.maxValue,
+                                    },
+                                    {
+                                        label: "Previous Days",
+                                        value: projectSignalStrength?.previousDays,
+                                    },
+                                ]
+                                return data.map((item) => (
+                                    <HStack
+                                        key={item.label}
+                                        flexWrap={"wrap"}
+                                        gap={{ base: 1, sm: 2 }}
+                                        alignItems={"center"}
+                                        justifyContent={"center"}
+                                        textAlign={"center"}
+                                    >
+                                        <Text>{item.label} </Text>
+                                        <Text
+                                            fontWeight={"bold"}
+                                            bg={"pageBackground"}
+                                            px={3}
+                                            py={1}
+                                            borderRadius={"full"}
+                                            fontFamily={"monospace"}
+                                            fontSize={"md"}
+                                        >
+                                            {item.value}
+                                        </Text>
+                                    </HStack>
+                                ))
+                            })()}
+                        </HStack>
+                    )
+                })()}
             </HStack>
             <HStack
                 maxW={"100%"}
@@ -81,7 +133,6 @@ export default function SignalStrengthsSettingsHeader({
                     </Text>
                 </HStack>
             </HStack>
-            <Text>Show other project specific Signal Strength details here (max value, etc.)</Text>
             {selectedUser && (
                 <HStack maxW={"100%"} justifyContent={"center"} flexWrap={"wrap"} gap={3} minH={"35px"}>
                     <>
