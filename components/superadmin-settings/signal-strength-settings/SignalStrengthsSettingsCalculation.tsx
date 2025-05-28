@@ -16,7 +16,6 @@ export default function SignalStrengthsSettingsCalculation({
     selectedUser,
     fetchTestResult,
     testResult,
-    setTestResult,
     testTimerStop,
     testTimerDuration,
     testResultsLoading,
@@ -31,7 +30,6 @@ export default function SignalStrengthsSettingsCalculation({
     selectedUser: UserData | null
     fetchTestResult: () => void
     testResult: SignalStrengthUserData[] | null
-    setTestResult: (result: SignalStrengthUserData[] | null) => void
     setTestTimerStart: (start: number) => void
     testTimerStop: number | null
     testTimerDuration: number | null
@@ -75,9 +73,6 @@ export default function SignalStrengthsSettingsCalculation({
 
     return (
         <VStack w="100%" gap={0} borderRadius={{ base: 0, sm: "16px" }} overflow={"hidden"}>
-            <VStack w={"100%"} justifyContent={"center"} bg={"contentBackground"} pt={4}>
-                <Text>Type: {type}</Text>
-            </VStack>
             {/* Prompt Options */}
             <HStack
                 w={"100%"}

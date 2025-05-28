@@ -27,7 +27,7 @@ export default function HistoricalDataTable({
                         <Table.ColumnHeader borderColor={"contentBorder"}>Smart Value</Table.ColumnHeader>
                     </Table.Row>
                 </Table.Header>
-                <Table.Body>
+                <Table.Body fontFamily={"monospace"} fontSize={"sm"} fontWeight={"bold"}>
                     {allDays.map((day) => {
                         const processedData = userData.find((d) => d.day === day)
                         const rawData = rawUserData.find((d) => d.day === day)

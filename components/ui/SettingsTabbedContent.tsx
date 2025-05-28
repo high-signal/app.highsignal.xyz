@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation"
 
 interface TabItem {
     value: string
-    label: string
+    label: string | ReactNode
     disabled?: boolean
     content: ReactNode
 }

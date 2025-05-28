@@ -1,8 +1,11 @@
 "use client"
 
-import { HStack, VStack, Text } from "@chakra-ui/react"
+import { HStack, VStack, Text, Box } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
 import { getAccessToken } from "@privy-io/react-auth"
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faFilePen } from "@fortawesome/free-solid-svg-icons"
 
 import { APP_CONFIG } from "../../../config/constants"
 
@@ -32,8 +35,8 @@ export default function SignalStrengthSettings({
     const [testResultsLoading, setTestResultsLoading] = useState(false)
     const [testResultRawData, setTestResultRawData] = useState<SignalStrengthUserData[] | null>(null)
 
-    const [rawTestingInputData, setRawTestingInputData] = useState<TestingInputData | null>(null)
-    const [smartTestingInputData, setSmartTestingInputData] = useState<TestingInputData | null>(null)
+    const [rawTestingInputData, setRawTestingInputData] = useState<TestingInputData>({})
+    const [smartTestingInputData, setSmartTestingInputData] = useState<TestingInputData>({})
 
     const signalStrengthUsername =
         selectedUser?.connectedAccounts
@@ -157,6 +160,7 @@ export default function SignalStrengthSettings({
 
     function resetTest() {
         setTestResult(null)
+        setTestResultRawData(null)
         setTestResultsLoading(false)
         setTestTimerStart(null)
         setTestTimerStop(null)
@@ -164,9 +168,14 @@ export default function SignalStrengthSettings({
         setTestError(null)
     }
 
+    // Helper function to check if the testing data has been modified
+    const hasModifiedTestingData = (data: TestingInputData): boolean => {
+        return Object.values(data).some((value) => value !== null && value !== "" && value !== undefined)
+    }
+
     return (
         <VStack w="100%" gap={4}>
-            <VStack w="100%" gap={0} borderBottomRadius={{ base: 0, sm: "16px" }} overflow={"hidden"}>
+            <VStack w="100%" gap={0} borderBottomRadius={{ base: 0, sm: "16px" }} overflow={"hidden"} maxW={"1200px"}>
                 <SignalStrengthsSettingsHeader
                     signalStrength={signalStrength}
                     project={project}
@@ -257,7 +266,21 @@ export default function SignalStrengthSettings({
                     tabs={[
                         {
                             value: "raw",
-                            label: "Raw Calculation",
+                            label: (
+                                <HStack>
+                                    <Text>Raw Calculation</Text>
+                                    {hasModifiedTestingData(rawTestingInputData) && (
+                                        <Box
+                                            position={"absolute"}
+                                            right={{ base: 0, sm: 2 }}
+                                            fontSize={"xl"}
+                                            color={"orange.500"}
+                                        >
+                                            <FontAwesomeIcon icon={faFilePen} />
+                                        </Box>
+                                    )}
+                                </HStack>
+                            ),
                             content: (
                                 <SignalStrengthsSettingsCalculation
                                     type="raw"
@@ -266,7 +289,6 @@ export default function SignalStrengthSettings({
                                     selectedUser={selectedUserRawData}
                                     fetchTestResult={fetchTestResult}
                                     testResult={testResultRawData}
-                                    setTestResult={setTestResult}
                                     setTestTimerStart={setTestTimerStart}
                                     testTimerStop={testTimerStop}
                                     testTimerDuration={testTimerDuration}
@@ -280,7 +302,21 @@ export default function SignalStrengthSettings({
                         },
                         {
                             value: "smart",
-                            label: "Smart Calculation",
+                            label: (
+                                <HStack>
+                                    <Text>Smart Calculation</Text>
+                                    {hasModifiedTestingData(smartTestingInputData) && (
+                                        <Box
+                                            position={"absolute"}
+                                            right={{ base: 0, sm: 2 }}
+                                            fontSize={"xl"}
+                                            color={"orange.500"}
+                                        >
+                                            <FontAwesomeIcon icon={faFilePen} />
+                                        </Box>
+                                    )}
+                                </HStack>
+                            ),
                             content: (
                                 <SignalStrengthsSettingsCalculation
                                     type="smart"
@@ -289,7 +325,6 @@ export default function SignalStrengthSettings({
                                     selectedUser={selectedUser}
                                     fetchTestResult={fetchTestResult}
                                     testResult={testResult}
-                                    setTestResult={setTestResult}
                                     setTestTimerStart={setTestTimerStart}
                                     testTimerStop={testTimerStop}
                                     testTimerDuration={testTimerDuration}
