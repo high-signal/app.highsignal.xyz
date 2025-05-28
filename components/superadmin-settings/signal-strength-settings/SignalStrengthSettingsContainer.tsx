@@ -71,6 +71,7 @@ export default function SignalStrengthSettingsContainer({
                             setProject(null)
                             setSelectedUsername("")
                             setSelectedUser(null)
+                            setSelectedUserRawData(null)
                         }}
                         isSuperAdminRequesting={true}
                     />
@@ -89,6 +90,7 @@ export default function SignalStrengthSettingsContainer({
                         onClear={() => {
                             setSelectedUsername("")
                             setSelectedUser(null)
+                            setSelectedUserRawData(null)
                         }}
                         disabled={!project}
                         isSuperAdminRequesting={true}

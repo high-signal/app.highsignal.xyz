@@ -52,7 +52,6 @@ export default function SignalStrengthSettings({
         testError,
         setTestError,
     } = useTestTimer({
-        maxDuration: 30000,
         onTimeout: () => setTestResultsLoading(false),
     })
 
@@ -60,7 +59,6 @@ export default function SignalStrengthSettings({
         setTestTimerStart(Date.now())
         setTestTimerStop(null)
         setTestTimerDuration(null)
-
         setTestResultsLoading(true)
         setTestResult(null)
         setTestError(null)
@@ -169,7 +167,7 @@ export default function SignalStrengthSettings({
     }
 
     // Helper function to check if the testing data has been modified
-    const hasModifiedTestingData = (data: TestingInputData): boolean => {
+    const hasModifiedTestingInputs = (data: TestingInputData): boolean => {
         return Object.values(data).some((value) => value !== null && value !== "" && value !== undefined)
     }
 
@@ -256,6 +254,7 @@ export default function SignalStrengthSettings({
                                     userData={testResult || []}
                                     rawUserData={testResultRawData || []}
                                 />
+                                {!testResult && !testResultRawData && <Text>Run a test to see the results here</Text>}
                             </VStack>
                         </VStack>
                     </HStack>
@@ -269,7 +268,7 @@ export default function SignalStrengthSettings({
                             label: (
                                 <HStack>
                                     <Text>Raw Calculation</Text>
-                                    {hasModifiedTestingData(rawTestingInputData) && (
+                                    {hasModifiedTestingInputs(rawTestingInputData) && (
                                         <Box
                                             position={"absolute"}
                                             right={{ base: 0, sm: 2 }}
@@ -305,7 +304,7 @@ export default function SignalStrengthSettings({
                             label: (
                                 <HStack>
                                     <Text>Smart Calculation</Text>
-                                    {hasModifiedTestingData(smartTestingInputData) && (
+                                    {hasModifiedTestingInputs(smartTestingInputData) && (
                                         <Box
                                             position={"absolute"}
                                             right={{ base: 0, sm: 2 }}
