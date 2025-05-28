@@ -233,7 +233,7 @@ async function analyzeForumUserActivity(user_id, project_id, signalStrengthUsern
                         previousDays,
                         testingData,
                         day.date,
-                        (type = "raw"),
+                        "raw", // type
                     )
 
                     // === Validity check on maxValue ===
@@ -258,9 +258,9 @@ async function analyzeForumUserActivity(user_id, project_id, signalStrengthUsern
                             analysisResults,
                             maxValue,
                             testingData,
-                            (isRawScoreCalc = true),
+                            true, // isRawScoreCalc
                             day.date,
-                            (logs = ""), // No logs for raw score calc at the moment
+                            "", // No logs for raw score calc at the moment
                         )
                         console.log(`User data successfully updated for day ${day.date}`)
                         console.log("")
@@ -313,7 +313,7 @@ async function analyzeForumUserActivity(user_id, project_id, signalStrengthUsern
             previousDays,
             testingData,
             dateYesterday,
-            (type = "smart"),
+            "smart", // type
             logs,
         )
 
@@ -349,7 +349,9 @@ async function analyzeForumUserActivity(user_id, project_id, signalStrengthUsern
         clearLastChecked(supabase, user_id, project_id, signal_strength_id)
     } catch (error) {
         console.error("Error in analyzeForumUserActivity:", error)
-        clearLastChecked(supabase, user_id, project_id, signal_strength_id)
+        if (supabase) {
+            clearLastChecked(supabase, user_id, project_id, signal_strength_id)
+        }
     }
 }
 
