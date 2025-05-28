@@ -3,8 +3,6 @@
 import { HStack, Text, VStack, Box, Textarea, Button } from "@chakra-ui/react"
 import { useState } from "react"
 
-import { getAccessToken } from "@privy-io/react-auth"
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faRefresh } from "@fortawesome/free-solid-svg-icons"
 
@@ -16,141 +14,35 @@ export default function SignalStrengthsSettingsCalculation({
     signalStrength,
     project,
     selectedUser,
+    fetchTestResult,
     testResult,
     setTestResult,
-    setTestTimerStart,
     testTimerStop,
-    setTestTimerStop,
     testTimerDuration,
-    setTestTimerDuration,
     testResultsLoading,
-    setTestResultsLoading,
     testError,
-    setTestError,
-    testMaxDuration,
-    setTestResultRawData,
-    newSignalStrengthUsername,
+    testingInputData,
+    setTestingInputData,
 }: {
     type: "raw" | "smart"
     signalStrength: SignalStrengthData
     project: ProjectData | null
     selectedUser: UserData | null
+    fetchTestResult: () => void
     testResult: SignalStrengthUserData[] | null
     setTestResult: (result: SignalStrengthUserData[] | null) => void
     setTestTimerStart: (start: number) => void
     testTimerStop: number | null
-    setTestTimerStop: (stop: number | null) => void
     testTimerDuration: number | null
-    setTestTimerDuration: (duration: number | null) => void
     testResultsLoading: boolean
-    setTestResultsLoading: (loading: boolean) => void
     testError: string | null
-    setTestError: (error: string | null) => void
-    testMaxDuration: number
-    setTestResultRawData: (result: SignalStrengthUserData[] | null) => void
-    newSignalStrengthUsername: string
+    testingInputData: TestingInputData | null
+    setTestingInputData: (testingInputData: TestingInputData) => void
 }) {
-    const [newModel, setNewModel] = useState<string>("")
-    const [newTemperature, setNewTemperature] = useState<string>("")
-    const [newMaxChars, setNewMaxChars] = useState<string>("")
-    const [newPrompt, setNewPrompt] = useState<string>("")
-
     // Format duration to show seconds and tenths
     const formatDuration = (duration: number | null) => {
         if (duration === null) return "0.0s"
         return `${(duration / 1000).toFixed(1)}s`
-    }
-
-    const fetchTestResult = async () => {
-        setTestTimerStart(Date.now())
-        setTestTimerStop(null)
-        setTestTimerDuration(null)
-
-        setTestResultsLoading(true)
-        setTestResult(null)
-        setTestError(null)
-
-        const token = await getAccessToken()
-        const testingResponse = await fetch(
-            `/api/settings/superadmin/signal-strengths/testing?project=${project?.urlSlug}`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    targetUsername: selectedUser?.username,
-                    signalStrengthName: signalStrength.name,
-                    testingPrompt: newPrompt,
-                    testingModel: newModel,
-                    testingTemperature: newTemperature ? Number(newTemperature) : undefined,
-                    testingMaxChars: newMaxChars ? Number(newMaxChars) : undefined,
-                    testingSignalStrengthUsername: newSignalStrengthUsername,
-                }),
-            },
-        )
-
-        // If response is 200, start a polling loop to check if the test is complete
-        if (testingResponse.ok) {
-            const testStartTime = Date.now()
-            const pollTestResult = async () => {
-                const testResultResponse = await fetch(
-                    `/api/superadmin/users/?project=${project?.urlSlug}&user=${selectedUser?.username}&showTestDataOnly=true`,
-                    {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                    },
-                )
-
-                const testResult = await testResultResponse.json()
-
-                // If the smart score is found in the DB then the test is complete
-                const foundSignalStrength = testResult[0].signalStrengths?.find(
-                    (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
-                )
-
-                if (foundSignalStrength) {
-                    setTestResult(foundSignalStrength.data)
-                    setTestResultsLoading(false)
-                    setTestTimerStop(Date.now())
-
-                    // Then fetch the test result raw user data
-                    const testResultRawData = await fetch(
-                        `/api/superadmin/users/?project=${project?.urlSlug}&user=${selectedUser?.username}&showTestDataOnly=true&showRawScoreCalcOnly=true`,
-                        {
-                            method: "GET",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                        },
-                    )
-
-                    const testResultRawDataJson = await testResultRawData.json()
-
-                    setTestResultRawData(
-                        testResultRawDataJson[0].signalStrengths?.find(
-                            (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
-                        )?.data,
-                    )
-                } else {
-                    // If no result yet, poll again after 1 second
-                    // Stop polling if the duration exceeds the max duration
-                    const currentDuration = Date.now() - testStartTime
-                    if (currentDuration < testMaxDuration) {
-                        setTimeout(pollTestResult, 1000)
-                    }
-                }
-            }
-
-            // Start the polling loop
-            // Add a small delay as the poll does not need to start immediately
-            setTimeout(pollTestResult, 3000)
-        }
     }
 
     const ExtraData = ({ title, data }: { title: string; data: SignalStrengthUserData | undefined }) => (
@@ -247,42 +139,60 @@ export default function SignalStrengthsSettingsCalculation({
                     <Text fontWeight={"bold"}>New Settings</Text>
                     <SingleLineTextInput
                         maxW={"300px"}
-                        value={newModel}
+                        value={testingInputData?.testingModel || ""}
                         onChange={(e) => {
-                            setNewModel(e.target.value)
+                            setTestingInputData({
+                                ...testingInputData,
+                                testingModel: e.target.value,
+                            })
                             setTestResult(null)
                         }}
                         placeholder="New model... (optional)"
                         handleClear={() => {
-                            setNewModel("")
+                            setTestingInputData({
+                                ...testingInputData,
+                                testingModel: "",
+                            })
                             setTestResult(null)
                         }}
                         bg="pageBackground"
                     />
                     <SingleLineTextInput
                         maxW={"300px"}
-                        value={newTemperature}
+                        value={testingInputData?.testingTemperature || ""}
                         onChange={(e) => {
-                            setNewTemperature(e.target.value)
+                            setTestingInputData({
+                                ...testingInputData,
+                                testingTemperature: e.target.value,
+                            })
                             setTestResult(null)
                         }}
                         placeholder="New temperature... (optional)"
                         handleClear={() => {
-                            setNewTemperature("")
+                            setTestingInputData({
+                                ...testingInputData,
+                                testingTemperature: undefined,
+                            })
                             setTestResult(null)
                         }}
                         bg="pageBackground"
                     />
                     <SingleLineTextInput
                         maxW={"300px"}
-                        value={newMaxChars}
+                        value={testingInputData?.testingMaxChars || ""}
                         onChange={(e) => {
-                            setNewMaxChars(e.target.value)
+                            setTestingInputData({
+                                ...testingInputData,
+                                testingMaxChars: e.target.value,
+                            })
                             setTestResult(null)
                         }}
                         placeholder="New max chars... (optional)"
                         handleClear={() => {
-                            setNewMaxChars("")
+                            setTestingInputData({
+                                ...testingInputData,
+                                testingMaxChars: undefined,
+                            })
                             setTestResult(null)
                         }}
                         bg="pageBackground"
@@ -324,7 +234,10 @@ export default function SignalStrengthsSettingsCalculation({
                     py={0}
                     h={"25px"}
                     onClick={() => {
-                        setNewPrompt(signalStrength.prompt || "")
+                        setTestingInputData({
+                            ...testingInputData,
+                            testingPrompt: signalStrength.prompt || "",
+                        })
                         setTestResult(null)
                     }}
                 >
@@ -352,9 +265,12 @@ export default function SignalStrengthsSettingsCalculation({
                         }}
                         borderRadius={"10px"}
                         bg="pageBackground"
-                        value={newPrompt || ""}
+                        value={testingInputData?.testingPrompt || ""}
                         onChange={(e) => {
-                            setNewPrompt(e.target.value)
+                            setTestingInputData({
+                                ...testingInputData,
+                                testingPrompt: e.target.value,
+                            })
                             setTestResult(null)
                         }}
                     />

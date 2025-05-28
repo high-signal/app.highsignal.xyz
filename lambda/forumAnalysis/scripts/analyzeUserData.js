@@ -24,18 +24,27 @@ async function analyzeUserData(
 
     let promptId
 
+    const rawTestingInputData = testingData.testingInputData.rawTestingInputData
+    const smartTestingInputData = testingData.testingInputData.smartTestingInputData
+
     let model
-    if (testingData && testingData.testingModel) {
-        model = testingData.testingModel
+    if (type === "raw" && rawTestingInputData.testingModel) {
+        model = rawTestingInputData.testingModel
+    } else if (type === "smart" && smartTestingInputData.testingModel) {
+        model = smartTestingInputData.testingModel
     } else if (signalStrengthData.model) {
         model = signalStrengthData.model
     } else {
         return { error: "No model set in DB" }
     }
 
+    console.log("model", model)
+
     let temperature
-    if (testingData && testingData.testingTemperature !== undefined) {
-        temperature = testingData.testingTemperature
+    if (type === "raw" && rawTestingInputData.testingTemperature) {
+        temperature = rawTestingInputData.testingTemperature
+    } else if (type === "smart" && smartTestingInputData.testingTemperature) {
+        temperature = smartTestingInputData.testingTemperature
     } else if (signalStrengthData.temperature) {
         temperature = signalStrengthData.temperature
     } else {
@@ -43,8 +52,10 @@ async function analyzeUserData(
     }
 
     let basePrompt
-    if (testingData && testingData.testingPrompt) {
-        basePrompt = eval("`" + testingData.testingPrompt + "`")
+    if (type === "raw" && rawTestingInputData.testingPrompt) {
+        basePrompt = eval("`" + rawTestingInputData.testingPrompt + "`")
+    } else if (type === "smart" && smartTestingInputData.testingPrompt) {
+        basePrompt = eval("`" + smartTestingInputData.testingPrompt + "`")
     } else if (signalStrengthData.prompts.find((prompt) => prompt.type === type)) {
         // TODO: For now it just gets the latest prompt for the type
         // but in future it should get the prompt for the date so that history is consistent
@@ -61,8 +72,10 @@ async function analyzeUserData(
     }
 
     let maxChars
-    if (testingData && testingData.testingMaxChars) {
-        maxChars = testingData.testingMaxChars
+    if (type === "raw" && rawTestingInputData.testingMaxChars) {
+        maxChars = rawTestingInputData.testingMaxChars
+    } else if (type === "smart" && smartTestingInputData.testingMaxChars) {
+        maxChars = smartTestingInputData.testingMaxChars
     } else if (signalStrengthData.max_chars) {
         maxChars = signalStrengthData.max_chars
     } else {
@@ -111,7 +124,7 @@ async function analyzeUserData(
         const res = await openai.chat.completions.create({
             model: model,
             messages,
-            temperature: temperature,
+            temperature: Number(temperature),
         })
 
         // console.log("res", res)

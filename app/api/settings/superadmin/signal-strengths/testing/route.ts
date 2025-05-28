@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
-import { sanitize } from "../../../../../../utils/sanitize"
 import { triggerForumAnalysis } from "../../../../../../utils/lambda-utils/forumAnalysis"
+
+interface StructuredTestingData {
+    requestingUserId: string
+    testingInputData: TestingInputData
+}
 
 export async function POST(request: NextRequest) {
     try {
@@ -10,15 +14,7 @@ export async function POST(request: NextRequest) {
         const projectUrlSlug = request.nextUrl.searchParams.get("project")!
 
         // Parse the request body
-        const {
-            targetUsername,
-            signalStrengthName,
-            testingPrompt,
-            testingModel,
-            testingTemperature,
-            testingMaxChars,
-            testingSignalStrengthUsername,
-        } = await request.json()
+        const { signalStrengthName, targetUsername, testingInputData } = await request.json()
 
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -37,7 +33,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Project not found" }, { status: 404 })
         }
 
-        const signalStrength = await getSignalStrengthFromDb(supabase, projectUrlSlug, signalStrengthName)
+        const signalStrength = await getSignalStrengthFromDb(supabase, signalStrengthName)
         if (!signalStrength) {
             return NextResponse.json({ error: "Signal strength not found" }, { status: 404 })
         }
@@ -57,8 +53,8 @@ export async function POST(request: NextRequest) {
         }
 
         let signalStrengthUsername
-        if (testingSignalStrengthUsername) {
-            signalStrengthUsername = testingSignalStrengthUsername
+        if (testingInputData.testingSignalStrengthUsername) {
+            signalStrengthUsername = testingInputData.testingSignalStrengthUsername
         } else if (signalStrength.name === "discourse_forum") {
             const forumUser = await getForumUserFromDb(supabase, targetUser.id, project.id)
             if (!forumUser) {
@@ -72,21 +68,15 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // ***************
-        // SECURITY CHECK
-        // ***************
-        const testingData = {
+        // Add the requesting user ID to the testing input data
+        const structuredTestingData = {
             requestingUserId: requestingUser.id,
-            testingPrompt: sanitize(testingPrompt),
-            testingModel: sanitize(testingModel),
-            testingTemperature: testingTemperature,
-            testingMaxChars: testingMaxChars,
-            testingSignalStrengthUsername: signalStrengthUsername,
+            testingInputData: testingInputData,
         }
 
         // Format the request body and pass it to the lambda function
         if (signalStrength.name === "discourse_forum") {
-            await triggerForumAnalysis(targetUser.id, project.id, signalStrengthUsername, testingData)
+            await triggerForumAnalysis(targetUser.id, project.id, signalStrengthUsername, structuredTestingData)
         } else {
             return NextResponse.json(
                 { error: `Signal strength (${signalStrength.name}) not configured for testing` },
@@ -159,7 +149,7 @@ async function getForumUserFromDb(supabase: SupabaseClient, targetUserId: string
     return forumUser
 }
 
-async function getSignalStrengthFromDb(supabase: SupabaseClient, projectUrlSlug: string, signalStrengthName: string) {
+async function getSignalStrengthFromDb(supabase: SupabaseClient, signalStrengthName: string) {
     const { data: signalStrength, error: signalStrengthError } = await supabase
         .from("signal_strengths")
         .select("id, name")

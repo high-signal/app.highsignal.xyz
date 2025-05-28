@@ -1,13 +1,18 @@
 "use client"
 
 import { HStack, VStack, Text } from "@chakra-ui/react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import { getAccessToken } from "@privy-io/react-auth"
+
+import { APP_CONFIG } from "../../../config/constants"
 
 import HistoricalDataTable from "./HistoricalDataTable"
 import SettingsTabbedContent from "../../ui/SettingsTabbedContent"
 import SignalStrengthsSettingsHeader from "./SignalStrengthsSettingsHeader"
 import SignalStrengthsSettingsCalculation from "./SignalStrengthsSettingsCalculation"
 import SingleLineTextInput from "../../ui/SingleLineTextInput"
+
+import { useTestTimer } from "../../../hooks/useTestTimer"
 
 export default function SignalStrengthSettings({
     signalStrength,
@@ -28,53 +33,117 @@ export default function SignalStrengthSettings({
             ?.find((accountType) => accountType.name === signalStrength.name)
             ?.data?.find((forumUser) => Number(forumUser.projectId) === Number(project?.id))?.forumUsername || ""
 
-    // TEST TIMER ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-    const [testTimerStart, setTestTimerStart] = useState<number | null>(null)
-    const [testTimerStop, setTestTimerStop] = useState<number | null>(null)
-    const [testTimerDuration, setTestTimerDuration] = useState<number | null>(null)
-    const [testError, setTestError] = useState<string | null>(null)
-
-    const testMaxDuration = 30000 // 30 seconds
-
-    useEffect(() => {
-        let intervalId: NodeJS.Timeout
-
-        if (testTimerStart && !testTimerStop) {
-            // Update timer every 100ms while test is running
-            intervalId = setInterval(() => {
-                const currentDuration = Date.now() - testTimerStart
-                // Stop if duration exceeds max duration
-                if (currentDuration > testMaxDuration) {
-                    setTestTimerStop(Date.now())
-                    setTestTimerDuration(testMaxDuration)
-                    setTestResultsLoading(false)
-                    setTestError(
-                        `Test timed out after ${testMaxDuration / 1000}s. Try again and check the inputs are correct.`,
-                    )
-                    return
-                }
-                setTestTimerDuration(currentDuration)
-            }, 100)
-        } else if (testTimerStart && testTimerStop) {
-            // Test is complete, set final duration
-            setTestTimerDuration(testTimerStop - testTimerStart)
-        }
-
-        // Cleanup interval when component unmounts or test stops
-        return () => {
-            if (intervalId) {
-                clearInterval(intervalId)
-            }
-        }
-    }, [testTimerStart, testTimerStop])
-
-    // TEST TIMER ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
-
-    // const [project, setProject] = useState<ProjectData | null>(null)
+    const {
+        setTestTimerStart,
+        testTimerStop,
+        setTestTimerStop,
+        testTimerDuration,
+        setTestTimerDuration,
+        testError,
+        setTestError,
+    } = useTestTimer({
+        maxDuration: 30000,
+        onTimeout: () => setTestResultsLoading(false),
+    })
 
     const [testResult, setTestResult] = useState<SignalStrengthUserData[] | null>(null)
     const [testResultsLoading, setTestResultsLoading] = useState(false)
     const [testResultRawData, setTestResultRawData] = useState<SignalStrengthUserData[] | null>(null)
+
+    const [rawTestingInputData, setRawTestingInputData] = useState<TestingInputData | null>(null)
+    const [smartTestingInputData, setSmartTestingInputData] = useState<TestingInputData | null>(null)
+
+    const fetchTestResult = async () => {
+        setTestTimerStart(Date.now())
+        setTestTimerStop(null)
+        setTestTimerDuration(null)
+
+        setTestResultsLoading(true)
+        setTestResult(null)
+        setTestError(null)
+
+        const token = await getAccessToken()
+        const testingResponse = await fetch(
+            `/api/settings/superadmin/signal-strengths/testing?project=${project?.urlSlug}`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    signalStrengthName: signalStrength.name,
+                    targetUsername: selectedUser?.username,
+                    testingInputData: {
+                        testingSignalStrengthUsername: newSignalStrengthUsername,
+                        rawTestingInputData: rawTestingInputData || {},
+                        smartTestingInputData: smartTestingInputData || {},
+                    },
+                }),
+            },
+        )
+
+        // If response is 200, start a polling loop to check if the test is complete
+        if (testingResponse.ok) {
+            const testStartTime = Date.now()
+            const pollTestResult = async () => {
+                const testResultResponse = await fetch(
+                    `/api/superadmin/users/?project=${project?.urlSlug}&user=${selectedUser?.username}&showTestDataOnly=true`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    },
+                )
+
+                const testResult = await testResultResponse.json()
+
+                // If the smart score is found in the DB then the test is complete
+                const foundSignalStrength = testResult[0].signalStrengths?.find(
+                    (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
+                )
+
+                if (foundSignalStrength) {
+                    setTestResult(foundSignalStrength.data)
+                    setTestResultsLoading(false)
+                    setTestTimerStop(Date.now())
+
+                    // Then fetch the test result raw user data
+                    const testResultRawData = await fetch(
+                        `/api/superadmin/users/?project=${project?.urlSlug}&user=${selectedUser?.username}&showTestDataOnly=true&showRawScoreCalcOnly=true`,
+                        {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                        },
+                    )
+
+                    const testResultRawDataJson = await testResultRawData.json()
+
+                    setTestResultRawData(
+                        testResultRawDataJson[0].signalStrengths?.find(
+                            (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
+                        )?.data,
+                    )
+                } else {
+                    // If no result yet, poll again after 1 second
+                    // Stop polling if the duration exceeds the max duration
+                    const currentDuration = Date.now() - testStartTime
+                    if (currentDuration < APP_CONFIG.TEST_TIMER_MAX_DURATION) {
+                        setTimeout(pollTestResult, 1000)
+                    }
+                }
+            }
+
+            // Start the polling loop
+            // Add a small delay as the poll does not need to start immediately
+            setTimeout(pollTestResult, 3000)
+        }
+    }
 
     // function resetTest() {
     //     setTestResult(null)
@@ -192,20 +261,16 @@ export default function SignalStrengthSettings({
                                     signalStrength={signalStrength}
                                     project={project}
                                     selectedUser={selectedUser}
+                                    fetchTestResult={fetchTestResult}
                                     testResult={testResult}
                                     setTestResult={setTestResult}
                                     setTestTimerStart={setTestTimerStart}
                                     testTimerStop={testTimerStop}
-                                    setTestTimerStop={setTestTimerStop}
                                     testTimerDuration={testTimerDuration}
-                                    setTestTimerDuration={setTestTimerDuration}
                                     testResultsLoading={testResultsLoading}
-                                    setTestResultsLoading={setTestResultsLoading}
                                     testError={testError}
-                                    setTestError={setTestError}
-                                    testMaxDuration={testMaxDuration}
-                                    setTestResultRawData={setTestResultRawData}
-                                    newSignalStrengthUsername={newSignalStrengthUsername}
+                                    testingInputData={rawTestingInputData}
+                                    setTestingInputData={setRawTestingInputData}
                                 />
                             ),
                         },
@@ -218,20 +283,16 @@ export default function SignalStrengthSettings({
                                     signalStrength={signalStrength}
                                     project={project}
                                     selectedUser={selectedUser}
+                                    fetchTestResult={fetchTestResult}
                                     testResult={testResult}
                                     setTestResult={setTestResult}
                                     setTestTimerStart={setTestTimerStart}
                                     testTimerStop={testTimerStop}
-                                    setTestTimerStop={setTestTimerStop}
                                     testTimerDuration={testTimerDuration}
-                                    setTestTimerDuration={setTestTimerDuration}
                                     testResultsLoading={testResultsLoading}
-                                    setTestResultsLoading={setTestResultsLoading}
                                     testError={testError}
-                                    setTestError={setTestError}
-                                    testMaxDuration={testMaxDuration}
-                                    setTestResultRawData={setTestResultRawData}
-                                    newSignalStrengthUsername={newSignalStrengthUsername}
+                                    testingInputData={smartTestingInputData}
+                                    setTestingInputData={setSmartTestingInputData}
                                 />
                             ),
                         },

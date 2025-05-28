@@ -7,16 +7,13 @@ const { createClient } = require("@supabase/supabase-js")
 const { clearLastChecked } = require("./clearLastChecked")
 
 // Function to analyze forum user activity
-async function analyzeForumUserActivity(user_id, project_id, forum_username, testingData) {
+async function analyzeForumUserActivity(user_id, project_id, signalStrengthUsername, testingData) {
     const SIGNAL_STRENGTH_NAME = "discourse_forum"
 
-    // If testingData.forum_username is provided, use it instead of the forum_username parameter
-    if (testingData && testingData.forum_username) {
-        forum_username = testingData.forum_username
-    }
+    const forum_username = signalStrengthUsername
 
     try {
-        let logs = `forumUsername: ${forum_username}`
+        let logs = `forum_username: ${forum_username}`
 
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
@@ -261,9 +258,9 @@ async function analyzeForumUserActivity(user_id, project_id, forum_username, tes
                             analysisResults,
                             maxValue,
                             testingData,
-                            true, // isRawScoreCalc
+                            (isRawScoreCalc = true),
                             day.date,
-                            "", // No logs for raw score calc at the moment
+                            (logs = ""), // No logs for raw score calc at the moment
                         )
                         console.log(`User data successfully updated for day ${day.date}`)
                         console.log("")

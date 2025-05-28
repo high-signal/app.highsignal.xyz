@@ -98,3 +98,10 @@ interface SignalStrengthData {
     maxChars?: number
     logs?: string
 }
+
+interface TestingInputData {
+    testingPrompt?: string
+    testingModel?: string
+    testingTemperature?: string
+    testingMaxChars?: string
+}

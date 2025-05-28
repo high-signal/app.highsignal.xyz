@@ -1,16 +1,17 @@
 // @ts-ignore
 import { analyzeForumUserActivity } from "../../lambda/forumAnalysis/scripts/analyzeForumUserActivity"
 
-interface TestingData {
-    requestingUserId: string
-    testingPrompt: string
-}
-
 export async function triggerForumAnalysis(
     user_id: string,
     project_id: string,
-    forum_username: string,
-    testingData?: TestingData,
+    signalStrengthUsername: string,
+    testingData?: {
+        requestingUserId: string
+        testingInputData: {
+            rawTestingInputData?: TestingInputData
+            smartTestingInputData?: TestingInputData
+        }
+    },
 ) {
     const LAMBDA_ENDPOINT = process.env.LAMBDA_ENDPOINT_DISCOURSE_FORUM_ANALYSIS
     const API_KEY = process.env.LAMBDA_API_KEY
@@ -28,7 +29,7 @@ export async function triggerForumAnalysis(
                 body: JSON.stringify({
                     user_id,
                     project_id,
-                    forum_username,
+                    signalStrengthUsername,
                     async: true,
                     ...(testingData && { testingData }),
                 }),
@@ -40,7 +41,7 @@ export async function triggerForumAnalysis(
                 data: {
                     user_id,
                     project_id,
-                    forum_username,
+                    signalStrengthUsername,
                 },
             }
         } catch (error) {
@@ -53,14 +54,14 @@ export async function triggerForumAnalysis(
         }
     } else {
         // Execute locally
-        analyzeForumUserActivity(user_id, project_id, forum_username, testingData)
+        analyzeForumUserActivity(user_id, project_id, signalStrengthUsername, testingData)
         return {
             success: true,
             message: "Analysis initiated successfully",
             data: {
                 user_id,
                 project_id,
-                forum_username,
+                signalStrengthUsername,
                 ...(testingData && { testingData }),
             },
         }

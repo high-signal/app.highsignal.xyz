@@ -53,10 +53,10 @@ async function updateUserData(
             completion_tokens: analysisResults.completionTokens,
             logs: analysisResults.logs,
             ...(testingData?.requestingUserId && { test_requesting_user: testingData.requestingUserId }),
-            model: testingData?.testingModel || analysisResults.model,
-            temperature: testingData?.testingTemperature || analysisResults.temperature,
+            model: analysisResults.model,
+            temperature: analysisResults.temperature,
             prompt_id: analysisResults.promptId || null,
-            max_chars: testingData?.testingMaxChars || analysisResults.maxChars,
+            max_chars: analysisResults.maxChars,
             day: dayDate,
         })
 
