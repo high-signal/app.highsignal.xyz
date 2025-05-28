@@ -144,7 +144,7 @@ export default function SignalStrengthsSettingsHeader({
                         )
                     })()}
             </HStack>
-            {selectedUser && (
+            {/* {selectedUser && (
                 <HStack maxW={"100%"} justifyContent={"center"} flexWrap={"wrap"} gap={3} minH={"35px"}>
                     <>
                         <Text>Manually Trigger User Analysis</Text>
@@ -179,7 +179,7 @@ export default function SignalStrengthsSettingsHeader({
                         </Button>
                     </>
                 </HStack>
-            )}
+            )} */}
         </VStack>
     )
 }

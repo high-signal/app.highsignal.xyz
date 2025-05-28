@@ -234,12 +234,10 @@ export default function SignalStrengthSettings({
                                     value={newSignalStrengthUsername}
                                     onChange={(e) => {
                                         setNewSignalStrengthUsername(e.target.value)
-                                        // setTestResult(null)
                                     }}
                                     placeholder={`New ${signalStrength.displayName.split(" ")[0].toLowerCase()} username... (optional)`}
                                     handleClear={() => {
                                         setNewSignalStrengthUsername("")
-                                        // setTestResult(null)
                                     }}
                                     bg="pageBackground"
                                 />
@@ -265,9 +263,9 @@ export default function SignalStrengthSettings({
                                     type="raw"
                                     signalStrength={signalStrength}
                                     project={project}
-                                    selectedUser={selectedUser}
+                                    selectedUser={selectedUserRawData}
                                     fetchTestResult={fetchTestResult}
-                                    testResult={testResult}
+                                    testResult={testResultRawData}
                                     setTestResult={setTestResult}
                                     setTestTimerStart={setTestTimerStart}
                                     testTimerStop={testTimerStop}

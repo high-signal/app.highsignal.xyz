@@ -18,7 +18,6 @@ export default function SignalStrengthSettingsContainer({
     const [selectedUsername, setSelectedUsername] = useState<string>("")
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
     const [newUserSelectedTrigger, setNewUserSelectedTrigger] = useState(false)
-
     const [selectedUserRawData, setSelectedUserRawData] = useState<UserData | null>(null)
 
     // When a test user is selected, fetch the user data with superadmin fields

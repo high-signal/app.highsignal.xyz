@@ -24,7 +24,9 @@ export default function SignalStrength({
 }) {
     const { loggedInUser } = useUser()
 
-    const percentageCompleted = (Number(userData.value) / Number(projectData.maxValue)) * 100
+    const displayValue = userData.value || userData.rawValue || 0
+
+    const percentageCompleted = (Number(displayValue) / Number(projectData.maxValue)) * 100
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
     const [isOpen, setIsOpen] = useState(true)
     const [countdown, setCountdown] = useState<number | null>(null)
@@ -138,7 +140,7 @@ export default function SignalStrength({
                         color={completedBarWidth !== "0%" ? "lozenge.text.active" : "lozenge.text.disabled"}
                     >
                         {completedBarWidth !== "0%" && <Text>+</Text>}
-                        <Text>{userData.value}</Text>
+                        <Text>{displayValue}</Text>
                     </HStack>
                 )}
             </HStack>
