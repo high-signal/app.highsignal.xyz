@@ -29,6 +29,7 @@ export default function SignalStrengthsSettingsCalculation({
     setTestError,
     testMaxDuration,
     setTestResultRawData,
+    newSignalStrengthUsername,
 }: {
     type: "raw" | "smart"
     signalStrength: SignalStrengthData
@@ -47,12 +48,12 @@ export default function SignalStrengthsSettingsCalculation({
     setTestError: (error: string | null) => void
     testMaxDuration: number
     setTestResultRawData: (result: SignalStrengthUserData[] | null) => void
+    newSignalStrengthUsername: string
 }) {
     const [newModel, setNewModel] = useState<string>("")
     const [newTemperature, setNewTemperature] = useState<string>("")
     const [newMaxChars, setNewMaxChars] = useState<string>("")
     const [newPrompt, setNewPrompt] = useState<string>("")
-    const [newSignalStrengthUsername, setNewSignalStrengthUsername] = useState<string>("")
 
     // Format duration to show seconds and tenths
     const formatDuration = (duration: number | null) => {
@@ -134,7 +135,7 @@ export default function SignalStrengthsSettingsCalculation({
                     setTestResultRawData(
                         testResultRawDataJson[0].signalStrengths?.find(
                             (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
-                        ).data,
+                        )?.data,
                     )
                 } else {
                     // If no result yet, poll again after 1 second
@@ -282,20 +283,6 @@ export default function SignalStrengthsSettingsCalculation({
                         placeholder="New max chars... (optional)"
                         handleClear={() => {
                             setNewMaxChars("")
-                            setTestResult(null)
-                        }}
-                        bg="pageBackground"
-                    />
-                    <SingleLineTextInput
-                        maxW={"300px"}
-                        value={newSignalStrengthUsername}
-                        onChange={(e) => {
-                            setNewSignalStrengthUsername(e.target.value)
-                            setTestResult(null)
-                        }}
-                        placeholder={`New ${signalStrength.displayName.split(" ")[0].toLowerCase()} username... (optional)`}
-                        handleClear={() => {
-                            setNewSignalStrengthUsername("")
                             setTestResult(null)
                         }}
                         bg="pageBackground"

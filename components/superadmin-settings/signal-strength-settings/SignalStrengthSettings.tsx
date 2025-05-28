@@ -1,12 +1,13 @@
 "use client"
 
-import { HStack, VStack } from "@chakra-ui/react"
+import { HStack, VStack, Text } from "@chakra-ui/react"
 import { useState, useEffect } from "react"
 
 import HistoricalDataTable from "./HistoricalDataTable"
 import SettingsTabbedContent from "../../ui/SettingsTabbedContent"
 import SignalStrengthsSettingsHeader from "./SignalStrengthsSettingsHeader"
 import SignalStrengthsSettingsCalculation from "./SignalStrengthsSettingsCalculation"
+import SingleLineTextInput from "../../ui/SingleLineTextInput"
 
 export default function SignalStrengthSettings({
     signalStrength,
@@ -20,6 +21,12 @@ export default function SignalStrengthSettings({
     newUserSelectedTrigger: boolean
 }) {
     const [selectedUserRawData, setSelectedUserRawData] = useState<UserData | null>(null)
+    const [newSignalStrengthUsername, setNewSignalStrengthUsername] = useState<string>("")
+
+    const signalStrengthUsername =
+        selectedUser?.connectedAccounts
+            ?.find((accountType) => accountType.name === signalStrength.name)
+            ?.data?.find((forumUser) => Number(forumUser.projectId) === Number(project?.id))?.forumUsername || ""
 
     // TEST TIMER ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     const [testTimerStart, setTestTimerStart] = useState<number | null>(null)
@@ -90,33 +97,86 @@ export default function SignalStrengthSettings({
                     signalStrength={signalStrength}
                     project={project}
                     selectedUser={selectedUser}
+                    signalStrengthUsername={signalStrengthUsername}
                 />
-                {/* Historical Data Tables */}
+                {/* Historical Data Tables and Usernames */}
                 {selectedUser && (
                     <HStack
-                        justifyContent={"space-around"}
+                        justifyContent={"center"}
                         alignItems={"start"}
                         bg={"contentBackground"}
                         w={"100%"}
                         flexWrap={"wrap"}
+                        gap={{ base: 4, lg: 20 }}
+                        px={3}
+                        pt={4}
                     >
-                        <HistoricalDataTable
-                            title="Current Results"
-                            userData={
-                                selectedUser.signalStrengths?.find((s) => s.signalStrengthName === signalStrength.name)
-                                    ?.data || []
-                            }
-                            rawUserData={
-                                selectedUserRawData?.signalStrengths?.find(
-                                    (s) => s.signalStrengthName === signalStrength.name,
-                                )?.data || []
-                            }
-                        />
-                        <HistoricalDataTable
-                            title="Test Results"
-                            userData={testResult || []}
-                            rawUserData={testResultRawData || []}
-                        />
+                        <VStack flex={1} alignItems={{ base: "center", lg: "end" }}>
+                            <VStack gap={4}>
+                                <HStack
+                                    bg={"pageBackground"}
+                                    alignItems={"center"}
+                                    borderRadius={"full"}
+                                    px={4}
+                                    py={2}
+                                    flexWrap={"wrap"}
+                                    gap={3}
+                                >
+                                    <HStack flexWrap={"wrap"} columnGap={3} rowGap={1} justifyContent={"center"}>
+                                        <Text>{signalStrength.displayName.split(" ")[0]} username</Text>
+                                        <Text
+                                            fontWeight={"bold"}
+                                            color={signalStrengthUsername ? "inherit" : "textColorMuted"}
+                                        >
+                                            {selectedUser && signalStrengthUsername
+                                                ? signalStrengthUsername
+                                                : selectedUser && !signalStrengthUsername
+                                                  ? "Not connected"
+                                                  : "Select a user"}
+                                        </Text>
+                                    </HStack>
+                                </HStack>
+                                <HistoricalDataTable
+                                    title="Current Results"
+                                    userData={
+                                        selectedUser.signalStrengths?.find(
+                                            (s) => s.signalStrengthName === signalStrength.name,
+                                        )?.data || []
+                                    }
+                                    rawUserData={
+                                        selectedUserRawData?.signalStrengths?.find(
+                                            (s) => s.signalStrengthName === signalStrength.name,
+                                        )?.data || []
+                                    }
+                                />
+                            </VStack>
+                        </VStack>
+                        <VStack flex={1} alignItems={{ base: "center", lg: "start" }}>
+                            <VStack gap={4}>
+                                <SingleLineTextInput
+                                    maxW={"300px"}
+                                    minW={"300px"}
+                                    h={"40px"}
+                                    value={newSignalStrengthUsername}
+                                    onChange={(e) => {
+                                        setNewSignalStrengthUsername(e.target.value)
+                                        // setTestResult(null)
+                                    }}
+                                    placeholder={`New ${signalStrength.displayName.split(" ")[0].toLowerCase()} username... (optional)`}
+                                    handleClear={() => {
+                                        setNewSignalStrengthUsername("")
+                                        // setTestResult(null)
+                                    }}
+                                    bg="pageBackground"
+                                />
+
+                                <HistoricalDataTable
+                                    title="Test Results"
+                                    userData={testResult || []}
+                                    rawUserData={testResultRawData || []}
+                                />
+                            </VStack>
+                        </VStack>
                     </HStack>
                 )}
             </VStack>
@@ -145,6 +205,7 @@ export default function SignalStrengthSettings({
                                     setTestError={setTestError}
                                     testMaxDuration={testMaxDuration}
                                     setTestResultRawData={setTestResultRawData}
+                                    newSignalStrengthUsername={newSignalStrengthUsername}
                                 />
                             ),
                         },
@@ -170,6 +231,7 @@ export default function SignalStrengthSettings({
                                     setTestError={setTestError}
                                     testMaxDuration={testMaxDuration}
                                     setTestResultRawData={setTestResultRawData}
+                                    newSignalStrengthUsername={newSignalStrengthUsername}
                                 />
                             ),
                         },

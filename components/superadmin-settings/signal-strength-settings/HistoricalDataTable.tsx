@@ -15,7 +15,7 @@ export default function HistoricalDataTable({
     )
 
     return (
-        <VStack gap={2} pb={5}>
+        <VStack gap={2} pb={5} minW={"320px"}>
             <Text w={"100%"} textAlign={"center"} fontWeight={"bold"} fontSize={"lg"}>
                 {title}
             </Text>
