@@ -154,7 +154,7 @@ export default function SignalStrengthSettings({
     // Reset the test when a new user is selected or the new signal strength username is changed
     useEffect(() => {
         resetTest()
-    }, [newUserSelectedTrigger, newSignalStrengthUsername])
+    }, [newUserSelectedTrigger, newSignalStrengthUsername, resetTest])
 
     function resetTest() {
         setTestResult(null)
