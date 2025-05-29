@@ -16,6 +16,7 @@ interface SingleLineTextInputProps {
     placeholder?: string
     rightElement?: ReactNode
     isEditable?: boolean
+    isSelectorOnly?: boolean
     ref?: React.RefObject<HTMLInputElement>
     bg?: string
 }
@@ -33,6 +34,7 @@ export default function SingleLineTextInput({
     placeholder = "",
     rightElement,
     isEditable = true,
+    isSelectorOnly = false,
     ref,
     bg = "contentBackground",
 }: SingleLineTextInputProps) {
@@ -55,7 +57,7 @@ export default function SingleLineTextInput({
                 border={"3px solid"}
                 borderColor="transparent"
                 _focus={{
-                    borderColor: isEditable ? "input.border" : "transparent",
+                    borderColor: isEditable || isSelectorOnly ? "input.border" : "transparent",
                     boxShadow: "none",
                     outline: "none",
                 }}
@@ -63,7 +65,7 @@ export default function SingleLineTextInput({
                 pr={showClearButton ? "30px" : "0px"}
                 h={h}
                 readOnly={!isEditable}
-                cursor={isEditable ? "text" : "disabled"}
+                cursor={isSelectorOnly ? "pointer" : isEditable ? "text" : "disabled"}
                 userSelect={isEditable ? "text" : "none"}
                 color="textColor"
             />

@@ -26,6 +26,7 @@ type SignalStrengthData = {
     signal_strengths: {
         name: string
     }
+    id?: number
     day: string
     last_checked?: number
     value: number
@@ -201,6 +202,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                             .from("user_signal_strengths")
                             .select(
                                 `
+                                id,
                                 signal_strengths!inner (
                                     name
                                 ),
@@ -296,6 +298,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                                 : {}),
                             ...(isSuperAdminRequesting
                                 ? {
+                                      id: d.id,
                                       requestId: d.request_id,
                                       created: d.created,
                                       user_id: d.user_id,

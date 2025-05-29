@@ -40,6 +40,7 @@ interface PeakSignalUserData {
 }
 
 interface SignalStrengthUserData {
+    id?: number
     day: string
     name: string
     value: string
@@ -58,6 +59,7 @@ interface SignalStrengthUserData {
     completionTokens?: number
     lastChecked?: number
     rawValue?: number
+    testRequestingUser?: number
 }
 
 interface ProjectData {

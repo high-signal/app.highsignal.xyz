@@ -1,13 +1,14 @@
 "use client"
 
 import { HStack, Text, VStack, Box, Textarea, Button } from "@chakra-ui/react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faRefresh } from "@fortawesome/free-solid-svg-icons"
 
 import SignalStrength from "../../signal-display/signal-strength/SignalStrength"
 import SingleLineTextInput from "../../ui/SingleLineTextInput"
+import SignalStrengthViewerPicker from "../../ui/SignalStrengthViewerPicker"
 
 export default function SignalStrengthsSettingsCalculation({
     type,
@@ -39,6 +40,16 @@ export default function SignalStrengthsSettingsCalculation({
     setTestingInputData: (testingInputData: TestingInputData) => void
     resetTest: () => void
 }) {
+    const [selectedSignalStrengthViewer, setSelectedSignalStrengthViewer] = useState<SignalStrengthUserData | null>(
+        null,
+    )
+
+    useEffect(() => {
+        setSelectedSignalStrengthViewer(
+            selectedUser?.signalStrengths?.find((s) => s.signalStrengthName === signalStrength.name)?.data?.[0] || null,
+        )
+    }, [selectedUser, signalStrength.name])
+
     // Format duration to show seconds and tenths
     const formatDuration = (duration: number | null) => {
         if (duration === null) return "0.0s"
@@ -283,25 +294,45 @@ export default function SignalStrengthsSettingsCalculation({
             >
                 <HStack w={"100%"} justifyContent={"space-around"} alignItems={"start"} flexWrap={"wrap"} pb={5}>
                     <VStack w={"100%"} maxW={"600px"} gap={0}>
-                        <Box w={"100%"} px={3}>
-                            <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
-                                Current Analysis{" "}
-                                {project &&
-                                    selectedUser &&
-                                    "(ID: " +
-                                        selectedUser.signalStrengths?.find(
-                                            (s) => s.signalStrengthName === signalStrength.name,
-                                        )?.data?.[0]?.promptId +
-                                        ")"}
-                            </Text>
-                        </Box>
-                        {project && selectedUser ? (
+                        <HStack w={"100%"} px={3} justifyContent={"center"}>
+                            {selectedUser ? (
+                                <HStack flexWrap={"wrap"} gap={{ base: 0, sm: 2 }} justifyContent={"center"}>
+                                    <Text py={2} textAlign={"center"} fontWeight={"bold"}>
+                                        {type === "raw" ? "Raw" : "Smart"} Analysis for{" "}
+                                    </Text>
+                                    <SignalStrengthViewerPicker
+                                        userSignalStrengths={
+                                            selectedUser?.signalStrengths
+                                                ?.find((s) => s.signalStrengthName === signalStrength.name)
+                                                ?.data.filter((data) => {
+                                                    // Filter out any with testRequestingUser
+                                                    if (data.testRequestingUser) return false
+
+                                                    // For raw type, only include those with rawValue
+                                                    if (type === "raw") return data.rawValue !== undefined
+
+                                                    // For smart type, only include those with value
+                                                    if (type === "smart") return data.value !== undefined
+
+                                                    return false
+                                                }) || []
+                                        }
+                                        onSelect={(data) => {
+                                            setSelectedSignalStrengthViewer(data)
+                                        }}
+                                    />
+                                </HStack>
+                            ) : (
+                                <Text py={2} textAlign={"center"} fontWeight={"bold"}>
+                                    Analysis Viewer
+                                </Text>
+                            )}
+                        </HStack>
+                        {project && selectedUser && selectedSignalStrengthViewer ? (
                             <SignalStrength
                                 username={selectedUser.username || ""}
                                 userData={
-                                    selectedUser.signalStrengths?.find(
-                                        (s) => s.signalStrengthName === signalStrength.name,
-                                    )?.data?.[0] || {
+                                    selectedSignalStrengthViewer || {
                                         value: "0",
                                         description: "No data",
                                         improvements: "No data",
