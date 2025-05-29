@@ -1,8 +1,7 @@
 "use client"
 
 import { HStack, Text, VStack, Box, Textarea, Button, Span } from "@chakra-ui/react"
-import { useEffect, useState, useRef } from "react"
-import { diff_match_patch } from "diff-match-patch"
+import { useEffect, useState } from "react"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faRefresh, faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
@@ -329,6 +328,7 @@ export default function SignalStrengthsSettingsCalculation({
                         ref={newPromptRef}
                         minH={newPromptTextAreaHeight}
                         maxH={newPromptTextAreaHeight}
+                        resize="none"
                         fontFamily={"monospace"}
                         border={"3px solid"}
                         borderColor="transparent"
