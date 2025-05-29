@@ -1,7 +1,7 @@
 "use client"
 
 import { HStack, VStack, Text, Box } from "@chakra-ui/react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { getAccessToken } from "@privy-io/react-auth"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -54,6 +54,24 @@ export default function SignalStrengthSettings({
     } = useTestTimer({
         onTimeout: () => setTestResultsLoading(false),
     })
+
+    const resetTest = useCallback(() => {
+        setTestResult(null)
+        setTestResultRawData(null)
+        setTestResultsLoading(false)
+        setTestTimerStart(null)
+        setTestTimerStop(null)
+        setTestTimerDuration(null)
+        setTestError(null)
+    }, [
+        setTestResult,
+        setTestResultRawData,
+        setTestResultsLoading,
+        setTestTimerStart,
+        setTestTimerStop,
+        setTestTimerDuration,
+        setTestError,
+    ])
 
     const fetchTestResult = async () => {
         setTestTimerStart(Date.now())
@@ -153,18 +171,10 @@ export default function SignalStrengthSettings({
 
     // Reset the test when a new user is selected or the new signal strength username is changed
     useEffect(() => {
-        resetTest()
-    }, [newUserSelectedTrigger, newSignalStrengthUsername, resetTest])
-
-    function resetTest() {
-        setTestResult(null)
-        setTestResultRawData(null)
-        setTestResultsLoading(false)
-        setTestTimerStart(null)
-        setTestTimerStop(null)
-        setTestTimerDuration(null)
-        setTestError(null)
-    }
+        if (!selectedUser) {
+            resetTest()
+        }
+    }, [resetTest, newUserSelectedTrigger, newSignalStrengthUsername, selectedUser])
 
     // Helper function to check if the testing data has been modified
     const hasModifiedTestingInputs = (data: TestingInputData): boolean => {
