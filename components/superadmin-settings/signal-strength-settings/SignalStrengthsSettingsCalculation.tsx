@@ -1,11 +1,11 @@
 "use client"
 
 import { HStack, Text, VStack, Box, Textarea, Button, Span } from "@chakra-ui/react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { diff_match_patch } from "diff-match-patch"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowRight, faRefresh } from "@fortawesome/free-solid-svg-icons"
+import { faArrowRight, faRefresh, faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
 
 import SignalStrength from "../../signal-display/signal-strength/SignalStrength"
 import SingleLineTextInput from "../../ui/SingleLineTextInput"
@@ -45,10 +45,33 @@ export default function SignalStrengthsSettingsCalculation({
         null,
     )
 
-    // Diff between current prompt and new prompt
+    // Prompts - State
+    const [isPromptExpanded, setIsPromptExpanded] = useState(false)
+    const [expandedHeight, setExpandedHeight] = useState<number | null>(null)
+    const currentPromptRef = useRef<HTMLDivElement>(null)
+    const newPromptRef = useRef<HTMLTextAreaElement>(null)
+    const currentPromptHeightRef = useRef<number>(0)
+    const newPromptHeightRef = useRef<number>(0)
+
+    // Prompts - Text area height calculations
+    const currentPromptTextAreaHeight = isPromptExpanded
+        ? {
+              base: `${currentPromptHeightRef.current}px`,
+              sm: expandedHeight ? `${expandedHeight}px` : "fit-content",
+          }
+        : "30dvh"
+
+    const newPromptTextAreaHeight = isPromptExpanded
+        ? {
+              base: `${newPromptHeightRef.current + 20}px`,
+              sm: expandedHeight ? `${expandedHeight}px` : "fit-content",
+          }
+        : "30dvh"
+
+    // Prompts - Diff between current prompt and new prompt
     const [diffs, setDiffs] = useState<[number, string][]>([])
 
-    // Calculate diff between current prompt and new prompt
+    // Prompts - Calculate diff between current prompt and new prompt
     useEffect(() => {
         if (signalStrength.prompt && testingInputData?.testingPrompt) {
             const dmp = new diff_match_patch()
@@ -59,6 +82,17 @@ export default function SignalStrengthsSettingsCalculation({
             setDiffs([])
         }
     }, [signalStrength.prompt, testingInputData?.testingPrompt])
+
+    // Prompts - Update expanded height when content changes
+    useEffect(() => {
+        if (isPromptExpanded) {
+            const currentHeight = currentPromptRef.current?.scrollHeight || 0
+            const newHeight = newPromptRef.current?.scrollHeight || 0
+            currentPromptHeightRef.current = currentHeight
+            newPromptHeightRef.current = newHeight
+            setExpandedHeight(Math.max(currentHeight, newHeight))
+        }
+    }, [isPromptExpanded, signalStrength.prompt, testingInputData?.testingPrompt])
 
     // Set selected signal strength viewer data when user is selected or changes
     useEffect(() => {
@@ -235,21 +269,26 @@ export default function SignalStrengthsSettingsCalculation({
                 py={5}
                 flexWrap={{ base: "wrap", sm: "nowrap" }}
             >
-                <VStack w={"100%"}>
-                    <Text fontWeight={"bold"}>Current Prompt (ID: {signalStrength.promptId})</Text>
+                <VStack w={"100%"} gap={0}>
+                    <Text fontWeight={"bold"} mb={2}>
+                        Current Prompt (ID: {signalStrength.promptId})
+                    </Text>
                     <Box
-                        minH={"30dvh"}
+                        ref={currentPromptRef}
+                        minH={currentPromptTextAreaHeight}
+                        maxH={currentPromptTextAreaHeight}
                         fontFamily={"monospace"}
                         border={"none"}
-                        borderRadius={"10px"}
+                        borderTopRadius="10px"
+                        borderBottomRadius="0px"
                         bg="pageBackgroundMuted"
-                        p={3}
+                        px={3}
+                        py={2}
                         overflowY="auto"
                         whiteSpace="pre-wrap"
-                        resize="vertical"
-                        style={{ resize: "vertical" }}
                         cursor={"default"}
                         fontSize={"sm"}
+                        transition="0.2s ease-in-out"
                     >
                         {testingInputData?.testingPrompt && diffs.length > 0
                             ? diffs.map(([op, text], i) => {
@@ -275,6 +314,19 @@ export default function SignalStrengthsSettingsCalculation({
                               })
                             : signalStrength.prompt || "No prompt set"}
                     </Box>
+                    <Button
+                        w="100%"
+                        secondaryButton
+                        onClick={() => setIsPromptExpanded(!isPromptExpanded)}
+                        borderTopRadius="0px"
+                        borderBottomRadius="10px"
+                        py={2}
+                    >
+                        <HStack>
+                            <FontAwesomeIcon icon={isPromptExpanded ? faChevronUp : faChevronDown} />
+                            <Text>{isPromptExpanded ? "Collapse" : "Expand"} prompts</Text>
+                        </HStack>
+                    </Button>
                 </VStack>
                 <Button
                     secondaryButton
@@ -304,10 +356,14 @@ export default function SignalStrengthsSettingsCalculation({
                         </Box>
                     </HStack>
                 </Button>
-                <VStack w={"100%"}>
-                    <Text fontWeight={"bold"}>New Prompt (optional)</Text>
+                <VStack w={"100%"} gap={0}>
+                    <Text fontWeight={"bold"} mb={2}>
+                        New Prompt (optional)
+                    </Text>
                     <Textarea
-                        minH={"30dvh"}
+                        ref={newPromptRef}
+                        minH={newPromptTextAreaHeight}
+                        maxH={newPromptTextAreaHeight}
                         fontFamily={"monospace"}
                         border={"3px solid"}
                         borderColor="transparent"
@@ -316,7 +372,10 @@ export default function SignalStrengthsSettingsCalculation({
                             boxShadow: "none",
                             outline: "none",
                         }}
-                        borderRadius={"10px"}
+                        px={3}
+                        py={2}
+                        borderTopRadius="10px"
+                        borderBottomRadius="0px"
                         bg="pageBackground"
                         value={testingInputData?.testingPrompt || ""}
                         onChange={(e) => {
@@ -326,7 +385,21 @@ export default function SignalStrengthsSettingsCalculation({
                             })
                             resetTest()
                         }}
+                        transition="0.2s ease-in-out"
                     />
+                    <Button
+                        w="100%"
+                        secondaryButton
+                        onClick={() => setIsPromptExpanded(!isPromptExpanded)}
+                        borderTopRadius="0px"
+                        borderBottomRadius="10px"
+                        py={2}
+                    >
+                        <HStack>
+                            <FontAwesomeIcon icon={isPromptExpanded ? faChevronUp : faChevronDown} />
+                            <Text>{isPromptExpanded ? "Collapse" : "Expand"} prompts</Text>
+                        </HStack>
+                    </Button>
                 </VStack>
             </HStack>
             {/* Testing Output  */}
