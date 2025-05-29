@@ -10,6 +10,7 @@ import { faArrowRight, faRefresh, faChevronDown, faChevronUp } from "@fortawesom
 import SignalStrength from "../../signal-display/signal-strength/SignalStrength"
 import SingleLineTextInput from "../../ui/SingleLineTextInput"
 import SignalStrengthViewerPicker from "../../ui/SignalStrengthViewerPicker"
+import { usePromptComparison } from "../../../hooks/usePromptComparison"
 
 export default function SignalStrengthsSettingsCalculation({
     type,
@@ -45,54 +46,18 @@ export default function SignalStrengthsSettingsCalculation({
         null,
     )
 
-    // Prompts - State
-    const [isPromptExpanded, setIsPromptExpanded] = useState(false)
-    const [expandedHeight, setExpandedHeight] = useState<number | null>(null)
-    const currentPromptRef = useRef<HTMLDivElement>(null)
-    const newPromptRef = useRef<HTMLTextAreaElement>(null)
-    const currentPromptHeightRef = useRef<number>(0)
-    const newPromptHeightRef = useRef<number>(0)
-
-    // Prompts - Text area height calculations
-    const currentPromptTextAreaHeight = isPromptExpanded
-        ? {
-              base: `${currentPromptHeightRef.current}px`,
-              sm: expandedHeight ? `${expandedHeight}px` : "fit-content",
-          }
-        : "30dvh"
-
-    const newPromptTextAreaHeight = isPromptExpanded
-        ? {
-              base: `${newPromptHeightRef.current + 20}px`,
-              sm: expandedHeight ? `${expandedHeight}px` : "fit-content",
-          }
-        : "30dvh"
-
-    // Prompts - Diff between current prompt and new prompt
-    const [diffs, setDiffs] = useState<[number, string][]>([])
-
-    // Prompts - Calculate diff between current prompt and new prompt
-    useEffect(() => {
-        if (signalStrength.prompt && testingInputData?.testingPrompt) {
-            const dmp = new diff_match_patch()
-            const newDiffs = dmp.diff_main(signalStrength.prompt, testingInputData.testingPrompt)
-            dmp.diff_cleanupSemantic(newDiffs)
-            setDiffs(newDiffs)
-        } else {
-            setDiffs([])
-        }
-    }, [signalStrength.prompt, testingInputData?.testingPrompt])
-
-    // Prompts - Update expanded height when content changes
-    useEffect(() => {
-        if (isPromptExpanded) {
-            const currentHeight = currentPromptRef.current?.scrollHeight || 0
-            const newHeight = newPromptRef.current?.scrollHeight || 0
-            currentPromptHeightRef.current = currentHeight
-            newPromptHeightRef.current = newHeight
-            setExpandedHeight(Math.max(currentHeight, newHeight))
-        }
-    }, [isPromptExpanded, signalStrength.prompt, testingInputData?.testingPrompt])
+    const {
+        isPromptExpanded,
+        setIsPromptExpanded,
+        currentPromptRef,
+        newPromptRef,
+        currentPromptTextAreaHeight,
+        newPromptTextAreaHeight,
+        diffs,
+    } = usePromptComparison({
+        currentPrompt: signalStrength.prompt,
+        newPrompt: testingInputData?.testingPrompt,
+    })
 
     // Set selected signal strength viewer data when user is selected or changes
     useEffect(() => {
