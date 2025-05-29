@@ -2,6 +2,7 @@
 
 import { HStack, Text, VStack, Box, Textarea, Button } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
+import { diff_match_patch } from "diff-match-patch"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faRefresh } from "@fortawesome/free-solid-svg-icons"
@@ -44,6 +45,22 @@ export default function SignalStrengthsSettingsCalculation({
         null,
     )
 
+    // Diff between current prompt and new prompt
+    const [diffs, setDiffs] = useState<[number, string][]>([])
+
+    // Calculate diff between current prompt and new prompt
+    useEffect(() => {
+        if (signalStrength.prompt && testingInputData?.testingPrompt) {
+            const dmp = new diff_match_patch()
+            const newDiffs = dmp.diff_main(signalStrength.prompt, testingInputData.testingPrompt)
+            dmp.diff_cleanupSemantic(newDiffs)
+            setDiffs(newDiffs)
+        } else {
+            setDiffs([])
+        }
+    }, [signalStrength.prompt, testingInputData?.testingPrompt])
+
+    // Set selected signal strength viewer data when user is selected or changes
     useEffect(() => {
         setSelectedSignalStrengthViewer(
             selectedUser?.signalStrengths?.find((s) => s.signalStrengthName === signalStrength.name)?.data?.[0] || null,
@@ -220,16 +237,40 @@ export default function SignalStrengthsSettingsCalculation({
             >
                 <VStack w={"100%"}>
                     <Text fontWeight={"bold"}>Current Prompt (ID: {signalStrength.promptId})</Text>
-                    <Textarea
+                    <Box
                         minH={"30dvh"}
                         fontFamily={"monospace"}
-                        placeholder="No prompt set"
                         border={"none"}
                         borderRadius={"10px"}
-                        disabled
-                        value={signalStrength.prompt || ""}
                         bg="pageBackground"
-                    />
+                        opacity={0.6}
+                        p={3}
+                        overflowY="auto"
+                        whiteSpace="pre-wrap"
+                        resize="vertical"
+                        style={{ resize: "vertical" }}
+                        cursor={"default"}
+                        fontSize={"sm"}
+                    >
+                        {testingInputData?.testingPrompt && diffs.length > 0
+                            ? diffs.map(([op, text], i) => {
+                                  if (op === 0) return <span key={i}>{text}</span>
+                                  if (op === -1)
+                                      return (
+                                          <span key={i} style={{ backgroundColor: "rgba(255, 0, 0, 0.3)" }}>
+                                              {text}
+                                          </span>
+                                      )
+                                  if (op === 1)
+                                      return (
+                                          <span key={i} style={{ backgroundColor: "rgba(0, 255, 0, 0.3)" }}>
+                                              {text}
+                                          </span>
+                                      )
+                                  return null
+                              })
+                            : signalStrength.prompt || "No prompt set"}
+                    </Box>
                 </VStack>
                 <Button
                     secondaryButton
