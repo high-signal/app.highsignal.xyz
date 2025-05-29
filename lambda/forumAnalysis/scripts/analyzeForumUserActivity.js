@@ -204,7 +204,7 @@ async function analyzeForumUserActivity(user_id, project_id, signalStrengthUsern
                 "Number of days to analyze for raw score calculation:",
                 dailyActivityData.filter((day) => day.data && day.data.length > 0).length,
             )
-            logs += `\nRaw score calc days: ${dailyActivityData.filter((day) => day.data && day.data.length > 0).length}\n`
+            logs += `\nUnique activity days: ${dailyActivityData.filter((day) => day.data && day.data.length > 0).length}\n`
 
             // For each day with data in dailyActivityData, run the analyzeUserData function
             const analysisPromises = dailyActivityData.map(async (day) => {
@@ -234,6 +234,7 @@ async function analyzeForumUserActivity(user_id, project_id, signalStrengthUsern
                         testingData,
                         day.date,
                         "raw", // type
+                        logs + `Day ${day.date} activity: ${day.data.length}\n`,
                     )
 
                     // === Validity check on maxValue ===
@@ -260,7 +261,6 @@ async function analyzeForumUserActivity(user_id, project_id, signalStrengthUsern
                             testingData,
                             true, // isRawScoreCalc
                             day.date,
-                            "", // No logs for raw score calc at the moment
                         )
                         console.log(`User data successfully updated for day ${day.date}`)
                         console.log("")
