@@ -1,6 +1,6 @@
 "use client"
 
-import { HStack, Text, VStack, Box, Textarea, Button } from "@chakra-ui/react"
+import { HStack, Text, VStack, Box, Textarea, Button, Span } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
 import { diff_match_patch } from "diff-match-patch"
 
@@ -242,8 +242,7 @@ export default function SignalStrengthsSettingsCalculation({
                         fontFamily={"monospace"}
                         border={"none"}
                         borderRadius={"10px"}
-                        bg="pageBackground"
-                        opacity={0.6}
+                        bg="pageBackgroundMuted"
                         p={3}
                         overflowY="auto"
                         whiteSpace="pre-wrap"
@@ -254,18 +253,23 @@ export default function SignalStrengthsSettingsCalculation({
                     >
                         {testingInputData?.testingPrompt && diffs.length > 0
                             ? diffs.map(([op, text], i) => {
-                                  if (op === 0) return <span key={i}>{text}</span>
+                                  if (op === 0)
+                                      return (
+                                          <Span key={i} opacity={0.6}>
+                                              {text}
+                                          </Span>
+                                      )
                                   if (op === -1)
                                       return (
-                                          <span key={i} style={{ backgroundColor: "rgba(255, 0, 0, 0.3)" }}>
+                                          <Span key={i} bg={"red.500"} borderRadius={"4px"}>
                                               {text}
-                                          </span>
+                                          </Span>
                                       )
                                   if (op === 1)
                                       return (
-                                          <span key={i} style={{ backgroundColor: "rgba(0, 255, 0, 0.3)" }}>
+                                          <Span key={i} bg={"green.500"} borderRadius={"4px"}>
                                               {text}
-                                          </span>
+                                          </Span>
                                       )
                                   return null
                               })

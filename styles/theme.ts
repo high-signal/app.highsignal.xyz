@@ -5,7 +5,7 @@ import { buttonRecipe } from "./button"
 import { COLORS } from "../config/constants"
 
 // Color Palette
-// https://javisperez.github.io/tailwindcolorshades/?corn=e7c60d&curious-blue=36A2EB&pomegranate=EC420C&malachite=00B800
+// https://javisperez.github.io/tailwindcolorshades
 
 const rainbowAnimation = keyframes`
         0% { background-position: 0% 50%; }
@@ -34,17 +34,17 @@ export const customConfig = defineConfig({
                     950: { value: COLORS.PAGE_BACKGROUND_DARK }, // Used in PWA config
                 },
                 red: {
-                    50: { value: "#F7F3ED" },
-                    100: { value: "#F0E7DD" },
-                    200: { value: "#D6C1AB" },
-                    300: { value: "#BF9E82" },
-                    400: { value: "#8F593F" },
-                    500: { value: "#5f2413" },
-                    600: { value: "#541D0F" },
-                    700: { value: "#47160B" },
-                    800: { value: "#380F07" },
-                    900: { value: "#2B0A04" },
-                    950: { value: "#1C0502" },
+                    50: { value: "#FFFAF2" },
+                    100: { value: "#FCF3E6" },
+                    200: { value: "#FADDBE" },
+                    300: { value: "#F7C599" },
+                    400: { value: "#F28A52" },
+                    500: { value: "#EC420C" },
+                    600: { value: "#D6370B" },
+                    700: { value: "#B32907" },
+                    800: { value: "#8F1E04" },
+                    900: { value: "#6B1402" },
+                    950: { value: "#450B01" },
                 },
                 green: {
                     50: { value: "#EDFAF3" },
@@ -124,6 +124,12 @@ export const customConfig = defineConfig({
                 // Background colors
                 pageBackground: {
                     value: { _light: "{colors.blue.100}", _dark: "{colors.blue.950}" },
+                },
+                pageBackgroundMuted: {
+                    value: {
+                        _light: "color-mix(in srgb, {colors.blue.100} 60%, transparent)",
+                        _dark: "color-mix(in srgb, {colors.blue.950} 60%, transparent)",
+                    },
                 },
                 contentBackground: {
                     value: { _light: "{colors.blue.200}", _dark: "{colors.blue.900}" },
