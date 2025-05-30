@@ -443,14 +443,7 @@ export default function SignalStrengthsSettingsCalculation({
                         )}
                         {selectedUser && selectedSignalStrengthViewer != null && (
                             <VStack w={"100%"} gap={5}>
-                                <ExtraData
-                                    title="Current Analysis Logs"
-                                    data={
-                                        selectedUser.signalStrengths?.find(
-                                            (s) => s.signalStrengthName === signalStrength.name,
-                                        )?.data?.[0]
-                                    }
-                                />
+                                <ExtraData title="Current Analysis Logs" data={selectedSignalStrengthViewer} />
                             </VStack>
                         )}
                     </VStack>
