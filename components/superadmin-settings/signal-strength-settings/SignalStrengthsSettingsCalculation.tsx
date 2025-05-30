@@ -87,11 +87,14 @@ export default function SignalStrengthsSettingsCalculation({
                 </VStack>
 
                 <Text as="pre" whiteSpace="pre-wrap" fontFamily="monospace" fontSize="sm">
+                    PromptId: {data?.promptId}
+                    <br />
+                    PromptTokens: {data?.promptTokens}
+                    <br />
+                    CompletionTokens: {data?.completionTokens}
+                    <br />
+                    <br />
                     {data?.logs}
-                    <br />
-                    Prompt tokens: {data?.promptTokens}
-                    <br />
-                    Completion tokens: {data?.completionTokens}
                 </Text>
             </VStack>
         </VStack>
@@ -443,14 +446,17 @@ export default function SignalStrengthsSettingsCalculation({
                         )}
                         {selectedUser && selectedSignalStrengthViewer != null && (
                             <VStack w={"100%"} gap={5}>
-                                <ExtraData title="Current Analysis Logs" data={selectedSignalStrengthViewer} />
+                                <ExtraData
+                                    title={`${type === "raw" ? "Raw" : "Smart"} Analysis Logs`}
+                                    data={selectedSignalStrengthViewer}
+                                />
                             </VStack>
                         )}
                     </VStack>
                     <VStack w={"100%"} maxW={"600px"} gap={0}>
                         <HStack w={"100%"} px={3} position="relative" flexWrap={"wrap"} justifyContent={"center"}>
                             <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
-                                Test Results{" "}
+                                Test Analysis{" "}
                                 {testTimerStop && !testError ? `(${formatDuration(testTimerDuration)})` : ""}
                             </Text>
                             {testResult && selectedUser && (
@@ -510,7 +516,7 @@ export default function SignalStrengthsSettingsCalculation({
                         )}
                         {testResult && (
                             <VStack w={"100%"} gap={5}>
-                                <ExtraData title="Test Result Logs" data={testResult[0]} />
+                                <ExtraData title="Test Analysis Logs" data={testResult[0]} />
                             </VStack>
                         )}
                     </VStack>
