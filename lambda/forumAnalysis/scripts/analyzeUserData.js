@@ -24,13 +24,13 @@ async function analyzeUserData(
 
     let promptId
 
-    const rawTestingInputData = testingData.testingInputData.rawTestingInputData
-    const smartTestingInputData = testingData.testingInputData.smartTestingInputData
+    const rawTestingInputData = testingData?.testingInputData?.rawTestingInputData
+    const smartTestingInputData = testingData?.testingInputData?.smartTestingInputData
 
     let model
-    if (type === "raw" && rawTestingInputData.testingModel) {
+    if (type === "raw" && rawTestingInputData?.testingModel) {
         model = rawTestingInputData.testingModel
-    } else if (type === "smart" && smartTestingInputData.testingModel) {
+    } else if (type === "smart" && smartTestingInputData?.testingModel) {
         model = smartTestingInputData.testingModel
     } else if (signalStrengthData.model) {
         model = signalStrengthData.model
@@ -41,9 +41,9 @@ async function analyzeUserData(
     console.log("model", model)
 
     let temperature
-    if (type === "raw" && rawTestingInputData.testingTemperature) {
+    if (type === "raw" && rawTestingInputData?.testingTemperature) {
         temperature = rawTestingInputData.testingTemperature
-    } else if (type === "smart" && smartTestingInputData.testingTemperature) {
+    } else if (type === "smart" && smartTestingInputData?.testingTemperature) {
         temperature = smartTestingInputData.testingTemperature
     } else if (signalStrengthData.temperature) {
         temperature = signalStrengthData.temperature
@@ -52,9 +52,9 @@ async function analyzeUserData(
     }
 
     let basePrompt
-    if (type === "raw" && rawTestingInputData.testingPrompt) {
+    if (type === "raw" && rawTestingInputData?.testingPrompt) {
         basePrompt = eval("`" + rawTestingInputData.testingPrompt + "`")
-    } else if (type === "smart" && smartTestingInputData.testingPrompt) {
+    } else if (type === "smart" && smartTestingInputData?.testingPrompt) {
         basePrompt = eval("`" + smartTestingInputData.testingPrompt + "`")
     } else if (signalStrengthData.prompts.find((prompt) => prompt.type === type)) {
         // TODO: For now it just gets the latest prompt for the type
@@ -72,9 +72,9 @@ async function analyzeUserData(
     }
 
     let maxChars
-    if (type === "raw" && rawTestingInputData.testingMaxChars) {
+    if (type === "raw" && rawTestingInputData?.testingMaxChars) {
         maxChars = rawTestingInputData.testingMaxChars
-    } else if (type === "smart" && smartTestingInputData.testingMaxChars) {
+    } else if (type === "smart" && smartTestingInputData?.testingMaxChars) {
         maxChars = smartTestingInputData.testingMaxChars
     } else if (signalStrengthData.max_chars) {
         maxChars = signalStrengthData.max_chars
