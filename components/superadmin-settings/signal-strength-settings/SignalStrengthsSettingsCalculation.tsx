@@ -10,6 +10,7 @@ import SignalStrength from "../../signal-display/signal-strength/SignalStrength"
 import SingleLineTextInput from "../../ui/SingleLineTextInput"
 import SignalStrengthViewerPicker from "../../ui/SignalStrengthViewerPicker"
 import { usePromptComparison } from "../../../hooks/usePromptComparison"
+import SignalStrengthPromptPicker from "../../ui/SignalStrengthPromptPicker"
 
 export default function SignalStrengthsSettingsCalculation({
     type,
@@ -45,6 +46,8 @@ export default function SignalStrengthsSettingsCalculation({
         null,
     )
 
+    const [currentPromptObject, setCurrentPromptObject] = useState<Prompt | null>(signalStrength.prompts[0])
+
     const {
         isPromptExpanded,
         setIsPromptExpanded,
@@ -54,7 +57,7 @@ export default function SignalStrengthsSettingsCalculation({
         newPromptTextAreaHeight,
         diffs,
     } = usePromptComparison({
-        currentPrompt: signalStrength.prompt,
+        currentPrompt: currentPromptObject?.prompt,
         newPrompt: testingInputData?.testingPrompt,
     })
 
@@ -237,13 +240,22 @@ export default function SignalStrengthsSettingsCalculation({
                 flexWrap={{ base: "wrap", md: "nowrap" }}
             >
                 <VStack w={"100%"} gap={0}>
-                    <Text fontWeight={"bold"} mb={2}>
-                        Current Prompt (ID: {signalStrength.promptId})
-                    </Text>
+                    <HStack w={"100%"} justifyContent={"center"} mb={2} flexWrap={"wrap"}>
+                        <Text fontWeight={"bold"} textAlign={"center"} w={{ base: "100%", md: "auto" }}>
+                            Prompt Viewer
+                        </Text>
+                        <SignalStrengthPromptPicker
+                            prompts={signalStrength.prompts.filter((p) => p.type === type)}
+                            onSelect={(data) => {
+                                setCurrentPromptObject(data)
+                            }}
+                        />
+                    </HStack>
                     <Box
                         ref={currentPromptRef}
                         minH={currentPromptTextAreaHeight}
                         maxH={currentPromptTextAreaHeight}
+                        w={"100%"}
                         fontFamily={"monospace"}
                         border={"none"}
                         borderTopRadius="10px"
@@ -279,7 +291,7 @@ export default function SignalStrengthsSettingsCalculation({
                                       )
                                   return null
                               })
-                            : signalStrength.prompt || "No prompt set"}
+                            : currentPromptObject?.prompt || "No prompt set"}
                     </Box>
                     <Button
                         w="100%"
@@ -308,7 +320,7 @@ export default function SignalStrengthsSettingsCalculation({
                     onClick={() => {
                         setTestingInputData({
                             ...testingInputData,
-                            testingPrompt: signalStrength.prompt || "",
+                            testingPrompt: currentPromptObject?.prompt || "",
                         })
                         resetTest()
                     }}
@@ -324,9 +336,9 @@ export default function SignalStrengthsSettingsCalculation({
                     </HStack>
                 </Button>
                 <VStack w={"100%"} gap={0}>
-                    <Text fontWeight={"bold"} mb={2}>
-                        New Prompt (optional)
-                    </Text>
+                    <HStack fontWeight={"bold"} mb={2} h={"35px"}>
+                        <Text>New Prompt (optional)</Text>
+                    </HStack>
                     <Textarea
                         ref={newPromptRef}
                         minH={newPromptTextAreaHeight}

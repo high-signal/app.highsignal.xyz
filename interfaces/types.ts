@@ -94,11 +94,18 @@ interface SignalStrengthData {
     displayName: string
     status: string
     model?: string
-    promptId?: string
-    prompt?: string
+    prompts: Prompt[]
     temperature?: number
     maxChars?: number
     logs?: string
+}
+
+interface Prompt {
+    id: number
+    prompt: string
+    created_at: string
+    type: string
+    signal_strength_id: number
 }
 
 interface TestingInputData {
