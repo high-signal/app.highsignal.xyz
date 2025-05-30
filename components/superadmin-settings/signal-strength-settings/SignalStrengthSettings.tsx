@@ -240,6 +240,9 @@ export default function SignalStrengthSettings({
                                         )?.data || []
                                     }
                                 />
+                                {!selectedUser.signalStrengths?.find(
+                                    (s) => s.signalStrengthName === signalStrength.name,
+                                )?.data && <Text pb={4}>No data found</Text>}
                             </VStack>
                         </VStack>
                         <VStack flex={1} alignItems={{ base: "center", lg: "start" }}>
@@ -264,7 +267,9 @@ export default function SignalStrengthSettings({
                                     userData={testResult || []}
                                     rawUserData={testResultRawData || []}
                                 />
-                                {!testResult && !testResultRawData && <Text>Run a test to see the results here</Text>}
+                                {!testResult && !testResultRawData && (
+                                    <Text pb={4}>Run a test to see the results here</Text>
+                                )}
                             </VStack>
                         </VStack>
                     </HStack>

@@ -33,7 +33,7 @@ export default function SignalStrengthViewerPicker({ userSignalStrengths, onSele
             <HStack w={"100%"} pointerEvents={isFocused ? "none" : "auto"}>
                 <SingleLineTextInput
                     ref={inputRef}
-                    placeholder="No data found"
+                    placeholder="No data"
                     value={searchTerm}
                     onChange={(e) => {
                         setSearchTerm(e.target.value)

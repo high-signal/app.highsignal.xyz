@@ -98,7 +98,7 @@ export default function SignalStrengthsSettingsCalculation({
     )
 
     return (
-        <VStack w="100%" gap={0} borderRadius={{ base: 0, sm: "16px" }} overflow={"hidden"}>
+        <VStack w="100%" gap={0} borderRadius={{ base: 0, md: "16px" }} overflow={"hidden"}>
             {/* Prompt Options */}
             <HStack
                 w={"100%"}
@@ -106,9 +106,9 @@ export default function SignalStrengthsSettingsCalculation({
                 bg={"contentBackground"}
                 justifyContent={"center"}
                 alignItems={"start"}
-                gap={{ base: 10, sm: 0 }}
+                gap={{ base: 10, md: 0 }}
                 p={5}
-                flexWrap={{ base: "wrap", sm: "nowrap" }}
+                flexWrap={{ base: "wrap", md: "nowrap" }}
             >
                 <HStack w={"100%"} justifyContent={"center"}>
                     <VStack w={"fit-content"} alignItems={"start"} gap={2}>
@@ -126,7 +126,7 @@ export default function SignalStrengthsSettingsCalculation({
                             borderRadius={"full"}
                         >
                             <Text w={"120px"}>Model</Text>
-                            <Text whiteSpace="nowrap" overflow={"scroll"} maxW={{ base: "200px", sm: "100%" }}>
+                            <Text whiteSpace="nowrap" overflow={"scroll"} maxW={{ base: "200px", md: "100%" }}>
                                 {signalStrength.model}
                             </Text>
                         </HStack>
@@ -231,7 +231,7 @@ export default function SignalStrengthsSettingsCalculation({
                 justifyContent={"center"}
                 px={5}
                 py={5}
-                flexWrap={{ base: "wrap", sm: "nowrap" }}
+                flexWrap={{ base: "wrap", md: "nowrap" }}
             >
                 <VStack w={"100%"} gap={0}>
                     <Text fontWeight={"bold"} mb={2}>
@@ -294,9 +294,9 @@ export default function SignalStrengthsSettingsCalculation({
                 </VStack>
                 <Button
                     secondaryButton
-                    position={{ base: "relative", sm: "absolute" }}
-                    left={{ base: "auto", sm: "50%" }}
-                    transform={{ base: "none", sm: "translateX(-50%)" }}
+                    position={{ base: "relative", md: "absolute" }}
+                    left={{ base: "auto", md: "50%" }}
+                    transform={{ base: "none", md: "translateX(-50%)" }}
                     transition="none"
                     borderRadius={"full"}
                     px={2}
@@ -311,11 +311,11 @@ export default function SignalStrengthsSettingsCalculation({
                     }}
                 >
                     <HStack gap={1}>
-                        <Box transform={{ base: "rotate(90deg)", sm: "none" }}>
+                        <Box transform={{ base: "rotate(90deg)", md: "none" }}>
                             <FontAwesomeIcon icon={faArrowRight} />
                         </Box>
                         <Text>Copy prompt</Text>
-                        <Box transform={{ base: "rotate(90deg)", sm: "none" }}>
+                        <Box transform={{ base: "rotate(90deg)", md: "none" }}>
                             <FontAwesomeIcon icon={faArrowRight} />
                         </Box>
                     </HStack>
@@ -371,7 +371,7 @@ export default function SignalStrengthsSettingsCalculation({
             <VStack
                 w={"100%"}
                 bg={"contentBackground"}
-                borderBottomRadius={{ base: 0, sm: "16px" }}
+                borderBottomRadius={{ base: 0, md: "16px" }}
                 alignItems={"center"}
                 gap={2}
             >
@@ -379,8 +379,13 @@ export default function SignalStrengthsSettingsCalculation({
                     <VStack w={"100%"} maxW={"600px"} gap={0}>
                         <HStack w={"100%"} px={3} justifyContent={"center"}>
                             {selectedUser ? (
-                                <HStack flexWrap={"wrap"} gap={{ base: 0, sm: 2 }} justifyContent={"center"}>
-                                    <Text py={2} textAlign={"center"} fontWeight={"bold"}>
+                                <HStack flexWrap={"wrap"} gap={{ base: 0, md: 2 }} justifyContent={"center"}>
+                                    <Text
+                                        py={2}
+                                        textAlign={"center"}
+                                        fontWeight={"bold"}
+                                        w={{ base: "100%", md: "auto" }}
+                                    >
                                         {type === "raw" ? "Raw" : "Smart"} Analysis for{" "}
                                     </Text>
                                     <SignalStrengthViewerPicker
@@ -430,11 +435,13 @@ export default function SignalStrengthsSettingsCalculation({
                                 refreshUserData={() => {}}
                             />
                         ) : (
-                            <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
-                                <Text>Select a user to view their current analysis</Text>
-                            </VStack>
+                            !selectedUser && (
+                                <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
+                                    <Text>Select a user to view their current analysis</Text>
+                                </VStack>
+                            )
                         )}
-                        {selectedUser && (
+                        {selectedUser && selectedSignalStrengthViewer != null && (
                             <VStack w={"100%"} gap={5}>
                                 <ExtraData
                                     title="Current Analysis Logs"
@@ -462,8 +469,8 @@ export default function SignalStrengthsSettingsCalculation({
                                     borderRadius={"full"}
                                     onClick={fetchTestResult}
                                     loading={testResultsLoading}
-                                    position={{ base: "relative", sm: "absolute" }}
-                                    right={{ base: "auto", sm: 10 }}
+                                    position={{ base: "relative", md: "absolute" }}
+                                    right={{ base: "auto", md: 10 }}
                                 >
                                     <FontAwesomeIcon icon={faRefresh} size="xl" />
                                     Re-run test
