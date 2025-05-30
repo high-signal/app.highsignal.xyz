@@ -104,7 +104,7 @@ export default function SignalStrengthsSettingsCalculation({
     )
 
     return (
-        <VStack w="100%" gap={0} borderRadius={{ base: 0, md: "16px" }} overflow={"hidden"}>
+        <VStack w="100%" gap={0} borderRadius={{ base: 0, lg: "16px" }} overflow={"hidden"}>
             {/* Prompt Options */}
             <HStack
                 w={"100%"}
@@ -112,9 +112,9 @@ export default function SignalStrengthsSettingsCalculation({
                 bg={"contentBackground"}
                 justifyContent={"center"}
                 alignItems={"start"}
-                gap={{ base: 10, md: 0 }}
+                gap={{ base: 10, lg: 0 }}
                 p={5}
-                flexWrap={{ base: "wrap", md: "nowrap" }}
+                flexWrap={{ base: "wrap", lg: "nowrap" }}
             >
                 <HStack w={"100%"} justifyContent={"center"}>
                     <VStack w={"fit-content"} alignItems={"start"} gap={2}>
@@ -132,7 +132,7 @@ export default function SignalStrengthsSettingsCalculation({
                             borderRadius={"full"}
                         >
                             <Text w={"120px"}>Model</Text>
-                            <Text whiteSpace="nowrap" overflow={"scroll"} maxW={{ base: "200px", md: "100%" }}>
+                            <Text whiteSpace="nowrap" overflow={"scroll"} maxW={{ base: "200px", lg: "100%" }}>
                                 {signalStrength.model}
                             </Text>
                         </HStack>
@@ -237,11 +237,11 @@ export default function SignalStrengthsSettingsCalculation({
                 justifyContent={"center"}
                 px={5}
                 py={5}
-                flexWrap={{ base: "wrap", md: "nowrap" }}
+                flexWrap={{ base: "wrap", lg: "nowrap" }}
             >
                 <VStack w={"100%"} gap={0}>
                     <HStack w={"100%"} justifyContent={"center"} mb={2} flexWrap={"wrap"}>
-                        <Text fontWeight={"bold"} textAlign={"center"} w={{ base: "100%", md: "auto" }}>
+                        <Text fontWeight={"bold"} textAlign={"center"} w={{ base: "100%", lg: "auto" }}>
                             Prompt Viewer
                         </Text>
                         <SignalStrengthPromptPicker
@@ -309,9 +309,9 @@ export default function SignalStrengthsSettingsCalculation({
                 </VStack>
                 <Button
                     secondaryButton
-                    position={{ base: "relative", md: "absolute" }}
-                    left={{ base: "auto", md: "50%" }}
-                    transform={{ base: "none", md: "translateX(-50%)" }}
+                    position={{ base: "relative", lg: "absolute" }}
+                    left={{ base: "auto", lg: "50%" }}
+                    transform={{ base: "none", lg: "translateX(-50%)" }}
                     transition="none"
                     borderRadius={"full"}
                     px={2}
@@ -326,11 +326,11 @@ export default function SignalStrengthsSettingsCalculation({
                     }}
                 >
                     <HStack gap={1}>
-                        <Box transform={{ base: "rotate(90deg)", md: "none" }}>
+                        <Box transform={{ base: "rotate(90deg)", lg: "none" }}>
                             <FontAwesomeIcon icon={faArrowRight} />
                         </Box>
                         <Text>Copy prompt</Text>
-                        <Box transform={{ base: "rotate(90deg)", md: "none" }}>
+                        <Box transform={{ base: "rotate(90deg)", lg: "none" }}>
                             <FontAwesomeIcon icon={faArrowRight} />
                         </Box>
                     </HStack>
@@ -386,7 +386,7 @@ export default function SignalStrengthsSettingsCalculation({
             <VStack
                 w={"100%"}
                 bg={"contentBackground"}
-                borderBottomRadius={{ base: 0, md: "16px" }}
+                borderBottomRadius={{ base: 0, lg: "16px" }}
                 alignItems={"center"}
                 gap={2}
             >
@@ -394,12 +394,12 @@ export default function SignalStrengthsSettingsCalculation({
                     <VStack w={"100%"} maxW={"600px"} gap={0}>
                         <HStack w={"100%"} px={3} justifyContent={"center"}>
                             {selectedUser ? (
-                                <HStack flexWrap={"wrap"} gap={{ base: 0, md: 2 }} justifyContent={"center"}>
+                                <HStack flexWrap={"wrap"} gap={{ base: 0, lg: 2 }} justifyContent={"center"}>
                                     <Text
                                         py={2}
                                         textAlign={"center"}
                                         fontWeight={"bold"}
-                                        w={{ base: "100%", md: "auto" }}
+                                        w={{ base: "100%", lg: "auto" }}
                                     >
                                         {type === "raw" ? "Raw" : "Smart"} Analysis for{" "}
                                     </Text>
@@ -480,8 +480,8 @@ export default function SignalStrengthsSettingsCalculation({
                                     borderRadius={"full"}
                                     onClick={fetchTestResult}
                                     loading={testResultsLoading}
-                                    position={{ base: "relative", md: "absolute" }}
-                                    right={{ base: "auto", md: 10 }}
+                                    position={{ base: "relative", lg: "absolute" }}
+                                    right={{ base: "auto", lg: 10 }}
                                 >
                                     <FontAwesomeIcon icon={faRefresh} size="xl" />
                                     Re-run test
