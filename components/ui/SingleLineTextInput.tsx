@@ -60,6 +60,14 @@ export default function SingleLineTextInput({
                     borderColor: isEditable || isSelectorOnly ? "input.border" : "transparent",
                     boxShadow: "none",
                     outline: "none",
+                    _hover: {
+                        borderColor: isEditable || isSelectorOnly ? "input.border" : "transparent",
+                    },
+                }}
+                _hover={{
+                    borderColor: isEditable || isSelectorOnly ? "input.borderHover" : "transparent",
+                    boxShadow: "none",
+                    outline: "none",
                 }}
                 bg={bg}
                 pr={showClearButton ? "30px" : "0px"}

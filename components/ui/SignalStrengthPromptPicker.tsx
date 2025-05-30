@@ -97,6 +97,7 @@ export default function SignalStrengthPromptPicker({ prompts, onSelect }: Signal
                                 fontSize={"17px"}
                                 gap={2}
                                 justifyContent={"start"}
+                                alignItems={"center"}
                                 fontWeight={
                                     prompt.id.toString() === searchTerm.split(" ")[2].replace(")", "")
                                         ? "bold"
@@ -104,7 +105,12 @@ export default function SignalStrengthPromptPicker({ prompts, onSelect }: Signal
                                 }
                             >
                                 <Text>{prompt.created_at.split("T")[0]}</Text>
-                                <Text fontSize={"sm"}>(ID {prompt.id})</Text>
+                                <Text fontSize={"15px"}>(ID {prompt.id})</Text>
+                                {prompt.id.toString() === searchTerm.split(" ")[2].replace(")", "") ? (
+                                    <Text pl={2} pt={"3px"}>
+                                        👀
+                                    </Text>
+                                ) : null}
                             </HStack>
                         </Box>
                     ))}

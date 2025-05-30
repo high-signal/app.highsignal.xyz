@@ -75,7 +75,7 @@ export default function SignalStrengthViewerPicker({ userSignalStrengths, onSele
                     zIndex={5}
                     maxH="200px"
                     overflowY="auto"
-                    w={{ base: "100%", sm: "280px" }}
+                    w={{ base: "100%", sm: "300px" }}
                 >
                     {userSignalStrengths.map((signalStrengthEntry) => (
                         <Box
@@ -92,7 +92,13 @@ export default function SignalStrengthViewerPicker({ userSignalStrengths, onSele
                                 onSelect(signalStrengthEntry)
                             }}
                         >
-                            <HStack fontFamily={"monospace"} fontSize={"17px"} gap={2} justifyContent={"space-between"}>
+                            <HStack
+                                fontFamily={"monospace"}
+                                fontSize={"17px"}
+                                gap={2}
+                                justifyContent={"space-between"}
+                                fontWeight={signalStrengthEntry.day === searchTerm ? "bold" : "normal"}
+                            >
                                 <HStack gap={3}>
                                     <Text>{signalStrengthEntry.day}</Text>
                                     <HStack w={"50px"} justifyContent={"center"}>
@@ -134,6 +140,7 @@ export default function SignalStrengthViewerPicker({ userSignalStrengths, onSele
                                             )
                                         })()}
                                     </HStack>
+                                    {signalStrengthEntry.day === searchTerm ? <Text pt={"3px"}>👀</Text> : null}
                                 </HStack>
                                 <Text fontSize={"sm"}>(ID {signalStrengthEntry.id})</Text>
                             </HStack>

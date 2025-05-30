@@ -204,6 +204,9 @@ export const customConfig = defineConfig({
                     border: {
                         value: { _light: "{colors.blue.400}", _dark: "{colors.blue.500}" },
                     },
+                    borderHover: {
+                        value: { _light: "{colors.blue.500}", _dark: "{colors.blue.700}" },
+                    },
                     background: {
                         value: { _light: "{colors.blue.400}", _dark: "{colors.blue.500}" },
                     },
