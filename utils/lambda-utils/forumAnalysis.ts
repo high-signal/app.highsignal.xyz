@@ -13,18 +13,19 @@ export async function triggerForumAnalysis(
         }
     },
 ) {
-    const LAMBDA_ENDPOINT = process.env.LAMBDA_FUNCTION_URL
-    const API_KEY = process.env.LAMBDA_API_KEY
+    const LAMBDA_FUNCTION_URL = process.env.LAMBDA_FUNCTION_URL
+    const LAMBDA_API_KEY = process.env.LAMBDA_API_KEY
 
-    if (LAMBDA_ENDPOINT) {
+    if (LAMBDA_FUNCTION_URL) {
         // Execute on AWS Lambda
+        console.log("Executing on AWS Lambda")
         try {
             // Don't await the response, just send the request
-            fetch(LAMBDA_ENDPOINT, {
+            fetch(LAMBDA_FUNCTION_URL, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-API-Key": API_KEY || "",
+                    "X-API-Key": LAMBDA_API_KEY || "",
                 },
                 body: JSON.stringify({
                     user_id,
@@ -54,6 +55,7 @@ export async function triggerForumAnalysis(
         }
     } else {
         // Execute locally
+        console.log("Executing locally")
         analyzeForumUserActivity(user_id, project_id, signalStrengthUsername, testingData)
         return {
             success: true,

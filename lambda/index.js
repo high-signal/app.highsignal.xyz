@@ -7,6 +7,7 @@ exports.handler = async (event) => {
         const expectedApiKey = process.env.LAMBDA_API_KEY
 
         if (!apiKey || apiKey !== expectedApiKey) {
+            console.log(`Unauthorized: Invalid API key`)
             return {
                 statusCode: 401,
                 body: JSON.stringify({ error: "Unauthorized: Invalid API key" }),
@@ -16,16 +17,19 @@ exports.handler = async (event) => {
         console.log("Received event:", event)
         const raw = event.body ?? event
         const body = typeof raw === "string" ? JSON.parse(raw) : raw
-        const { user_id, project_id, forum_username, testingData } = body
+        const { user_id, project_id, signalStrengthUsername, testingData } = body
 
-        if (!user_id || !project_id || !forum_username) {
+        if (!user_id || !project_id || !signalStrengthUsername) {
+            console.log(
+                `Missing required parameters: user_id: ${user_id}, project_id: ${project_id}, signalStrengthUsername: ${signalStrengthUsername}`,
+            )
             return {
                 statusCode: 400,
                 body: JSON.stringify({ error: "Missing required parameters" }),
             }
         }
 
-        await analyzeForumUserActivity(user_id, project_id, forum_username, testingData)
+        await analyzeForumUserActivity(user_id, project_id, signalStrengthUsername, testingData)
 
         return {
             statusCode: 200,
