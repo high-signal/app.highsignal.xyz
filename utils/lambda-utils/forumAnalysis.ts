@@ -13,7 +13,7 @@ export async function triggerForumAnalysis(
         }
     },
 ) {
-    const LAMBDA_ENDPOINT = process.env.LAMBDA_ENDPOINT_DISCOURSE_FORUM_ANALYSIS
+    const LAMBDA_ENDPOINT = process.env.LAMBDA_FUNCTION_URL
     const API_KEY = process.env.LAMBDA_API_KEY
 
     if (LAMBDA_ENDPOINT) {

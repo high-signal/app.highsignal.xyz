@@ -1,0 +1,15 @@
+name: Deploy Staging Lambda
+
+on:
+    push:
+        branches: [staging]
+        paths:
+            - "lambda/**"
+            - ".github/workflows/aws-lambda-entry-staging.yml"
+
+jobs:
+    deploy:
+        uses: ./.github/workflows/aws-lambda-deploy.yml
+        with:
+            branch: staging
+            function_name: staging-lambda

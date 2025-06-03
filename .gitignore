@@ -50,5 +50,5 @@ db_dump.sql
 next-env.d.ts
 
 # lambda
-lambda/forumAnalysis/discourse-forum-analysis.zip
+lambda/lambda-code.zip
 

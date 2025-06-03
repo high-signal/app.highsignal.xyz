@@ -1,15 +1,19 @@
-name: Deploy Discourse Forum Analysis Lambda
+name: Deploy Lambda
 
 on:
-    push:
-        branches: [main]
-        paths:
-            - "lambda/forumAnalysis/**"
-            - ".github/workflows/deploy-forum-analysis-lambda.yml"
+    workflow_call:
+        inputs:
+            branch:
+                required: true
+                type: string
+            function_name:
+                required: true
+                type: string
 
 jobs:
     deploy:
         runs-on: ubuntu-latest
+        if: github.ref == format('refs/heads/{0}', inputs.branch)
         steps:
             - uses: actions/checkout@v4
 
@@ -30,17 +34,17 @@ jobs:
 
             - name: Install dependencies
               run: |
-                  cd lambda/forumAnalysis
+                  cd lambda
                   yarn install --frozen-lockfile
 
             - name: Build and package Lambda function
               run: |
-                  cd lambda/forumAnalysis
+                  cd lambda
                   yarn package
 
             - name: Deploy to AWS Lambda
               run: |
                   aws lambda update-function-code \
-                    --function-name prod-discourse-forum-analysis \
-                    --zip-file fileb://lambda/forumAnalysis/discourse-forum-analysis.zip \
+                    --function-name ${{ inputs.function_name }} \
+                    --zip-file fileb://lambda/lambda-code.zip \
                     --region ${{ secrets.AWS_REGION }}

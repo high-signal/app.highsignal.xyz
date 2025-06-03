@@ -1,0 +1,15 @@
+name: Deploy Prod Lambda
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - "lambda/**"
+            - ".github/workflows/aws-lambda-entry-prod.yml"
+
+jobs:
+    deploy:
+        uses: ./.github/workflows/aws-lambda-deploy.yml
+        with:
+            branch: main
+            function_name: prod-lambda
