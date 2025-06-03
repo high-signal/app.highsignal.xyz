@@ -1,7 +1,5 @@
 const { analyzeForumUserActivity } = require("./scripts/analyzeForumUserActivity")
 
-// Test lambda redeploy
-
 exports.handler = async (event) => {
     try {
         // Check API key

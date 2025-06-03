@@ -1,5 +1,5 @@
 // @ts-ignore
-import { analyzeForumUserActivity } from "../../lambda/forumAnalysis/scripts/analyzeForumUserActivity"
+import { analyzeForumUserActivity } from "../../lambda/scripts/analyzeForumUserActivity"
 
 export async function triggerForumAnalysis(
     user_id: string,
