@@ -279,8 +279,42 @@ async function analyzeForumUserActivity(user_id, project_id, signalStrengthUsern
 
         // After the raw daily analysis is complete, generate a smart score for the user
 
-        // TODO: Improve. This dumb method just gets the last day of the dailyActivityData array and generates a smart score for it
-        const latestActivityData = activityData[0]
+        let rawActivityCombinedData = []
+        // TODO: Ignore tests for now.
+
+        rawActivityCombinedData =
+            (
+                await supabase
+                    .from("user_signal_strengths")
+                    .select("*")
+                    .eq("user_id", user_id)
+                    .eq("project_id", project_id)
+                    .eq("signal_strength_id", signal_strength_id)
+                    .not("raw_value", "is", null)
+                    .is("test_requesting_user", null)
+                    .gte(
+                        "day",
+                        new Date(new Date().setDate(new Date().getDate() - previousDays)).toISOString().split("T")[0],
+                    )
+                    .order("day", { ascending: false })
+            ).data || []
+
+        rawActivityCombinedData = rawActivityCombinedData.map((item) => ({
+            summary: item.summary,
+            description: item.description,
+            improvements: item.improvements,
+            explained_reasoning: item.explained_reasoning,
+            raw_value: item.raw_value,
+            max_value: item.max_value,
+            day: item.day,
+        }))
+
+        // TODO: Add previous smart score (if it exists) to the end of the rawActivityCombinedData array so it can be
+        // used as a reference for the analysis. Tell the smart prompt how to use it and to try not vary wildly unless
+        // there is a good reason.
+
+        // TODO: This only works for yesterday and does not account for any missed previous days
+        // I should at least try to get the last e.g. 3 days of smart scores to fill in gaps if the script did not run for a day or two
         const dateYesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
 
         // If a non-test smart score is already in the database for dateYesterday, skip the analysis
@@ -306,7 +340,7 @@ async function analyzeForumUserActivity(user_id, project_id, signalStrengthUsern
 
         const analysisResults = await analyzeUserData(
             signalStrengthData,
-            latestActivityData,
+            rawActivityCombinedData,
             forum_username,
             displayName,
             maxValue,
