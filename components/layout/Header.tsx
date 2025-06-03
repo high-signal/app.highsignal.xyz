@@ -41,6 +41,13 @@ const IconLinkButton = ({ href, label, icon }: { href: string; label: string; ic
     )
 }
 
+const environmentName =
+    process.env.NODE_ENV === "development"
+        ? "Dev"
+        : process.env.NEXT_PUBLIC_SITE_URL?.includes("staging")
+          ? "Staging"
+          : "Prod"
+
 export default function Header({}) {
     const { showParticles } = useParticles()
 
@@ -57,9 +64,15 @@ export default function Header({}) {
             transition={showParticles ? "border-color 0.5s ease-in" : "none"}
             borderColor={showParticles ? "contentBorder" : "transparent"}
         >
-            {process.env.NODE_ENV === "development" && (
-                <HStack w="100%" justifyContent={"center"} alignItems={"center"} bg={"orange.700"} zIndex={3}>
-                    <Text>Dev Environment</Text>
+            {environmentName !== "Prod" && (
+                <HStack
+                    w="100%"
+                    justifyContent={"center"}
+                    alignItems={"center"}
+                    bg={environmentName === "Dev" ? "orange.700" : "green.700"}
+                    zIndex={3}
+                >
+                    <Text>{environmentName} Environment</Text>
                 </HStack>
             )}
             <HStack
