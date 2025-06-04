@@ -18,12 +18,12 @@ exports.handler = async (event) => {
         console.log("Received event:", event)
         const raw = event.body ?? event
         const body = typeof raw === "string" ? JSON.parse(raw) : raw
-        const { signalStrengthName, user_id, project_id, signalStrengthUsername, testingData } = body
+        const { signalStrengthName, userId, projectId, signalStrengthUsername, testingData } = body
 
         // Validate required parameters
-        if (!signalStrengthName || !user_id || !project_id || !signalStrengthUsername) {
+        if (!signalStrengthName || !userId || !projectId || !signalStrengthUsername) {
             console.log(
-                `Missing required parameters: signalStrengthName: ${signalStrengthName}, user_id: ${user_id}, project_id: ${project_id}, signalStrengthUsername: ${signalStrengthUsername}`,
+                `Missing required parameters: signalStrengthName: ${signalStrengthName}, userId: ${userId}, projectId: ${projectId}, signalStrengthUsername: ${signalStrengthUsername}`,
             )
             return {
                 statusCode: 400,
@@ -34,7 +34,7 @@ exports.handler = async (event) => {
         // Process the request based on the signal strength name
         if (signalStrengthName === "discourse_forum") {
             // TODO: Update to new engine when ready
-            await analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUsername, testingData)
+            await analyzeForumUserActivityOLD(userId, projectId, signalStrengthUsername, testingData)
             return {
                 statusCode: 200,
                 body: JSON.stringify({ message: "Analysis completed successfully" }),
