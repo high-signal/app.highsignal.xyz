@@ -1,4 +1,4 @@
-const { analyzeForumUserActivity } = require("./scripts/analyzeForumUserActivity")
+const { analyzeForumUserActivity } = require("./scripts/discourse-forum/analyzeForumUserActivity")
 
 exports.handler = async (event) => {
     try {
