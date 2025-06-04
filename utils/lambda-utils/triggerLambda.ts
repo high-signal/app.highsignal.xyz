@@ -1,5 +1,5 @@
 // @ts-ignore
-import { analyzeForumUserActivity } from "../../lambda/scripts/discourse-forum/analyzeForumUserActivity"
+import { analyzeForumUserActivityOLD } from "../../lambda/scripts/discourse-forum-OLD/analyzeForumUserActivityOLD"
 
 export async function triggerLambda(
     signalStrengthName: string,
@@ -67,7 +67,7 @@ export async function triggerLambda(
         // Execute locally
         console.log("Executing locally")
         if (signalStrengthName === "discourse_forum") {
-            analyzeForumUserActivity(userId, projectId, signalStrengthUsername, testingData)
+            analyzeForumUserActivityOLD(userId, projectId, signalStrengthUsername, testingData)
             return {
                 success: true,
                 message: "Analysis initiated successfully",
