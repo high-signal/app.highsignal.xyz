@@ -4,8 +4,11 @@ import type { ReactNode } from "react"
 import dynamic from "next/dynamic"
 import { rubik } from "./fonts"
 import Head from "./head"
+
 import RootParticleAnimation from "../components/particle-animation/RootParticleAnimation"
+
 import Clarity from "../components/analytics/Clarity"
+import GoogleAnalytics from "../components/analytics/GoogleAnalytics"
 
 const isDev = process.env.NODE_ENV === "development"
 
@@ -22,6 +25,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Head />
             <body suppressHydrationWarning>
                 <Provider>
+                    <GoogleAnalytics />
                     <Clarity />
                     {/* <RootParticleAnimation /> Moved to EarlyAccessContext for now */}
                     {children}
