@@ -1,10 +1,10 @@
-const { getSignalStrengthConfig } = require("../getSignalStrengthConfig")
-const { fetchUserActivity } = require("../fetchUserActivity")
-const { updateUserData } = require("../updateUserData")
-const { updateRequired } = require("../updateRequired")
-const { analyzeUserData } = require("../analyzeUserData")
+const { getSignalStrengthConfig } = require("./getSignalStrengthConfig")
+const { fetchUserActivity } = require("./fetchUserActivity")
+const { updateUserData } = require("./updateUserData")
+const { updateRequired } = require("./updateRequired")
+const { analyzeUserData } = require("./analyzeUserData")
 const { createClient } = require("@supabase/supabase-js")
-const { clearLastChecked } = require("../clearLastChecked")
+const { clearLastChecked } = require("./clearLastChecked")
 
 // Function to analyze forum user activity
 async function analyzeForumUserActivity(user_id, project_id, signalStrengthUsername, testingData) {

@@ -14,14 +14,16 @@ exports.handler = async (event) => {
             }
         }
 
+        // Parse the request body
         console.log("Received event:", event)
         const raw = event.body ?? event
         const body = typeof raw === "string" ? JSON.parse(raw) : raw
-        const { user_id, project_id, signalStrengthUsername, testingData } = body
+        const { signalStrengthName, user_id, project_id, signalStrengthUsername, testingData } = body
 
-        if (!user_id || !project_id || !signalStrengthUsername) {
+        // Validate required parameters
+        if (!signalStrengthName || !user_id || !project_id || !signalStrengthUsername) {
             console.log(
-                `Missing required parameters: user_id: ${user_id}, project_id: ${project_id}, signalStrengthUsername: ${signalStrengthUsername}`,
+                `Missing required parameters: signalStrengthName: ${signalStrengthName}, user_id: ${user_id}, project_id: ${project_id}, signalStrengthUsername: ${signalStrengthUsername}`,
             )
             return {
                 statusCode: 400,
@@ -29,11 +31,19 @@ exports.handler = async (event) => {
             }
         }
 
-        await analyzeForumUserActivity(user_id, project_id, signalStrengthUsername, testingData)
-
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ message: "Analysis completed successfully" }),
+        // Process the request based on the signal strength name
+        if (signalStrengthName === "discourse_forum") {
+            await analyzeForumUserActivity(user_id, project_id, signalStrengthUsername, testingData)
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ message: "Analysis completed successfully" }),
+            }
+        } else {
+            console.log(`Signal strength (${signalStrengthName}) not configured for updates`)
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: `Signal strength (${signalStrengthName}) not configured for updates` }),
+            }
         }
     } catch (error) {
         console.error("Error in Lambda handler:", error)

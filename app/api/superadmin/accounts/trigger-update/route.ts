@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { triggerForumAnalysis } from "../../../../../utils/lambda-utils/forumAnalysis"
+import { triggerLambda } from "../../../../../utils/lambda-utils/triggerLambda"
 
 export async function PATCH(request: NextRequest) {
     try {
@@ -7,18 +7,14 @@ export async function PATCH(request: NextRequest) {
         const body = await request.json()
         const { signalStrengthName, userId, projectId, signalStrengthUsername } = body
 
-        if (signalStrengthName === "discourse_forum") {
-            const result = await triggerForumAnalysis(userId, projectId, signalStrengthUsername)
-
-            if (result.success) {
-                return NextResponse.json({ success: true })
-            } else {
-                return NextResponse.json({ error: "Failed to trigger forum analysis" }, { status: 500 })
-            }
-        } else {
+        const analysisResponse = await triggerLambda(signalStrengthName, userId, projectId, signalStrengthUsername)
+        if (!analysisResponse.success) {
+            console.error("Failed to start analysis:", analysisResponse.message)
             return NextResponse.json(
-                { error: `Signal strength (${signalStrengthName}) not configured for triggering updates` },
-                { status: 404 },
+                {
+                    error: analysisResponse.message,
+                },
+                { status: 400 },
             )
         }
     } catch (error) {

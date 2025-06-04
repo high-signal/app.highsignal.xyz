@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 
-import { triggerForumAnalysis } from "../../../../utils/lambda-utils/forumAnalysis"
+import { triggerLambda } from "../../../../utils/lambda-utils/triggerLambda"
 
 // Create a new forum user
 export async function POST(request: Request) {
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
         // Get the signal_strength_id to use in the last_checked upsert
         const { data: signalStrengthData, error: signalStrengthDataError } = await supabase
             .from("signal_strengths")
-            .select("id")
+            .select("id, name")
             .eq("name", signal_strength_name)
             .single()
 
@@ -33,30 +33,32 @@ export async function POST(request: Request) {
             console.error("Error fetching signal strength ID:", signalStrengthDataError)
         }
 
-        if (signalStrengthData?.id) {
-            // Before anything else, add the last_checked date to the user_signal_strengths table.
-            // This is to give the best UX experience when the user is updating their forum username
-            // so that when they navigate to their profile page, it shows the loading animation immediately.
-            // Use unix timestamp to avoid timezone issues.
-            const { error: lastCheckError } = await supabase.from("user_signal_strengths").upsert(
-                {
-                    user_id: user_id,
-                    project_id: project_id,
-                    signal_strength_id: signalStrengthData.id,
-                    last_checked: Math.floor(Date.now() / 1000),
-                    request_id: `last_checked_${user_id}_${project_id}_${signalStrengthData.id}`,
-                    created: 99999999999999,
-                },
-                {
-                    onConflict: "request_id",
-                },
-            )
+        if (!signalStrengthData?.id) {
+            return NextResponse.json({ error: "Signal strength not found" }, { status: 404 })
+        }
 
-            if (lastCheckError) {
-                console.error(`Error updating last_checked for ${forum_username}:`, lastCheckError.message)
-            } else {
-                console.log(`Successfully updated last_checked for ${forum_username}`)
-            }
+        // Before anything else, add the last_checked date to the user_signal_strengths table.
+        // This is to give the best UX experience when the user is updating their forum username
+        // so that when they navigate to their profile page, it shows the loading animation immediately.
+        // Use unix timestamp to avoid timezone issues.
+        const { error: lastCheckError } = await supabase.from("user_signal_strengths").upsert(
+            {
+                user_id: user_id,
+                project_id: project_id,
+                signal_strength_id: signalStrengthData.id,
+                last_checked: Math.floor(Date.now() / 1000),
+                request_id: `last_checked_${user_id}_${project_id}_${signalStrengthData.id}`,
+                created: 99999999999999,
+            },
+            {
+                onConflict: "request_id",
+            },
+        )
+
+        if (lastCheckError) {
+            console.error(`Error updating last_checked for ${forum_username}:`, lastCheckError.message)
+        } else {
+            console.log(`Successfully updated last_checked for ${forum_username}`)
         }
 
         // TODO: Add a check to see if the forum_username is already in the database
@@ -127,14 +129,13 @@ export async function POST(request: Request) {
         try {
             // Trigger analysis and wait for initial response
             console.log("Triggering forum analysis for user:", forum_username)
-            const analysisResponse = await triggerForumAnalysis(user_id, project_id, forum_username)
+            const analysisResponse = await triggerLambda(signalStrengthData.name, user_id, project_id, forum_username)
 
             if (!analysisResponse.success) {
                 console.error("Failed to start analysis:", analysisResponse.message)
                 return NextResponse.json(
                     {
                         error: analysisResponse.message,
-                        forumUser: result,
                     },
                     { status: 400 },
                 )

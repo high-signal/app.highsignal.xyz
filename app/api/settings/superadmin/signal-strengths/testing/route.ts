@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
-import { triggerForumAnalysis } from "../../../../../../utils/lambda-utils/forumAnalysis"
+import { triggerLambda } from "../../../../../../utils/lambda-utils/triggerLambda"
 
 interface StructuredTestingData {
     requestingUserId: string
@@ -75,12 +75,21 @@ export async function POST(request: NextRequest) {
         }
 
         // Format the request body and pass it to the lambda function
-        if (signalStrength.name === "discourse_forum") {
-            await triggerForumAnalysis(targetUser.id, project.id, signalStrengthUsername, structuredTestingData)
-        } else {
+        const analysisResponse = await triggerLambda(
+            signalStrength.name,
+            targetUser.id,
+            project.id,
+            signalStrengthUsername,
+            structuredTestingData,
+        )
+
+        if (!analysisResponse.success) {
+            console.error("Failed to start analysis:", analysisResponse.message)
             return NextResponse.json(
-                { error: `Signal strength (${signalStrength.name}) not configured for testing` },
-                { status: 404 },
+                {
+                    error: analysisResponse.message,
+                },
+                { status: 400 },
             )
         }
 
