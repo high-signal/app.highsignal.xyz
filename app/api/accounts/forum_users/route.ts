@@ -6,14 +6,16 @@ import { triggerLambda } from "../../../../utils/lambda-utils/triggerLambda"
 // Create a new forum user
 export async function POST(request: Request) {
     try {
+        const signalStrengthName = "discourse_forum"
+
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
         // Parse the request body
         const body = await request.json()
-        const { user_id, project_id, forum_username, signal_strength_name } = body
+        const { user_id, project_id, forum_username } = body
 
         // Validate required fields
-        if (!user_id || !project_id || !forum_username || !signal_strength_name) {
+        if (!user_id || !project_id || !forum_username) {
             return NextResponse.json(
                 {
                     error: "Missing required fields: user_id, project_id, forum_username, and signal_strength_name are required",
@@ -26,7 +28,7 @@ export async function POST(request: Request) {
         const { data: signalStrengthData, error: signalStrengthDataError } = await supabase
             .from("signal_strengths")
             .select("id, name")
-            .eq("name", signal_strength_name)
+            .eq("name", signalStrengthName)
             .single()
 
         if (signalStrengthDataError) {

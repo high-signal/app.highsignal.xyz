@@ -61,7 +61,6 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                     user_id,
                     project_id,
                     forum_username: forumUsername,
-                    signal_strength_name: "discourse_forum",
                 }),
             })
 
