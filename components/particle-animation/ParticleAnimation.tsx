@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useRef, useState, useLayoutEffect, useMemo, useEffect } from "react"
+import React, { useRef, useState, useLayoutEffect, useMemo } from "react"
 import { Box, useBreakpointValue } from "@chakra-ui/react"
 import { keyframes } from "@emotion/react"
 
@@ -59,8 +59,6 @@ const ParticleAnimation = ({ particleDirection = "up" }: { particleDirection?: "
             }
             return particles
         }
-
-        console.log("Rendering particles")
 
         return {
             layer1: {
