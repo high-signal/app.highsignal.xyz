@@ -175,7 +175,7 @@ export default function SignalStrengthsSettingsHeader({
                                 }
                             }}
                         >
-                            (Eridian ONLY - for testing)
+                            (Dev Button)
                         </Button>
                     </>
                 </HStack>

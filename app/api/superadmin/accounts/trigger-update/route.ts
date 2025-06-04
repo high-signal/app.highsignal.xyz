@@ -17,6 +17,8 @@ export async function PATCH(request: NextRequest) {
                 { status: 400 },
             )
         }
+
+        return NextResponse.json({ success: true, message: "Analysis triggered successfully" })
     } catch (error) {
         console.error("Unhandled error in user update:", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
