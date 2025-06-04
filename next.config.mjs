@@ -28,9 +28,9 @@ export default {
                         key: "Content-Security-Policy",
                         value: `
                             default-src 'self';
-                            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com ${protocol}://*.${domain} https://www.clarity.ms;
+                            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com ${protocol}://*.${domain} https://www.clarity.ms https://c.bing.com;
                             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-                            img-src 'self' data: blob: https://*.cloudinary.com https://c.clarity.ms;
+                            img-src 'self' data: blob: https://*.cloudinary.com https://c.clarity.ms https://c.bing.com;
                             font-src 'self' https://fonts.gstatic.com;
                             object-src 'none';
                             base-uri 'self';
@@ -38,7 +38,7 @@ export default {
                             frame-ancestors 'none';
                             child-src https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org;
                             frame-src https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org https://challenges.cloudflare.com;
-                            connect-src 'self' https://auth.privy.io https://*.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems ${protocol}://*.${domain} https://explorer-api.walletconnect.com https://pulse.walletconnect.org https://api.web3modal.org https://*.web3modal.org https://*.walletconnect.org https://*.walletconnect.com https://*.cloudinary.com;
+                            connect-src 'self' https://auth.privy.io https://*.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems ${protocol}://*.${domain} https://explorer-api.walletconnect.com https://pulse.walletconnect.org https://api.web3modal.org https://*.web3modal.org https://*.walletconnect.org https://*.walletconnect.com https://*.cloudinary.com https://c.bing.com https://o.clarity.ms;
                             worker-src 'self';
                             manifest-src 'self'
                         `
