@@ -6,6 +6,9 @@ import RootParticleAnimation from "../components/particle-animation/RootParticle
 import { useUser } from "../contexts/UserContext"
 import { usePrivy } from "@privy-io/react-auth"
 
+import Clarity from "../components/analytics/Clarity"
+import GoogleAnalytics from "../components/analytics/GoogleAnalytics"
+
 interface EarlyAccessContextType {
     hasAccess: boolean
     setHasAccess: (hasAccess: boolean, code?: string) => void
@@ -79,6 +82,8 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
 
     return (
         <EarlyAccessContext.Provider value={{ hasAccess, setHasAccess: handleSetHasAccess }}>
+            <GoogleAnalytics />
+            <Clarity />
             <RootParticleAnimation />
             {isLoading ? null : hasAccess ? children : <EarlyAccessInput />}
         </EarlyAccessContext.Provider>

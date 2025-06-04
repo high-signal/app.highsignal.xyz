@@ -38,7 +38,7 @@ export default {
                             frame-ancestors 'none';
                             child-src https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org;
                             frame-src https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org https://challenges.cloudflare.com;
-                            connect-src 'self' https://auth.privy.io https://*.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems ${protocol}://*.${domain} https://explorer-api.walletconnect.com https://pulse.walletconnect.org https://api.web3modal.org https://*.web3modal.org https://*.walletconnect.org https://*.walletconnect.com https://*.cloudinary.com https://c.bing.com https://o.clarity.ms;
+                            connect-src 'self' https://auth.privy.io https://*.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems ${protocol}://*.${domain} https://explorer-api.walletconnect.com https://pulse.walletconnect.org https://api.web3modal.org https://*.web3modal.org https://*.walletconnect.org https://*.walletconnect.com https://*.cloudinary.com https://c.bing.com https://o.clarity.ms https://*.google-analytics.com https://region1.google-analytics.com https://www.google-analytics.com;
                             worker-src 'self';
                             manifest-src 'self'
                         `
