@@ -1,20 +1,18 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 
-type ProjectSignalStrength = {
+type ProjectSignalStrengths = {
+    url?: string // Requires isSuperAdminRequesting or isProjectAdminRequesting is true
+    enabled: boolean
+    max_value: number
+    previous_days: number // Requires isSuperAdminRequesting or isProjectAdminRequesting is true
     signal_strengths: {
         name: string
         display_name: string
         status: string
-        project_signal_strengths: Array<{
-            max_value: number
-            enabled: boolean
-            previous_days: number
-            model?: string // Only present if isSuperAdminRequesting is true
-            temperature?: number // Only present if isSuperAdminRequesting is true
-            prompt?: string // Only present if isSuperAdminRequesting is true
-            max_chars?: number // Only present if isSuperAdminRequesting is true
-        }>
+        model?: string // Requires isSuperAdminRequesting is true
+        temperature?: number //Requires isSuperAdminRequesting is true
+        max_chars?: number //Requires isSuperAdminRequesting is true
     }
 }
 
@@ -23,12 +21,14 @@ type Project = {
     url_slug: string
     display_name: string
     project_logo_url: string
-    peak_signals_enabled: boolean
-    peak_signals_max_value: number
-    project_signal_strengths: ProjectSignalStrength[]
+    project_signal_strengths: ProjectSignalStrengths[]
 }
 
-export async function getProjectsUtil(request: Request, isSuperAdminRequesting: boolean = false) {
+export async function getProjectsUtil(
+    request: Request,
+    isProjectAdminRequesting: boolean,
+    isSuperAdminRequesting: boolean,
+) {
     const projectSlug = request ? new URL(request.url).searchParams.get("project") : null
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -42,18 +42,18 @@ export async function getProjectsUtil(request: Request, isSuperAdminRequesting: 
                 url_slug,
                 display_name,
                 project_logo_url,
-                peak_signals_enabled,
-                peak_signals_max_value,
                 project_signal_strengths (
+                    url,
+                    enabled,
+                    max_value,
+                    previous_days,
                     signal_strengths (
                         name,
                         display_name,
                         status,
-                        project_signal_strengths (
-                            max_value,
-                            enabled,
-                            previous_days
-                        )
+                        model,
+                        temperature,
+                        max_chars
                     )
                 )
             `,
@@ -83,32 +83,25 @@ export async function getProjectsUtil(request: Request, isSuperAdminRequesting: 
         // Format the projects to match UI naming conventions
         const formattedProjects = (projects as unknown as Project[]).map((project) => {
             return {
-                ...(isSuperAdminRequesting ? { id: project.id } : {}),
+                ...(isSuperAdminRequesting || isProjectAdminRequesting ? { id: project.id } : {}),
                 urlSlug: project.url_slug,
                 displayName: project.display_name,
                 projectLogoUrl: project.project_logo_url,
-                peakSignalsMaxValue: project.peak_signals_max_value,
-                peakSignalsEnabled: project.peak_signals_enabled,
                 signalStrengths:
                     project.project_signal_strengths?.map((ps) => ({
+                        ...(isSuperAdminRequesting || isProjectAdminRequesting ? { url: ps.url } : {}),
                         name: ps.signal_strengths.name,
                         displayName: ps.signal_strengths.display_name,
                         status: ps.signal_strengths.status,
-                        maxValue: ps.signal_strengths.project_signal_strengths[0]?.max_value,
-                        enabled: ps.signal_strengths.project_signal_strengths[0]?.enabled,
-                        previousDays: ps.signal_strengths.project_signal_strengths[0]?.previous_days,
-                        ...(isSuperAdminRequesting
-                            ? { model: ps.signal_strengths.project_signal_strengths[0]?.model }
+                        enabled: ps.enabled,
+                        maxValue: ps.max_value,
+                        ...(isSuperAdminRequesting || isProjectAdminRequesting
+                            ? { previousDays: ps.previous_days }
                             : {}),
-                        ...(isSuperAdminRequesting
-                            ? { temperature: ps.signal_strengths.project_signal_strengths[0]?.temperature }
-                            : {}),
-                        ...(isSuperAdminRequesting
-                            ? { prompt: ps.signal_strengths.project_signal_strengths[0]?.prompt }
-                            : {}),
-                        ...(isSuperAdminRequesting
-                            ? { maxChars: ps.signal_strengths.project_signal_strengths[0]?.max_chars }
-                            : {}),
+
+                        ...(isSuperAdminRequesting ? { model: ps.signal_strengths?.model } : {}),
+                        ...(isSuperAdminRequesting ? { temperature: ps.signal_strengths?.temperature } : {}),
+                        ...(isSuperAdminRequesting ? { maxChars: ps.signal_strengths?.max_chars } : {}),
                     })) || [],
             }
         })

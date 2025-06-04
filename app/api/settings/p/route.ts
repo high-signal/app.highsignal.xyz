@@ -2,100 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { validateUrlSlug, validateDisplayName } from "../../../../utils/inputValidation"
 import { sanitize } from "../../../../utils/sanitize"
-
-type ProjectSignalStrength = {
-    signal_strengths: {
-        name: string
-        display_name: string
-        status: string
-        project_signal_strengths: Array<{
-            max_value: number
-            enabled: boolean
-            previous_days: number
-            prompt: string
-        }>
-    }
-}
-
-type Project = {
-    id: number
-    url_slug: string
-    display_name: string
-    project_logo_url: string
-    peak_signals_enabled: boolean
-    peak_signals_max_value: number
-    project_signal_strengths: ProjectSignalStrength[]
-}
+import { getProjectsUtil } from "../../../../utils/api-utils/getProjectsUtil"
 
 export async function GET(request: NextRequest) {
-    try {
-        // Get the target project from the URL search params
-        const targetProjectUrlSlug = request.nextUrl.searchParams.get("project")
-        if (!targetProjectUrlSlug) {
-            return NextResponse.json({ error: "Project is required" }, { status: 400 })
-        }
-
-        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-
-        // Get the target project from the database
-        const { data: targetProject, error: targetProjectError } = await supabase
-            .from("projects")
-            .select(
-                `
-                id,
-                url_slug,
-                display_name,
-                project_logo_url,
-                peak_signals_enabled,
-                peak_signals_max_value,
-                project_signal_strengths (
-                    signal_strengths (
-                        name,
-                        display_name,
-                        status,
-                        project_signal_strengths (
-                            max_value,
-                            enabled,
-                            previous_days,
-                            prompt
-                        )
-                    )
-                )
-            `,
-            )
-            .eq("url_slug", targetProjectUrlSlug)
-            .single()
-
-        if (targetProjectError) {
-            console.error("Error fetching target project:", targetProjectError)
-            return NextResponse.json({ error: "Target project not found" }, { status: 404 })
-        }
-
-        // Format the projects to match UI naming conventions
-        const formattedProject = {
-            id: targetProject.id,
-            urlSlug: targetProject.url_slug,
-            displayName: targetProject.display_name,
-            projectLogoUrl: targetProject.project_logo_url,
-            peakSignalsMaxValue: targetProject.peak_signals_max_value,
-            peakSignalsEnabled: targetProject.peak_signals_enabled,
-            signalStrengths:
-                (targetProject as unknown as Project).project_signal_strengths?.map((ps) => ({
-                    name: ps.signal_strengths.name,
-                    displayName: ps.signal_strengths.display_name,
-                    status: ps.signal_strengths.status,
-                    maxValue: ps.signal_strengths.project_signal_strengths[0]?.max_value,
-                    enabled: ps.signal_strengths.project_signal_strengths[0]?.enabled,
-                    previousDays: ps.signal_strengths.project_signal_strengths[0]?.previous_days,
-                    prompt: ps.signal_strengths.project_signal_strengths[0]?.prompt,
-                })) || [],
-        }
-
-        return NextResponse.json(formattedProject)
-    } catch (error) {
-        console.error("Error fetching project settings:", error)
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-    }
+    return getProjectsUtil(request, true, false)
 }
 
 // Authenticated PATCH request

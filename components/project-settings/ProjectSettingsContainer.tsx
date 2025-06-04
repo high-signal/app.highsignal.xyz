@@ -53,7 +53,7 @@ export default function ProjectSettingsContainer() {
                 }
 
                 const data = await response.json()
-                setProject(data)
+                setProject(data[0])
             } catch (err) {
                 console.error("Error in fetchUserData:", err)
                 setError(err instanceof Error ? err.message : "An error occurred")
