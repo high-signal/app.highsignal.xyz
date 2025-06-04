@@ -162,7 +162,7 @@ export default function ImageEditor({
                 style={{ display: "none" }}
             />
 
-            <Text fontSize="sm" fontWeight="bold" color="textColorMuted">
+            <Text fontSize="sm" color="textColorMuted">
                 Click to upload a new image (max 5MB)
             </Text>
         </VStack>

@@ -52,13 +52,13 @@ export default function SignalDisplayContainer({ project, username }: { project:
                 <UserInfo profileImageUrl={currentUser.profileImageUrl || ""} name={currentUser.displayName || ""} />
                 <Box w="100%" h={{ base: "30px", sm: "20px" }} />
                 <CurrentSignal currentUser={currentUser} />
-                <HStack w="100%" justifyContent="space-between">
+                {/* <HStack w="100%" justifyContent="space-between">
                     <Text textAlign="center">
                         Placeholder text for the user summary. Placeholder text for the user summary. Placeholder text
                         for the user summary. Placeholder text for the user summary. Placeholder text for the user
                         summary. Placeholder text for the user summary.
                     </Text>
-                </HStack>
+                </HStack> */}
             </VStack>
             {currentProject.peakSignalsEnabled && (
                 <PeakSignalsContainer
