@@ -5,6 +5,7 @@ import dynamic from "next/dynamic"
 import { rubik } from "./fonts"
 import Head from "./head"
 import RootParticleAnimation from "../components/particle-animation/RootParticleAnimation"
+import { useClarity } from "../hooks/useClarity"
 
 const isDev = process.env.NODE_ENV === "development"
 
@@ -16,6 +17,8 @@ const Provider = isDev
     : require("./provider").Provider
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+    useClarity(process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID || "")
+
     return (
         <html lang="en" suppressHydrationWarning className={rubik.className}>
             <Head />
