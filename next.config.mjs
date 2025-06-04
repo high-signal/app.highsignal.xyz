@@ -28,7 +28,7 @@ export default {
                         key: "Content-Security-Policy",
                         value: `
                             default-src 'self';
-                            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com ${protocol}://*.${domain};
+                            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com ${protocol}://*.${domain} https://www.clarity.ms;
                             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
                             img-src 'self' data: blob: https://*.cloudinary.com;
                             font-src 'self' https://fonts.gstatic.com;
