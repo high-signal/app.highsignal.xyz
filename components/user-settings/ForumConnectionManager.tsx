@@ -48,18 +48,6 @@ export default function ForumConnectionManager({
         setIsConnectedLoading(false)
     }, [targetUser, config])
 
-    const handleForumInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setForumUsername(e.target.value)
-    }
-
-    // Handle Enter key press in the forum username input
-    const handleForumKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter" && !isForumSubmitting) {
-            // TODO: Check field has value
-            handleForumChange(forumUsername, targetUser.id!, 1)
-        }
-    }
-
     const handleForumChange = async (forumUsername: string, user_id: number, project_id: number) => {
         try {
             setIsForumSubmitting(true)
