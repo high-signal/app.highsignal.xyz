@@ -85,6 +85,7 @@ interface SignalStrengthProjectData {
     model?: string
     temperature?: number
     maxChars?: number
+    url?: string
 }
 
 interface SignalStrengthData {

@@ -89,7 +89,7 @@ export async function getProjectsUtil(
                 projectLogoUrl: project.project_logo_url,
                 signalStrengths:
                     project.project_signal_strengths?.map((ps) => ({
-                        ...(isSuperAdminRequesting || isProjectAdminRequesting ? { url: ps.url } : {}),
+                        url: ps.url,
                         name: ps.signal_strengths.name,
                         displayName: ps.signal_strengths.display_name,
                         status: ps.signal_strengths.status,
