@@ -46,7 +46,9 @@ export default function SignalStrengthsSettingsCalculation({
         null,
     )
 
-    const [currentPromptObject, setCurrentPromptObject] = useState<Prompt | null>(signalStrength.prompts[0])
+    const [currentPromptObject, setCurrentPromptObject] = useState<Prompt | null>(
+        signalStrength.prompts.filter((p) => p.type === type)[0] || null,
+    )
 
     const {
         isPromptExpanded,
