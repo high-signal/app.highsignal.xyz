@@ -23,10 +23,13 @@ export async function GET(request: NextRequest) {
                 display_name,
                 profile_image_url,
                 default_profile,
-                forum_users (
+                forum_users!inner (
                     user_id,
                     project_id,
-                    forum_username
+                    forum_username,
+                    projects!inner (
+                        url_slug
+                    )
                 )
             `,
             )
@@ -46,7 +49,7 @@ export async function GET(request: NextRequest) {
             defaultProfile: targetUser.default_profile,
             forumUsers: targetUser.forum_users.map((forumUser: any) => ({
                 userId: forumUser.user_id,
-                projectId: forumUser.project_id,
+                projectUrlSlug: forumUser.projects.url_slug,
                 forumUsername: forumUser.forum_username,
             })),
         }

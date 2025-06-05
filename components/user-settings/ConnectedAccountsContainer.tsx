@@ -17,6 +17,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                 return [
                     {
                         projectDisplayName: project.displayName,
+                        projectUrlSlug: project.urlSlug,
                         projectLogoUrl: project.projectLogoUrl,
                         forumUrl: forumSignal.url,
                     },
@@ -26,12 +27,9 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
         })
         .sort((a, b) => a.projectDisplayName.localeCompare(b.projectDisplayName))
 
-    // Make a single call to get all the entries in forum_users for the target user
-    //
-
     return (
         <SettingsSectionContainer>
-            {projectsLoading ? (
+            {!targetUser || projectsLoading ? (
                 <Spinner />
             ) : (
                 forumConfigs.map((config, index) => (

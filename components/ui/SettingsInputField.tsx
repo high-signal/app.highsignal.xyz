@@ -18,6 +18,7 @@ interface SettingsInputFieldProps {
     rightElement?: ReactNode
     isEditable?: boolean
     inputReplacement?: ReactNode
+    h?: string
 }
 
 export default function SettingsInputField({
@@ -32,6 +33,7 @@ export default function SettingsInputField({
     rightElement,
     isEditable = true,
     inputReplacement,
+    h = "35px",
 }: SettingsInputFieldProps) {
     return (
         <VStack align="stretch" w="100%">
@@ -45,7 +47,7 @@ export default function SettingsInputField({
                     <Text>{isPrivate ? "Private" : "Public"}</Text>
                 </HStack>
             </HStack>
-            <HStack w="100%" gap={0} bg={"pageBackground"}>
+            <HStack w="100%" gap={0} bg={"pageBackground"} h={h}>
                 {inputReplacement ? (
                     inputReplacement
                 ) : (

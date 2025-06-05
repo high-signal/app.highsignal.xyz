@@ -73,7 +73,7 @@ export default function SingleLineTextInput({
                 pr={showClearButton ? "30px" : "0px"}
                 h={h}
                 readOnly={!isEditable}
-                cursor={isSelectorOnly ? "pointer" : isEditable ? "text" : "disabled"}
+                cursor={isSelectorOnly ? "pointer" : isEditable ? "text" : "default"}
                 userSelect={isEditable ? "text" : "none"}
                 color="textColor"
             />

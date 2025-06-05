@@ -27,7 +27,8 @@ interface ConnectedAccount {
 
 interface ForumUser {
     userId: string
-    projectId: string
+    projectId?: string
+    projectUrlSlug?: string
     forumUsername: string
 }
 

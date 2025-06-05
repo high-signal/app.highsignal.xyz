@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Text, Button, Spinner, Menu, Portal, HStack, Box, Image } from "@chakra-ui/react"
+import { Text, Button, Spinner, Menu, Portal, HStack, Box, Image, Skeleton } from "@chakra-ui/react"
 import { toaster } from "../ui/toaster"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEllipsisVertical, faSignOut } from "@fortawesome/free-solid-svg-icons"
@@ -17,25 +17,36 @@ export default function ForumConnectionManager({
     config,
 }: {
     targetUser: UserData
-    config: { projectDisplayName: string; projectLogoUrl: string | undefined; forumUrl: string | undefined }
+    config: {
+        projectDisplayName: string
+        projectUrlSlug: string
+        projectLogoUrl: string | undefined
+        forumUrl: string | undefined
+    }
 }) {
     const { getAccessToken } = usePrivy()
     const { refreshUser } = useUser()
     const router = useRouter()
 
     const [isConnected, setIsConnected] = useState(false)
+    const [isConnectedLoading, setIsConnectedLoading] = useState(true)
     const [forumUsername, setForumUsername] = useState("")
     const [isForumSubmitting, setIsForumSubmitting] = useState(false)
 
     useEffect(() => {
-        if (targetUser && targetUser.forumUsers && targetUser.forumUsers.length > 0) {
-            setForumUsername(targetUser.forumUsers[0].forumUsername)
+        const forumUsername = targetUser.forumUsers?.find(
+            (forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug,
+        )?.forumUsername
+
+        if (forumUsername) {
+            setForumUsername(forumUsername)
             setIsConnected(true)
         } else {
             setIsConnected(false)
             setForumUsername("")
         }
-    }, [targetUser])
+        setIsConnectedLoading(false)
+    }, [targetUser, config])
 
     const handleForumInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForumUsername(e.target.value)
@@ -166,7 +177,7 @@ export default function ForumConnectionManager({
                     </Box>
                 )
             }
-            description={isConnected ? `Your ${config.projectDisplayName} Forum username.` : ""}
+            description={!isConnectedLoading && isConnected ? `Your ${config.projectDisplayName} Forum username.` : ""}
             isPrivate={true}
             value={forumUsername}
             onChange={handleForumInputChange}
@@ -174,30 +185,35 @@ export default function ForumConnectionManager({
             error=""
             isEditable={!isForumSubmitting && !isConnected}
             inputReplacement={
-                !isConnected && (
-                    <Button
-                        primaryButton
-                        h={"35px"}
-                        w={"100%"}
-                        onClick={() => handleForumChange(forumUsername, targetUser.id!, 1)}
-                        borderRadius="full"
-                        disabled={isForumSubmitting}
-                    >
-                        {isForumSubmitting ? (
-                            <Spinner size="sm" color="white" />
-                        ) : (
-                            <Text fontWeight="bold">Connect</Text>
-                        )}
-                    </Button>
+                isConnectedLoading ? (
+                    <Skeleton defaultSkeleton h={"100%"} w={"100%"} borderRadius="full" />
+                ) : (
+                    !isConnected && (
+                        <Button
+                            primaryButton
+                            h={"100%"}
+                            w={"100%"}
+                            onClick={() => handleForumChange(forumUsername, targetUser.id!, 1)}
+                            borderRadius="full"
+                            disabled={isForumSubmitting}
+                        >
+                            {isForumSubmitting ? (
+                                <Spinner size="sm" color="white" />
+                            ) : (
+                                <Text fontWeight="bold">Connect</Text>
+                            )}
+                        </Button>
+                    )
                 )
             }
             rightElement={
+                !isConnectedLoading &&
                 isConnected && (
                     <Menu.Root>
                         <Menu.Trigger asChild>
                             <Button
                                 successButton
-                                h={"35px"}
+                                h={"100%"}
                                 w={"120px"}
                                 pl={2}
                                 pr={0}
