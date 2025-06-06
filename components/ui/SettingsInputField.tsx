@@ -37,7 +37,7 @@ export default function SettingsInputField({
 }: SettingsInputFieldProps) {
     return (
         <VStack align="stretch" w="100%">
-            <HStack justify="space-between" px={2}>
+            <HStack justify="space-between" px={2} pb={labelIcon ? "2px" : undefined}>
                 <HStack>
                     {labelIcon}
                     <Text fontWeight="bold">{label}</Text>
