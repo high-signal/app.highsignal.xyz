@@ -186,6 +186,17 @@ export const customConfig = defineConfig({
                             value: { _light: "{colors.green.500}", _dark: "{colors.green.900}" },
                         },
                     },
+                    danger: {
+                        default: {
+                            value: { _light: "{colors.red.500}", _dark: "{colors.red.700}" },
+                        },
+                        hover: {
+                            value: { _light: "{colors.red.400}", _dark: "{colors.red.600}" },
+                        },
+                        active: {
+                            value: { _light: "{colors.red.500}", _dark: "{colors.red.700}" },
+                        },
+                    },
                     closeButton: {
                         default: {
                             value: { _light: "{colors.gray.400}", _dark: "{colors.gray.300}" },

@@ -69,6 +69,15 @@ export const buttonRecipe = defineRecipe({
                 }),
             },
         },
+        dangerButton: {
+            true: {
+                ...createButtonStyles({
+                    default: "{colors.button.danger.default}",
+                    hover: "{colors.button.danger.hover}",
+                    active: "{colors.button.danger.active}",
+                }),
+            },
+        },
         closeButton: {
             true: {
                 ...createButtonStyles({

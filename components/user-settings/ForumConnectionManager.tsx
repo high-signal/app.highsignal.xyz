@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Text, Button, Spinner, Menu, Portal, HStack, Box, Image, Skeleton } from "@chakra-ui/react"
+import { Text, Button, Spinner, Menu, Portal, HStack, Box, Image, Skeleton, Dialog, VStack } from "@chakra-ui/react"
 import { toaster } from "../ui/toaster"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEllipsisVertical, faRefresh, faSignOut } from "@fortawesome/free-solid-svg-icons"
@@ -58,6 +58,8 @@ export default function ForumConnectionManager({
     const [forumUsername, setForumUsername] = useState("")
     const [isForumSubmitting, setIsForumSubmitting] = useState(false)
     const [isProcessingForumAuthRequest, setIsProcessingForumAuthRequest] = useState(false)
+
+    const [isDisconnectCheckOpen, setIsDisconnectCheckOpen] = useState(false)
 
     // Check if the user is connected to the forum
     useEffect(() => {
@@ -225,112 +227,180 @@ export default function ForumConnectionManager({
     }
 
     return (
-        <SettingsInputField
-            label={`${config.projectDisplayName} Forum`}
-            labelIcon={
-                config.projectLogoUrl && (
-                    <Box boxSize="16px" ml={1} mr={1} mb={1}>
-                        <Image
-                            src={config.projectLogoUrl}
-                            alt={config.projectDisplayName}
-                            boxSize="100%"
-                            objectFit="cover"
-                            borderRadius="full"
-                            transform="scale(1.5)"
-                        />
-                    </Box>
-                )
-            }
-            description={!isConnectedLoading && isConnected ? `Your ${config.projectDisplayName} Forum username.` : ""}
-            isPrivate={true}
-            value={forumUsername}
-            error=""
-            isEditable={!isForumSubmitting && !isConnected}
-            inputReplacement={
-                isConnectedLoading ? (
-                    <Skeleton defaultSkeleton h={"100%"} w={"100%"} borderRadius="full" />
-                ) : (
-                    !isConnected && (
-                        <Button
-                            primaryButton
-                            h={"100%"}
-                            w={"100%"}
-                            onClick={() => handleForumConnection()}
-                            borderRadius="full"
-                            disabled={isForumSubmitting}
-                        >
-                            {isForumSubmitting ? (
-                                <Spinner size="sm" color="white" />
-                            ) : (
-                                <Text fontWeight="bold">Connect</Text>
-                            )}
-                        </Button>
+        <>
+            {isDisconnectCheckOpen && (
+                <Dialog.Root
+                    placement={{ base: "center", md: "center" }}
+                    motionPreset="slide-in-bottom"
+                    open={isDisconnectCheckOpen}
+                >
+                    <Portal>
+                        <Dialog.Backdrop bg="rgba(0, 0, 0, 0.5)" backdropFilter="blur(3px)" />
+                        <Dialog.Positioner>
+                            <Dialog.Content borderRadius={"16px"} p={0} bg={"pageBackground"}>
+                                <Dialog.Header>
+                                    <Dialog.Title>
+                                        Disconnect your {config.projectDisplayName} forum account
+                                    </Dialog.Title>
+                                </Dialog.Header>
+                                <Dialog.Body>
+                                    <VStack gap={2} alignItems={"start"}>
+                                        <Text>
+                                            Are you sure you want to disconnect your {config.projectDisplayName} forum
+                                            account?
+                                        </Text>
+                                        <Text>
+                                            This will remove all your engagement data for this project and reduce your
+                                            score.
+                                        </Text>
+                                        <Text>
+                                            If you just wanted to show your updated forum username, you can use the
+                                            "Refresh connection" button instead.
+                                        </Text>
+                                    </VStack>
+                                </Dialog.Body>
+                                <Dialog.Footer>
+                                    <Dialog.ActionTrigger asChild>
+                                        <Button
+                                            secondaryButton
+                                            borderRadius={"full"}
+                                            px={4}
+                                            py={2}
+                                            onClick={() => setIsDisconnectCheckOpen(false)}
+                                        >
+                                            No - Take me back
+                                        </Button>
+                                    </Dialog.ActionTrigger>
+                                    <Button
+                                        dangerButton
+                                        borderRadius={"full"}
+                                        px={4}
+                                        py={2}
+                                        onClick={() => {
+                                            setIsDisconnectCheckOpen(false)
+                                            handleForumDisconnect()
+                                        }}
+                                    >
+                                        <Text>Yes I&apos;m sure - Disconnect</Text>
+                                    </Button>
+                                </Dialog.Footer>
+                            </Dialog.Content>
+                        </Dialog.Positioner>
+                    </Portal>
+                </Dialog.Root>
+            )}
+            <SettingsInputField
+                label={`${config.projectDisplayName} Forum`}
+                labelIcon={
+                    config.projectLogoUrl && (
+                        <Box boxSize="16px" ml={1} mr={1} mb={1}>
+                            <Image
+                                src={config.projectLogoUrl}
+                                alt={config.projectDisplayName}
+                                boxSize="100%"
+                                objectFit="cover"
+                                borderRadius="full"
+                                transform="scale(1.5)"
+                            />
+                        </Box>
                     )
-                )
-            }
-            rightElement={
-                !isConnectedLoading &&
-                isConnected && (
-                    <Menu.Root>
-                        <Menu.Trigger asChild>
+                }
+                description={
+                    !isConnectedLoading && isConnected ? `Your ${config.projectDisplayName} Forum username.` : ""
+                }
+                isPrivate={true}
+                value={forumUsername}
+                error=""
+                isEditable={!isForumSubmitting && !isConnected}
+                inputReplacement={
+                    isConnectedLoading ? (
+                        <Skeleton defaultSkeleton h={"100%"} w={"100%"} borderRadius="full" />
+                    ) : (
+                        !isConnected && (
                             <Button
-                                successButton
+                                primaryButton
                                 h={"100%"}
-                                w={"120px"}
-                                pl={2}
-                                pr={0}
-                                border={"2px solid"}
-                                color="lozenge.text.active"
-                                borderColor="lozenge.border.active"
-                                borderRightRadius="full"
+                                w={"100%"}
+                                onClick={() => handleForumConnection()}
+                                borderRadius="full"
                                 disabled={isForumSubmitting}
                             >
-                                <HStack gap={1}>
-                                    {isForumSubmitting ? (
-                                        <Spinner size="sm" color="lozenge.text.active" />
-                                    ) : (
-                                        <>
-                                            <Text fontWeight="bold">Connected</Text>
-                                            <FontAwesomeIcon icon={faEllipsisVertical} size="lg" />
-                                        </>
-                                    )}
-                                </HStack>
+                                {isForumSubmitting ? (
+                                    <Spinner size="sm" color="white" />
+                                ) : (
+                                    <Text fontWeight="bold">Connect</Text>
+                                )}
                             </Button>
-                        </Menu.Trigger>
-                        <Portal>
-                            <Menu.Positioner mt={"-4px"}>
-                                <Menu.Content
-                                    borderRadius={"12px"}
-                                    borderWidth={2}
-                                    borderColor={"contentBorder"}
-                                    overflow={"hidden"}
-                                    p={0}
-                                    bg={"pageBackground"}
+                        )
+                    )
+                }
+                rightElement={
+                    !isConnectedLoading &&
+                    isConnected && (
+                        <Menu.Root>
+                            <Menu.Trigger asChild>
+                                <Button
+                                    successButton
+                                    h={"100%"}
+                                    w={"120px"}
+                                    pl={2}
+                                    pr={0}
+                                    border={"2px solid"}
+                                    color="lozenge.text.active"
+                                    borderColor="lozenge.border.active"
+                                    borderRightRadius="full"
+                                    disabled={isForumSubmitting}
                                 >
-                                    <CustomMenuItem value="refresh" onClick={() => handleForumConnection()}>
-                                        <HStack overflow={"hidden"}>
-                                            <Text fontWeight="bold">Refresh connection</Text>
-                                            <Box w="20px">
-                                                <FontAwesomeIcon icon={faRefresh} />
-                                            </Box>
-                                        </HStack>
-                                    </CustomMenuItem>
-                                    <CustomMenuItem value="disconnect" onClick={() => handleForumDisconnect()}>
-                                        <HStack overflow={"hidden"}>
-                                            <Text fontWeight="bold" color="orange.500">
-                                                Disconnect
-                                            </Text>
-                                            <Box w="20px">
-                                                <FontAwesomeIcon icon={faSignOut} />
-                                            </Box>
-                                        </HStack>
-                                    </CustomMenuItem>
-                                </Menu.Content>
-                            </Menu.Positioner>
-                        </Portal>
-                    </Menu.Root>
-                )
-            }
-        />
+                                    <HStack gap={1}>
+                                        {isForumSubmitting ? (
+                                            <Spinner size="sm" color="lozenge.text.active" />
+                                        ) : (
+                                            <>
+                                                <Text fontWeight="bold">Connected</Text>
+                                                <FontAwesomeIcon icon={faEllipsisVertical} size="lg" />
+                                            </>
+                                        )}
+                                    </HStack>
+                                </Button>
+                            </Menu.Trigger>
+                            <Portal>
+                                <Menu.Positioner mt={"-4px"}>
+                                    <Menu.Content
+                                        borderRadius={"12px"}
+                                        borderWidth={2}
+                                        borderColor={"contentBorder"}
+                                        overflow={"hidden"}
+                                        p={0}
+                                        bg={"pageBackground"}
+                                    >
+                                        <CustomMenuItem value="refresh" onClick={() => handleForumConnection()}>
+                                            <HStack overflow={"hidden"}>
+                                                <Text fontWeight="bold">Refresh connection</Text>
+                                                <Box w="20px">
+                                                    <FontAwesomeIcon icon={faRefresh} />
+                                                </Box>
+                                            </HStack>
+                                        </CustomMenuItem>
+                                        <CustomMenuItem
+                                            value="disconnect"
+                                            onClick={() => setIsDisconnectCheckOpen(true)}
+                                        >
+                                            <HStack overflow={"hidden"}>
+                                                <Text fontWeight="bold" color="orange.500">
+                                                    Disconnect
+                                                </Text>
+                                                <Box w="20px">
+                                                    <FontAwesomeIcon icon={faSignOut} />
+                                                </Box>
+                                            </HStack>
+                                        </CustomMenuItem>
+                                    </Menu.Content>
+                                </Menu.Positioner>
+                            </Portal>
+                        </Menu.Root>
+                    )
+                }
+            />
+        </>
     )
 }
