@@ -302,34 +302,77 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
     try {
+        const signalStrengthName = "discourse_forum"
+
+        // Parse the request URL params
+        const username = request ? new URL(request.url).searchParams.get("username") : null
+        const projectUrlSlug = request ? new URL(request.url).searchParams.get("project") : null
+
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-        // Parse the request body
-        const body = await request.json()
-        const { user_id, project_id, signal_strength_id } = body
-
         // Validate required fields
-        if (!user_id || !project_id) {
+        if (!username || !projectUrlSlug) {
             return NextResponse.json(
-                { error: "Missing required fields: user_id and project_id are required" },
+                { error: "Missing required fields: username and project are required" },
                 { status: 400 },
             )
+        }
+
+        // Lookup the user ID using the username
+        const { data: targetUserData, error: targetUserDataError } = await supabase
+            .from("users")
+            .select("id")
+            .eq("username", username)
+            .single()
+
+        if (targetUserDataError || !targetUserData) {
+            console.error("Error fetching target user ID:", targetUserDataError)
+            return NextResponse.json({ error: "Error fetching target user ID" }, { status: 500 })
+        }
+
+        // Lookup the project ID using the projectUrlSlug
+        const { data: projectData, error: projectDataError } = await supabase
+            .from("projects")
+            .select("id")
+            .eq("url_slug", projectUrlSlug)
+            .single()
+
+        if (projectDataError || !projectData) {
+            console.error("Error fetching project ID:", projectDataError)
+            return NextResponse.json({ error: "Error fetching project ID" }, { status: 500 })
+        }
+
+        // Lookup the signal strength ID for the discourse_forum signal strength
+        const { data: signalStrengthData, error: signalStrengthDataError } = await supabase
+            .from("signal_strengths")
+            .select("id")
+            .eq("name", signalStrengthName)
+            .single()
+
+        if (signalStrengthDataError || !signalStrengthData) {
+            console.error("Error fetching signal strength ID:", signalStrengthDataError)
+            return NextResponse.json({ error: "Error fetching signal strength ID" }, { status: 500 })
         }
 
         // Delete the forum_users entry
         const { error: forumUserError } = await supabase
             .from("forum_users")
             .delete()
-            .eq("user_id", user_id)
-            .eq("project_id", project_id)
+            .eq("user_id", targetUserData.id)
+            .eq("project_id", projectData.id)
 
-        // Delete associated user_signal_strengths entry
+        if (forumUserError) {
+            console.error("Error deleting forum user:", forumUserError)
+            return NextResponse.json({ error: "Error deleting forum user" }, { status: 500 })
+        }
+
+        // Delete associated user_signal_strengths entries
         const { error: signalError } = await supabase
             .from("user_signal_strengths")
             .delete()
-            .eq("user_id", user_id)
-            .eq("project_id", project_id)
-            .eq("signal_strength_id", signal_strength_id)
+            .eq("user_id", targetUserData.id)
+            .eq("project_id", projectData.id)
+            .eq("signal_strength_id", signalStrengthData.id)
 
         if (forumUserError || signalError) {
             console.error("Error deleting forum user:", forumUserError || signalError)

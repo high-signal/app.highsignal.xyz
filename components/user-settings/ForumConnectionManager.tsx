@@ -5,12 +5,35 @@ import { useRouter } from "next/navigation"
 import { Text, Button, Spinner, Menu, Portal, HStack, Box, Image, Skeleton } from "@chakra-ui/react"
 import { toaster } from "../ui/toaster"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faEllipsisVertical, faSignOut } from "@fortawesome/free-solid-svg-icons"
+import { faEllipsisVertical, faRefresh, faSignOut } from "@fortawesome/free-solid-svg-icons"
 
 import { useUser } from "../../contexts/UserContext"
 import { usePrivy } from "@privy-io/react-auth"
 
 import SettingsInputField from "../ui/SettingsInputField"
+
+interface CustomMenuItemProps {
+    value: string
+    onClick: () => void
+    children: React.ReactNode
+}
+
+const CustomMenuItem = ({ value, onClick, children }: CustomMenuItemProps) => (
+    <Menu.Item
+        h={"35px"}
+        cursor={"pointer"}
+        value={value}
+        overflow={"hidden"}
+        onClick={onClick}
+        transition={"all 0.2s ease"}
+        _active={{ bg: "button.contentButton.active" }}
+        _highlighted={{ bg: "button.contentButton.hover" }}
+        px={4}
+        py={3}
+    >
+        {children}
+    </Menu.Item>
+)
 
 export default function ForumConnectionManager({
     targetUser,
@@ -27,6 +50,8 @@ export default function ForumConnectionManager({
     const { getAccessToken } = usePrivy()
     const { refreshUser } = useUser()
     const router = useRouter()
+
+    const signalStrengthName = "discourse_forum"
 
     const [isConnected, setIsConnected] = useState(false)
     const [isConnectedLoading, setIsConnectedLoading] = useState(true)
@@ -60,7 +85,6 @@ export default function ForumConnectionManager({
             const payload = urlParams.get("payload")
 
             if (type && project === config.projectUrlSlug && payload) {
-                console.log("Processing forum auth request")
                 setIsForumSubmitting(true)
 
                 // Post the payload, target username, and project url slug to the /api/accounts/forum_users route
@@ -110,7 +134,7 @@ export default function ForumConnectionManager({
                         label: "View Profile",
                         // TODO: Uncomment this when the profile page is implemented
                         // onClick: () => router.push(`/u/${targetUser.username}`),
-                        onClick: () => router.push(`/p/lido/${targetUser?.username}#discourse_forum`),
+                        onClick: () => router.push(`/p/lido/${targetUser?.username}#${signalStrengthName}`),
                     },
                 })
             }
@@ -122,13 +146,13 @@ export default function ForumConnectionManager({
         }
     }, [config.projectUrlSlug, getAccessToken, refreshUser, router, targetUser, isProcessingForumAuthRequest])
 
-    const handleForumConnection = async (projectUrlSlug: string) => {
+    const handleForumConnection = async () => {
         try {
             setIsForumSubmitting(true)
 
             const token = await getAccessToken()
             const authRequestResponse = await fetch(
-                `/api/accounts/forum_users?username=${targetUser.username}&project=${projectUrlSlug}`,
+                `/api/accounts/forum_users?username=${targetUser.username}&project=${config.projectUrlSlug}`,
                 {
                     method: "GET",
                     headers: {
@@ -158,26 +182,22 @@ export default function ForumConnectionManager({
         }
     }
 
-    const handleForumDisconnect = async (user_id: number, project_id: number, signal_strength_id: number) => {
+    const handleForumDisconnect = async () => {
         try {
             setIsForumSubmitting(true)
 
             // Call the forum_users DELETE route
             const token = await getAccessToken()
-            const forumResponse = await fetch(`/api/accounts/forum_users?username=${targetUser?.username}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+            const forumResponse = await fetch(
+                `/api/accounts/forum_users?username=${targetUser?.username}&project=${config.projectUrlSlug}`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
                 },
-                // TODO: When refactoring this section, remove any frontend defined values for security.
-                // Look up everything on the backend
-                body: JSON.stringify({
-                    user_id,
-                    project_id,
-                    signal_strength_id,
-                }),
-            })
+            )
 
             if (!forumResponse.ok) {
                 const errorData = await forumResponse.json()
@@ -235,7 +255,7 @@ export default function ForumConnectionManager({
                             primaryButton
                             h={"100%"}
                             w={"100%"}
-                            onClick={() => handleForumConnection(config.projectUrlSlug)}
+                            onClick={() => handleForumConnection()}
                             borderRadius="full"
                             disabled={isForumSubmitting}
                         >
@@ -279,16 +299,23 @@ export default function ForumConnectionManager({
                         </Menu.Trigger>
                         <Portal>
                             <Menu.Positioner mt={"-4px"}>
-                                <Menu.Content borderRadius={"full"} borderWidth={2} overflow={"hidden"} p={0}>
-                                    <Menu.Item
-                                        h={"35px"}
-                                        py={2}
-                                        pl={3}
-                                        cursor={"pointer"}
-                                        value="disconnect"
-                                        overflow={"hidden"}
-                                        onClick={() => handleForumDisconnect(targetUser.id!, 1, 1)}
-                                    >
+                                <Menu.Content
+                                    borderRadius={"12px"}
+                                    borderWidth={2}
+                                    borderColor={"contentBorder"}
+                                    overflow={"hidden"}
+                                    p={0}
+                                    bg={"pageBackground"}
+                                >
+                                    <CustomMenuItem value="refresh" onClick={() => handleForumConnection()}>
+                                        <HStack overflow={"hidden"}>
+                                            <Text fontWeight="bold">Refresh connection</Text>
+                                            <Box w="20px">
+                                                <FontAwesomeIcon icon={faRefresh} />
+                                            </Box>
+                                        </HStack>
+                                    </CustomMenuItem>
+                                    <CustomMenuItem value="disconnect" onClick={() => handleForumDisconnect()}>
                                         <HStack overflow={"hidden"}>
                                             <Text fontWeight="bold" color="orange.500">
                                                 Disconnect
@@ -297,7 +324,7 @@ export default function ForumConnectionManager({
                                                 <FontAwesomeIcon icon={faSignOut} />
                                             </Box>
                                         </HStack>
-                                    </Menu.Item>
+                                    </CustomMenuItem>
                                 </Menu.Content>
                             </Menu.Positioner>
                         </Portal>

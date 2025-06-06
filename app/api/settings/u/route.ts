@@ -18,7 +18,6 @@ export async function GET(request: NextRequest) {
             .from("users")
             .select(
                 `
-                id, 
                 username, 
                 display_name,
                 profile_image_url,
@@ -42,7 +41,6 @@ export async function GET(request: NextRequest) {
         }
 
         const formattedTargetUser: UserData = {
-            id: targetUser.id,
             username: targetUser.username,
             displayName: targetUser.display_name,
             profileImageUrl: targetUser.profile_image_url,
