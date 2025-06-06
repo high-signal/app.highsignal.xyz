@@ -48,54 +48,36 @@ export default function ForumConnectionManager({
         setIsConnectedLoading(false)
     }, [targetUser, config])
 
-    const handleForumChange = async (forumUsername: string, user_id: number, project_id: number) => {
+    const handleForumConnection = async (projectUrlSlug: string) => {
         try {
             setIsForumSubmitting(true)
 
             const token = await getAccessToken()
-            const forumResponse = await fetch(`/api/accounts/forum_users?username=${targetUser?.username}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+            const authRequestResponse = await fetch(
+                `/api/accounts/forum_users?username=${targetUser.username}&project=${projectUrlSlug}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
                 },
-                // TODO: When refactoring this section, remove any frontend defined values for security.
-                // Look up everything on the backend
-                body: JSON.stringify({
-                    user_id,
-                    project_id,
-                    forum_username: forumUsername,
-                }),
-            })
+            )
 
-            if (!forumResponse.ok) {
-                const errorData = await forumResponse.json()
-                throw new Error(errorData.error || "Failed to update forum username")
+            if (!authRequestResponse.ok) {
+                const errorData = await authRequestResponse.json()
+                throw new Error(errorData.error || "Failed to get forum user auth URL")
             }
 
-            if (forumResponse.ok) {
-                // Reset the form state
-                setIsConnected(true)
-                setIsForumSubmitting(false)
-
-                toaster.create({
-                    title: "✅ Forum username updated",
-                    description:
-                        "Your forum username has been updated successfully. View your profile to see the calculation in progress.",
-                    type: "success",
-                    action: {
-                        label: "View Profile",
-                        // TODO: Uncomment this when the profile page is implemented
-                        // onClick: () => router.push(`/u/${targetUser.username}`),
-                        onClick: () => router.push(`/p/lido/${targetUser?.username}#discourse_forum`),
-                    },
-                })
+            if (authRequestResponse.ok) {
+                const responseData = await authRequestResponse.json()
+                window.location.href = responseData.url
             }
         } catch (error) {
-            console.error("Error updating forum username:", error)
+            console.error("Error connecting forum username:", error)
             setIsForumSubmitting(false)
             toaster.create({
-                title: "❌ Error updating forum username",
+                title: "❌ Error connecting forum username",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
                 type: "error",
             })
@@ -153,7 +135,7 @@ export default function ForumConnectionManager({
             label={`${config.projectDisplayName} Forum`}
             labelIcon={
                 config.projectLogoUrl && (
-                    <Box boxSize="20px" mr={1} mb={1}>
+                    <Box boxSize="16px" ml={1} mr={1} mb={1}>
                         <Image
                             src={config.projectLogoUrl}
                             alt={config.projectDisplayName}
@@ -168,8 +150,6 @@ export default function ForumConnectionManager({
             description={!isConnectedLoading && isConnected ? `Your ${config.projectDisplayName} Forum username.` : ""}
             isPrivate={true}
             value={forumUsername}
-            onChange={handleForumInputChange}
-            onKeyDown={handleForumKeyDown}
             error=""
             isEditable={!isForumSubmitting && !isConnected}
             inputReplacement={
@@ -181,7 +161,7 @@ export default function ForumConnectionManager({
                             primaryButton
                             h={"100%"}
                             w={"100%"}
-                            onClick={() => handleForumChange(forumUsername, targetUser.id!, 1)}
+                            onClick={() => handleForumConnection(config.projectUrlSlug)}
                             borderRadius="full"
                             disabled={isForumSubmitting}
                         >

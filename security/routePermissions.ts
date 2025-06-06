@@ -25,6 +25,10 @@ export const routePermissions: RoutePermission[] = [
     {
         path: "/api/accounts",
         methods: {
+            GET: {
+                requiresAuth: true,
+                allowedAccess: ["targetUser", "superAdmin"],
+            },
             POST: {
                 requiresAuth: true,
                 allowedAccess: ["targetUser", "superAdmin"],

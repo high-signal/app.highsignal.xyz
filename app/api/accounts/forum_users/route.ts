@@ -3,6 +3,78 @@ import { NextResponse } from "next/server"
 
 import { triggerLambda } from "../../../../utils/lambda-utils/triggerLambda"
 
+// Generate forum user auth URL
+export async function GET(request: Request) {
+    try {
+        const username = request ? new URL(request.url).searchParams.get("username") : null
+        const projectUrlSlug = request ? new URL(request.url).searchParams.get("project") : null
+
+        if (!projectUrlSlug || !username) {
+            return NextResponse.json(
+                { error: "Missing required fields: project and username are required" },
+                { status: 400 },
+            )
+        }
+
+        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+        // Lookup the signal strength ID for the discourse_forum signal strength
+        const { data: signalStrengthData, error: signalStrengthDataError } = await supabase
+            .from("signal_strengths")
+            .select("id")
+            .eq("name", "discourse_forum")
+            .single()
+
+        if (signalStrengthDataError || !signalStrengthData) {
+            console.error("Error fetching signal strength ID:", signalStrengthDataError)
+            return NextResponse.json({ error: "Error fetching signal strength ID" }, { status: 500 })
+        }
+
+        // Lookup the project ID using the projectUrlSlug
+        const { data: projectData, error: projectDataError } = await supabase
+            .from("projects")
+            .select("id")
+            .eq("url_slug", projectUrlSlug)
+            .single()
+
+        if (projectDataError || !projectData) {
+            console.error("Error fetching project ID:", projectDataError)
+            return NextResponse.json({ error: "Error fetching project ID" }, { status: 500 })
+        }
+
+        // Lookup the project signal strength URL using the signal strength ID and project ID
+        const { data: projectSignalStrengthData, error: projectSignalStrengthDataError } = await supabase
+            .from("project_signal_strengths")
+            .select("url")
+            .eq("signal_strength_id", signalStrengthData.id)
+            .eq("project_id", projectData.id)
+            .single()
+
+        if (projectSignalStrengthDataError || !projectSignalStrengthData) {
+            console.error("Error fetching project signal strength URL:", projectSignalStrengthDataError)
+            return NextResponse.json({ error: "Error fetching project signal strength URL" }, { status: 500 })
+        }
+
+        const ApplicationName = encodeURIComponent(process.env.NEXT_PUBLIC_SITE_NAME!)
+        const ClientId = process.env.DISCOURSE_FORUM_CLIENT_ID!
+        const PublicKey = encodeURIComponent(process.env.DISCOURSE_FORUM_PUBLIC_KEY!.replace(/\\n/g, "\n"))
+        const Nonce = Math.floor(Math.random() * 0xfffffffffffff)
+            .toString(16)
+            .padStart(16, "0")
+        const AuthRedirect = encodeURIComponent(
+            `${process.env.DISCOURSE_FORUM_REDIRECT_URL!}/settings/u/${username}?tab=connected-accounts&type=discourse_forum&project=${projectUrlSlug}`,
+        )
+
+        return NextResponse.json({
+            message: "Forum user auth URL generated successfully",
+            url: `${projectSignalStrengthData.url}/user-api-key/new?application_name=${ApplicationName}&client_id=${ClientId}&scopes=session_info&public_key=${PublicKey}&nonce=${Nonce}&auth_redirect=${AuthRedirect}`,
+        })
+    } catch (error) {
+        console.error("Error generating forum user auth URL:", error)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}
+
 // Create a new forum user
 export async function POST(request: Request) {
     try {
