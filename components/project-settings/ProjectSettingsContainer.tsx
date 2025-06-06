@@ -101,6 +101,7 @@ export default function ProjectSettingsContainer() {
         <ContentContainer>
             <SettingsTabbedContent
                 title={`${project.displayName} Settings`}
+                updateUrlParam={true}
                 tabs={[
                     {
                         value: "general",

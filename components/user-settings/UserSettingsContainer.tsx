@@ -100,6 +100,7 @@ export default function UserSettingsContainer() {
         <ContentContainer>
             <SettingsTabbedContent
                 title={`Your settings`}
+                updateUrlParam={true}
                 tabs={[
                     {
                         value: "general",

@@ -115,6 +115,7 @@ export default function ProjectSettingsContainer() {
         <ContentContainer>
             <SettingsTabbedContent
                 title="Super Admin Settings"
+                updateUrlParam={true}
                 tabs={[
                     {
                         value: "general",
