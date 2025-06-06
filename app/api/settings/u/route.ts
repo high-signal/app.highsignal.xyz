@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
                 display_name,
                 profile_image_url,
                 default_profile,
-                forum_users!inner (
+                forum_users (
                     user_id,
                     project_id,
                     forum_username,

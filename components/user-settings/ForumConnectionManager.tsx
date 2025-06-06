@@ -32,7 +32,9 @@ export default function ForumConnectionManager({
     const [isConnectedLoading, setIsConnectedLoading] = useState(true)
     const [forumUsername, setForumUsername] = useState("")
     const [isForumSubmitting, setIsForumSubmitting] = useState(false)
+    const [isProcessingForumAuthRequest, setIsProcessingForumAuthRequest] = useState(false)
 
+    // Check if the user is connected to the forum
     useEffect(() => {
         const forumUsername = targetUser.forumUsers?.find(
             (forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug,
@@ -47,6 +49,78 @@ export default function ForumConnectionManager({
         }
         setIsConnectedLoading(false)
     }, [targetUser, config])
+
+    // If the page is loaded with the query params type, project, and payload
+    // process that as a returned value from a forum auth request
+    useEffect(() => {
+        const processForumAuthRequest = async () => {
+            const urlParams = new URLSearchParams(window.location.search)
+            const type = urlParams.get("type")
+            const project = urlParams.get("project")
+            const payload = urlParams.get("payload")
+
+            if (type && project === config.projectUrlSlug && payload) {
+                console.log("Processing forum auth request")
+                setIsForumSubmitting(true)
+
+                // Post the payload, target username, and project url slug to the /api/accounts/forum_users route
+                const token = await getAccessToken()
+                const forumResponse = await fetch(
+                    `/api/accounts/forum_users?username=${targetUser.username}&project=${config.projectUrlSlug}`,
+                    {
+                        method: "POST",
+                        body: JSON.stringify({
+                            payload,
+                        }),
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    },
+                )
+
+                if (!forumResponse.ok) {
+                    setIsForumSubmitting(false)
+                    const errorData = await forumResponse.json()
+                    throw new Error(errorData.error || "Failed to process forum auth request")
+                }
+
+                // If forum response is ok, clear the extra query params from the url
+                urlParams.delete("type")
+                urlParams.delete("project")
+                urlParams.delete("payload")
+
+                // Preserve other URL parameters by using the remaining params
+                const newUrl = window.location.pathname + (urlParams.toString() ? `?${urlParams.toString()}` : "")
+                window.history.replaceState({}, "", newUrl)
+
+                // Refresh the user data
+                refreshUser()
+
+                // Stop the loading animation
+                setIsForumSubmitting(false)
+
+                // Show success message
+                toaster.create({
+                    title: "✅ Forum username updated",
+                    description:
+                        "Your forum username has been updated successfully. View your profile to see the calculation in progress.",
+                    type: "success",
+                    action: {
+                        label: "View Profile",
+                        // TODO: Uncomment this when the profile page is implemented
+                        // onClick: () => router.push(`/u/${targetUser.username}`),
+                        onClick: () => router.push(`/p/lido/${targetUser?.username}#discourse_forum`),
+                    },
+                })
+            }
+        }
+
+        if (!isProcessingForumAuthRequest) {
+            processForumAuthRequest()
+            setIsProcessingForumAuthRequest(true)
+        }
+    }, [config.projectUrlSlug, getAccessToken, refreshUser, router, targetUser, isProcessingForumAuthRequest])
 
     const handleForumConnection = async (projectUrlSlug: string) => {
         try {
