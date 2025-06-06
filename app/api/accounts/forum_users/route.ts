@@ -192,11 +192,44 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Failed to get forum username" }, { status: 400 })
         }
 
-        // TODO: Check if any existing forum_users entry exists for a DIFFERENT user_id and same project_id for the username
-        // - If it does, delete the the entry for those other users
-        // - Then, create a new entry with the new username (if it does not exist)
-        // - Trigger the analysis for the new username
-        // - Return the success message
+        // Check if any existing forum_users entry exists for a DIFFERENT user_id and same project_id for the username
+        const { data: existingEntries, error: existingEntriesError } = await supabase
+            .from("forum_users")
+            .select("user_id, last_updated")
+            .eq("project_id", projectData.id)
+            .eq("forum_username", forumUsername)
+
+        if (existingEntriesError) {
+            console.error("Error fetching existing forum users:", existingEntriesError)
+            return NextResponse.json({ error: "Error fetching existing forum users" }, { status: 500 })
+        }
+
+        // If they do exist, delete the entries for those other users
+        // e.g. Someone lost their old High Signal account and created a new one.
+        // We need to delete the old entry for the old account so it does not double count their contributions.
+        if (existingEntries) {
+            for (let i = existingEntries.length - 1; i >= 0; i--) {
+                const entry = existingEntries[i]
+                if (entry.user_id !== targetUserData.id) {
+                    await supabase.from("forum_users").delete().eq("user_id", entry.user_id)
+                    existingEntries.splice(i, 1) // Remove the deleted entry from the array
+                }
+            }
+        }
+
+        // Create/update an entry with the new username
+        const { error: upsertError } = await supabase.from("forum_users").upsert({
+            user_id: targetUserData.id,
+            project_id: projectData.id,
+            forum_username: forumUsername,
+            encrypted_payload: payload,
+            ...(existingEntries[0]?.last_updated ? { last_updated: null } : {}),
+        })
+
+        if (upsertError) {
+            console.error("Error upserting forum user:", upsertError)
+            return NextResponse.json({ error: "Error upserting forum user" }, { status: 500 })
+        }
 
         // Before starting the analysis, add the last_checked date to the user_signal_strengths table.
         // This is to give the best UX experience when the user is updating their forum username
@@ -220,68 +253,6 @@ export async function POST(request: Request) {
             console.error(`Error updating last_checked for ${forumUsername}:`, lastCheckError.message)
         } else {
             console.log(`Successfully updated last_checked for ${forumUsername}`)
-        }
-
-        // Check if an entry already exists with the same user_id and project_id
-        const { data: existingEntry, error: checkError } = await supabase
-            .from("forum_users")
-            .select("last_updated")
-            .eq("user_id", targetUserData.id)
-            .eq("project_id", projectData.id)
-            .single()
-
-        if (checkError && checkError.code !== "PGRST116") {
-            console.error("Error checking for existing entry:", checkError)
-            return NextResponse.json({ error: "Error checking for existing entry" }, { status: 500 })
-        }
-
-        let result
-
-        if (existingEntry) {
-            // Entry exists, update it and clear last_updated if it had a value
-            const updateData: Record<string, any> = {
-                forum_username: forumUsername,
-            }
-
-            // Only set last_updated to null if it had a value
-            if (existingEntry.last_updated) {
-                updateData.last_updated = null
-            }
-
-            const { data, error } = await supabase
-                .from("forum_users")
-                .update(updateData)
-                .eq("user_id", targetUserData.id)
-                .eq("project_id", projectData.id)
-                .select()
-                .single()
-
-            if (error) {
-                console.error("Error updating forum user:", error)
-                return NextResponse.json({ error: "Error updating forum user" }, { status: 500 })
-            }
-
-            result = data
-        } else {
-            // Entry doesn't exist, create a new one
-            const { data, error } = await supabase
-                .from("forum_users")
-                .insert([
-                    {
-                        user_id: targetUserData.id,
-                        project_id: projectData.id,
-                        forum_username: forumUsername,
-                    },
-                ])
-                .select()
-                .single()
-
-            if (error) {
-                console.error("Error creating forum user:", error)
-                return NextResponse.json({ error: "Error creating forum user" }, { status: 500 })
-            }
-
-            result = data
         }
 
         try {
@@ -309,7 +280,7 @@ export async function POST(request: Request) {
                 {
                     success: true,
                     message: analysisResponse.message,
-                    forumUser: result,
+                    forumUser: forumUsername,
                 },
                 { status: 200 },
             )
@@ -318,7 +289,7 @@ export async function POST(request: Request) {
             return NextResponse.json(
                 {
                     error: "An unexpected error occurred while starting the analysis",
-                    forumUser: result,
+                    forumUser: forumUsername,
                 },
                 { status: 500 },
             )
