@@ -254,8 +254,8 @@ export default function ForumConnectionManager({
                                             score.
                                         </Text>
                                         <Text>
-                                            If you just wanted to show your updated forum username, you can use the
-                                            "Refresh connection" button instead.
+                                            If you want to update your forum username, you can use the &quot;Refresh
+                                            connection&quot; button instead.
                                         </Text>
                                     </VStack>
                                 </Dialog.Body>
