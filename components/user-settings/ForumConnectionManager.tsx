@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Text, Button, Spinner, Menu, Portal, HStack, Box, Image, Skeleton, Dialog, VStack } from "@chakra-ui/react"
-import { toaster } from "../ui/toaster"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEllipsisVertical, faRefresh, faSignOut } from "@fortawesome/free-solid-svg-icons"
 
 import { useUser } from "../../contexts/UserContext"
 import { usePrivy } from "@privy-io/react-auth"
 
+import { toaster } from "../ui/toaster"
+import Modal from "../ui/Modal"
 import SettingsInputField from "../ui/SettingsInputField"
 
 interface CustomMenuItemProps {
@@ -230,67 +231,50 @@ export default function ForumConnectionManager({
 
     return (
         <>
-            {isDisconnectCheckOpen && (
-                <Dialog.Root
-                    placement={{ base: "center", md: "center" }}
-                    motionPreset="slide-in-bottom"
-                    open={isDisconnectCheckOpen}
-                >
-                    <Portal>
-                        <Dialog.Backdrop bg="rgba(0, 0, 0, 0.5)" backdropFilter="blur(3px)" />
-                        <Dialog.Positioner>
-                            <Dialog.Content borderRadius={"16px"} p={0} bg={"pageBackground"}>
-                                <Dialog.Header>
-                                    <Dialog.Title>
-                                        Disconnect your {config.projectDisplayName} forum account
-                                    </Dialog.Title>
-                                </Dialog.Header>
-                                <Dialog.Body>
-                                    <VStack gap={2} alignItems={"start"}>
-                                        <Text>
-                                            Are you sure you want to disconnect your {config.projectDisplayName} forum
-                                            account?
-                                        </Text>
-                                        <Text>
-                                            This will remove all your engagement data for this project and reduce your
-                                            score.
-                                        </Text>
-                                        <Text>
-                                            If you want to update your forum username, you can use the &quot;Refresh
-                                            connection&quot; button instead.
-                                        </Text>
-                                    </VStack>
-                                </Dialog.Body>
-                                <Dialog.Footer>
-                                    <Dialog.ActionTrigger asChild>
-                                        <Button
-                                            secondaryButton
-                                            borderRadius={"full"}
-                                            px={4}
-                                            py={2}
-                                            onClick={() => setIsDisconnectCheckOpen(false)}
-                                        >
-                                            No - Take me back
-                                        </Button>
-                                    </Dialog.ActionTrigger>
-                                    <Button
-                                        dangerButton
-                                        borderRadius={"full"}
-                                        px={4}
-                                        py={2}
-                                        onClick={() => {
-                                            setIsDisconnectCheckOpen(false)
-                                            handleForumDisconnect()
-                                        }}
-                                    >
-                                        <Text>Yes I&apos;m sure - Disconnect</Text>
-                                    </Button>
-                                </Dialog.Footer>
-                            </Dialog.Content>
-                        </Dialog.Positioner>
-                    </Portal>
-                </Dialog.Root>
-            )}
+            <Modal open={isDisconnectCheckOpen} close={() => setIsDisconnectCheckOpen(false)}>
+                <Dialog.Content borderRadius={"16px"} p={0} bg={"pageBackground"}>
+                    <Dialog.Header>
+                        <Dialog.Title>Disconnect your {config.projectDisplayName} forum account</Dialog.Title>
+                    </Dialog.Header>
+                    <Dialog.Body>
+                        <VStack gap={2} alignItems={"start"}>
+                            <Text>
+                                Are you sure you want to disconnect your {config.projectDisplayName} forum account?
+                            </Text>
+                            <Text>
+                                This will remove all your engagement data for this project and reduce your score.
+                            </Text>
+                            <Text>
+                                If you want to update your forum username, you can use the &quot;Refresh
+                                connection&quot; button instead.
+                            </Text>
+                        </VStack>
+                    </Dialog.Body>
+                    <Dialog.Footer>
+                        <Button
+                            secondaryButton
+                            borderRadius={"full"}
+                            px={4}
+                            py={2}
+                            onClick={() => setIsDisconnectCheckOpen(false)}
+                        >
+                            No - Take me back
+                        </Button>
+                        <Button
+                            dangerButton
+                            borderRadius={"full"}
+                            px={4}
+                            py={2}
+                            onClick={() => {
+                                setIsDisconnectCheckOpen(false)
+                                handleForumDisconnect()
+                            }}
+                        >
+                            <Text>Yes I&apos;m sure - Disconnect</Text>
+                        </Button>
+                    </Dialog.Footer>
+                </Dialog.Content>
+            </Modal>
             <SettingsInputField
                 label={`${config.projectDisplayName} Forum`}
                 labelIcon={
