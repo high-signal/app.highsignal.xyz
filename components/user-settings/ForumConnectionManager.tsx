@@ -376,9 +376,21 @@ export default function ForumConnectionManager({
                                         bg={"pageBackground"}
                                     >
                                         <CustomMenuItem value="connection-type" isHeading>
-                                            <HStack overflow={"hidden"} color="textColorMuted">
-                                                <Text fontWeight="bold">Connection Type:</Text>
-                                                <Text fontWeight="bold">Test</Text>
+                                            <HStack overflow={"hidden"} color="textColorMuted" gap={1}>
+                                                <Text fontWeight="bold">User details from</Text>
+                                                <Text fontWeight="bold">
+                                                    {targetUser.forumUsers?.find(
+                                                        (forumUser) =>
+                                                            forumUser.projectUrlSlug === config.projectUrlSlug,
+                                                    )?.authEncryptedPayload
+                                                        ? "API"
+                                                        : targetUser.forumUsers?.find(
+                                                                (forumUser) =>
+                                                                    forumUser.projectUrlSlug === config.projectUrlSlug,
+                                                            )?.authPostUrl
+                                                          ? "public post"
+                                                          : "None"}
+                                                </Text>
                                             </HStack>
                                         </CustomMenuItem>
                                         <CustomMenuItem value="refresh" onClick={() => handleForumConnection()}>

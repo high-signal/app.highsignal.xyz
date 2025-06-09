@@ -263,7 +263,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                 const userSignalStrengths = signalStrengths?.filter((ss) => ss?.data[0]?.user_id === user.id) || []
 
                 return {
-                    id: user.id,
+                    ...(isSuperAdminRequesting ? { id: user.id } : {}),
                     username: user.username,
                     displayName: user.display_name,
                     profileImageUrl: user.profile_image_url,

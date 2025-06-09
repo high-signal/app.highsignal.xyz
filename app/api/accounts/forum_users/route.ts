@@ -222,7 +222,7 @@ export async function POST(request: Request) {
             user_id: targetUserData.id,
             project_id: projectData.id,
             forum_username: forumUsername,
-            encrypted_payload: payload,
+            auth_encrypted_payload: payload,
             ...(existingEntries[0]?.last_updated ? { last_updated: null } : {}),
         })
 

@@ -23,9 +23,9 @@ export async function GET(request: NextRequest) {
                 profile_image_url,
                 default_profile,
                 forum_users (
-                    user_id,
-                    project_id,
                     forum_username,
+                    auth_encrypted_payload,
+                    auth_post_url,
                     projects!inner (
                         url_slug
                     )
@@ -46,9 +46,10 @@ export async function GET(request: NextRequest) {
             profileImageUrl: targetUser.profile_image_url,
             defaultProfile: targetUser.default_profile,
             forumUsers: targetUser.forum_users.map((forumUser: any) => ({
-                userId: forumUser.user_id,
                 projectUrlSlug: forumUser.projects.url_slug,
                 forumUsername: forumUser.forum_username,
+                authEncryptedPayload: forumUser.auth_encrypted_payload,
+                authPostUrl: forumUser.auth_post_url,
             })),
         }
 

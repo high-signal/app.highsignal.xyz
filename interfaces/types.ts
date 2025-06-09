@@ -26,10 +26,12 @@ interface ConnectedAccount {
 }
 
 interface ForumUser {
-    userId: string
+    userId?: string
     projectId?: string
-    projectUrlSlug?: string
+    projectUrlSlug: string
     forumUsername: string
+    authEncryptedPayload?: string
+    authPostUrl?: string
 }
 
 interface PeakSignalUserData {
