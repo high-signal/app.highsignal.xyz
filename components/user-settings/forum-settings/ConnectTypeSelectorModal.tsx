@@ -2,6 +2,10 @@
 
 import { HStack, VStack, Text, Button, Dialog, Spinner } from "@chakra-ui/react"
 import Modal from "../../ui/Modal"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCopy } from "@fortawesome/free-solid-svg-icons"
+import { useState } from "react"
+import { faCheckCircle } from "@fortawesome/free-regular-svg-icons"
 
 interface ConnectTypeSelectorModalProps {
     isOpen: boolean
@@ -20,6 +24,19 @@ export default function ConnectTypeSelectorModal({
     isForumSubmitting,
     handleForumAuthApi,
 }: ConnectTypeSelectorModalProps) {
+    const [isCodeCopied, setIsCodeCopied] = useState(false)
+
+    const authCodePost =
+        "This post is to connect my forum account to my High Signal account. My auth code is: 1234-ABCD-1234-ABCD"
+
+    const handleCopyCode = (text: string) => {
+        navigator.clipboard.writeText(text)
+        setIsCodeCopied(true)
+        setTimeout(() => {
+            setIsCodeCopied(false)
+        }, 2000)
+    }
+
     const TypeSelector = ({
         option,
         title,
@@ -49,7 +66,9 @@ export default function ConnectTypeSelectorModal({
                         {title}
                     </Text>
                 </VStack>
-                {children}
+                <VStack gap={3} textAlign={"center"} maxW={"100%"}>
+                    {children}
+                </VStack>
             </VStack>
         )
     }
@@ -71,64 +90,106 @@ export default function ConnectTypeSelectorModal({
                 <Dialog.Body>
                     <HStack flexWrap={"wrap"} alignItems={"start"}>
                         <TypeSelector option="Option 1 (Recommended)" title="Automatic API connection">
-                            <VStack gap={3} textAlign={"center"} maxW={"100%"}>
-                                <Text>
-                                    Connect your {projectDisplayName} forum account to High Signal to confirm ownership.
+                            <Text>
+                                Connect your {projectDisplayName} forum account to High Signal to confirm ownership.
+                            </Text>
+                            <Text>
+                                Clicking the{" "}
+                                <Text as="span" fontWeight={"bold"}>
+                                    Connect
+                                </Text>{" "}
+                                button will redirect you to {projectDisplayName} forum where you will be asked to{" "}
+                                <Text as="span" fontWeight={"bold"}>
+                                    Authorize
+                                </Text>{" "}
+                                High Signal to{" "}
+                                <Text as="span" fontWeight={"bold"}>
+                                    Read user session info
                                 </Text>
-                                <Text>
-                                    Clicking the{" "}
-                                    <Text as="span" fontWeight={"bold"}>
+                                .
+                            </Text>
+                            <Text>
+                                This will allow High Signal to confirm you are the owner of your {projectDisplayName}{" "}
+                                forum account but does not allow any other actions.
+                            </Text>
+                            <Button
+                                {...(forumAuthTypes?.includes("api_auth")
+                                    ? { primaryButton: true }
+                                    : { contentButton: true })}
+                                minH={"40px"}
+                                w={"100%"}
+                                onClick={handleForumAuthApi}
+                                borderRadius="full"
+                                disabled={!forumAuthTypes?.includes("api_auth") || isForumSubmitting}
+                                mt={2}
+                            >
+                                {isForumSubmitting ? (
+                                    <Spinner size="sm" color="white" />
+                                ) : forumAuthTypes?.includes("api_auth") ? (
+                                    <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
                                         Connect
-                                    </Text>{" "}
-                                    button will redirect you to {projectDisplayName} forum where you will be asked to{" "}
-                                    <Text as="span" fontWeight={"bold"}>
-                                        Authorize
-                                    </Text>{" "}
-                                    High Signal to{" "}
-                                    <Text as="span" fontWeight={"bold"}>
-                                        Read user session info
                                     </Text>
-                                    .
-                                </Text>
-                                <Text>
-                                    This will allow High Signal to confirm you are the owner of your{" "}
-                                    {projectDisplayName} forum account but does not allow any other actions.
-                                </Text>
-                                <Button
-                                    {...(forumAuthTypes?.includes("api_auth")
-                                        ? { primaryButton: true }
-                                        : { contentButton: true })}
-                                    minH={"40px"}
-                                    w={"100%"}
-                                    onClick={handleForumAuthApi}
-                                    borderRadius="full"
-                                    disabled={!forumAuthTypes?.includes("api_auth") || isForumSubmitting}
-                                    mt={2}
-                                >
-                                    {isForumSubmitting ? (
-                                        <Spinner size="sm" color="white" />
-                                    ) : forumAuthTypes?.includes("api_auth") ? (
-                                        <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
-                                            Connect
-                                        </Text>
-                                    ) : (
-                                        <Text
-                                            fontWeight="bold"
-                                            whiteSpace="normal"
-                                            py={{ base: 1, md: 0 }}
-                                            px={{ base: 3, md: 0 }}
-                                        >
-                                            This authentication method has not been enabled by {projectDisplayName}
-                                        </Text>
-                                    )}
-                                </Button>
-                            </VStack>
+                                ) : (
+                                    <Text fontWeight="bold" whiteSpace="normal" py={2} px={4}>
+                                        This authentication method has not been enabled by {projectDisplayName}
+                                    </Text>
+                                )}
+                            </Button>
                         </TypeSelector>
                         <TypeSelector option="Option 2" title="Post a public message">
                             <Text>
                                 This method will allow you to manually connect your {projectDisplayName} forum account
                                 to your {projectDisplayName} account.
                             </Text>
+                            <Text>Copy this message with your access code:</Text>
+                            <VStack gap={2}>
+                                <Text bg={"pageBackground"} py={2} px={4} borderRadius={"16px"} fontWeight={"bold"}>
+                                    {authCodePost}
+                                </Text>
+                                <Button
+                                    contentButton
+                                    h={"100%"}
+                                    pl={3}
+                                    pr={2}
+                                    py={1}
+                                    borderRadius={"full"}
+                                    onClick={() => handleCopyCode(authCodePost)}
+                                >
+                                    <HStack gap={2} justifyContent={"start"}>
+                                        <Text>{isCodeCopied ? "Copied" : "Copy message"}</Text>
+                                        <FontAwesomeIcon icon={isCodeCopied ? faCheckCircle : faCopy} size="lg" />
+                                    </HStack>
+                                </Button>
+                            </VStack>
+                            <Text>
+                                Post this message on the {projectDisplayName} forum on the dedicated topic for High
+                                Signal authentication:
+                            </Text>
+                            <Text>LINK</Text>
+                            <Text>
+                                Once you have posted the message, click the{" "}
+                                <Text as="span" fontWeight={"bold"}>
+                                    Check forum post
+                                </Text>{" "}
+                                button to confirm you are the owner of your {projectDisplayName} forum account.
+                            </Text>
+                            <Button
+                                primaryButton
+                                minH={"40px"}
+                                w={"100%"}
+                                // onClick={handleForumAuthPost}
+                                borderRadius="full"
+                                disabled={isForumSubmitting}
+                                mt={2}
+                            >
+                                {isForumSubmitting ? (
+                                    <Spinner size="sm" color="white" />
+                                ) : (
+                                    <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
+                                        Check forum post
+                                    </Text>
+                                )}
+                            </Button>
                         </TypeSelector>
                     </HStack>
                 </Dialog.Body>
