@@ -21,12 +21,10 @@ export default function ConnectTypeSelectorModal({
     handleForumAuthApi,
 }: ConnectTypeSelectorModalProps) {
     const TypeSelector = ({
-        enabled,
         option,
         title,
         children,
     }: {
-        enabled: boolean | undefined
         option: string
         title: string
         children: React.ReactNode
@@ -46,14 +44,12 @@ export default function ConnectTypeSelectorModal({
                 gap={3}
             >
                 <VStack fontWeight={"bold"} fontSize={"md"} textAlign={"center"} gap={3}>
-                    <Text color={"lozenge.text.active"}>{option}</Text>
-                    <Text fontSize={"lg"} pb={2}>
+                    <Text color={"green.500"}>{option}</Text>
+                    <Text fontSize={"lg"} pb={1}>
                         {title}
                     </Text>
                 </VStack>
-
                 {children}
-                {!enabled && <Text>This authentication method has not been enabled by {projectDisplayName}.</Text>}
             </VStack>
         )
     }
@@ -74,12 +70,8 @@ export default function ConnectTypeSelectorModal({
                 </Dialog.Header>
                 <Dialog.Body>
                     <HStack flexWrap={"wrap"} alignItems={"start"}>
-                        <TypeSelector
-                            enabled={forumAuthTypes?.includes("api_auth")}
-                            option="Option 1 (Recommended)"
-                            title="Automatic API connection"
-                        >
-                            <VStack gap={3} textAlign={"center"}>
+                        <TypeSelector option="Option 1 (Recommended)" title="Automatic API connection">
+                            <VStack gap={3} textAlign={"center"} maxW={"100%"}>
                                 <Text>
                                     Connect your {projectDisplayName} forum account to High Signal to confirm ownership.
                                 </Text>
@@ -103,8 +95,10 @@ export default function ConnectTypeSelectorModal({
                                     {projectDisplayName} forum account but does not allow any other actions.
                                 </Text>
                                 <Button
-                                    primaryButton
-                                    h={"40px"}
+                                    {...(forumAuthTypes?.includes("api_auth")
+                                        ? { primaryButton: true }
+                                        : { contentButton: true })}
+                                    minH={"40px"}
                                     w={"100%"}
                                     onClick={handleForumAuthApi}
                                     borderRadius="full"
@@ -113,17 +107,24 @@ export default function ConnectTypeSelectorModal({
                                 >
                                     {isForumSubmitting ? (
                                         <Spinner size="sm" color="white" />
+                                    ) : forumAuthTypes?.includes("api_auth") ? (
+                                        <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
+                                            Connect
+                                        </Text>
                                     ) : (
-                                        <Text fontWeight="bold">Connect</Text>
+                                        <Text
+                                            fontWeight="bold"
+                                            whiteSpace="normal"
+                                            py={{ base: 1, md: 0 }}
+                                            px={{ base: 3, md: 0 }}
+                                        >
+                                            This authentication method has not been enabled by {projectDisplayName}
+                                        </Text>
                                     )}
                                 </Button>
                             </VStack>
                         </TypeSelector>
-                        <TypeSelector
-                            enabled={forumAuthTypes?.includes("manual_post")}
-                            option="Option 2"
-                            title="Posting a public message"
-                        >
+                        <TypeSelector option="Option 2" title="Post a public message">
                             <Text>
                                 This method will allow you to manually connect your {projectDisplayName} forum account
                                 to your {projectDisplayName} account.
