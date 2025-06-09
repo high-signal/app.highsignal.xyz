@@ -1,6 +1,6 @@
 "use client"
 
-import { Text, Button, Dialog, VStack } from "@chakra-ui/react"
+import { Text, Button, Dialog, VStack, HStack } from "@chakra-ui/react"
 import Modal from "../../ui/Modal"
 
 interface DisconnectCheckModalProps {
@@ -17,8 +17,8 @@ export default function DisconnectCheckModal({
     projectDisplayName,
 }: DisconnectCheckModalProps) {
     return (
-        <Modal open={isOpen} close={onClose}>
-            <Dialog.Content borderRadius={"16px"} p={0} bg={"pageBackground"}>
+        <Modal open={isOpen} close={onClose} placement={{ base: "top", md: "center" }}>
+            <Dialog.Content borderRadius={{ base: "0px", md: "16px" }} p={0} bg={"pageBackground"}>
                 <Dialog.Header>
                     <Dialog.Title>
                         <Text fontWeight="bold">Disconnect your {projectDisplayName} forum account</Text>
@@ -35,21 +35,23 @@ export default function DisconnectCheckModal({
                     </VStack>
                 </Dialog.Body>
                 <Dialog.Footer>
-                    <Button secondaryButton borderRadius={"full"} px={4} py={2} onClick={onClose}>
-                        No - Take me back
-                    </Button>
-                    <Button
-                        dangerButton
-                        borderRadius={"full"}
-                        px={4}
-                        py={2}
-                        onClick={() => {
-                            onClose()
-                            onDisconnect()
-                        }}
-                    >
-                        <Text>Yes I&apos;m sure - Disconnect</Text>
-                    </Button>
+                    <HStack minW={"100%"} justifyContent={{ base: "center", md: "end" }} flexWrap={"wrap"} gap={5}>
+                        <Button secondaryButton borderRadius={"full"} px={4} py={2} onClick={onClose}>
+                            No - Take me back
+                        </Button>
+                        <Button
+                            dangerButton
+                            borderRadius={"full"}
+                            px={4}
+                            py={2}
+                            onClick={() => {
+                                onClose()
+                                onDisconnect()
+                            }}
+                        >
+                            <Text>Yes I&apos;m sure - Disconnect</Text>
+                        </Button>
+                    </HStack>
                 </Dialog.Footer>
             </Dialog.Content>
         </Modal>

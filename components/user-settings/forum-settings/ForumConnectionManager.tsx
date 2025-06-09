@@ -244,7 +244,6 @@ export default function ForumConnectionManager({
                 isOpen={isConnectTypeSelectorOpen}
                 onClose={() => setIsConnectTypeSelectorOpen(false)}
                 projectDisplayName={config.projectDisplayName}
-                forumUrl={config.forumUrl}
                 forumAuthTypes={config.forumAuthTypes}
                 isForumSubmitting={isForumSubmitting}
                 handleForumAuthApi={handleForumAuthApi}
