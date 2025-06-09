@@ -48,6 +48,8 @@ export default function ForumConnectionManager({
         projectUrlSlug: string
         projectLogoUrl: string | undefined
         forumUrl: string | undefined
+        forumAuthTypes: string[] | undefined
+        forumAuthManualPostUrl: string | undefined
     }
 }) {
     const { getAccessToken } = usePrivy()
@@ -62,6 +64,7 @@ export default function ForumConnectionManager({
     const [isForumSubmitting, setIsForumSubmitting] = useState(false)
     const [isProcessingForumAuthRequest, setIsProcessingForumAuthRequest] = useState(false)
 
+    const [isConnectTypeSelectorOpen, setIsConnectTypeSelectorOpen] = useState(false)
     const [isDisconnectCheckOpen, setIsDisconnectCheckOpen] = useState(false)
 
     // Check if the user is connected to the forum
@@ -151,7 +154,7 @@ export default function ForumConnectionManager({
         }
     }, [config.projectUrlSlug, getAccessToken, refreshUser, router, targetUser, isProcessingForumAuthRequest])
 
-    const handleForumConnection = async () => {
+    const handleForumAuthApi = async () => {
         try {
             setIsForumSubmitting(true)
 
@@ -184,6 +187,15 @@ export default function ForumConnectionManager({
                 description: error instanceof Error ? error.message : "An unknown error occurred",
                 type: "error",
             })
+        }
+    }
+
+    function checkAuthTypes() {
+        if (config.forumAuthTypes?.length == 1 && config.forumAuthTypes[0] === "api_auth") {
+            // If "api_auth" is the only auth type, use the api auth immediately
+            handleForumAuthApi()
+        } else {
+            setIsConnectTypeSelectorOpen(true)
         }
     }
 
@@ -231,6 +243,41 @@ export default function ForumConnectionManager({
 
     return (
         <>
+            <Modal open={isConnectTypeSelectorOpen} close={() => setIsConnectTypeSelectorOpen(false)}>
+                <Dialog.Content borderRadius={"16px"} p={0} bg={"pageBackground"}>
+                    <Dialog.Header>
+                        <Dialog.Title>
+                            <Text fontWeight="bold">Connect your {config.projectDisplayName} forum account</Text>
+                        </Dialog.Title>
+                    </Dialog.Header>
+                    <Dialog.Body>
+                        <Text>{JSON.stringify(config.forumAuthTypes)}</Text>
+                    </Dialog.Body>
+                    <Dialog.Footer>
+                        <Button
+                            secondaryButton
+                            borderRadius={"full"}
+                            px={4}
+                            py={2}
+                            onClick={() => setIsConnectTypeSelectorOpen(false)}
+                        >
+                            No - Take me back
+                        </Button>
+                        <Button
+                            dangerButton
+                            borderRadius={"full"}
+                            px={4}
+                            py={2}
+                            onClick={() => {
+                                setIsDisconnectCheckOpen(false)
+                                handleForumDisconnect()
+                            }}
+                        >
+                            <Text>Yes I&apos;m sure - Disconnect</Text>
+                        </Button>
+                    </Dialog.Footer>
+                </Dialog.Content>
+            </Modal>
             <Modal open={isDisconnectCheckOpen} close={() => setIsDisconnectCheckOpen(false)}>
                 <Dialog.Content borderRadius={"16px"} p={0} bg={"pageBackground"}>
                     <Dialog.Header>
@@ -309,11 +356,11 @@ export default function ForumConnectionManager({
                                 primaryButton
                                 h={"100%"}
                                 w={"100%"}
-                                onClick={() => handleForumConnection()}
+                                onClick={checkAuthTypes}
                                 borderRadius="full"
                                 disabled={isForumSubmitting}
                             >
-                                {isForumSubmitting ? (
+                                {isForumSubmitting || isConnectTypeSelectorOpen ? (
                                     <Spinner size="sm" color="white" />
                                 ) : (
                                     <Text fontWeight="bold">Connect</Text>
@@ -379,7 +426,7 @@ export default function ForumConnectionManager({
                                                 </Text>
                                             </HStack>
                                         </CustomMenuItem>
-                                        <CustomMenuItem value="refresh" onClick={() => handleForumConnection()}>
+                                        <CustomMenuItem value="refresh" onClick={checkAuthTypes}>
                                             <HStack overflow={"hidden"}>
                                                 <Text fontWeight="bold">Refresh connection</Text>
                                                 <Box w="20px">

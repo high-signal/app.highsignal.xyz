@@ -20,6 +20,8 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                         projectUrlSlug: project.urlSlug,
                         projectLogoUrl: project.projectLogoUrl,
                         forumUrl: forumSignal.url,
+                        forumAuthTypes: forumSignal.authTypes,
+                        forumAuthManualPostUrl: forumSignal.authManualPostUrl,
                     },
                 ]
             }
