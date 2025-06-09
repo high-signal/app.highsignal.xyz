@@ -14,13 +14,15 @@ import SettingsInputField from "../ui/SettingsInputField"
 
 interface CustomMenuItemProps {
     value: string
-    onClick: () => void
+    onClick?: () => void
+    isHeading?: boolean
     children: React.ReactNode
 }
 
-const CustomMenuItem = ({ value, onClick, children }: CustomMenuItemProps) => (
+const CustomMenuItem = ({ value, onClick, isHeading = false, children }: CustomMenuItemProps) => (
     <Menu.Item
         h={"35px"}
+        pointerEvents={isHeading ? "none" : "auto"}
         cursor={"pointer"}
         value={value}
         overflow={"hidden"}
@@ -373,6 +375,12 @@ export default function ForumConnectionManager({
                                         p={0}
                                         bg={"pageBackground"}
                                     >
+                                        <CustomMenuItem value="connection-type" isHeading>
+                                            <HStack overflow={"hidden"} color="textColorMuted">
+                                                <Text fontWeight="bold">Connection Type:</Text>
+                                                <Text fontWeight="bold">Test</Text>
+                                            </HStack>
+                                        </CustomMenuItem>
                                         <CustomMenuItem value="refresh" onClick={() => handleForumConnection()}>
                                             <HStack overflow={"hidden"}>
                                                 <Text fontWeight="bold">Refresh connection</Text>
