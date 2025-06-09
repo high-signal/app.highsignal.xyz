@@ -234,7 +234,9 @@ export default function ForumConnectionManager({
             <Modal open={isDisconnectCheckOpen} close={() => setIsDisconnectCheckOpen(false)}>
                 <Dialog.Content borderRadius={"16px"} p={0} bg={"pageBackground"}>
                     <Dialog.Header>
-                        <Dialog.Title>Disconnect your {config.projectDisplayName} forum account</Dialog.Title>
+                        <Dialog.Title>
+                            <Text fontWeight="bold">Disconnect your {config.projectDisplayName} forum account</Text>
+                        </Dialog.Title>
                     </Dialog.Header>
                     <Dialog.Body>
                         <VStack gap={2} alignItems={"start"}>
