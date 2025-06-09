@@ -1,6 +1,6 @@
 "use client"
 
-import { HStack, VStack, Text, Button, Dialog, Spinner } from "@chakra-ui/react"
+import { HStack, VStack, Text, Button, Dialog, Spinner, Link } from "@chakra-ui/react"
 import Modal from "../../ui/Modal"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
@@ -10,8 +10,14 @@ import { faCheckCircle } from "@fortawesome/free-regular-svg-icons"
 interface ConnectTypeSelectorModalProps {
     isOpen: boolean
     onClose: () => void
-    projectDisplayName: string
-    forumAuthTypes: string[] | undefined
+    config: {
+        projectDisplayName: string
+        projectUrlSlug: string
+        projectLogoUrl: string | undefined
+        forumUrl: string | undefined
+        forumAuthTypes: string[] | undefined
+        forumAuthParentPostUrl: string | undefined
+    }
     isForumSubmitting: boolean
     handleForumAuthApi: () => void
 }
@@ -19,15 +25,14 @@ interface ConnectTypeSelectorModalProps {
 export default function ConnectTypeSelectorModal({
     isOpen,
     onClose,
-    projectDisplayName,
-    forumAuthTypes,
+    config,
     isForumSubmitting,
     handleForumAuthApi,
 }: ConnectTypeSelectorModalProps) {
     const [isCodeCopied, setIsCodeCopied] = useState(false)
 
     const authCodePost =
-        "This post is to connect my forum account to my High Signal account. My auth code is: 1234-ABCD-1234-ABCD"
+        "This post is to connect my forum account to my High Signal account. My authentication code is: 1234-ABCD-1234-ABCD"
 
     const handleCopyCode = (text: string) => {
         navigator.clipboard.writeText(text)
@@ -60,9 +65,9 @@ export default function ConnectTypeSelectorModal({
                 h={"100%"}
                 gap={3}
             >
-                <VStack fontWeight={"bold"} fontSize={"md"} textAlign={"center"} gap={3}>
+                <VStack fontWeight={"bold"} fontSize={"md"} textAlign={"center"} gap={4}>
                     <Text color={"green.500"}>{option}</Text>
-                    <Text fontSize={"lg"} pb={1}>
+                    <Text fontSize={"lg"} pb={3}>
                         {title}
                     </Text>
                 </VStack>
@@ -84,21 +89,22 @@ export default function ConnectTypeSelectorModal({
             >
                 <Dialog.Header>
                     <Dialog.Title textAlign={"center"}>
-                        <Text fontWeight="bold">Connect your {projectDisplayName} forum account</Text>
+                        <Text fontWeight="bold">Connect your {config.projectDisplayName} forum account</Text>
                     </Dialog.Title>
                 </Dialog.Header>
                 <Dialog.Body>
                     <HStack flexWrap={"wrap"} alignItems={"start"}>
                         <TypeSelector option="Option 1 (Recommended)" title="Automatic API connection">
                             <Text>
-                                Connect your {projectDisplayName} forum account to High Signal to confirm ownership.
+                                Connect your {config.projectDisplayName} forum account to High Signal to confirm
+                                ownership.
                             </Text>
                             <Text>
                                 Clicking the{" "}
                                 <Text as="span" fontWeight={"bold"}>
                                     Connect
                                 </Text>{" "}
-                                button will redirect you to {projectDisplayName} forum where you will be asked to{" "}
+                                button will redirect you to {config.projectDisplayName} forum where you will be asked to{" "}
                                 <Text as="span" fontWeight={"bold"}>
                                     Authorize
                                 </Text>{" "}
@@ -109,37 +115,37 @@ export default function ConnectTypeSelectorModal({
                                 .
                             </Text>
                             <Text>
-                                This will allow High Signal to confirm you are the owner of your {projectDisplayName}{" "}
-                                forum account but does not allow any other actions.
+                                This will allow High Signal to confirm you are the owner of your{" "}
+                                {config.projectDisplayName} forum account but does not allow any other actions.
                             </Text>
                             <Button
-                                {...(forumAuthTypes?.includes("api_auth")
+                                {...(config.forumAuthTypes?.includes("api_auth")
                                     ? { primaryButton: true }
                                     : { contentButton: true })}
                                 minH={"40px"}
                                 w={"100%"}
                                 onClick={handleForumAuthApi}
                                 borderRadius="full"
-                                disabled={!forumAuthTypes?.includes("api_auth") || isForumSubmitting}
+                                disabled={!config.forumAuthTypes?.includes("api_auth") || isForumSubmitting}
                                 mt={2}
                             >
                                 {isForumSubmitting ? (
                                     <Spinner size="sm" color="white" />
-                                ) : forumAuthTypes?.includes("api_auth") ? (
+                                ) : config.forumAuthTypes?.includes("api_auth") ? (
                                     <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
                                         Connect
                                     </Text>
                                 ) : (
                                     <Text fontWeight="bold" whiteSpace="normal" py={2} px={4}>
-                                        This authentication method has not been enabled by {projectDisplayName}
+                                        This authentication method has not been enabled by {config.projectDisplayName}
                                     </Text>
                                 )}
                             </Button>
                         </TypeSelector>
                         <TypeSelector option="Option 2" title="Post a public message">
                             <Text>
-                                This method will allow you to manually connect your {projectDisplayName} forum account
-                                to your {projectDisplayName} account.
+                                This method will allow you to manually connect your {config.projectDisplayName} forum
+                                account to your {config.projectDisplayName} account.
                             </Text>
                             <Text>Copy this message with your access code:</Text>
                             <VStack gap={2}>
@@ -162,16 +168,20 @@ export default function ConnectTypeSelectorModal({
                                 </Button>
                             </VStack>
                             <Text>
-                                Post this message on the {projectDisplayName} forum on the dedicated topic for High
-                                Signal authentication:
+                                Post this message on the {config.projectDisplayName} forum on the dedicated topic for
+                                High Signal authentication:
                             </Text>
-                            <Text>LINK</Text>
+                            <Text>
+                                <Link href={config.forumAuthParentPostUrl} target="_blank">
+                                    {config.forumAuthParentPostUrl}
+                                </Link>
+                            </Text>
                             <Text>
                                 Once you have posted the message, click the{" "}
                                 <Text as="span" fontWeight={"bold"}>
                                     Check forum post
                                 </Text>{" "}
-                                button to confirm you are the owner of your {projectDisplayName} forum account.
+                                button to confirm you are the owner of your {config.projectDisplayName} forum account.
                             </Text>
                             <Button
                                 primaryButton

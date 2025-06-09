@@ -50,7 +50,7 @@ export default function ForumConnectionManager({
         projectLogoUrl: string | undefined
         forumUrl: string | undefined
         forumAuthTypes: string[] | undefined
-        forumAuthManualPostUrl: string | undefined
+        forumAuthParentPostUrl: string | undefined
     }
 }) {
     const { getAccessToken } = usePrivy()
@@ -243,8 +243,7 @@ export default function ForumConnectionManager({
             <ConnectTypeSelectorModal
                 isOpen={isConnectTypeSelectorOpen}
                 onClose={() => setIsConnectTypeSelectorOpen(false)}
-                projectDisplayName={config.projectDisplayName}
-                forumAuthTypes={config.forumAuthTypes}
+                config={config}
                 isForumSubmitting={isForumSubmitting}
                 handleForumAuthApi={handleForumAuthApi}
             />

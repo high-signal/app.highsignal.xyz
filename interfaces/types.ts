@@ -90,7 +90,7 @@ interface SignalStrengthProjectData {
     maxChars?: number
     url?: string
     authTypes?: string[]
-    authManualPostUrl?: string
+    authParentPostUrl?: string
 }
 
 interface SignalStrengthData {

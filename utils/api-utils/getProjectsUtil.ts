@@ -7,7 +7,7 @@ type ProjectSignalStrengths = {
     max_value: number
     previous_days: number // Requires isSuperAdminRequesting or isProjectAdminRequesting is true
     auth_types?: string[]
-    auth_manual_post_url?: string
+    auth_parent_post_url?: string
     signal_strengths: {
         name: string
         display_name: string
@@ -50,7 +50,7 @@ export async function getProjectsUtil(
                     max_value,
                     previous_days,
                     auth_types,
-                    auth_manual_post_url,
+                    auth_parent_post_url,
                     signal_strengths (
                         name,
                         display_name,
@@ -100,7 +100,7 @@ export async function getProjectsUtil(
                         enabled: ps.enabled,
                         maxValue: ps.max_value,
                         authTypes: ps.auth_types,
-                        authManualPostUrl: ps.auth_manual_post_url,
+                        authParentPostUrl: ps.auth_parent_post_url,
                         ...(isSuperAdminRequesting || isProjectAdminRequesting
                             ? { previousDays: ps.previous_days }
                             : {}),
