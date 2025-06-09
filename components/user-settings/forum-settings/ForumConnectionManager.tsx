@@ -150,7 +150,7 @@ export default function ForumConnectionManager({
             setIsProcessingForumAuthRequest(true)
             processForumAuthRequest()
         }
-    }, [config.projectUrlSlug, getAccessToken, refreshUser, router, targetUser, isProcessingForumAuthRequest])
+    }, [config, getAccessToken, refreshUser, router, targetUser, isProcessingForumAuthRequest])
 
     const handleForumAuthApi = async () => {
         try {
