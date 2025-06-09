@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Text, Button, Spinner, Menu, Portal, HStack, Box, Image, Skeleton, Dialog, VStack } from "@chakra-ui/react"
+import { Text, Button, Spinner, Menu, Portal, HStack, Box, Image, Skeleton } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEllipsisVertical, faRefresh, faSignOut } from "@fortawesome/free-solid-svg-icons"
 
-import { useUser } from "../../contexts/UserContext"
+import { useUser } from "../../../contexts/UserContext"
 import { usePrivy } from "@privy-io/react-auth"
 
-import { toaster } from "../ui/toaster"
-import Modal from "../ui/Modal"
-import SettingsInputField from "../ui/SettingsInputField"
+import { toaster } from "../../ui/toaster"
+import SettingsInputField from "../../ui/SettingsInputField"
+import ConnectTypeSelectorModal from "./ConnectTypeSelectorModal"
+import DisconnectCheckModal from "./DisconnectCheckModal"
 
 interface CustomMenuItemProps {
     value: string
@@ -243,87 +244,18 @@ export default function ForumConnectionManager({
 
     return (
         <>
-            <Modal open={isConnectTypeSelectorOpen} close={() => setIsConnectTypeSelectorOpen(false)}>
-                <Dialog.Content borderRadius={"16px"} p={0} bg={"pageBackground"}>
-                    <Dialog.Header>
-                        <Dialog.Title>
-                            <Text fontWeight="bold">Connect your {config.projectDisplayName} forum account</Text>
-                        </Dialog.Title>
-                    </Dialog.Header>
-                    <Dialog.Body>
-                        <Text>{JSON.stringify(config.forumAuthTypes)}</Text>
-                    </Dialog.Body>
-                    <Dialog.Footer>
-                        <Button
-                            secondaryButton
-                            borderRadius={"full"}
-                            px={4}
-                            py={2}
-                            onClick={() => setIsConnectTypeSelectorOpen(false)}
-                        >
-                            No - Take me back
-                        </Button>
-                        <Button
-                            dangerButton
-                            borderRadius={"full"}
-                            px={4}
-                            py={2}
-                            onClick={() => {
-                                setIsDisconnectCheckOpen(false)
-                                handleForumDisconnect()
-                            }}
-                        >
-                            <Text>Yes I&apos;m sure - Disconnect</Text>
-                        </Button>
-                    </Dialog.Footer>
-                </Dialog.Content>
-            </Modal>
-            <Modal open={isDisconnectCheckOpen} close={() => setIsDisconnectCheckOpen(false)}>
-                <Dialog.Content borderRadius={"16px"} p={0} bg={"pageBackground"}>
-                    <Dialog.Header>
-                        <Dialog.Title>
-                            <Text fontWeight="bold">Disconnect your {config.projectDisplayName} forum account</Text>
-                        </Dialog.Title>
-                    </Dialog.Header>
-                    <Dialog.Body>
-                        <VStack gap={2} alignItems={"start"}>
-                            <Text>
-                                Are you sure you want to disconnect your {config.projectDisplayName} forum account?
-                            </Text>
-                            <Text>
-                                This will remove all your engagement data for this project and reduce your score.
-                            </Text>
-                            <Text>
-                                If you want to update your forum username, you can use the &quot;Refresh
-                                connection&quot; button instead.
-                            </Text>
-                        </VStack>
-                    </Dialog.Body>
-                    <Dialog.Footer>
-                        <Button
-                            secondaryButton
-                            borderRadius={"full"}
-                            px={4}
-                            py={2}
-                            onClick={() => setIsDisconnectCheckOpen(false)}
-                        >
-                            No - Take me back
-                        </Button>
-                        <Button
-                            dangerButton
-                            borderRadius={"full"}
-                            px={4}
-                            py={2}
-                            onClick={() => {
-                                setIsDisconnectCheckOpen(false)
-                                handleForumDisconnect()
-                            }}
-                        >
-                            <Text>Yes I&apos;m sure - Disconnect</Text>
-                        </Button>
-                    </Dialog.Footer>
-                </Dialog.Content>
-            </Modal>
+            <ConnectTypeSelectorModal
+                isOpen={isConnectTypeSelectorOpen}
+                onClose={() => setIsConnectTypeSelectorOpen(false)}
+                projectDisplayName={config.projectDisplayName}
+                forumAuthTypes={config.forumAuthTypes}
+            />
+            <DisconnectCheckModal
+                isOpen={isDisconnectCheckOpen}
+                onClose={() => setIsDisconnectCheckOpen(false)}
+                onDisconnect={handleForumDisconnect}
+                projectDisplayName={config.projectDisplayName}
+            />
             <SettingsInputField
                 label={`${config.projectDisplayName} Forum`}
                 labelIcon={

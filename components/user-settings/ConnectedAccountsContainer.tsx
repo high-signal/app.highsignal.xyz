@@ -3,7 +3,7 @@
 import { Spinner } from "@chakra-ui/react"
 import { useGetProjects } from "../../hooks/useGetProjects"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
-import ForumConnectionManager from "./ForumConnectionManager"
+import ForumConnectionManager from "./forum-settings/ForumConnectionManager"
 
 export default function ConnectedAccountsContainer({ targetUser }: { targetUser: UserData }) {
     const { projects, loading: projectsLoading, error: projectsError } = useGetProjects()
