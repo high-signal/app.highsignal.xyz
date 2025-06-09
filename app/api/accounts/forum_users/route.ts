@@ -64,7 +64,7 @@ export async function GET(request: Request) {
             .toString(16)
             .padStart(16, "0")
         const AuthRedirect = encodeURIComponent(
-            `${process.env.DISCOURSE_FORUM_REDIRECT_URL!}/settings/u/${username}?tab=connected-accounts&type=discourse_forum&project=${projectUrlSlug}`,
+            `${process.env.NEXT_PUBLIC_SITE_URL!}/settings/u/${username}?tab=connected-accounts&type=discourse_forum&project=${projectUrlSlug}`,
         )
 
         return NextResponse.json({
