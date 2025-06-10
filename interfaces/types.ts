@@ -90,6 +90,7 @@ interface SignalStrengthProjectData {
     temperature?: number
     maxChars?: number
     url?: string
+    availableAuthTypes?: string[]
     authTypes?: string[]
     authParentPostUrl?: string
 }

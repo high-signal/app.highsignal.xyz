@@ -19,7 +19,7 @@ export default function SignalStrengthSettingsContainer({ project }: { project: 
     })
 
     return (
-        <SettingsSectionContainer maxWidth="1300px">
+        <SettingsSectionContainer maxWidth="800px" px={{ base: 0, md: 4 }}>
             {sortedSignalStrengths.map((signalStrength) => (
                 <SignalStrengthSettings key={signalStrength.name} project={project} signalStrength={signalStrength} />
             ))}

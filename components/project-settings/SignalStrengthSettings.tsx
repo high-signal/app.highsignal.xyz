@@ -1,14 +1,59 @@
-import { HStack, Text, Switch, VStack, Box, Textarea, Button, Image, Spinner } from "@chakra-ui/react"
+import { HStack, Text, VStack, Box, Switch, Button } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowDown, faArrowRight, faChevronRight, faRefresh } from "@fortawesome/free-solid-svg-icons"
-import { useState, useRef, useEffect } from "react"
-import SingleLineTextInput from "../ui/SingleLineTextInput"
-import { useGetUsers } from "../../hooks/useGetUsers"
-import SignalStrengthConfig from "./SignalStrengthConfig"
+import { faCheck, faChevronRight, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { useEffect, useState } from "react"
 
-import SignalStrength from "../signal-display/signal-strength/SignalStrength"
-import { ASSETS } from "../../config/constants"
-import { getAccessToken } from "@privy-io/react-auth"
+type SignalStrengthState = {
+    status: { current: string | null; new: string | null }
+    maxValue: { current: number | null; new: number | null }
+    previousDays: { current: number | null; new: number | null }
+    url: { current: string | null; new: string | null }
+    authTypes: { current: string[] | null; new: string[] | null }
+    authParentPostUrl: { current: string | null; new: string | null }
+}
+
+interface AuthTypeSwitchProps {
+    authType: string
+    settings: SignalStrengthState
+    setSettings: (settings: SignalStrengthState) => void
+}
+
+function AuthTypeSwitch({ authType, settings, setSettings }: AuthTypeSwitchProps) {
+    const currentAuthTypes = settings.authTypes.new ?? settings.authTypes.current ?? []
+
+    // When the settings changes, if any of the new values are the same as the current values
+    // set the new values to null
+    useEffect(() => {}, [settings])
+
+    const isChecked = currentAuthTypes.includes(authType)
+
+    return (
+        <Switch.Root
+            size={"lg"}
+            cursor={"pointer"}
+            variant={"solid"}
+            checked={isChecked}
+            onCheckedChange={(e) => {
+                const newAuthTypes = e.checked
+                    ? [...currentAuthTypes, authType]
+                    : currentAuthTypes.filter((type) => type !== authType)
+
+                setSettings({
+                    ...settings,
+                    authTypes: { ...settings.authTypes, new: newAuthTypes },
+                })
+            }}
+        >
+            <Switch.HiddenInput />
+            <Switch.Control bg={"pageBackground"} borderRadius={"full"} border={"none"}>
+                <Switch.Thumb bg={"textColor"} _checked={{ bg: "lozenge.text.active" }}>
+                    {isChecked && <FontAwesomeIcon icon={faCheck} />}
+                </Switch.Thumb>
+            </Switch.Control>
+            <Switch.Label>{authType.replace("_", " ").toUpperCase()}</Switch.Label>
+        </Switch.Root>
+    )
+}
 
 export default function SignalStrengthSettings({
     project,
@@ -17,88 +62,34 @@ export default function SignalStrengthSettings({
     project: ProjectData
     signalStrength: SignalStrengthProjectData
 }) {
-    const [isOpen, setIsOpen] = useState(false)
-    const [selectedUsername, setSelectedUsername] = useState<string>("")
-    const [searchTerm, setSearchTerm] = useState<string>("")
-    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
-    const [isFocused, setIsFocused] = useState(false)
-    const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
-    const [newUserSelectedTrigger, setNewUserSelectedTrigger] = useState(false)
-    const inputRef = useRef<HTMLInputElement>(null!)
-    const { users, loading, error } = useGetUsers("lido", debouncedSearchTerm, true, isFocused)
-    const {
-        users: testUser,
-        loading: testUserLoading,
-        error: testUserError,
-    } = useGetUsers("lido", selectedUsername, false, selectedUsername.length > 0)
+    const [isOpen, setIsOpen] = useState(true)
 
-    const [newPrompt, setNewPrompt] = useState<string>("")
-    const [testResult, setTestResult] = useState<SignalStrengthUserData | null>(null)
-    const [testResultsLoading, setTestResultsLoading] = useState(false)
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearchTerm(searchTerm)
-        }, 200)
-        return () => clearTimeout(timer)
-    }, [searchTerm])
-
-    useEffect(() => {
-        if (selectedUsername && testUser.length > 0 && testUser[0].username === selectedUsername) {
-            setSelectedUser(testUser[0])
-        }
-    }, [selectedUsername, testUser, newUserSelectedTrigger])
-
-    const fetchTestResult = async () => {
-        setTestResultsLoading(true)
-        setTestResult(null)
-
-        const token = await getAccessToken()
-        const testingResponse = await fetch(`/api/settings/p/signal-strengths/testing?project=${project.urlSlug}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-                targetUsername: selectedUser?.username,
-                signalStrengthName: signalStrength.name,
-                testingPrompt: newPrompt,
-            }),
-        })
-
-        // If response is 200, start a polling loop to check if the test is complete
-        if (testingResponse.ok) {
-            const pollTestResult = async () => {
-                const testResultResponse = await fetch(
-                    `/api/settings/p/signal-strengths/testing?project=${project.urlSlug}&signalStrengthName=${signalStrength.name}&targetUsername=${selectedUser?.username}`,
-                    {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                    },
-                )
-
-                if (testResultResponse.status === 200) {
-                    const testResult = await testResultResponse.json()
-                    setTestResult(testResult.testResults)
-                    setTestResultsLoading(false)
-                } else if (testResultResponse.status === 202) {
-                    // If no result yet, poll again after 1 second
-                    setTimeout(pollTestResult, 1000)
-                } else {
-                    console.error("Error fetching test result:", testResultResponse.statusText)
-                    setTestResultsLoading(false)
-                }
-            }
-
-            // Start the polling loop
-            // Add a small delay as the poll does not need to start immediately
-            setTimeout(pollTestResult, 3000)
-        }
-    }
+    const [settings, setSettings] = useState<SignalStrengthState>({
+        status: {
+            current: signalStrength.status,
+            new: null,
+        },
+        maxValue: {
+            current: signalStrength.maxValue,
+            new: null,
+        },
+        previousDays: {
+            current: signalStrength.previousDays,
+            new: null,
+        },
+        url: {
+            current: signalStrength.url ?? null,
+            new: null,
+        },
+        authTypes: {
+            current: signalStrength.authTypes ?? null,
+            new: null,
+        },
+        authParentPostUrl: {
+            current: signalStrength.authParentPostUrl ?? null,
+            new: null,
+        },
+    })
 
     return (
         <VStack w="100%" gap={0}>
@@ -107,25 +98,20 @@ export default function SignalStrengthSettings({
                 w="500px"
                 maxW={"100%"}
                 bg={"contentBackground"}
-                p={4}
-                borderRadius={"16px"}
-                borderBottomRadius={isOpen ? "0px" : "16px"}
+                py={3}
+                px={{ base: 2, md: 4 }}
+                borderRadius={{ base: "0px", md: "16px" }}
+                borderBottomRadius={{ base: "0px", md: isOpen ? "0px" : "16px" }}
                 flexWrap={"wrap"}
+                cursor={signalStrength.status !== "dev" ? "pointer" : "disabled"}
+                onClick={() => signalStrength.status !== "dev" && setIsOpen(!isOpen)}
+                _hover={signalStrength.status !== "dev" ? { bg: "contentBackgroundHover" } : undefined}
             >
-                <HStack w={"250px"}>
-                    <HStack
-                        // cursor={signalStrength.status !== "dev" ? "pointer" : "disabled"}
-                        cursor={"default"}
-                        // onClick={() => signalStrength.status !== "dev" && setIsOpen(!isOpen)}
-                        // _hover={signalStrength.status !== "dev" ? { bg: "gray.800" } : undefined}
-                        py={2}
-                        px={3}
-                        borderRadius={"8px"}
-                        gap={3}
-                    >
-                        {/* <Box transition="transform 0.2s" transform={`rotate(${isOpen ? 90 : 0}deg)`}>
-                            <FontAwesomeIcon icon={faChevronRight} />
-                        </Box> */}
+                <HStack>
+                    <HStack py={2} px={1} borderRadius={"8px"} gap={3}>
+                        <Box w={"10px"} transition="transform 0.2s" transform={`rotate(${isOpen ? 90 : 0}deg)`}>
+                            {signalStrength.status !== "dev" && <FontAwesomeIcon icon={faChevronRight} />}
+                        </Box>
                         <Text
                             w="fit-content"
                             fontWeight="bold"
@@ -137,316 +123,101 @@ export default function SignalStrengthSettings({
                         </Text>
                     </HStack>
                 </HStack>
-                <SignalStrengthConfig signalStrength={signalStrength} />
+                <HStack
+                    bg={signalStrength.status === "dev" ? "lozenge.background.disabled" : "lozenge.background.active"}
+                    px={2}
+                    py={1}
+                    borderRadius={"full"}
+                    border={"2px solid"}
+                    borderColor={signalStrength.status === "dev" ? "lozenge.border.disabled" : "lozenge.border.active"}
+                    fontWeight={"bold"}
+                    fontSize={"sm"}
+                >
+                    <Text color={signalStrength.status === "dev" ? "lozenge.text.disabled" : "lozenge.text.active"}>
+                        {signalStrength.status === "dev" ? "Coming soon 🏗️" : "Active"}
+                    </Text>
+                </HStack>
             </HStack>
             {isOpen && (
-                <VStack w="100%" pb={2} gap={0}>
-                    {/* Testing Options */}
-                    <HStack
-                        w={"500px"}
-                        maxW={"100%"}
-                        bg={"contentBackground"}
-                        alignItems={"center"}
-                        px={5}
-                        py={5}
-                        flexWrap={"wrap"}
-                        gap={3}
-                    >
-                        <Text>Test User</Text>
-                        <Box position="relative" minW={{ base: "100%", sm: "250px" }} flexGrow={1}>
-                            <SingleLineTextInput
-                                ref={inputRef}
-                                placeholder="Search users..."
-                                value={searchTerm}
-                                onChange={(e) => {
-                                    setSearchTerm(e.target.value)
-                                    setSelectedUser(null)
-                                    setTestResult(null)
-                                }}
-                                handleClear={() => {
-                                    setSearchTerm("")
-                                    setSelectedUsername("")
-                                    setSelectedUser(null)
-                                    setTestResult(null)
-                                }}
-                                onFocus={() => setIsFocused(true)}
-                                // Add a small delay so the button is clicked before the input is blurred
-                                onBlur={() => {
-                                    setTimeout(() => {
-                                        setIsFocused(false)
-                                    }, 50)
-                                }}
-                                bg={"pageBackground"}
-                            />
-                            {isFocused && (
-                                <Box
-                                    position="absolute"
-                                    top="100%"
-                                    left={0}
-                                    right={0}
-                                    mt={1}
-                                    bg="contentBackground"
-                                    borderWidth={1}
-                                    borderRadius="10px"
-                                    boxShadow="md"
-                                    zIndex={1}
-                                    maxH="200px"
-                                    overflowY="auto"
-                                >
-                                    {loading ? (
-                                        <HStack w={"100%"} h={"30px"} ml={2}>
-                                            <Spinner />
-                                        </HStack>
-                                    ) : error ? (
-                                        <Text p={2} color="red.500">
-                                            Error loading users
-                                        </Text>
-                                    ) : users.length === 0 && searchTerm.length >= 1 ? (
-                                        <Text p={2}>No users found</Text>
-                                    ) : (
-                                        users.map((user) => (
-                                            <Box
-                                                key={user.username}
-                                                p={2}
-                                                cursor="pointer"
-                                                _hover={{ bg: "gray.700" }}
-                                                onMouseDown={(e) => {
-                                                    e.preventDefault()
-                                                    setNewUserSelectedTrigger(!newUserSelectedTrigger)
-                                                    setSelectedUsername(user.username || "")
-                                                    setSearchTerm(user.username || "")
-                                                    setIsFocused(false)
-                                                    inputRef.current?.blur()
-                                                }}
-                                            >
-                                                {/* <HStack justifyContent={"space-between"} w={"100%"}>
-                                                    <HStack>
-                                                        <Image
-                                                            src={
-                                                                !user.profileImageUrl || user.profileImageUrl === ""
-                                                                    ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                                                    : user.profileImageUrl
-                                                            }
-                                                            alt={`User ${user.displayName} Profile Image`}
-                                                            fit="cover"
-                                                            transition="transform 0.2s ease-in-out"
-                                                            w="25px"
-                                                            borderRadius="full"
-                                                        />
-                                                        <Text>{user.username}</Text>
-                                                    </HStack>
-                                                    {(() => {
-                                                        const ss = user.signalStrengths?.find(
-                                                            (s) => s.name === signalStrength.name,
-                                                        )
-                                                        const value = ss?.value
-
-                                                        let display
-                                                        let color
-                                                        let bg
-                                                        let fontSize
-                                                        if (value === null || value === undefined) {
-                                                            display = "Not connected"
-                                                            color = "lozenge.text.disabled"
-                                                            bg = "pageBackground"
-                                                            fontSize = "xs"
-                                                        } else if (Number(value) == 0) {
-                                                            display = value
-                                                            color = "lozenge.text.disabled"
-                                                            bg = "lozenge.background.disabled"
-                                                        } else {
-                                                            display = value
-                                                            color = "lozenge.text.active"
-                                                            bg = "lozenge.background.active"
-                                                        }
-
-                                                        return (
-                                                            <Text
-                                                                bg={bg}
-                                                                color={color}
-                                                                px={2}
-                                                                py={1}
-                                                                borderRadius={"10px"}
-                                                                fontSize={fontSize || undefined}
-                                                            >
-                                                                {display}
-                                                            </Text>
-                                                        )
-                                                    })()}
-                                                </HStack> */}
-                                            </Box>
-                                        ))
-                                    )}
-                                </Box>
-                            )}
-                        </Box>
-                    </HStack>
-                    {/* Prompt Options */}
-                    <HStack
-                        w={"100%"}
-                        maxW={"100%"}
-                        bg={"contentBackground"}
-                        justifyContent={"center"}
-                        alignItems={"start"}
-                        gap={5}
-                        px={3}
-                        pt={5}
-                        borderTopRadius={{ base: "0px", sm: "16px" }}
-                        flexWrap={"wrap"}
-                    >
-                        <VStack w={"100%"} maxW={"500px"} alignItems={"center"}>
-                            <Text px={2} fontWeight={"bold"}>
-                                Current Prompt
-                            </Text>
-                            <Textarea
-                                minH={"120px"}
-                                placeholder="No prompt set"
-                                borderRadius={"10px"}
-                                borderWidth={2}
-                                disabled
-                                value={signalStrength.prompt || ""}
-                            />
-                        </VStack>
-                        <Button
-                            borderRadius={"full"}
-                            px={2}
-                            py={0}
-                            h={"30px"}
-                            mt={{ base: 0, sm: "35px" }}
-                            onClick={() => {
-                                setNewPrompt(signalStrength.prompt || "")
-                                setTestResult(null)
-                            }}
-                        >
-                            <HStack gap={1}>
-                                <Box display={{ base: "none", sm: "block" }}>
-                                    <FontAwesomeIcon icon={faArrowRight} />
-                                </Box>
-                                <Box display={{ base: "block", sm: "none" }}>
-                                    <FontAwesomeIcon icon={faArrowDown} />
-                                </Box>
-                                <Text>Copy</Text>
-                                <Box display={{ base: "none", sm: "block" }}>
-                                    <FontAwesomeIcon icon={faArrowRight} />
-                                </Box>
-                                <Box display={{ base: "block", sm: "none" }}>
-                                    <FontAwesomeIcon icon={faArrowDown} />
-                                </Box>
+                <VStack
+                    w="100%"
+                    pb={2}
+                    gap={0}
+                    bg={"contentBackground"}
+                    p={4}
+                    borderRadius={{ base: "0px", md: "16px" }}
+                    alignItems={"start"}
+                >
+                    <Text>Status: {settings.status.new ?? settings.status.current}</Text>
+                    <Text>Max score: {settings.maxValue.new ?? settings.maxValue.current} / 100</Text>
+                    <Text>Previous days: {settings.previousDays.new ?? settings.previousDays.current}</Text>
+                    <Text>URL: {settings.url.new ?? settings.url.current}</Text>
+                    <Text>Authentication options:</Text>
+                    <VStack alignItems={"start"} gap={3}>
+                        {signalStrength.availableAuthTypes?.includes("api_auth") && (
+                            <HStack>
+                                <AuthTypeSwitch
+                                    key={"api_auth"}
+                                    authType={"api_auth"}
+                                    settings={settings}
+                                    setSettings={setSettings}
+                                />
+                                {(() => {
+                                    const currentAuthTypes = settings.authTypes.new ?? settings.authTypes.current ?? []
+                                    if (currentAuthTypes.includes("api_auth")) {
+                                        return (
+                                            <Text fontSize={"sm"} h={"20px"}>
+                                                Make sure you enable user API keys
+                                            </Text>
+                                        )
+                                    }
+                                    return null
+                                })()}
                             </HStack>
-                        </Button>
-                        <VStack w={"100%"} maxW={"500px"} alignItems={"center"}>
-                            <Text px={2} fontWeight={"bold"}>
-                                New Prompt
-                            </Text>
-                            <Textarea
-                                minH={"120px"}
-                                borderRadius={"10px"}
-                                borderWidth={2}
-                                value={newPrompt || ""}
-                                onChange={(e) => {
-                                    setNewPrompt(e.target.value)
-                                    setTestResult(null)
-                                }}
+                        )}
+                        {signalStrength.availableAuthTypes?.includes("manual_post") && (
+                            <AuthTypeSwitch
+                                key={"manual_post"}
+                                authType={"manual_post"}
+                                settings={settings}
+                                setSettings={setSettings}
                             />
-                        </VStack>
-                    </HStack>
-                    {/* Testing Output  */}
-                    <VStack
-                        w={"100%"}
-                        bg={"contentBackground"}
-                        borderBottomRadius={"16px"}
-                        alignItems={"center"}
-                        gap={2}
-                        pt={5}
-                    >
-                        <HStack w={"100%"} justifyContent={"space-around"} alignItems={"start"} flexWrap={"wrap"}>
-                            {/* <VStack w={"100%"} maxW={"600px"} gap={0}>
-                                <Box w={"100%"} px={3}>
-                                    <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
-                                        Current Analysis
-                                    </Text>
-                                </Box>
-                                {selectedUser ? (
-                                    <SignalStrength
-                                        username={selectedUser.username || ""}
-                                        userData={
-                                            selectedUser.signalStrengths?.find(
-                                                (s) => s.name === signalStrength.name,
-                                            ) || {
-                                                value: "0",
-                                                description: "No data",
-                                                improvements: "No data",
-                                                name: signalStrength.name,
-                                                summary: "No data",
-                                            }
-                                        }
-                                        projectData={signalStrength}
-                                        isUserConnected={true}
-                                        refreshUserData={() => {}}
-                                    />
-                                ) : (
-                                    <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
-                                        <Text>Select a test user to view their current analysis</Text>
-                                    </VStack>
-                                )}
-                            </VStack> */}
-                            <VStack w={"100%"} maxW={"600px"} gap={0}>
-                                <HStack w={"100%"} px={3} position="relative">
-                                    <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
-                                        Test Result
-                                    </Text>
-                                    {testResult && selectedUser && (
-                                        <Button
-                                            py={0}
-                                            px={2}
-                                            size={"xs"}
-                                            fontSize={"sm"}
-                                            borderRadius={"full"}
-                                            onClick={fetchTestResult}
-                                            loading={testResultsLoading}
-                                            position="absolute"
-                                            right={10}
-                                        >
-                                            <FontAwesomeIcon icon={faRefresh} size="xl" />
-                                            Refresh
-                                        </Button>
-                                    )}
-                                </HStack>
-                                {testResult ? (
-                                    <SignalStrength
-                                        username={selectedUser?.username || ""}
-                                        userData={testResult}
-                                        projectData={signalStrength}
-                                        isUserConnected={true}
-                                        refreshUserData={() => {}}
-                                    />
-                                ) : selectedUser ? (
-                                    <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
-                                        <Button
-                                            className="rainbow-animation"
-                                            color={"white"}
-                                            fontWeight={"bold"}
-                                            fontSize={"md"}
-                                            borderRadius={"full"}
-                                            onClick={fetchTestResult}
-                                            loading={testResultsLoading}
-                                        >
-                                            Run test analysis
-                                        </Button>
-                                    </VStack>
-                                ) : selectedUser ? (
-                                    <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
-                                        <Text>No new prompt set</Text>
-                                        <Text>Please set a new prompt</Text>
-                                    </VStack>
-                                ) : (
-                                    <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>
-                                        <Text>Select a test user to test their new analysis</Text>
-                                    </VStack>
-                                )}
-                            </VStack>
-                        </HStack>
+                        )}
+                        {(() => {
+                            const currentAuthTypes = settings.authTypes.new ?? settings.authTypes.current ?? []
+                            if (currentAuthTypes.includes("manual_post")) {
+                                return <Text>Auth parent post URL: {signalStrength.authParentPostUrl}</Text>
+                            }
+                            return null
+                        })()}
                     </VStack>
+                    {(() => {
+                        const hasChanges = Object.values(settings).some((setting) => setting.new !== null)
+                        if (!hasChanges) return null
+
+                        const handleCancel = () => {
+                            setSettings({
+                                status: { ...settings.status, new: null },
+                                maxValue: { ...settings.maxValue, new: null },
+                                previousDays: { ...settings.previousDays, new: null },
+                                url: { ...settings.url, new: null },
+                                authTypes: { ...settings.authTypes, new: null },
+                                authParentPostUrl: { ...settings.authParentPostUrl, new: null },
+                            })
+                        }
+
+                        return (
+                            <HStack w="100%" justify={"end"} gap={3}>
+                                <Button secondaryButton px={3} py={1} borderRadius={"full"} onClick={handleCancel}>
+                                    Cancel
+                                </Button>
+                                <Button primaryButton px={3} py={1} borderRadius={"full"}>
+                                    Save changes
+                                </Button>
+                            </HStack>
+                        )
+                    })()}
+                    {/* <Text>{JSON.stringify(settings)}</Text> */}
                 </VStack>
             )}
         </VStack>

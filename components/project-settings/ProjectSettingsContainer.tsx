@@ -109,7 +109,7 @@ export default function ProjectSettingsContainer() {
                         content: <GeneralSettingsContainer project={project} />,
                     },
                     {
-                        value: "signal",
+                        value: "signal-strengths",
                         label: "Signal Strengths",
                         content: <SignalStrengthSettingsContainer project={project} />,
                     },
