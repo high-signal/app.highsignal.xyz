@@ -153,7 +153,7 @@ export default function UserMenuButton() {
                                             textColor="orange.500"
                                         />
                                     </Link>
-                                    <Box h="20px" w="100%" />
+                                    <Box h="10px" w="100%" />
                                 </>
                             )}
                             {loggedInUser.projectAdmins && loggedInUser.projectAdmins.length > 0 && (
@@ -168,7 +168,7 @@ export default function UserMenuButton() {
                                             />
                                         </Link>
                                     ))}
-                                    <Box h="20px" w="100%" />
+                                    <Box h="10px" w="100%" />
                                 </>
                             )}
                             <MenuItem isHeading label={loggedInUser.displayName} value="username" />
