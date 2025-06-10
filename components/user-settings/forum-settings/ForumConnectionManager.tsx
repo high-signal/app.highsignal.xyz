@@ -95,10 +95,10 @@ export default function ForumConnectionManager({
         const processForumAuthRequest = async () => {
             setIsForumSubmitting(true)
 
-            // Post the payload, target username, and project url slug to the /api/accounts/forum_users route
+            // Post the payload, target username, and project url slug to the route
             const token = await getAccessToken()
             const forumResponse = await fetch(
-                `/api/accounts/forum_users?username=${targetUser.username}&project=${config.projectUrlSlug}`,
+                `/api/settings/u/accounts/forum_users/auth/api_auth?username=${targetUser.username}&project=${config.projectUrlSlug}`,
                 {
                     method: "POST",
                     body: JSON.stringify({
@@ -157,9 +157,9 @@ export default function ForumConnectionManager({
 
             const token = await getAccessToken()
             const authRequestResponse = await fetch(
-                `/api/accounts/forum_users?username=${targetUser.username}&project=${config.projectUrlSlug}`,
+                `/api/settings/u/accounts/forum_users/auth/api_auth?username=${targetUser.username}&project=${config.projectUrlSlug}`,
                 {
-                    method: "GET",
+                    method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
@@ -205,7 +205,7 @@ export default function ForumConnectionManager({
             // Call the forum_users DELETE route
             const token = await getAccessToken()
             const forumResponse = await fetch(
-                `/api/accounts/forum_users?username=${targetUser?.username}&project=${config.projectUrlSlug}`,
+                `/api/settings/u/accounts/forum_users?username=${targetUser?.username}&project=${config.projectUrlSlug}`,
                 {
                     method: "DELETE",
                     headers: {

@@ -1,110 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-// This is used to check if the auth post code is found on the forum thread
-export async function GET(request: NextRequest) {
-    try {
-        const signalStrengthName = "discourse_forum"
-
-        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-
-        const targetUsername = request.nextUrl.searchParams.get("username")
-        const projectUrlSlug = request.nextUrl.searchParams.get("project")
-
-        if (!targetUsername || !projectUrlSlug) {
-            return NextResponse.json({ error: "Username and project are required" }, { status: 400 })
-        }
-
-        const { data: targetUserData, error: targetUserDataError } = await supabase
-            .from("users")
-            .select("id")
-            .eq("username", targetUsername)
-            .single()
-
-        if (targetUserDataError) {
-            return NextResponse.json({ error: "Target user not found" }, { status: 404 })
-        }
-
-        const { data: projectData, error: projectDataError } = await supabase
-            .from("projects")
-            .select("id")
-            .eq("url_slug", projectUrlSlug)
-            .single()
-
-        if (projectDataError) {
-            return NextResponse.json({ error: "Project not found" }, { status: 404 })
-        }
-
-        const { data: forumUserData, error: forumUserDataError } = await supabase
-            .from("forum_users")
-            .select("auth_post_code")
-            .eq("user_id", targetUserData.id)
-            .eq("project_id", projectData.id)
-            .single()
-
-        if (forumUserDataError) {
-            return NextResponse.json({ error: "Forum user not found" }, { status: 404 })
-        }
-
-        const { data: signalStrengthData, error: signalStrengthDataError } = await supabase
-            .from("signal_strengths")
-            .select("id")
-            .eq("name", signalStrengthName)
-            .single()
-
-        if (signalStrengthDataError) {
-            return NextResponse.json({ error: "Signal strength not found" }, { status: 404 })
-        }
-
-        const { data: projectSignalStrengthData, error: projectSignalStrengthDataError } = await supabase
-            .from("project_signal_strengths")
-            .select("auth_parent_post_url")
-            .eq("project_id", projectData.id)
-            .eq("signal_strength_id", signalStrengthData.id)
-            .single()
-
-        if (projectSignalStrengthDataError) {
-            return NextResponse.json({ error: "Project signal strength not found" }, { status: 404 })
-        }
-
-        // Make a call to the auth_parent_post_url to get all the posts on that thread to see if the auth post code is in the posts
-        const authParentPostResponse = await fetch(`${projectSignalStrengthData.auth_parent_post_url}.json`)
-        const authParentPostData = await authParentPostResponse.json()
-        const authParentPostPosts = authParentPostData.post_stream.posts
-
-        // Check if the auth post code is in the posts
-        const matchingAuthPost = authParentPostPosts.find((post: any) =>
-            post.cooked.includes(forumUserData.auth_post_code),
-        )
-
-        if (matchingAuthPost) {
-            // If the auth post code is found, update the forum username and auth post id in the database
-            const { error: updateError } = await supabase
-                .from("forum_users")
-                .update({
-                    forum_username: matchingAuthPost.username,
-                    auth_post_id: matchingAuthPost.id,
-                    auth_encrypted_payload: null, // Clear the api auth as that is the default and would take precedence
-                })
-                .eq("user_id", targetUserData.id)
-                .eq("project_id", projectData.id)
-                .single()
-
-            if (updateError) {
-                return NextResponse.json({ error: "Error updating forum username and auth post id" }, { status: 500 })
-            }
-
-            return NextResponse.json({ authPostCodeFound: true })
-        } else {
-            return NextResponse.json({ authPostCodeFound: false })
-        }
-    } catch (error) {
-        console.error("Error generating auth post code:", error)
-        return NextResponse.json({ error: "Error generating auth post code" }, { status: 500 })
-    }
-}
-
-export async function POST(request: NextRequest) {
+// Generate a new auth post code
+export async function PUT(request: NextRequest) {
     try {
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -181,7 +79,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Failed to generate unique auth code" }, { status: 500 })
         }
 
-        // Create/update an entry with the new username
+        // Create/update an entry with the new auth post code
         const { error: upsertError } = await supabase.from("forum_users").upsert({
             user_id: targetUserData.id,
             project_id: projectData.id,
@@ -193,6 +91,111 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json({ authPostCode: authPostCode })
+    } catch (error) {
+        console.error("Error generating auth post code:", error)
+        return NextResponse.json({ error: "Error generating auth post code" }, { status: 500 })
+    }
+}
+
+// Check if the auth post code is found on the forum thread then create/update the forum user
+export async function POST(request: NextRequest) {
+    try {
+        const signalStrengthName = "discourse_forum"
+
+        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+        const targetUsername = request.nextUrl.searchParams.get("username")
+        const projectUrlSlug = request.nextUrl.searchParams.get("project")
+
+        if (!targetUsername || !projectUrlSlug) {
+            return NextResponse.json({ error: "Username and project are required" }, { status: 400 })
+        }
+
+        const { data: targetUserData, error: targetUserDataError } = await supabase
+            .from("users")
+            .select("id")
+            .eq("username", targetUsername)
+            .single()
+
+        if (targetUserDataError) {
+            return NextResponse.json({ error: "Target user not found" }, { status: 404 })
+        }
+
+        const { data: projectData, error: projectDataError } = await supabase
+            .from("projects")
+            .select("id")
+            .eq("url_slug", projectUrlSlug)
+            .single()
+
+        if (projectDataError) {
+            return NextResponse.json({ error: "Project not found" }, { status: 404 })
+        }
+
+        const { data: forumUserData, error: forumUserDataError } = await supabase
+            .from("forum_users")
+            .select("auth_post_code")
+            .eq("user_id", targetUserData.id)
+            .eq("project_id", projectData.id)
+            .single()
+
+        if (forumUserDataError) {
+            return NextResponse.json({ error: "Forum user not found" }, { status: 404 })
+        }
+
+        const { data: signalStrengthData, error: signalStrengthDataError } = await supabase
+            .from("signal_strengths")
+            .select("id")
+            .eq("name", signalStrengthName)
+            .single()
+
+        if (signalStrengthDataError) {
+            return NextResponse.json({ error: "Signal strength not found" }, { status: 404 })
+        }
+
+        const { data: projectSignalStrengthData, error: projectSignalStrengthDataError } = await supabase
+            .from("project_signal_strengths")
+            .select("auth_parent_post_url")
+            .eq("project_id", projectData.id)
+            .eq("signal_strength_id", signalStrengthData.id)
+            .single()
+
+        if (projectSignalStrengthDataError) {
+            return NextResponse.json({ error: "Project signal strength not found" }, { status: 404 })
+        }
+
+        // Make a call to the auth_parent_post_url to get all the posts on that thread to see if the auth post code is in the posts
+        const authParentPostResponse = await fetch(`${projectSignalStrengthData.auth_parent_post_url}.json`)
+        const authParentPostData = await authParentPostResponse.json()
+        const authParentPostPosts = authParentPostData.post_stream.posts
+
+        // Check if the auth post code is in the posts
+        const matchingAuthPost = authParentPostPosts.find((post: any) =>
+            post.cooked.includes(forumUserData.auth_post_code),
+        )
+
+        if (matchingAuthPost) {
+            // TODO: Generic component
+
+            // If the auth post code is found, update the forum username and auth post id in the database
+            const { error: updateError } = await supabase
+                .from("forum_users")
+                .update({
+                    forum_username: matchingAuthPost.username,
+                    auth_post_id: matchingAuthPost.id,
+                    auth_encrypted_payload: null, // Clear the api auth as that is the default and would take precedence
+                })
+                .eq("user_id", targetUserData.id)
+                .eq("project_id", projectData.id)
+                .single()
+
+            if (updateError) {
+                return NextResponse.json({ error: "Error updating forum username and auth post id" }, { status: 500 })
+            }
+
+            return NextResponse.json({ authPostCodeFound: true })
+        } else {
+            return NextResponse.json({ authPostCodeFound: false })
+        }
     } catch (error) {
         console.error("Error generating auth post code:", error)
         return NextResponse.json({ error: "Error generating auth post code" }, { status: 500 })

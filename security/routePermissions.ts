@@ -23,23 +23,6 @@ export const routePermissions: RoutePermission[] = [
         },
     },
     {
-        path: "/api/accounts",
-        methods: {
-            GET: {
-                requiresAuth: true,
-                allowedAccess: ["targetUser", "superAdmin"],
-            },
-            POST: {
-                requiresAuth: true,
-                allowedAccess: ["targetUser", "superAdmin"],
-            },
-            DELETE: {
-                requiresAuth: true,
-                allowedAccess: ["targetUser", "superAdmin"],
-            },
-        },
-    },
-    {
         path: "/api/info",
         methods: {
             // Public read access to project info (Vercel region, etc.)
@@ -87,6 +70,14 @@ export const routePermissions: RoutePermission[] = [
                 allowedAccess: ["targetUser", "superAdmin"],
             },
             PATCH: {
+                requiresAuth: true,
+                allowedAccess: ["targetUser", "superAdmin"],
+            },
+            PUT: {
+                requiresAuth: true,
+                allowedAccess: ["targetUser", "superAdmin"],
+            },
+            DELETE: {
                 requiresAuth: true,
                 allowedAccess: ["targetUser", "superAdmin"],
             },

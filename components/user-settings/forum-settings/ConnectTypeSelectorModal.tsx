@@ -70,9 +70,9 @@ export default function ConnectTypeSelectorModal({
             if (!authPostCode) {
                 const token = await getAccessToken()
                 const response = await fetch(
-                    `/api/settings/u/forum-auth-post-code?username=${targetUser.username}&project=${config.projectUrlSlug}`,
+                    `/api/settings/u/accounts/forum_users/auth/manual_post?username=${targetUser.username}&project=${config.projectUrlSlug}`,
                     {
-                        method: "POST",
+                        method: "PUT",
                         headers: {
                             "Content-Type": "application/json",
                             Authorization: `Bearer ${token}`,
@@ -97,9 +97,9 @@ export default function ConnectTypeSelectorModal({
         setIsAuthPostCodeCheckSubmitted(true)
         const token = await getAccessToken()
         const response = await fetch(
-            `/api/settings/u/forum-auth-post-code?username=${targetUser.username}&project=${config.projectUrlSlug}`,
+            `/api/settings/u/accounts/forum_users/auth/manual_post?username=${targetUser.username}&project=${config.projectUrlSlug}`,
             {
-                method: "GET",
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
@@ -132,7 +132,7 @@ export default function ConnectTypeSelectorModal({
         } else {
             setIsAuthPostCodeCheckSubmitted(false)
             setAuthPostCheckError(
-                "Your code was not found on forum post yet. It can take up to a minute to appear. Please make sure you have posted the message on the forum and try again.",
+                "Your code was not found on forum post yet. It can take up to a minute to appear. Make sure you have posted the message on the forum and try again.",
             )
         }
     }
