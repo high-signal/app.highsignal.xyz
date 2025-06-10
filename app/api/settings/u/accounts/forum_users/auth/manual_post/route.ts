@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { forumUserManagement } from "../../../../../../../../utils/forumUserManagement"
 
 // Generate a new auth post code
 export async function PUT(request: NextRequest) {
@@ -174,25 +175,31 @@ export async function POST(request: NextRequest) {
         )
 
         if (matchingAuthPost) {
-            // TODO: Generic component
+            try {
+                const forumUsername = matchingAuthPost.username
+                const authPostId = matchingAuthPost.id
 
-            // If the auth post code is found, update the forum username and auth post id in the database
-            const { error: updateError } = await supabase
-                .from("forum_users")
-                .update({
-                    forum_username: matchingAuthPost.username,
-                    auth_post_id: matchingAuthPost.id,
-                    auth_encrypted_payload: null, // Clear the api auth as that is the default and would take precedence
+                await forumUserManagement({
+                    type: "manual_post",
+                    supabase,
+                    targetUserId: targetUserData.id,
+                    projectId: projectData.id,
+                    forumUsername,
+                    data: authPostId,
+                    signalStrengthName,
+                    signalStrengthId: signalStrengthData.id,
                 })
-                .eq("user_id", targetUserData.id)
-                .eq("project_id", projectData.id)
-                .single()
 
-            if (updateError) {
-                return NextResponse.json({ error: "Error updating forum username and auth post id" }, { status: 500 })
+                return NextResponse.json({ authPostCodeFound: true })
+            } catch (error) {
+                console.error("Error managing forum user:", error)
+                return NextResponse.json(
+                    {
+                        error: error instanceof Error ? error.message : "An unexpected error occurred",
+                    },
+                    { status: 500 },
+                )
             }
-
-            return NextResponse.json({ authPostCodeFound: true })
         } else {
             return NextResponse.json({ authPostCodeFound: false })
         }

@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
-
-import { triggerLambda } from "../../../../../../../../utils/lambda-utils/triggerLambda"
+import { forumUserManagement } from "../../../../../../../../utils/forumUserManagement"
 
 // Generate forum user auth URL
 export async function PUT(request: Request) {
@@ -111,8 +110,6 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Error fetching target user ID" }, { status: 500 })
         }
 
-        // Steps:
-        // - Get the url for the forum using the projectUrlSlug
         // Lookup the signal strength ID for the discourse_forum signal strength
         const { data: signalStrengthData, error: signalStrengthDataError } = await supabase
             .from("signal_strengths")
@@ -192,105 +189,24 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Failed to get forum username" }, { status: 400 })
         }
 
-        // TODO: Generic component
-
-        // Check if any existing forum_users entry exists for a DIFFERENT user_id and same project_id for the username
-        const { data: existingEntries, error: existingEntriesError } = await supabase
-            .from("forum_users")
-            .select("user_id, last_updated")
-            .eq("project_id", projectData.id)
-            .eq("forum_username", forumUsername)
-
-        if (existingEntriesError) {
-            console.error("Error fetching existing forum users:", existingEntriesError)
-            return NextResponse.json({ error: "Error fetching existing forum users" }, { status: 500 })
-        }
-
-        // If they do exist, delete the entries for those other users
-        // e.g. Someone lost their old High Signal account and created a new one.
-        // We need to delete the old entry for the old account so it does not double count their contributions.
-        if (existingEntries) {
-            for (let i = existingEntries.length - 1; i >= 0; i--) {
-                const entry = existingEntries[i]
-                if (entry.user_id !== targetUserData.id) {
-                    await supabase.from("forum_users").delete().eq("user_id", entry.user_id)
-                    existingEntries.splice(i, 1) // Remove the deleted entry from the array
-                }
-            }
-        }
-
-        // Create/update an entry with the new username
-        const { error: upsertError } = await supabase.from("forum_users").upsert({
-            user_id: targetUserData.id,
-            project_id: projectData.id,
-            forum_username: forumUsername,
-            auth_encrypted_payload: payload,
-            ...(existingEntries[0]?.last_updated ? { last_updated: null } : {}),
-        })
-
-        if (upsertError) {
-            console.error("Error upserting forum user:", upsertError)
-            return NextResponse.json({ error: "Error upserting forum user" }, { status: 500 })
-        }
-
-        // Before starting the analysis, add the last_checked date to the user_signal_strengths table.
-        // This is to give the best UX experience when the user is updating their forum username
-        // so that when they navigate to their profile page, it shows the loading animation immediately.
-        // Use unix timestamp to avoid timezone issues.
-        const { error: lastCheckError } = await supabase.from("user_signal_strengths").upsert(
-            {
-                user_id: targetUserData.id,
-                project_id: projectData.id,
-                signal_strength_id: signalStrengthData.id,
-                last_checked: Math.floor(Date.now() / 1000),
-                request_id: `last_checked_${targetUserData.id}_${projectData.id}_${signalStrengthData.id}`,
-                created: 99999999999999,
-            },
-            {
-                onConflict: "request_id",
-            },
-        )
-
-        if (lastCheckError) {
-            console.error(`Error updating last_checked for ${forumUsername}:`, lastCheckError.message)
-        } else {
-            console.log(`Successfully updated last_checked for ${forumUsername}`)
-        }
-
         try {
-            // Trigger analysis and wait for initial response
-            console.log("Triggering forum analysis for user:", forumUsername)
-            const analysisResponse = await triggerLambda(
-                signalStrengthName,
-                targetUserData.id,
-                projectData.id,
+            await forumUserManagement({
+                type: "api_auth",
+                supabase,
+                targetUserId: targetUserData.id,
+                projectId: projectData.id,
                 forumUsername,
-            )
+                data: payload,
+                signalStrengthName,
+                signalStrengthId: signalStrengthData.id,
+            })
 
-            if (!analysisResponse.success) {
-                console.error("Failed to start analysis:", analysisResponse.message)
-                return NextResponse.json(
-                    {
-                        error: analysisResponse.message,
-                    },
-                    { status: 400 },
-                )
-            }
-
-            console.log("Analysis started successfully:", analysisResponse.message)
+            return NextResponse.json({ success: true })
+        } catch (error) {
+            console.error("Error managing forum user:", error)
             return NextResponse.json(
                 {
-                    success: true,
-                    message: analysisResponse.message,
-                    forumUser: forumUsername,
-                },
-                { status: 200 },
-            )
-        } catch (analysisError) {
-            console.error("Error starting analysis:", analysisError)
-            return NextResponse.json(
-                {
-                    error: "An unexpected error occurred while starting the analysis",
+                    error: error instanceof Error ? error.message : "An unexpected error occurred",
                     forumUser: forumUsername,
                 },
                 { status: 500 },
