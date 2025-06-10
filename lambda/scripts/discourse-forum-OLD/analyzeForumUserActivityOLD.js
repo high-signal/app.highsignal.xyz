@@ -136,6 +136,7 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
             )
             .eq("user_id", user_id)
             .eq("project_id", project_id)
+            .not("forum_username", "is", null)
             .single()
 
         if (userError) {

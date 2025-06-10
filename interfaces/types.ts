@@ -31,7 +31,8 @@ interface ForumUser {
     projectUrlSlug: string
     forumUsername: string
     authEncryptedPayload?: string
-    authPostUrl?: string
+    authPostId?: string
+    authPostCode?: string
 }
 
 interface PeakSignalUserData {

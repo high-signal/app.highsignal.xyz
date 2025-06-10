@@ -360,6 +360,7 @@ export async function DELETE(request: Request) {
             .delete()
             .eq("user_id", targetUserData.id)
             .eq("project_id", projectData.id)
+            .not("forum_username", "is", null)
 
         if (forumUserError) {
             console.error("Error deleting forum user:", forumUserError)

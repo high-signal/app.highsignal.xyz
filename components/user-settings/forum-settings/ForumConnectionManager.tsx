@@ -53,8 +53,8 @@ export default function ForumConnectionManager({
         forumAuthParentPostUrl: string | undefined
     }
 }) {
-    const { getAccessToken } = usePrivy()
     const { refreshUser } = useUser()
+    const { getAccessToken } = usePrivy()
     const router = useRouter()
 
     const signalStrengthName = "discourse_forum"
@@ -221,6 +221,9 @@ export default function ForumConnectionManager({
                 throw new Error(errorData.error || "Failed to disconnect forum username")
             }
 
+            // Refresh the user data
+            refreshUser()
+
             // Show success message
             toaster.create({
                 title: "✅ Forum account disconnected",
@@ -244,6 +247,7 @@ export default function ForumConnectionManager({
                 isOpen={isConnectTypeSelectorOpen}
                 onClose={() => setIsConnectTypeSelectorOpen(false)}
                 config={config}
+                targetUser={targetUser}
                 isForumSubmitting={isForumSubmitting}
                 handleForumAuthApi={handleForumAuthApi}
             />
@@ -351,7 +355,7 @@ export default function ForumConnectionManager({
                                                         : targetUser.forumUsers?.find(
                                                                 (forumUser) =>
                                                                     forumUser.projectUrlSlug === config.projectUrlSlug,
-                                                            )?.authPostUrl
+                                                            )?.authPostId
                                                           ? "public post"
                                                           : "None"}
                                                 </Text>

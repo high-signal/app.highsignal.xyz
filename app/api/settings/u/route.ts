@@ -25,7 +25,8 @@ export async function GET(request: NextRequest) {
                 forum_users (
                     forum_username,
                     auth_encrypted_payload,
-                    auth_post_url,
+                    auth_post_id,
+                    auth_post_code,
                     projects!inner (
                         url_slug
                     )
@@ -49,7 +50,8 @@ export async function GET(request: NextRequest) {
                 projectUrlSlug: forumUser.projects.url_slug,
                 forumUsername: forumUser.forum_username,
                 authEncryptedPayload: forumUser.auth_encrypted_payload,
-                authPostUrl: forumUser.auth_post_url,
+                authPostId: forumUser.auth_post_id,
+                authPostCode: forumUser.auth_post_code,
             })),
         }
 

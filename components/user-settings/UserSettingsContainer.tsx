@@ -13,7 +13,7 @@ import GeneralSettingsContainer from "./GeneralSettingsContainer"
 import SettingsTabbedContent from "../ui/SettingsTabbedContent"
 
 export default function UserSettingsContainer() {
-    const { loggedInUser, loggedInUserLoading, refreshUser } = useUser()
+    const { loggedInUser, loggedInUserLoading } = useUser()
     const { getAccessToken } = usePrivy()
     const params = useParams()
     const router = useRouter()

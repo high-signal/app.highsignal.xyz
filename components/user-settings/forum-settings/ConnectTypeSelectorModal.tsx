@@ -4,8 +4,10 @@ import { HStack, VStack, Text, Button, Dialog, Spinner, Link } from "@chakra-ui/
 import Modal from "../../ui/Modal"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { faCheckCircle } from "@fortawesome/free-regular-svg-icons"
+import { usePrivy } from "@privy-io/react-auth"
+import { useUser } from "../../../contexts/UserContext"
 
 interface ConnectTypeSelectorModalProps {
     isOpen: boolean
@@ -18,6 +20,7 @@ interface ConnectTypeSelectorModalProps {
         forumAuthTypes: string[] | undefined
         forumAuthParentPostUrl: string | undefined
     }
+    targetUser: UserData
     isForumSubmitting: boolean
     handleForumAuthApi: () => void
 }
@@ -26,13 +29,90 @@ export default function ConnectTypeSelectorModal({
     isOpen,
     onClose,
     config,
+    targetUser,
     isForumSubmitting,
     handleForumAuthApi,
 }: ConnectTypeSelectorModalProps) {
     const [isCodeCopied, setIsCodeCopied] = useState(false)
+    const [isAuthPostCodeCheckSubmitted, setIsAuthPostCodeCheckSubmitted] = useState(false)
+    const [authPostCheckError, setAuthPostCheckError] = useState<string | null>(null)
 
-    const authCodePost =
-        "This post is to connect my forum account to my High Signal account. My authentication code is: 1234-ABCD-1234-ABCD"
+    const { refreshUser } = useUser()
+    const { getAccessToken } = usePrivy()
+
+    const [authPostCode, setAuthPostCode] = useState<string | undefined>(undefined)
+
+    // Update the authPostCode when the targetUser or projectUrlSlug changes
+    useEffect(() => {
+        setAuthPostCode(
+            targetUser?.forumUsers?.find((forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug)
+                ?.authPostCode,
+        )
+    }, [targetUser, config.projectUrlSlug])
+
+    const authPostMessage = `This post is to connect my forum account to my High Signal account. My authentication code is: ${authPostCode}`
+
+    // When modal opens, if no authPostCode is found, generate one
+    useEffect(() => {
+        const fetchAuthPostCode = async () => {
+            if (!authPostCode) {
+                const token = await getAccessToken()
+                const response = await fetch(
+                    `/api/settings/u/forum-auth-post-code?username=${targetUser.username}&project=${config.projectUrlSlug}`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    },
+                )
+
+                if (!response.ok) {
+                    throw new Error("Failed to generate auth post code")
+                }
+
+                const data = await response.json()
+                setAuthPostCode(data.authPostCode)
+            }
+        }
+        if (isOpen) {
+            fetchAuthPostCode()
+        }
+    }, [isOpen, authPostCode, targetUser.username, config.projectUrlSlug, getAccessToken])
+
+    const handleAuthPostCodeCheck = async () => {
+        setIsAuthPostCodeCheckSubmitted(true)
+        const token = await getAccessToken()
+        const response = await fetch(
+            `/api/settings/u/forum-auth-post-code?username=${targetUser.username}&project=${config.projectUrlSlug}`,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            },
+        )
+
+        if (!response.ok) {
+            setIsAuthPostCodeCheckSubmitted(false)
+            setAuthPostCheckError("Authentication post code check failed. Please try again.")
+            throw new Error("Authentication post code check failed")
+        }
+
+        const data = await response.json()
+        if (data.authPostCodeFound) {
+            handleClose()
+            setIsAuthPostCodeCheckSubmitted(false)
+            refreshUser()
+        } else {
+            setIsAuthPostCodeCheckSubmitted(false)
+            setAuthPostCheckError(
+                "Your code was not found on forum post yet. It can take up to a minute to appear. Please make sure you have posted the message on the forum and try again.",
+            )
+        }
+    }
 
     const handleCopyCode = (text: string) => {
         navigator.clipboard.writeText(text)
@@ -78,8 +158,13 @@ export default function ConnectTypeSelectorModal({
         )
     }
 
+    const handleClose = () => {
+        setAuthPostCheckError(null)
+        onClose()
+    }
+
     return (
-        <Modal open={isOpen} close={onClose} placement={{ base: "top", md: "top" }}>
+        <Modal open={isOpen} close={handleClose} placement={{ base: "top", md: "top" }}>
             <Dialog.Content
                 borderRadius={{ base: "0px", md: "16px" }}
                 p={0}
@@ -94,7 +179,7 @@ export default function ConnectTypeSelectorModal({
                 </Dialog.Header>
                 <Dialog.Body>
                     <HStack flexWrap={"wrap"} alignItems={"start"}>
-                        <TypeSelector option="Option 1 (Recommended)" title="Automatic API connection">
+                        <TypeSelector option="Option 1 (Recommended)" title="Direct connection">
                             <Text>
                                 Connect your {config.projectDisplayName} forum account to High Signal to confirm
                                 ownership.
@@ -149,9 +234,10 @@ export default function ConnectTypeSelectorModal({
                             </Text>
                             <Text>Copy this message with your access code:</Text>
                             <VStack gap={2}>
-                                <Text bg={"pageBackground"} py={2} px={4} borderRadius={"16px"} fontWeight={"bold"}>
-                                    {authCodePost}
-                                </Text>
+                                <HStack bg={"pageBackground"} py={2} px={4} borderRadius={"16px"} fontWeight={"bold"}>
+                                    <Text>{authPostCode ? authPostMessage : "Generating auth code..."}</Text>
+                                    {authPostCode ? null : <Spinner size="sm" color="white" />}
+                                </HStack>
                                 <Button
                                     contentButton
                                     h={"100%"}
@@ -159,7 +245,8 @@ export default function ConnectTypeSelectorModal({
                                     pr={2}
                                     py={1}
                                     borderRadius={"full"}
-                                    onClick={() => handleCopyCode(authCodePost)}
+                                    onClick={() => handleCopyCode(authPostMessage)}
+                                    disabled={!authPostCode}
                                 >
                                     <HStack gap={2} justifyContent={"start"}>
                                         <Text>{isCodeCopied ? "Copied" : "Copy message"}</Text>
@@ -187,10 +274,11 @@ export default function ConnectTypeSelectorModal({
                                 primaryButton
                                 minH={"40px"}
                                 w={"100%"}
-                                // onClick={handleForumAuthPost}
+                                onClick={handleAuthPostCodeCheck}
                                 borderRadius="full"
                                 disabled={isForumSubmitting}
                                 mt={2}
+                                loading={isAuthPostCodeCheckSubmitted}
                             >
                                 {isForumSubmitting ? (
                                     <Spinner size="sm" color="white" />
@@ -200,6 +288,11 @@ export default function ConnectTypeSelectorModal({
                                     </Text>
                                 )}
                             </Button>
+                            {authPostCheckError && (
+                                <Text color="red.500" fontSize="sm">
+                                    {authPostCheckError}
+                                </Text>
+                            )}
                         </TypeSelector>
                     </HStack>
                 </Dialog.Body>
