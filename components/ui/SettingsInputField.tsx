@@ -8,6 +8,7 @@ import { ReactNode } from "react"
 
 interface SettingsInputFieldProps {
     label: string
+    labelIcon?: ReactNode
     description: string
     isPrivate: boolean
     value: string
@@ -16,10 +17,13 @@ interface SettingsInputFieldProps {
     error?: string
     rightElement?: ReactNode
     isEditable?: boolean
+    inputReplacement?: ReactNode
+    h?: string
 }
 
 export default function SettingsInputField({
     label,
+    labelIcon,
     description,
     isPrivate,
     value,
@@ -28,24 +32,33 @@ export default function SettingsInputField({
     error,
     rightElement,
     isEditable = true,
+    inputReplacement,
+    h = "35px",
 }: SettingsInputFieldProps) {
     return (
         <VStack align="stretch" w="100%">
-            <HStack justify="space-between" px={2}>
-                <Text fontWeight="bold">{label}</Text>
+            <HStack justify="space-between" px={2} pb={labelIcon ? "2px" : undefined}>
+                <HStack>
+                    {labelIcon}
+                    <Text fontWeight="bold">{label}</Text>
+                </HStack>
                 <HStack fontSize="sm" color="gray.500" cursor="default" gap={1}>
                     <FontAwesomeIcon icon={isPrivate ? faLock : faEarthAmericas} />
                     <Text>{isPrivate ? "Private" : "Public"}</Text>
                 </HStack>
             </HStack>
-            <HStack w="100%" gap={0} bg={"pageBackground"}>
-                <SingleLineTextInput
-                    value={value}
-                    onChange={onChange}
-                    onKeyDown={onKeyDown}
-                    rightElement={rightElement}
-                    isEditable={isEditable}
-                />
+            <HStack w="100%" gap={0} bg={"pageBackground"} h={h}>
+                {inputReplacement ? (
+                    inputReplacement
+                ) : (
+                    <SingleLineTextInput
+                        value={value}
+                        onChange={onChange}
+                        onKeyDown={onKeyDown}
+                        rightElement={rightElement}
+                        isEditable={isEditable}
+                    />
+                )}
                 {rightElement}
             </HStack>
             {error ? (

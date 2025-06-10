@@ -161,7 +161,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
             // Get forum users
             const { data: forumUsers, error: forumUsersError } = await supabase
                 .from("forum_users")
-                .select("user_id, project_id, forum_username")
+                .select("user_id, project_id, forum_username, auth_encrypted_payload, auth_post_id, auth_post_code")
                 .in("user_id", userIds)
 
             if (forumUsersError) {
@@ -175,6 +175,9 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                     userId: user.user_id,
                     projectId: user.project_id,
                     forumUsername: user.forum_username,
+                    authEncryptedPayload: user.auth_encrypted_payload,
+                    authPostId: user.auth_post_id,
+                    authPostCode: user.auth_post_code,
                 })),
             })
         }
@@ -263,7 +266,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                 const userSignalStrengths = signalStrengths?.filter((ss) => ss?.data[0]?.user_id === user.id) || []
 
                 return {
-                    id: user.id,
+                    ...(isSuperAdminRequesting ? { id: user.id } : {}),
                     username: user.username,
                     displayName: user.display_name,
                     profileImageUrl: user.profile_image_url,

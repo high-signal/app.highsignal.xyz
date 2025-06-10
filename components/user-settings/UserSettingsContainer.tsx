@@ -13,7 +13,7 @@ import GeneralSettingsContainer from "./GeneralSettingsContainer"
 import SettingsTabbedContent from "../ui/SettingsTabbedContent"
 
 export default function UserSettingsContainer() {
-    const { loggedInUser, loggedInUserLoading, refreshUser } = useUser()
+    const { loggedInUser, loggedInUserLoading } = useUser()
     const { getAccessToken } = usePrivy()
     const params = useParams()
     const router = useRouter()
@@ -100,6 +100,7 @@ export default function UserSettingsContainer() {
         <ContentContainer>
             <SettingsTabbedContent
                 title={`Your settings`}
+                updateUrlParam={true}
                 tabs={[
                     {
                         value: "general",

@@ -26,9 +26,13 @@ interface ConnectedAccount {
 }
 
 interface ForumUser {
-    userId: string
-    projectId: string
+    userId?: string
+    projectId?: string
+    projectUrlSlug: string
     forumUsername: string
+    authEncryptedPayload?: string
+    authPostId?: string
+    authPostCode?: string
 }
 
 interface PeakSignalUserData {
@@ -85,6 +89,9 @@ interface SignalStrengthProjectData {
     model?: string
     temperature?: number
     maxChars?: number
+    url?: string
+    authTypes?: string[]
+    authParentPostUrl?: string
 }
 
 interface SignalStrengthData {

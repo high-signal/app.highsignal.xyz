@@ -1,7 +1,7 @@
 import { getAccessToken } from "@privy-io/react-auth"
 import { useState, useEffect } from "react"
 
-export const useGetProjects = (project: string, isSuperAdminRequesting: boolean = false) => {
+export const useGetProjects = (project?: string, isSuperAdminRequesting: boolean = false) => {
     const [projects, setProjects] = useState<ProjectData[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)

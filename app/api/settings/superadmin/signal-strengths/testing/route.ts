@@ -149,6 +149,7 @@ async function getForumUserFromDb(supabase: SupabaseClient, targetUserId: string
         .select("forum_username")
         .eq("user_id", targetUserId)
         .eq("project_id", projectId)
+        .not("forum_username", "is", null)
         .single()
 
     if (forumUserError || !forumUser) {
