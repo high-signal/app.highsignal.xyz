@@ -134,14 +134,13 @@ export default function ForumConnectionManager({
 
             // Show success message
             toaster.create({
-                title: "✅ Forum username updated",
-                description: `Your ${config.projectDisplayName} forum username has been updated successfully. View your profile to see the calculation in progress.`,
+                title: `✅ ${config.projectDisplayName} forum connected`,
+                description: `Your ${config.projectDisplayName} forum accounts has been connected successfully. View your ${config.projectDisplayName} signal score to see the calculation in progress.`,
                 type: "success",
                 action: {
-                    label: "View Profile",
-                    // TODO: Uncomment this when the profile page is implemented
-                    // onClick: () => router.push(`/u/${targetUser.username}`),
-                    onClick: () => router.push(`/p/lido/${targetUser?.username}#${signalStrengthName}`),
+                    label: `View your ${config.projectDisplayName} signal score`,
+                    onClick: () =>
+                        router.push(`/p/${config.projectUrlSlug}/${targetUser?.username}#${signalStrengthName}`),
                 },
             })
         }

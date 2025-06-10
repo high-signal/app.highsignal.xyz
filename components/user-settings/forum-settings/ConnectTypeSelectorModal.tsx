@@ -3,11 +3,13 @@
 import { HStack, VStack, Text, Button, Dialog, Spinner, Link } from "@chakra-ui/react"
 import Modal from "../../ui/Modal"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCopy } from "@fortawesome/free-solid-svg-icons"
+import { faCopy, faExternalLink, faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { useEffect, useState } from "react"
 import { faCheckCircle } from "@fortawesome/free-regular-svg-icons"
 import { usePrivy } from "@privy-io/react-auth"
 import { useUser } from "../../../contexts/UserContext"
+import { toaster } from "../../ui/toaster"
+import { useRouter } from "next/navigation"
 
 interface ConnectTypeSelectorModalProps {
     isOpen: boolean
@@ -39,8 +41,11 @@ export default function ConnectTypeSelectorModal({
 
     const { refreshUser } = useUser()
     const { getAccessToken } = usePrivy()
+    const router = useRouter()
 
     const [authPostCode, setAuthPostCode] = useState<string | undefined>(undefined)
+
+    const signalStrengthName = "discourse_forum"
 
     // Update the authPostCode when the targetUser or projectUrlSlug changes
     useEffect(() => {
@@ -50,7 +55,7 @@ export default function ConnectTypeSelectorModal({
         )
     }, [targetUser, config.projectUrlSlug])
 
-    const authPostMessage = `This post is to connect my forum account to my High Signal account. My authentication code is: ${authPostCode}`
+    const authPostMessage = `This post is proof to High Signal that I own my ${config.projectDisplayName} forum account. My authentication code is: ${authPostCode}`
 
     // When modal opens, if no authPostCode is found, generate one
     useEffect(() => {
@@ -103,6 +108,17 @@ export default function ConnectTypeSelectorModal({
 
         const data = await response.json()
         if (data.authPostCodeFound) {
+            // Show success message
+            toaster.create({
+                title: `✅ ${config.projectDisplayName} forum connected`,
+                description: `Your ${config.projectDisplayName} forum accounts has been connected successfully. View your ${config.projectDisplayName} signal score to see the calculation in progress.`,
+                type: "success",
+                action: {
+                    label: `View your ${config.projectDisplayName} signal score`,
+                    onClick: () =>
+                        router.push(`/p/${config.projectUrlSlug}/${targetUser?.username}#${signalStrengthName}`),
+                },
+            })
             handleClose()
             setIsAuthPostCodeCheckSubmitted(false)
             refreshUser()
@@ -151,7 +167,7 @@ export default function ConnectTypeSelectorModal({
                         {title}
                     </Text>
                 </VStack>
-                <VStack gap={3} textAlign={"center"} maxW={"100%"}>
+                <VStack gap={4} textAlign={"center"} maxW={"100%"}>
                     {children}
                 </VStack>
             </VStack>
@@ -174,7 +190,27 @@ export default function ConnectTypeSelectorModal({
             >
                 <Dialog.Header>
                     <Dialog.Title textAlign={"center"}>
-                        <Text fontWeight="bold">Connect your {config.projectDisplayName} forum account</Text>
+                        <Text fontWeight="bold" px={4}>
+                            Connect your {config.projectDisplayName} forum account
+                        </Text>
+                        <Button
+                            closeButton
+                            position="absolute"
+                            right={{ base: "10px", md: "28px" }}
+                            top="28px"
+                            onClick={handleClose}
+                            borderRadius="full"
+                            color={"pageBackground"}
+                            w="20px"
+                            h="20px"
+                            minW="20px"
+                            maxW="20px"
+                            justifyContent={"center"}
+                            alignItems={"center"}
+                            display="flex"
+                        >
+                            <FontAwesomeIcon icon={faXmark} />
+                        </Button>
                     </Dialog.Title>
                 </Dialog.Header>
                 <Dialog.Body>
@@ -255,14 +291,20 @@ export default function ConnectTypeSelectorModal({
                                 </Button>
                             </VStack>
                             <Text>
-                                Post this message on the {config.projectDisplayName} forum on the dedicated topic for
-                                High Signal authentication:
+                                Post the message on the {config.projectDisplayName} forum thread for High Signal
+                                authentication:
                             </Text>
-                            <Text>
-                                <Link href={config.forumAuthParentPostUrl} target="_blank">
-                                    {config.forumAuthParentPostUrl}
-                                </Link>
-                            </Text>
+                            <Link href={config.forumAuthParentPostUrl} target="_blank" textDecoration={"none"}>
+                                <Button contentButton px={3} py={1} borderRadius={"full"}>
+                                    <HStack>
+                                        <Text>
+                                            Go to the {config.projectDisplayName} forum High Signal authentication post
+                                        </Text>
+                                        <FontAwesomeIcon icon={faExternalLink} size="lg" />
+                                    </HStack>
+                                </Button>
+                            </Link>
+
                             <Text>
                                 Once you have posted the message, click the{" "}
                                 <Text as="span" fontWeight={"bold"}>
@@ -283,9 +325,12 @@ export default function ConnectTypeSelectorModal({
                                 {isForumSubmitting ? (
                                     <Spinner size="sm" color="white" />
                                 ) : (
-                                    <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
-                                        Check forum post
-                                    </Text>
+                                    <HStack>
+                                        <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
+                                            Check the forum for my post
+                                        </Text>
+                                        <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
+                                    </HStack>
                                 )}
                             </Button>
                             {authPostCheckError && (

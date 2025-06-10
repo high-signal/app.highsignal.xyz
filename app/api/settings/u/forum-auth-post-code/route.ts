@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
         }
 
         const generateAuthCode = () => {
-            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            const chars = "BCDGHJLMNPQRTVWYZ"
             const generatePart = () => {
                 return Array.from({ length: 3 }, () => chars[Math.floor(Math.random() * chars.length)]).join("")
             }
