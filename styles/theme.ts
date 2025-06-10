@@ -110,7 +110,7 @@ export const customConfig = defineConfig({
                     value: { _light: "black", _dark: "white" },
                 },
                 textColorMuted: {
-                    value: { _light: "black", _dark: "{colors.gray.400}" },
+                    value: { _light: "{colors.gray.500}", _dark: "{colors.gray.400}" },
                 },
                 selectionColor: {
                     value: { _light: "{colors.blue.300}", _dark: "{colors.teal.600}" },

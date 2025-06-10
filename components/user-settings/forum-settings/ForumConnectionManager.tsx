@@ -344,13 +344,13 @@ export default function ForumConnectionManager({
                                     >
                                         <CustomMenuItem value="connection-type" isHeading>
                                             <HStack overflow={"hidden"} color="textColorMuted" gap={1}>
-                                                <Text fontWeight="bold">User details from</Text>
+                                                <Text fontWeight="bold">Username from</Text>
                                                 <Text fontWeight="bold">
                                                     {targetUser.forumUsers?.find(
                                                         (forumUser) =>
                                                             forumUser.projectUrlSlug === config.projectUrlSlug,
                                                     )?.authEncryptedPayload
-                                                        ? "API"
+                                                        ? "direct connection"
                                                         : targetUser.forumUsers?.find(
                                                                 (forumUser) =>
                                                                     forumUser.projectUrlSlug === config.projectUrlSlug,

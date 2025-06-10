@@ -254,7 +254,11 @@ export default function ConnectTypeSelectorModal({
                                     <Spinner size="sm" color="white" />
                                 ) : config.forumAuthTypes?.includes("api_auth") ? (
                                     <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
-                                        Connect
+                                        {targetUser.forumUsers?.find(
+                                            (forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug,
+                                        )?.authEncryptedPayload
+                                            ? "Refresh connection"
+                                            : "Connect"}
                                     </Text>
                                 ) : (
                                     <Text fontWeight="bold" whiteSpace="normal" py={2} px={4}>
@@ -297,7 +301,7 @@ export default function ConnectTypeSelectorModal({
                             <Link href={config.forumAuthParentPostUrl} target="_blank" textDecoration={"none"}>
                                 <Button contentButton px={3} py={1} borderRadius={"full"}>
                                     <HStack>
-                                        <Text>
+                                        <Text whiteSpace="normal">
                                             Go to the {config.projectDisplayName} forum High Signal authentication post
                                         </Text>
                                         <FontAwesomeIcon icon={faExternalLink} size="lg" />
@@ -318,20 +322,16 @@ export default function ConnectTypeSelectorModal({
                                 w={"100%"}
                                 onClick={handleAuthPostCodeCheck}
                                 borderRadius="full"
-                                disabled={isForumSubmitting}
+                                disabled={isAuthPostCodeCheckSubmitted}
                                 mt={2}
                                 loading={isAuthPostCodeCheckSubmitted}
                             >
-                                {isForumSubmitting ? (
-                                    <Spinner size="sm" color="white" />
-                                ) : (
-                                    <HStack>
-                                        <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
-                                            Check the forum for my post
-                                        </Text>
-                                        <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
-                                    </HStack>
-                                )}
+                                <HStack>
+                                    <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
+                                        Check the forum for my post
+                                    </Text>
+                                    <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
+                                </HStack>
                             </Button>
                             {authPostCheckError && (
                                 <Text color="red.500" fontSize="sm">
