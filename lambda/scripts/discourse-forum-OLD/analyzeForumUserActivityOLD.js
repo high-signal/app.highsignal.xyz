@@ -210,7 +210,7 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
             // For each day with data in dailyActivityData, run the analyzeUserData function
             const analysisPromises = dailyActivityData.map(async (day) => {
                 if (day.data.length > 0) {
-                    // Check if the day is already in the database
+                    // Check if the day is already in the database for the raw score calculation
                     const { data: existingData, error: existingDataError } = await supabase
                         .from("user_signal_strengths")
                         .select("*")
@@ -218,13 +218,14 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
                         .eq("user_id", user_id)
                         .eq("project_id", project_id)
                         .eq("signal_strength_id", signal_strength_id)
+                        .not("raw_value", "is", null)
 
                     if (existingDataError) {
                         console.error("Error fetching existing data:", existingDataError)
                         return
                     }
 
-                    if (!testingData && existingData) {
+                    if (!testingData && existingData && existingData.length > 0) {
                         console.log(`Day ${day.date} already exists in the database. Skipping raw score calculation...`)
                         return
                     }
