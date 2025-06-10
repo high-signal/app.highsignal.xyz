@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
+// This is used to check if the auth post code is found on the forum thread
 export async function GET(request: NextRequest) {
     try {
         const signalStrengthName = "discourse_forum"
@@ -83,6 +84,7 @@ export async function GET(request: NextRequest) {
                 .update({
                     forum_username: matchingAuthPost.username,
                     auth_post_id: matchingAuthPost.id,
+                    auth_encrypted_payload: null, // Clear the api auth as that is the default and would take precedence
                 })
                 .eq("user_id", targetUserData.id)
                 .eq("project_id", projectData.id)

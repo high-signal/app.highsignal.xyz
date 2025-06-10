@@ -3,7 +3,7 @@
 import { HStack, VStack, Text, Button, Dialog, Spinner, Link } from "@chakra-ui/react"
 import Modal from "../../ui/Modal"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCopy, faExternalLink, faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { faCopy, faExternalLink, faMagnifyingGlass, faXmark, faRefresh } from "@fortawesome/free-solid-svg-icons"
 import { useEffect, useState } from "react"
 import { faCheckCircle } from "@fortawesome/free-regular-svg-icons"
 import { usePrivy } from "@privy-io/react-auth"
@@ -46,6 +46,13 @@ export default function ConnectTypeSelectorModal({
     const [authPostCode, setAuthPostCode] = useState<string | undefined>(undefined)
 
     const signalStrengthName = "discourse_forum"
+
+    const authEncryptedPayload =
+        targetUser.forumUsers?.find((forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug)
+            ?.authEncryptedPayload || null
+    const authPostId =
+        targetUser.forumUsers?.find((forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug)?.authPostId ||
+        null
 
     // Update the authPostCode when the targetUser or projectUrlSlug changes
     useEffect(() => {
@@ -160,6 +167,8 @@ export default function ConnectTypeSelectorModal({
                 alignItems={"center"}
                 h={"100%"}
                 gap={3}
+                border={"3px solid"}
+                borderColor={"contentBorder"}
             >
                 <VStack fontWeight={"bold"} fontSize={"md"} textAlign={"center"} gap={4}>
                     <Text color={"green.500"}>{option}</Text>
@@ -240,26 +249,34 @@ export default function ConnectTypeSelectorModal({
                                 {config.projectDisplayName} forum account but does not allow any other actions.
                             </Text>
                             <Button
-                                {...(config.forumAuthTypes?.includes("api_auth")
+                                {...(config.forumAuthTypes?.includes("api_auth") && !authEncryptedPayload
                                     ? { primaryButton: true }
-                                    : { contentButton: true })}
+                                    : authEncryptedPayload
+                                      ? { successButton: true }
+                                      : { contentButton: true })}
+                                border={"3px solid"}
+                                borderColor={
+                                    config.forumAuthTypes?.includes("api_auth") && authEncryptedPayload
+                                        ? "lozenge.border.active"
+                                        : "transparent"
+                                }
                                 minH={"40px"}
                                 w={"100%"}
                                 onClick={handleForumAuthApi}
                                 borderRadius="full"
                                 disabled={!config.forumAuthTypes?.includes("api_auth") || isForumSubmitting}
                                 mt={2}
+                                loading={isForumSubmitting}
                             >
-                                {isForumSubmitting ? (
-                                    <Spinner size="sm" color="white" />
-                                ) : config.forumAuthTypes?.includes("api_auth") ? (
-                                    <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
-                                        {targetUser.forumUsers?.find(
-                                            (forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug,
-                                        )?.authEncryptedPayload
-                                            ? "Refresh connection"
-                                            : "Connect"}
-                                    </Text>
+                                {config.forumAuthTypes?.includes("api_auth") ? (
+                                    <HStack>
+                                        <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
+                                            {authEncryptedPayload ? "Connected - Refresh connection" : "Connect"}
+                                        </Text>
+                                        {config.forumAuthTypes?.includes("api_auth") && authEncryptedPayload && (
+                                            <FontAwesomeIcon icon={faRefresh} size="lg" />
+                                        )}
+                                    </HStack>
                                 ) : (
                                     <Text fontWeight="bold" whiteSpace="normal" py={2} px={4}>
                                         This authentication method has not been enabled by {config.projectDisplayName}
@@ -317,7 +334,13 @@ export default function ConnectTypeSelectorModal({
                                 button to confirm you are the owner of your {config.projectDisplayName} forum account.
                             </Text>
                             <Button
-                                primaryButton
+                                {...(!authPostId || authEncryptedPayload
+                                    ? { primaryButton: true }
+                                    : { successButton: true })}
+                                border={"3px solid"}
+                                borderColor={
+                                    !authPostId || authEncryptedPayload ? "transparent" : "lozenge.border.active"
+                                }
                                 minH={"40px"}
                                 w={"100%"}
                                 onClick={handleAuthPostCodeCheck}
@@ -328,7 +351,9 @@ export default function ConnectTypeSelectorModal({
                             >
                                 <HStack>
                                     <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
-                                        Check the forum for my post
+                                        {!authPostId || authEncryptedPayload
+                                            ? "Check the forum for my post"
+                                            : "Connected - Check the forum for my post again"}
                                     </Text>
                                     <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
                                 </HStack>
