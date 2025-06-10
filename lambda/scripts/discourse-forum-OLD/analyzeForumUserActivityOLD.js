@@ -80,7 +80,7 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
             "and forum username",
             forum_username,
         )
-        console.log(`signalStrengthConfig for ${projectSignalData.projects.display_name}\n`, signalStrengthConfig)
+        // console.log(`signalStrengthConfig for ${projectSignalData.projects.display_name}\n`, signalStrengthConfig)
 
         if (!signalStrengthConfig || signalStrengthConfig.length === 0) {
             console.error("Signal strength config not found")
@@ -145,7 +145,7 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
             return
         }
 
-        console.log(`forum_users data for ${userData.users.display_name}`, userData)
+        // console.log(`forum_users data for ${userData.users.display_name}`, userData)
 
         const lastUpdated = userData.last_updated
         const displayName = userData.users.display_name
@@ -306,6 +306,7 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
             ).data || []
 
         rawActivityCombinedData = rawActivityCombinedData.map((item) => ({
+            id: item.id,
             summary: item.summary,
             description: item.description,
             improvements: item.improvements,
@@ -314,6 +315,15 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
             max_value: item.max_value,
             day: item.day,
         }))
+
+        // This is a catch for an edge case where duplicate raw score rows for the same day are created
+        // It is important that raw scores and not double counted towards the smart score
+        // In case there are any duplicates for the same day, keep the one with the larger id value
+        const uniqueDays = [...new Set(rawActivityCombinedData.map((item) => item.day))]
+        rawActivityCombinedData = uniqueDays.map((day) => {
+            const itemsForDay = rawActivityCombinedData.filter((item) => item.day === day)
+            return itemsForDay.reduce((max, current) => (current.id > max.id ? current : max))
+        })
 
         // TODO: Add previous smart score (if it exists) to the end of the rawActivityCombinedData array so it can be
         // used as a reference for the analysis. Tell the smart prompt how to use it and to try not vary wildly unless
