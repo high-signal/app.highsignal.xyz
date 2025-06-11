@@ -1,4 +1,4 @@
-import { HStack, Text, VStack, Box, Switch, Button } from "@chakra-ui/react"
+import { HStack, Text, VStack, Box, Switch, Button, Span } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck, faChevronRight, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { useEffect, useState } from "react"
@@ -63,7 +63,6 @@ export default function SignalStrengthSettings({
     signalStrength: SignalStrengthProjectData
 }) {
     const [isOpen, setIsOpen] = useState(true)
-
     const [settings, setSettings] = useState<SignalStrengthState>({
         status: {
             current: signalStrength.status,
@@ -90,6 +89,23 @@ export default function SignalStrengthSettings({
             new: null,
         },
     })
+    const [hasChanges, setHasChanges] = useState(false)
+
+    useEffect(() => {
+        const hasChanges = Object.values(settings).some((setting) => setting.new !== null)
+        setHasChanges(hasChanges)
+    }, [settings])
+
+    const handleCancel = () => {
+        const resetSettings = Object.keys(settings).reduce(
+            (acc, key) => ({
+                ...acc,
+                [key]: { ...settings[key as keyof SignalStrengthState], new: null },
+            }),
+            {} as SignalStrengthState,
+        )
+        setSettings(resetSettings)
+    }
 
     return (
         <VStack w="100%" gap={0}>
@@ -107,35 +123,47 @@ export default function SignalStrengthSettings({
                 onClick={() => signalStrength.status !== "dev" && setIsOpen(!isOpen)}
                 _hover={signalStrength.status !== "dev" ? { bg: "contentBackgroundHover" } : undefined}
             >
-                <HStack>
-                    <HStack py={2} px={1} borderRadius={"8px"} gap={3}>
-                        <Box w={"10px"} transition="transform 0.2s" transform={`rotate(${isOpen ? 90 : 0}deg)`}>
-                            {signalStrength.status !== "dev" && <FontAwesomeIcon icon={faChevronRight} />}
-                        </Box>
-                        <Text
-                            w="fit-content"
-                            fontWeight="bold"
-                            fontSize="lg"
-                            whiteSpace="nowrap"
-                            color={signalStrength.status === "dev" ? "textColorMuted" : undefined}
-                        >
-                            {signalStrength.displayName}
+                <HStack py={2} px={1} borderRadius={"8px"} gap={3}>
+                    <Box w={"10px"} transition="transform 0.2s" transform={`rotate(${isOpen ? 90 : 0}deg)`}>
+                        {signalStrength.status !== "dev" && <FontAwesomeIcon icon={faChevronRight} />}
+                    </Box>
+                    <Text
+                        w="fit-content"
+                        fontWeight="bold"
+                        fontSize="lg"
+                        whiteSpace="nowrap"
+                        color={signalStrength.status === "dev" ? "textColorMuted" : undefined}
+                    >
+                        {signalStrength.displayName}{" "}
+                        {hasChanges && (
+                            <Span pl={2} fontSize={"sm"} color={"orange.500"} fontWeight={"bold"}>
+                                Edited
+                            </Span>
+                        )}
+                    </Text>
+                </HStack>
+
+                <HStack flexGrow={1} justify={"end"}>
+                    <HStack
+                        bg={
+                            signalStrength.status === "dev"
+                                ? "lozenge.background.disabled"
+                                : "lozenge.background.active"
+                        }
+                        px={2}
+                        py={1}
+                        borderRadius={"full"}
+                        border={"2px solid"}
+                        borderColor={
+                            signalStrength.status === "dev" ? "lozenge.border.disabled" : "lozenge.border.active"
+                        }
+                        fontWeight={"bold"}
+                        fontSize={"sm"}
+                    >
+                        <Text color={signalStrength.status === "dev" ? "lozenge.text.disabled" : "lozenge.text.active"}>
+                            {signalStrength.status === "dev" ? "Coming soon 🏗️" : "Active"}
                         </Text>
                     </HStack>
-                </HStack>
-                <HStack
-                    bg={signalStrength.status === "dev" ? "lozenge.background.disabled" : "lozenge.background.active"}
-                    px={2}
-                    py={1}
-                    borderRadius={"full"}
-                    border={"2px solid"}
-                    borderColor={signalStrength.status === "dev" ? "lozenge.border.disabled" : "lozenge.border.active"}
-                    fontWeight={"bold"}
-                    fontSize={"sm"}
-                >
-                    <Text color={signalStrength.status === "dev" ? "lozenge.text.disabled" : "lozenge.text.active"}>
-                        {signalStrength.status === "dev" ? "Coming soon 🏗️" : "Active"}
-                    </Text>
                 </HStack>
             </HStack>
             {isOpen && (
@@ -191,32 +219,16 @@ export default function SignalStrengthSettings({
                             return null
                         })()}
                     </VStack>
-                    {(() => {
-                        const hasChanges = Object.values(settings).some((setting) => setting.new !== null)
-                        if (!hasChanges) return null
-
-                        const handleCancel = () => {
-                            setSettings({
-                                status: { ...settings.status, new: null },
-                                maxValue: { ...settings.maxValue, new: null },
-                                previousDays: { ...settings.previousDays, new: null },
-                                url: { ...settings.url, new: null },
-                                authTypes: { ...settings.authTypes, new: null },
-                                authParentPostUrl: { ...settings.authParentPostUrl, new: null },
-                            })
-                        }
-
-                        return (
-                            <HStack w="100%" justify={"end"} gap={3}>
-                                <Button secondaryButton px={3} py={1} borderRadius={"full"} onClick={handleCancel}>
-                                    Cancel
-                                </Button>
-                                <Button primaryButton px={3} py={1} borderRadius={"full"}>
-                                    Save changes
-                                </Button>
-                            </HStack>
-                        )
-                    })()}
+                    {hasChanges && (
+                        <HStack w="100%" justify={"end"} gap={3}>
+                            <Button secondaryButton px={3} py={1} borderRadius={"full"} onClick={handleCancel}>
+                                Cancel
+                            </Button>
+                            <Button primaryButton px={3} py={1} borderRadius={"full"}>
+                                Save changes
+                            </Button>
+                        </HStack>
+                    )}
                     {/* <Text>{JSON.stringify(settings)}</Text> */}
                 </VStack>
             )}
