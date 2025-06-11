@@ -1,6 +1,6 @@
-import { HStack, Text, VStack, Box, Switch, Button, Span } from "@chakra-ui/react"
+import { HStack, Text, VStack, Box, Switch, Button, Span, RadioGroup } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCheck, faChevronRight, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { faArrowRight, faCheck, faChevronRight } from "@fortawesome/free-solid-svg-icons"
 import { useEffect, useState } from "react"
 
 type SignalStrengthState = {
@@ -170,13 +170,99 @@ export default function SignalStrengthSettings({
                 <VStack
                     w="100%"
                     pb={2}
-                    gap={0}
+                    gap={5}
                     bg={"contentBackground"}
                     p={4}
                     borderRadius={{ base: "0px", md: "16px" }}
                     alignItems={"start"}
                 >
-                    <Text>Status: {settings.status.new ?? settings.status.current}</Text>
+                    <HStack alignItems={"start"} gap={3}>
+                        <Text fontSize={"lg"}>Status:</Text>
+                        <RadioGroup.Root
+                            value={settings.status.new ?? settings.status.current ?? "disabled"}
+                            onValueChange={(details) => {
+                                setSettings({
+                                    ...settings,
+                                    status: { ...settings.status, new: details.value },
+                                })
+                            }}
+                        >
+                            <HStack gap={6} alignItems={"start"}>
+                                <RadioGroup.Item
+                                    value="active"
+                                    cursor={"pointer"}
+                                    gap={0}
+                                    bg={"pageBackground"}
+                                    borderRadius={"full"}
+                                >
+                                    <RadioGroup.ItemHiddenInput />
+                                    <Box
+                                        w={"28px"}
+                                        pl={"2px"}
+                                        h={"100%"}
+                                        display={"flex"}
+                                        alignItems={"center"}
+                                        justifyContent={"center"}
+                                    >
+                                        {(settings.status.new === "active" ||
+                                            (!settings.status.new && settings.status.current === "active")) && (
+                                            <FontAwesomeIcon icon={faArrowRight} />
+                                        )}
+                                    </Box>
+                                    <RadioGroup.ItemText>
+                                        <HStack
+                                            bg={"lozenge.background.active"}
+                                            px={2}
+                                            py={1}
+                                            borderRadius={"full"}
+                                            border={"2px solid"}
+                                            borderColor={"lozenge.border.active"}
+                                            fontWeight={"bold"}
+                                            fontSize={"sm"}
+                                        >
+                                            <Text color={"lozenge.text.active"}>Active</Text>
+                                        </HStack>
+                                    </RadioGroup.ItemText>
+                                </RadioGroup.Item>
+                                <RadioGroup.Item
+                                    value="disabled"
+                                    cursor={"pointer"}
+                                    gap={0}
+                                    bg={"pageBackground"}
+                                    borderRadius={"full"}
+                                >
+                                    <RadioGroup.ItemHiddenInput />
+                                    <Box
+                                        w={"28px"}
+                                        pl={"2px"}
+                                        h={"100%"}
+                                        display={"flex"}
+                                        alignItems={"center"}
+                                        justifyContent={"center"}
+                                    >
+                                        {(settings.status.new === "disabled" ||
+                                            (!settings.status.new && settings.status.current === "disabled")) && (
+                                            <FontAwesomeIcon icon={faArrowRight} />
+                                        )}
+                                    </Box>
+                                    <RadioGroup.ItemText>
+                                        <HStack
+                                            bg={"lozenge.background.disabled"}
+                                            px={2}
+                                            py={1}
+                                            borderRadius={"full"}
+                                            border={"2px solid"}
+                                            borderColor={"lozenge.border.disabled"}
+                                            fontWeight={"bold"}
+                                            fontSize={"sm"}
+                                        >
+                                            <Text color={"lozenge.text.disabled"}>Disabled</Text>
+                                        </HStack>
+                                    </RadioGroup.ItemText>
+                                </RadioGroup.Item>
+                            </HStack>
+                        </RadioGroup.Root>
+                    </HStack>
                     <Text>Max score: {settings.maxValue.new ?? settings.maxValue.current} / 100</Text>
                     <Text>Previous days: {settings.previousDays.new ?? settings.previousDays.current}</Text>
                     <Text>URL: {settings.url.new ?? settings.url.current}</Text>
@@ -229,7 +315,7 @@ export default function SignalStrengthSettings({
                             </Button>
                         </HStack>
                     )}
-                    {/* <Text>{JSON.stringify(settings)}</Text> */}
+                    <Text>{JSON.stringify(settings)}</Text>
                 </VStack>
             )}
         </VStack>
