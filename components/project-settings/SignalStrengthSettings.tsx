@@ -177,7 +177,7 @@ export default function SignalStrengthSettings({
                     borderRadius={{ base: "0px", md: "16px" }}
                     alignItems={"start"}
                 >
-                    <HStack alignItems={"center"} gap={6}>
+                    <HStack alignItems={"center"} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
                         <Text fontWeight={"bold"} minW={"120px"}>
                             Status
                         </Text>
@@ -266,11 +266,11 @@ export default function SignalStrengthSettings({
                             </HStack>
                         </RadioGroup.Root>
                     </HStack>
-                    <HStack alignItems={"center"} gap={6}>
+                    <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
                         <Text fontWeight={"bold"} minW={"120px"}>
                             Max score
                         </Text>
-                        <HStack>
+                        <HStack w={{ base: "100%", sm: "auto" }}>
                             <SingleLineTextInput
                                 bg={"pageBackground"}
                                 maxW={"60px"}
@@ -297,7 +297,7 @@ export default function SignalStrengthSettings({
                             <Text>/ 100</Text>
                         </HStack>
                     </HStack>
-                    <HStack alignItems={"center"} gap={6}>
+                    <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
                         <Text fontWeight={"bold"} minW={"120px"}>
                             Previous days
                         </Text>
@@ -314,7 +314,7 @@ export default function SignalStrengthSettings({
                                 })
                             }}
                         >
-                            <HStack gap={6} alignItems={"start"}>
+                            <HStack columnGap={6} rowGap={3} alignItems={"start"} flexWrap={"wrap"}>
                                 {[30, 60, 90].map((days) => (
                                     <RadioGroup.Item
                                         key={days}
@@ -342,6 +342,7 @@ export default function SignalStrengthSettings({
                                         </Box>
                                         <RadioGroup.ItemText>
                                             <Text
+                                                whiteSpace={"nowrap"}
                                                 pr={2}
                                                 color={
                                                     settings.previousDays.new === days ||
@@ -359,54 +360,67 @@ export default function SignalStrengthSettings({
                             </HStack>
                         </RadioGroup.Root>
                     </HStack>
-                    <HStack alignItems={"center"} gap={6}>
+                    <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
                         <Text fontWeight={"bold"} minW={"120px"}>
                             URL
                         </Text>
-                        <Text>{settings.url.new ?? settings.url.current}</Text>
+                        <SingleLineTextInput
+                            bg={"pageBackground"}
+                            maxW={"400px"}
+                            h={"32px"}
+                            value={settings.url.new ?? settings.url.current ?? ""}
+                            onChange={(e) => {
+                                setSettings({
+                                    ...settings,
+                                    url: { ...settings.url, new: e.target.value },
+                                })
+                            }}
+                        />
                     </HStack>
-                    <HStack alignItems={"center"} gap={6}>
+                    <VStack alignItems={"start"} gap={2} w={"100%"}>
                         <Text fontWeight={"bold"} minW={"120px"}>
                             Authentication options
                         </Text>
-                    </HStack>
-                    <VStack alignItems={"start"} gap={3}>
-                        {signalStrength.availableAuthTypes?.includes("api_auth") && (
-                            <HStack>
+
+                        <VStack alignItems={"start"} gap={3} w={"100%"}>
+                            {signalStrength.availableAuthTypes?.includes("api_auth") && (
+                                <HStack columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
+                                    <AuthTypeSwitch
+                                        key={"api_auth"}
+                                        authType={"api_auth"}
+                                        settings={settings}
+                                        setSettings={setSettings}
+                                    />
+                                    {(() => {
+                                        const currentAuthTypes =
+                                            settings.authTypes.new ?? settings.authTypes.current ?? []
+                                        if (currentAuthTypes.includes("api_auth")) {
+                                            return (
+                                                <Text fontSize={"sm"} h={"20px"}>
+                                                    Make sure you enable user API keys
+                                                </Text>
+                                            )
+                                        }
+                                        return null
+                                    })()}
+                                </HStack>
+                            )}
+                            {signalStrength.availableAuthTypes?.includes("manual_post") && (
                                 <AuthTypeSwitch
-                                    key={"api_auth"}
-                                    authType={"api_auth"}
+                                    key={"manual_post"}
+                                    authType={"manual_post"}
                                     settings={settings}
                                     setSettings={setSettings}
                                 />
-                                {(() => {
-                                    const currentAuthTypes = settings.authTypes.new ?? settings.authTypes.current ?? []
-                                    if (currentAuthTypes.includes("api_auth")) {
-                                        return (
-                                            <Text fontSize={"sm"} h={"20px"}>
-                                                Make sure you enable user API keys
-                                            </Text>
-                                        )
-                                    }
-                                    return null
-                                })()}
-                            </HStack>
-                        )}
-                        {signalStrength.availableAuthTypes?.includes("manual_post") && (
-                            <AuthTypeSwitch
-                                key={"manual_post"}
-                                authType={"manual_post"}
-                                settings={settings}
-                                setSettings={setSettings}
-                            />
-                        )}
-                        {(() => {
-                            const currentAuthTypes = settings.authTypes.new ?? settings.authTypes.current ?? []
-                            if (currentAuthTypes.includes("manual_post")) {
-                                return <Text>Auth parent post URL: {signalStrength.authParentPostUrl}</Text>
-                            }
-                            return null
-                        })()}
+                            )}
+                            {(() => {
+                                const currentAuthTypes = settings.authTypes.new ?? settings.authTypes.current ?? []
+                                if (currentAuthTypes.includes("manual_post")) {
+                                    return <Text>Auth parent post URL: {signalStrength.authParentPostUrl}</Text>
+                                }
+                                return null
+                            })()}
+                        </VStack>
                     </VStack>
                     {hasChanges && (
                         <HStack w="100%" justify={"end"} gap={3}>
