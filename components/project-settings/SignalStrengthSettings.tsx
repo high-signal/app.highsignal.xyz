@@ -274,6 +274,7 @@ export default function SignalStrengthSettings({
                             <SingleLineTextInput
                                 bg={"pageBackground"}
                                 maxW={"60px"}
+                                h={"32px"}
                                 value={settings.maxValue.new?.toString() ?? settings.maxValue.current?.toString() ?? ""}
                                 onChange={(e) => {
                                     const value = e.target.value
@@ -300,7 +301,63 @@ export default function SignalStrengthSettings({
                         <Text fontWeight={"bold"} minW={"120px"}>
                             Previous days
                         </Text>
-                        <Text>{settings.previousDays.new ?? settings.previousDays.current}</Text>
+                        <RadioGroup.Root
+                            value={
+                                settings.previousDays.new?.toString() ??
+                                settings.previousDays.current?.toString() ??
+                                "30"
+                            }
+                            onValueChange={(details) => {
+                                setSettings({
+                                    ...settings,
+                                    previousDays: { ...settings.previousDays, new: parseInt(details.value) },
+                                })
+                            }}
+                        >
+                            <HStack gap={6} alignItems={"start"}>
+                                {[30, 60, 90].map((days) => (
+                                    <RadioGroup.Item
+                                        key={days}
+                                        value={days.toString()}
+                                        cursor={"pointer"}
+                                        gap={0}
+                                        bg={"pageBackground"}
+                                        borderRadius={"full"}
+                                        h={"32px"}
+                                    >
+                                        <RadioGroup.ItemHiddenInput />
+                                        <Box
+                                            w={"28px"}
+                                            px={"2px"}
+                                            h={"100%"}
+                                            display={"flex"}
+                                            alignItems={"center"}
+                                            justifyContent={"center"}
+                                        >
+                                            {(settings.previousDays.new === days ||
+                                                (!settings.previousDays.new &&
+                                                    settings.previousDays.current === days)) && (
+                                                <FontAwesomeIcon icon={faArrowRight} />
+                                            )}
+                                        </Box>
+                                        <RadioGroup.ItemText>
+                                            <Text
+                                                pr={2}
+                                                color={
+                                                    settings.previousDays.new === days ||
+                                                    (!settings.previousDays.new &&
+                                                        settings.previousDays.current === days)
+                                                        ? "textColor"
+                                                        : "textColorMuted"
+                                                }
+                                            >
+                                                {days} days
+                                            </Text>
+                                        </RadioGroup.ItemText>
+                                    </RadioGroup.Item>
+                                ))}
+                            </HStack>
+                        </RadioGroup.Root>
                     </HStack>
                     <HStack alignItems={"center"} gap={6}>
                         <Text fontWeight={"bold"} minW={"120px"}>
