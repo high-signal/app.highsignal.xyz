@@ -2,11 +2,12 @@ import { HStack, Text, VStack, Box, Switch, Button, Span, RadioGroup } from "@ch
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faCheck, faChevronRight } from "@fortawesome/free-solid-svg-icons"
 import { useEffect, useState } from "react"
+import SingleLineTextInput from "../ui/SingleLineTextInput"
 
 type SignalStrengthState = {
     status: { current: string | null; new: string | null }
-    maxValue: { current: number | null; new: number | null }
-    previousDays: { current: number | null; new: number | null }
+    maxValue: { current: number | null; new: number | string | null }
+    previousDays: { current: number | null; new: number | string | null }
     url: { current: string | null; new: string | null }
     authTypes: { current: string[] | null; new: string[] | null }
     authParentPostUrl: { current: string | null; new: string | null }
@@ -176,8 +177,10 @@ export default function SignalStrengthSettings({
                     borderRadius={{ base: "0px", md: "16px" }}
                     alignItems={"start"}
                 >
-                    <HStack alignItems={"start"} gap={3}>
-                        <Text fontSize={"lg"}>Status:</Text>
+                    <HStack alignItems={"center"} gap={6}>
+                        <Text fontWeight={"bold"} minW={"120px"}>
+                            Status
+                        </Text>
                         <RadioGroup.Root
                             value={settings.status.new ?? settings.status.current ?? "disabled"}
                             onValueChange={(details) => {
@@ -263,10 +266,53 @@ export default function SignalStrengthSettings({
                             </HStack>
                         </RadioGroup.Root>
                     </HStack>
-                    <Text>Max score: {settings.maxValue.new ?? settings.maxValue.current} / 100</Text>
-                    <Text>Previous days: {settings.previousDays.new ?? settings.previousDays.current}</Text>
-                    <Text>URL: {settings.url.new ?? settings.url.current}</Text>
-                    <Text>Authentication options:</Text>
+                    <HStack alignItems={"center"} gap={6}>
+                        <Text fontWeight={"bold"} minW={"120px"}>
+                            Max score
+                        </Text>
+                        <HStack>
+                            <SingleLineTextInput
+                                bg={"pageBackground"}
+                                maxW={"60px"}
+                                value={settings.maxValue.new?.toString() ?? settings.maxValue.current?.toString() ?? ""}
+                                onChange={(e) => {
+                                    const value = e.target.value
+                                    // Only allow digits
+                                    if (!/^\d*$/.test(value)) return
+
+                                    // Convert to number and validate range
+                                    const numValue = value ? parseInt(value) : ""
+                                    if (numValue === "" || (numValue >= 0 && numValue <= 100)) {
+                                        setSettings({
+                                            ...settings,
+                                            maxValue: {
+                                                ...settings.maxValue,
+                                                new: numValue,
+                                            },
+                                        })
+                                    }
+                                }}
+                            />
+                            <Text>/ 100</Text>
+                        </HStack>
+                    </HStack>
+                    <HStack alignItems={"center"} gap={6}>
+                        <Text fontWeight={"bold"} minW={"120px"}>
+                            Previous days
+                        </Text>
+                        <Text>{settings.previousDays.new ?? settings.previousDays.current}</Text>
+                    </HStack>
+                    <HStack alignItems={"center"} gap={6}>
+                        <Text fontWeight={"bold"} minW={"120px"}>
+                            URL
+                        </Text>
+                        <Text>{settings.url.new ?? settings.url.current}</Text>
+                    </HStack>
+                    <HStack alignItems={"center"} gap={6}>
+                        <Text fontWeight={"bold"} minW={"120px"}>
+                            Authentication options
+                        </Text>
+                    </HStack>
                     <VStack alignItems={"start"} gap={3}>
                         {signalStrength.availableAuthTypes?.includes("api_auth") && (
                             <HStack>
