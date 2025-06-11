@@ -397,7 +397,7 @@ export default function SignalStrengthSettings({
                                         if (currentAuthTypes.includes("api_auth")) {
                                             return (
                                                 <Text fontSize={"sm"} h={"20px"}>
-                                                    Make sure you enable user API keys
+                                                    Make sure you have enable user API keys
                                                 </Text>
                                             )
                                         }

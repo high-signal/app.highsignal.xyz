@@ -134,8 +134,8 @@ export default function ForumConnectionManager({
 
             // Show success message
             toaster.create({
-                title: `✅ ${config.projectDisplayName} forum connected`,
-                description: `Your ${config.projectDisplayName} forum accounts has been connected successfully. View your ${config.projectDisplayName} signal score to see the calculation in progress.`,
+                title: `✅ ${config.projectDisplayName} forum ownership confirmed`,
+                description: `Your ${config.projectDisplayName} forum account ownership has been confirmed. View your ${config.projectDisplayName} signal score to see the calculation in progress.`,
                 type: "success",
                 action: {
                     label: `View your ${config.projectDisplayName} signal score`,
