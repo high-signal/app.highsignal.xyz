@@ -350,7 +350,7 @@ export default function ForumConnectionManager({
                                                         (forumUser) =>
                                                             forumUser.projectUrlSlug === config.projectUrlSlug,
                                                     )?.authEncryptedPayload
-                                                        ? "direct connection"
+                                                        ? "automatic check"
                                                         : targetUser.forumUsers?.find(
                                                                 (forumUser) =>
                                                                     forumUser.projectUrlSlug === config.projectUrlSlug,
