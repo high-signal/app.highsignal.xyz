@@ -3,14 +3,7 @@ export interface ValidationError {
     message: string
 }
 
-export function validateSignalStrengthProjectSettings(
-    backend: boolean,
-    settings: SignalStrengthProjectSettingsState,
-): ValidationError[] {
-    if (backend) {
-        // TODO: Sanitize settings before processing
-    }
-
+export function validateSignalStrengthProjectSettings(settings: SignalStrengthProjectSettingsState): ValidationError[] {
     const errors: ValidationError[] = []
 
     // Validate max value
@@ -60,7 +53,7 @@ export function validateSignalStrengthProjectSettings(
     }
 
     // Validate url
-    if (settings.url.new !== null || settings.enabled.new === true) {
+    if (settings.url.new !== null || (settings.enabled.new === true && settings.url.current === null)) {
         const url = settings.url.new
         if (url === "" || (url === null && settings.enabled.new === true)) {
             errors.push({
@@ -72,11 +65,20 @@ export function validateSignalStrengthProjectSettings(
 
     // Validate auth parent post url if manual post is enabled
     if (
-        (settings.authTypes.current?.includes("manual_post") && !settings.authTypes.new) ||
+        (settings.authTypes.current?.includes("manual_post") &&
+            (!settings.authTypes.new || settings.authTypes.new?.length === 0)) ||
         settings.authTypes.new?.includes("manual_post")
     ) {
-        const authParentPostUrl = settings.authParentPostUrl.new
-        if (authParentPostUrl === "" || (authParentPostUrl === null && settings.enabled.new === true)) {
+        let showError = false
+
+        if (settings.authParentPostUrl.new !== null && settings.authParentPostUrl.new === "") {
+            // If there is a new one that is not null, show error
+            showError = true
+        } else if (!settings.authParentPostUrl.current && !settings.authParentPostUrl.new) {
+            // If there is no current one and no new one, show error
+            showError = true
+        }
+        if (showError) {
             errors.push({
                 field: "authParentPostUrl",
                 message: "Public message post URL is required",
@@ -85,11 +87,21 @@ export function validateSignalStrengthProjectSettings(
     }
 
     // If enabled is true, then an auth type must be set before saving
-    if (settings.enabled.new === true) {
-        if (
-            settings.authTypes.current === null &&
-            (settings.authTypes.new === null || settings.authTypes.new.length === 0)
-        ) {
+    if ((settings.enabled.current === true && !settings.enabled.new) || settings.enabled.new === true) {
+        const hasCurrentAuthTypes = settings.authTypes.current && settings.authTypes.current.length > 0
+        const hasNewAuthTypes = settings.authTypes.new && settings.authTypes.new.length > 0
+
+        let showError = false
+
+        if (hasNewAuthTypes) {
+            showError = false
+        } else if (hasCurrentAuthTypes && settings.authTypes.new?.length === 0) {
+            showError = true
+        } else if (!hasCurrentAuthTypes && !hasNewAuthTypes) {
+            showError = true
+        }
+
+        if (showError) {
             errors.push({
                 field: "authTypes",
                 message: "Select at least one authentication type",

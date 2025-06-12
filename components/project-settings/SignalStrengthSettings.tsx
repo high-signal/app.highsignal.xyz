@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faCheck, faChevronRight } from "@fortawesome/free-solid-svg-icons"
 import { useEffect, useState } from "react"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
+import { usePrivy } from "@privy-io/react-auth"
 import {
     validateSignalStrengthProjectSettings,
     ValidationError,
@@ -14,7 +15,7 @@ function ValidationErrorDisplay({ errors, field }: { errors: ValidationError[]; 
             {errors
                 .filter((error) => error.field === field)
                 .map((error, index) => (
-                    <Text key={index} color={"orange.500"} fontSize="sm">
+                    <Text key={index} color={"orange.500"} fontSize="sm" pl={"14px"}>
                         {error.message}
                     </Text>
                 ))}
@@ -76,6 +77,7 @@ export default function SignalStrengthSettings({
     project: ProjectData
     signalStrength: SignalStrengthProjectData
 }) {
+    const { getAccessToken } = usePrivy()
     const [isOpen, setIsOpen] = useState(false)
     const [settings, setSettings] = useState<SignalStrengthProjectSettingsState>({
         enabled: {
@@ -105,6 +107,8 @@ export default function SignalStrengthSettings({
     })
     const [hasChanges, setHasChanges] = useState(false)
     const [validationErrors, setValidationErrors] = useState<ValidationError[]>([])
+    const [isSaving, setIsSaving] = useState(false)
+    const [savingError, setSavingError] = useState<string | null>(null)
 
     useEffect(() => {
         const hasChanges = Object.values(settings).some(
@@ -113,11 +117,11 @@ export default function SignalStrengthSettings({
         setHasChanges(hasChanges)
 
         // Validate settings whenever they change
-        const errors = validateSignalStrengthProjectSettings(false, settings)
+        const errors = validateSignalStrengthProjectSettings(settings)
         setValidationErrors(errors)
     }, [settings])
 
-    const handleCancel = () => {
+    const handleCancel = async () => {
         const resetSettings = Object.keys(settings).reduce(
             (acc, key) => ({
                 ...acc,
@@ -126,11 +130,35 @@ export default function SignalStrengthSettings({
             {} as SignalStrengthProjectSettingsState,
         )
         setSettings(resetSettings)
+        setIsSaving(false)
+        setSavingError(null)
     }
 
-    const handleSave = () => {
-        if (validationErrors.length === 0) {
-            console.log("Saving settings")
+    const handleSave = async () => {
+        if (hasChanges && validationErrors.length === 0) {
+            setIsSaving(true)
+            const token = await getAccessToken()
+            const response = await fetch(
+                `/api/settings/p/signal-strengths?project=${project.urlSlug}&signal_strength=${signalStrength.name}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ settings }),
+                },
+            )
+            if (!response.ok) {
+                const jsonResponse = await response.json()
+                console.error("Error saving settings:", jsonResponse)
+                const errorMessages = jsonResponse.error.map((err: { message: string }) => err.message).join(", ")
+                setSavingError(errorMessages)
+            } else {
+                // TODO: Refetch the signal strength data
+                // TODO: Set all new to null (if that is not covered in the refetch)
+                setSavingError(null)
+            }
+            setIsSaving(false)
         }
     }
 
@@ -249,7 +277,7 @@ export default function SignalStrengthSettings({
                                         justifyContent={"center"}
                                     >
                                         {(settings.enabled.new === true ||
-                                            (!settings.enabled.new && settings.enabled.current === true)) && (
+                                            (settings.enabled.new === null && settings.enabled.current === true)) && (
                                             <FontAwesomeIcon icon={faArrowRight} />
                                         )}
                                     </Box>
@@ -312,240 +340,217 @@ export default function SignalStrengthSettings({
                             </HStack>
                         </RadioGroup.Root>
                     </HStack>
-                    {settings.enabled.current === true ||
-                        (settings.enabled.new === true && (
-                            <>
-                                <HStack
-                                    alignItems={"center"}
-                                    gap={6}
-                                    columnGap={6}
-                                    rowGap={3}
-                                    w={"100%"}
-                                    flexWrap={"wrap"}
-                                >
-                                    <Text fontWeight={"bold"} minW={"120px"}>
-                                        Max score
-                                    </Text>
-                                    <HStack w={{ base: "100%", sm: "auto" }}>
-                                        <SingleLineTextInput
-                                            bg={"pageBackground"}
-                                            maxW={"60px"}
-                                            h={"32px"}
-                                            value={
-                                                settings.maxValue.new?.toString() ??
-                                                settings.maxValue.current?.toString() ??
-                                                ""
-                                            }
-                                            onChange={(e) => {
-                                                const value = e.target.value
-                                                // Only allow digits
-                                                if (!/^\d*$/.test(value)) return
-
-                                                // Convert to number and validate range
-                                                const numValue = value ? parseInt(value) : ""
-                                                if (numValue === "" || (numValue >= 0 && numValue <= 100)) {
-                                                    setSettings({
-                                                        ...settings,
-                                                        maxValue: {
-                                                            ...settings.maxValue,
-                                                            new: numValue,
-                                                        },
-                                                    })
-                                                }
-                                            }}
-                                        />
-                                        <Text>/ 100</Text>
-                                    </HStack>
-                                    <ValidationErrorDisplay errors={validationErrors} field="maxValue" />
-                                </HStack>
-                                <HStack
-                                    alignItems={"center"}
-                                    gap={6}
-                                    columnGap={6}
-                                    rowGap={3}
-                                    w={"100%"}
-                                    flexWrap={"wrap"}
-                                >
-                                    <Text fontWeight={"bold"} minW={"120px"}>
-                                        Previous days
-                                    </Text>
-                                    <RadioGroup.Root
-                                        value={
-                                            settings.previousDays.new?.toString() ??
-                                            settings.previousDays.current?.toString() ??
-                                            "30"
-                                        }
-                                        onValueChange={(details) => {
-                                            setSettings({
-                                                ...settings,
-                                                previousDays: {
-                                                    ...settings.previousDays,
-                                                    new: parseInt(details.value),
-                                                },
-                                            })
-                                        }}
-                                    >
-                                        <HStack columnGap={6} rowGap={3} alignItems={"start"} flexWrap={"wrap"}>
-                                            {[30, 60, 90].map((days) => (
-                                                <RadioGroup.Item
-                                                    key={days}
-                                                    value={days.toString()}
-                                                    cursor={"pointer"}
-                                                    gap={0}
-                                                    bg={"pageBackground"}
-                                                    borderRadius={"full"}
-                                                    h={"32px"}
-                                                >
-                                                    <RadioGroup.ItemHiddenInput />
-                                                    <Box
-                                                        w={"28px"}
-                                                        px={"2px"}
-                                                        h={"100%"}
-                                                        display={"flex"}
-                                                        alignItems={"center"}
-                                                        justifyContent={"center"}
-                                                    >
-                                                        {(settings.previousDays.new === days ||
-                                                            (!settings.previousDays.new &&
-                                                                settings.previousDays.current === days)) && (
-                                                            <FontAwesomeIcon icon={faArrowRight} />
-                                                        )}
-                                                    </Box>
-                                                    <RadioGroup.ItemText>
-                                                        <Text
-                                                            whiteSpace={"nowrap"}
-                                                            pr={2}
-                                                            color={
-                                                                settings.previousDays.new === days ||
-                                                                (!settings.previousDays.new &&
-                                                                    settings.previousDays.current === days)
-                                                                    ? "textColor"
-                                                                    : "textColorMuted"
-                                                            }
-                                                        >
-                                                            {days} days
-                                                        </Text>
-                                                    </RadioGroup.ItemText>
-                                                </RadioGroup.Item>
-                                            ))}
-                                        </HStack>
-                                    </RadioGroup.Root>
-                                </HStack>
-                                <HStack
-                                    alignItems={"center"}
-                                    gap={6}
-                                    columnGap={6}
-                                    rowGap={3}
-                                    w={"100%"}
-                                    flexWrap={"wrap"}
-                                >
-                                    <HStack gap={3}>
-                                        <Text fontWeight={"bold"}>
-                                            {signalStrength.displayName.replace(" Engagement", "")} URL
-                                        </Text>
-                                        <ValidationErrorDisplay errors={validationErrors} field="url" />
-                                    </HStack>
+                    {(settings.enabled.new === true ||
+                        (settings.enabled.new === null && settings.enabled.current === true)) && (
+                        <>
+                            <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
+                                <Text fontWeight={"bold"} minW={"120px"}>
+                                    Max score
+                                </Text>
+                                <HStack w={{ base: "100%", sm: "auto" }}>
                                     <SingleLineTextInput
-                                        placeholder={"e.g. https://myforum.xyz"}
                                         bg={"pageBackground"}
-                                        maxW={"100%"}
+                                        maxW={"60px"}
                                         h={"32px"}
-                                        value={settings.url.new ?? settings.url.current ?? ""}
+                                        value={
+                                            settings.maxValue.new?.toString() ??
+                                            settings.maxValue.current?.toString() ??
+                                            ""
+                                        }
                                         onChange={(e) => {
-                                            setSettings({
-                                                ...settings,
-                                                url: { ...settings.url, new: e.target.value },
-                                            })
+                                            const value = e.target.value
+                                            // Only allow digits
+                                            if (!/^\d*$/.test(value)) return
+
+                                            // Convert to number and validate range
+                                            const numValue = value ? parseInt(value) : ""
+                                            if (numValue === "" || (numValue >= 0 && numValue <= 100)) {
+                                                setSettings({
+                                                    ...settings,
+                                                    maxValue: {
+                                                        ...settings.maxValue,
+                                                        new: numValue,
+                                                    },
+                                                })
+                                            }
                                         }}
                                     />
+                                    <Text>/ 100</Text>
+                                    <ValidationErrorDisplay errors={validationErrors} field="maxValue" />
                                 </HStack>
-                                <VStack alignItems={"start"} gap={2} w={"100%"}>
-                                    <HStack gap={3}>
-                                        <Text fontWeight={"bold"} minW={"120px"} whiteSpace={"nowrap"}>
-                                            Authentication options
-                                        </Text>
-                                        <ValidationErrorDisplay errors={validationErrors} field="authTypes" />
+                            </HStack>
+                            <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
+                                <Text fontWeight={"bold"} minW={"120px"}>
+                                    Previous days
+                                </Text>
+                                <RadioGroup.Root
+                                    value={
+                                        settings.previousDays.new?.toString() ??
+                                        settings.previousDays.current?.toString() ??
+                                        "30"
+                                    }
+                                    onValueChange={(details) => {
+                                        setSettings({
+                                            ...settings,
+                                            previousDays: {
+                                                ...settings.previousDays,
+                                                new: parseInt(details.value),
+                                            },
+                                        })
+                                    }}
+                                >
+                                    <HStack columnGap={6} rowGap={3} alignItems={"start"} flexWrap={"wrap"}>
+                                        {[30, 60, 90].map((days) => (
+                                            <RadioGroup.Item
+                                                key={days}
+                                                value={days.toString()}
+                                                cursor={"pointer"}
+                                                gap={0}
+                                                bg={"pageBackground"}
+                                                borderRadius={"full"}
+                                                h={"32px"}
+                                            >
+                                                <RadioGroup.ItemHiddenInput />
+                                                <Box
+                                                    w={"28px"}
+                                                    px={"2px"}
+                                                    h={"100%"}
+                                                    display={"flex"}
+                                                    alignItems={"center"}
+                                                    justifyContent={"center"}
+                                                >
+                                                    {(settings.previousDays.new === days ||
+                                                        (!settings.previousDays.new &&
+                                                            settings.previousDays.current === days)) && (
+                                                        <FontAwesomeIcon icon={faArrowRight} />
+                                                    )}
+                                                </Box>
+                                                <RadioGroup.ItemText>
+                                                    <Text
+                                                        whiteSpace={"nowrap"}
+                                                        pr={2}
+                                                        color={
+                                                            settings.previousDays.new === days ||
+                                                            (!settings.previousDays.new &&
+                                                                settings.previousDays.current === days)
+                                                                ? "textColor"
+                                                                : "textColorMuted"
+                                                        }
+                                                    >
+                                                        {days} days
+                                                    </Text>
+                                                </RadioGroup.ItemText>
+                                            </RadioGroup.Item>
+                                        ))}
                                     </HStack>
+                                </RadioGroup.Root>
+                            </HStack>
+                            <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
+                                <HStack gap={3}>
+                                    <Text fontWeight={"bold"}>
+                                        {signalStrength.displayName.replace(" Engagement", "")} URL
+                                    </Text>
+                                    <ValidationErrorDisplay errors={validationErrors} field="url" />
+                                </HStack>
+                                <SingleLineTextInput
+                                    placeholder={"e.g. https://myforum.xyz"}
+                                    bg={"pageBackground"}
+                                    maxW={"100%"}
+                                    h={"32px"}
+                                    value={settings.url.new ?? settings.url.current ?? ""}
+                                    onChange={(e) => {
+                                        setSettings({
+                                            ...settings,
+                                            url: { ...settings.url, new: e.target.value },
+                                        })
+                                    }}
+                                />
+                            </HStack>
+                            <VStack alignItems={"start"} gap={2} w={"100%"}>
+                                <HStack gap={3}>
+                                    <Text fontWeight={"bold"} minW={"120px"} whiteSpace={"nowrap"}>
+                                        Authentication options
+                                    </Text>
+                                    <ValidationErrorDisplay errors={validationErrors} field="authTypes" />
+                                </HStack>
 
-                                    <VStack alignItems={"start"} gap={3} w={"100%"}>
-                                        {signalStrength.availableAuthTypes?.includes("api_auth") && (
-                                            <VStack w={"100%"} alignItems={"start"} gap={1}>
-                                                <AuthTypeSwitch
-                                                    key={"api_auth"}
-                                                    authType={"api_auth"}
-                                                    label={"Automatic ownership check"}
-                                                    settings={settings}
-                                                    setSettings={setSettings}
-                                                />
-                                                {(() => {
-                                                    const currentAuthTypes =
-                                                        settings.authTypes.new ?? settings.authTypes.current ?? []
-                                                    if (currentAuthTypes.includes("api_auth")) {
-                                                        return (
-                                                            <Text fontSize={"sm"} pl={"58px"}>
-                                                                Make sure you have enable user API keys (Link to docs)
+                                <VStack alignItems={"start"} gap={3} w={"100%"}>
+                                    {signalStrength.availableAuthTypes?.includes("api_auth") && (
+                                        <VStack w={"100%"} alignItems={"start"} gap={1}>
+                                            <AuthTypeSwitch
+                                                key={"api_auth"}
+                                                authType={"api_auth"}
+                                                label={"Automatic ownership check"}
+                                                settings={settings}
+                                                setSettings={setSettings}
+                                            />
+                                            {(() => {
+                                                const currentAuthTypes =
+                                                    settings.authTypes.new ?? settings.authTypes.current ?? []
+                                                if (currentAuthTypes.includes("api_auth")) {
+                                                    return (
+                                                        <Text fontSize={"sm"} pl={"58px"}>
+                                                            Make sure you have enable user API keys (Link to docs)
+                                                        </Text>
+                                                    )
+                                                }
+                                                return null
+                                            })()}
+                                        </VStack>
+                                    )}
+                                    {signalStrength.availableAuthTypes?.includes("manual_post") && (
+                                        <VStack w={"100%"} alignItems={"start"} gap={1}>
+                                            <AuthTypeSwitch
+                                                key={"manual_post"}
+                                                authType={"manual_post"}
+                                                label={"Post a public message"}
+                                                settings={settings}
+                                                setSettings={setSettings}
+                                            />
+                                            {(() => {
+                                                const currentAuthTypes =
+                                                    settings.authTypes.new ?? settings.authTypes.current ?? []
+                                                if (currentAuthTypes.includes("manual_post")) {
+                                                    return (
+                                                        <VStack gap={1} w={"100%"} alignItems={"start"} pl={"58px"}>
+                                                            <Text fontSize={"sm"}>
+                                                                Set the URL of the page that users should post on to
+                                                                confirm ownership
                                                             </Text>
-                                                        )
-                                                    }
-                                                    return null
-                                                })()}
-                                            </VStack>
-                                        )}
-                                        {signalStrength.availableAuthTypes?.includes("manual_post") && (
-                                            <VStack w={"100%"} alignItems={"start"} gap={1}>
-                                                <AuthTypeSwitch
-                                                    key={"manual_post"}
-                                                    authType={"manual_post"}
-                                                    label={"Post a public message"}
-                                                    settings={settings}
-                                                    setSettings={setSettings}
-                                                />
-                                                {(() => {
-                                                    const currentAuthTypes =
-                                                        settings.authTypes.new ?? settings.authTypes.current ?? []
-                                                    if (currentAuthTypes.includes("manual_post")) {
-                                                        return (
-                                                            <VStack gap={1} w={"100%"} alignItems={"start"} pl={"58px"}>
-                                                                <Text fontSize={"sm"}>
-                                                                    Set the URL of the page that users should post on to
-                                                                    confirm ownership
-                                                                </Text>
-                                                                <SingleLineTextInput
-                                                                    placeholder={
-                                                                        "e.g. https://myforum.xyz/t/auth-posts/9"
-                                                                    }
-                                                                    bg={"pageBackground"}
-                                                                    h={"32px"}
-                                                                    value={
-                                                                        settings.authParentPostUrl.new ??
-                                                                        settings.authParentPostUrl.current ??
-                                                                        ""
-                                                                    }
-                                                                    onChange={(e) => {
-                                                                        setSettings({
-                                                                            ...settings,
-                                                                            authParentPostUrl: {
-                                                                                ...settings.authParentPostUrl,
-                                                                                new: e.target.value,
-                                                                            },
-                                                                        })
-                                                                    }}
-                                                                />
-                                                                <ValidationErrorDisplay
-                                                                    errors={validationErrors}
-                                                                    field="authParentPostUrl"
-                                                                />
-                                                            </VStack>
-                                                        )
-                                                    }
-                                                    return null
-                                                })()}
-                                            </VStack>
-                                        )}
-                                    </VStack>
+                                                            <SingleLineTextInput
+                                                                placeholder={"e.g. https://myforum.xyz/t/auth-posts/9"}
+                                                                bg={"pageBackground"}
+                                                                h={"32px"}
+                                                                value={
+                                                                    settings.authParentPostUrl.new ??
+                                                                    settings.authParentPostUrl.current ??
+                                                                    ""
+                                                                }
+                                                                onChange={(e) => {
+                                                                    setSettings({
+                                                                        ...settings,
+                                                                        authParentPostUrl: {
+                                                                            ...settings.authParentPostUrl,
+                                                                            new: e.target.value,
+                                                                        },
+                                                                    })
+                                                                }}
+                                                            />
+                                                            <ValidationErrorDisplay
+                                                                errors={validationErrors}
+                                                                field="authParentPostUrl"
+                                                            />
+                                                        </VStack>
+                                                    )
+                                                }
+                                                return null
+                                            })()}
+                                        </VStack>
+                                    )}
                                 </VStack>
-                            </>
-                        ))}
+                            </VStack>
+                        </>
+                    )}
                     {hasChanges && (
                         <HStack w="100%" justify={"end"} gap={3}>
                             <Button secondaryButton px={3} py={1} borderRadius={"full"} onClick={handleCancel}>
@@ -558,12 +563,14 @@ export default function SignalStrengthSettings({
                                 borderRadius={"full"}
                                 disabled={!hasChanges || validationErrors.length > 0}
                                 onClick={handleSave}
+                                loading={isSaving}
                             >
                                 Save changes
                             </Button>
                         </HStack>
                     )}
-                    {/* <Text>{JSON.stringify(settings)}</Text> */}
+                    {savingError && <Text color={"orange.500"}>{savingError}</Text>}
+                    <Text>{JSON.stringify(settings)}</Text>
                 </VStack>
             )}
         </VStack>
