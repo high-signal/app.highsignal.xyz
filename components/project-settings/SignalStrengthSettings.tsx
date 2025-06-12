@@ -15,11 +15,12 @@ type SignalStrengthState = {
 
 interface AuthTypeSwitchProps {
     authType: string
+    label: string
     settings: SignalStrengthState
     setSettings: (settings: SignalStrengthState) => void
 }
 
-function AuthTypeSwitch({ authType, settings, setSettings }: AuthTypeSwitchProps) {
+function AuthTypeSwitch({ authType, label, settings, setSettings }: AuthTypeSwitchProps) {
     const currentAuthTypes = settings.authTypes.new ?? settings.authTypes.current ?? []
 
     // When the settings changes, if any of the new values are the same as the current values
@@ -51,7 +52,7 @@ function AuthTypeSwitch({ authType, settings, setSettings }: AuthTypeSwitchProps
                     {isChecked && <FontAwesomeIcon icon={faCheck} />}
                 </Switch.Thumb>
             </Switch.Control>
-            <Switch.Label>{authType.replace("_", " ").toUpperCase()}</Switch.Label>
+            <Switch.Label>{label}</Switch.Label>
         </Switch.Root>
     )
 }
@@ -63,7 +64,7 @@ export default function SignalStrengthSettings({
     project: ProjectData
     signalStrength: SignalStrengthProjectData
 }) {
-    const [isOpen, setIsOpen] = useState(true)
+    const [isOpen, setIsOpen] = useState(false)
     const [settings, setSettings] = useState<SignalStrengthState>({
         status: {
             current: signalStrength.status,
@@ -362,9 +363,10 @@ export default function SignalStrengthSettings({
                     </HStack>
                     <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
                         <Text fontWeight={"bold"} minW={"120px"}>
-                            URL
+                            {signalStrength.displayName.replace(" Engagement", "")} URL
                         </Text>
                         <SingleLineTextInput
+                            placeholder={"e.g. https://highsignal.discourse.group"}
                             bg={"pageBackground"}
                             maxW={"400px"}
                             h={"32px"}
@@ -384,10 +386,11 @@ export default function SignalStrengthSettings({
 
                         <VStack alignItems={"start"} gap={3} w={"100%"}>
                             {signalStrength.availableAuthTypes?.includes("api_auth") && (
-                                <HStack columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
+                                <VStack w={"100%"} alignItems={"start"} gap={1}>
                                     <AuthTypeSwitch
                                         key={"api_auth"}
                                         authType={"api_auth"}
+                                        label={"Automatic ownership check"}
                                         settings={settings}
                                         setSettings={setSettings}
                                     />
@@ -396,30 +399,62 @@ export default function SignalStrengthSettings({
                                             settings.authTypes.new ?? settings.authTypes.current ?? []
                                         if (currentAuthTypes.includes("api_auth")) {
                                             return (
-                                                <Text fontSize={"sm"} h={"20px"}>
-                                                    Make sure you have enable user API keys
+                                                <Text fontSize={"sm"} pl={"58px"}>
+                                                    Make sure you have enable user API keys (Link to docs)
                                                 </Text>
                                             )
                                         }
                                         return null
                                     })()}
-                                </HStack>
+                                </VStack>
                             )}
                             {signalStrength.availableAuthTypes?.includes("manual_post") && (
-                                <AuthTypeSwitch
-                                    key={"manual_post"}
-                                    authType={"manual_post"}
-                                    settings={settings}
-                                    setSettings={setSettings}
-                                />
+                                <VStack w={"100%"} alignItems={"start"} gap={1}>
+                                    <AuthTypeSwitch
+                                        key={"manual_post"}
+                                        authType={"manual_post"}
+                                        label={"Post a public message"}
+                                        settings={settings}
+                                        setSettings={setSettings}
+                                    />
+                                    {(() => {
+                                        const currentAuthTypes =
+                                            settings.authTypes.new ?? settings.authTypes.current ?? []
+                                        if (currentAuthTypes.includes("manual_post")) {
+                                            return (
+                                                <VStack gap={1} w={"100%"} alignItems={"start"} pl={"58px"}>
+                                                    <Text fontSize={"sm"}>
+                                                        Set the URL of the page that users should post on to confirm
+                                                        ownership
+                                                    </Text>
+                                                    <SingleLineTextInput
+                                                        placeholder={
+                                                            "e.g. https://highsignal.discourse.group/t/high-signal-auth-posts/9"
+                                                        }
+                                                        bg={"pageBackground"}
+                                                        h={"32px"}
+                                                        value={
+                                                            settings.authParentPostUrl.new ??
+                                                            settings.authParentPostUrl.current ??
+                                                            ""
+                                                        }
+                                                        onChange={(e) => {
+                                                            setSettings({
+                                                                ...settings,
+                                                                authParentPostUrl: {
+                                                                    ...settings.authParentPostUrl,
+                                                                    new: e.target.value,
+                                                                },
+                                                            })
+                                                        }}
+                                                    />
+                                                </VStack>
+                                            )
+                                        }
+                                        return null
+                                    })()}
+                                </VStack>
                             )}
-                            {(() => {
-                                const currentAuthTypes = settings.authTypes.new ?? settings.authTypes.current ?? []
-                                if (currentAuthTypes.includes("manual_post")) {
-                                    return <Text>Auth parent post URL: {signalStrength.authParentPostUrl}</Text>
-                                }
-                                return null
-                            })()}
                         </VStack>
                     </VStack>
                     {hasChanges && (
@@ -432,7 +467,7 @@ export default function SignalStrengthSettings({
                             </Button>
                         </HStack>
                     )}
-                    <Text>{JSON.stringify(settings)}</Text>
+                    {/* <Text>{JSON.stringify(settings)}</Text> */}
                 </VStack>
             )}
         </VStack>
