@@ -1,3 +1,4 @@
+import validator from "validator"
 export interface ValidationError {
     field: keyof SignalStrengthProjectSettingsState
     message: string
@@ -8,8 +9,6 @@ export function validateSignalStrengthProjectSettings(settings: SignalStrengthPr
 
     const isActive =
         settings.enabled.new === true || (settings.enabled.new === null && settings.enabled.current === true)
-
-    // TODO: Remove all the enabled checks inside this now I have the isActive check surrounding it
 
     if (isActive) {
         // Validate max value
@@ -58,20 +57,25 @@ export function validateSignalStrengthProjectSettings(settings: SignalStrengthPr
             }
         }
 
-        // Validate url
-        // TODO: Add a check here to see if the url is a valid url
-        if (settings.url.new !== null || (settings.enabled.new === true && settings.url.current === null)) {
-            const url = settings.url.new
-            if (url === "" || (url === null && settings.enabled.new === true)) {
+        // Check url has a value
+        if ((settings.url.current === null && settings.url.new === null) || settings.url.new === "") {
+            errors.push({
+                field: "url",
+                message: "Required",
+            })
+        }
+
+        // Check url is a valid url
+        if (settings.url.new && settings.url.new !== "") {
+            if (!validator.isURL(settings.url.new)) {
                 errors.push({
                     field: "url",
-                    message: "Required",
+                    message: "Invalid URL",
                 })
             }
         }
 
         // Validate auth parent post url if manual post is enabled
-        // TODO: Add a check here to see if the url is a valid url
         if (
             (settings.authTypes.current?.includes("manual_post") &&
                 (!settings.authTypes.new || settings.authTypes.new?.length === 0)) ||
@@ -91,30 +95,37 @@ export function validateSignalStrengthProjectSettings(settings: SignalStrengthPr
                     field: "authParentPostUrl",
                     message: "Required",
                 })
+            } else if (
+                settings.authParentPostUrl.new &&
+                settings.authParentPostUrl.new !== "" &&
+                !validator.isURL(settings.authParentPostUrl.new)
+            ) {
+                errors.push({
+                    field: "authParentPostUrl",
+                    message: "Invalid URL",
+                })
             }
         }
 
         // If enabled is true, then an auth type must be set before saving
-        if ((settings.enabled.current === true && !settings.enabled.new) || settings.enabled.new === true) {
-            const hasCurrentAuthTypes = settings.authTypes.current && settings.authTypes.current.length > 0
-            const hasNewAuthTypes = settings.authTypes.new && settings.authTypes.new.length > 0
+        const hasCurrentAuthTypes = settings.authTypes.current && settings.authTypes.current.length > 0
+        const hasNewAuthTypes = settings.authTypes.new && settings.authTypes.new.length > 0
 
-            let showError = false
+        let showAuthTypeRequiredError = false
 
-            if (hasNewAuthTypes) {
-                showError = false
-            } else if (hasCurrentAuthTypes && settings.authTypes.new?.length === 0) {
-                showError = true
-            } else if (!hasCurrentAuthTypes && !hasNewAuthTypes) {
-                showError = true
-            }
+        if (hasNewAuthTypes) {
+            showAuthTypeRequiredError = false
+        } else if (hasCurrentAuthTypes && settings.authTypes.new?.length === 0) {
+            showAuthTypeRequiredError = true
+        } else if (!hasCurrentAuthTypes && !hasNewAuthTypes) {
+            showAuthTypeRequiredError = true
+        }
 
-            if (showError) {
-                errors.push({
-                    field: "authTypes",
-                    message: "Select at least one auth type",
-                })
-            }
+        if (showAuthTypeRequiredError) {
+            errors.push({
+                field: "authTypes",
+                message: "Select at least one auth type",
+            })
         }
     }
 
