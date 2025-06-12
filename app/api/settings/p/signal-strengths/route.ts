@@ -118,6 +118,19 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ error: "Error updating signal strength settings" }, { status: 500 })
         }
 
+        // If the new state has no longer contains api_auth, clear auth_encrypted_payload for this project
+        if (!settings.authTypes.new.includes("api_auth")) {
+            const { error: updateForumUsersError } = await supabase
+                .from("forum_users")
+                .update({ auth_encrypted_payload: null })
+                .eq("project_id", targetProject.id)
+
+            if (updateForumUsersError) {
+                console.error("Error clearing auth_encrypted_payload:", updateForumUsersError)
+                return NextResponse.json({ error: "Error clearing auth_encrypted_payload" }, { status: 500 })
+            }
+        }
+
         return NextResponse.json({ success: true })
     } catch (error) {
         console.error("Unhandled error in project settings signal strength update:", error)
