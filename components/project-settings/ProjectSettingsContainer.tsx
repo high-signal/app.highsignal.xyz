@@ -19,6 +19,7 @@ export default function ProjectSettingsContainer() {
     const router = useRouter()
 
     const [project, setProject] = useState<ProjectData | null>(null)
+    const [triggerProjectRefetch, setTriggerProjectRefetch] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
@@ -53,19 +54,21 @@ export default function ProjectSettingsContainer() {
                 }
 
                 const data = await response.json()
+                console.log("Setting project data")
                 setProject(data[0])
             } catch (err) {
                 console.error("Error in fetchUserData:", err)
                 setError(err instanceof Error ? err.message : "An error occurred")
             } finally {
                 setIsLoading(false)
+                setTriggerProjectRefetch(false)
             }
         }
 
-        if (!loggedInUserLoading) {
+        if (!loggedInUserLoading || triggerProjectRefetch) {
             fetchUserData()
         }
-    }, [loggedInUser, loggedInUserLoading, params?.project, getAccessToken, router])
+    }, [loggedInUser, loggedInUserLoading, params?.project, getAccessToken, router, triggerProjectRefetch])
 
     if (isLoading) {
         return (
@@ -111,7 +114,12 @@ export default function ProjectSettingsContainer() {
                     {
                         value: "signal-strengths",
                         label: "Signal Strengths",
-                        content: <SignalStrengthSettingsContainer project={project} />,
+                        content: (
+                            <SignalStrengthSettingsContainer
+                                project={project}
+                                setTriggerProjectRefetch={setTriggerProjectRefetch}
+                            />
+                        ),
                     },
                 ]}
             />

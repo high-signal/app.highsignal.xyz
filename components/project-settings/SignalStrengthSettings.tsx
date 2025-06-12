@@ -73,44 +73,36 @@ function AuthTypeSwitch({
 export default function SignalStrengthSettings({
     project,
     signalStrength,
+    setTriggerProjectRefetch,
 }: {
     project: ProjectData
     signalStrength: SignalStrengthProjectData
+    setTriggerProjectRefetch: (trigger: boolean) => void
 }) {
     const { getAccessToken } = usePrivy()
     const [isOpen, setIsOpen] = useState(false)
-    const [settings, setSettings] = useState<SignalStrengthProjectSettingsState>({
-        enabled: {
-            current: signalStrength.enabled,
-            new: null,
-        },
-        maxValue: {
-            current: signalStrength.maxValue,
-            new: null,
-        },
-        previousDays: {
-            current: signalStrength.previousDays,
-            new: null,
-        },
-        url: {
-            current: signalStrength.url ?? null,
-            new: null,
-        },
-        authTypes: {
-            current: signalStrength.authTypes ?? null,
-            new: null,
-        },
-        authParentPostUrl: {
-            current: signalStrength.authParentPostUrl ?? null,
-            new: null,
-        },
-    })
+    const [settings, setSettings] = useState<SignalStrengthProjectSettingsState | null>(null)
     const [hasChanges, setHasChanges] = useState(false)
     const [validationErrors, setValidationErrors] = useState<ValidationError[]>([])
     const [isSaving, setIsSaving] = useState(false)
     const [savingError, setSavingError] = useState<string | null>(null)
 
+    const resetSettingsFromSignalStrength = () =>
+        setSettings({
+            enabled: { current: signalStrength.enabled, new: null },
+            maxValue: { current: signalStrength.maxValue, new: null },
+            previousDays: { current: signalStrength.previousDays, new: null },
+            url: { current: signalStrength.url ?? null, new: null },
+            authTypes: { current: signalStrength.authTypes ?? null, new: null },
+            authParentPostUrl: { current: signalStrength.authParentPostUrl ?? null, new: null },
+        })
+
     useEffect(() => {
+        resetSettingsFromSignalStrength()
+    }, [signalStrength])
+
+    useEffect(() => {
+        if (!settings) return
         const hasChanges = Object.values(settings).some(
             (setting) => setting.new !== null && setting.new !== setting.current,
         )
@@ -122,19 +114,13 @@ export default function SignalStrengthSettings({
     }, [settings])
 
     const handleCancel = async () => {
-        const resetSettings = Object.keys(settings).reduce(
-            (acc, key) => ({
-                ...acc,
-                [key]: { ...settings[key as keyof SignalStrengthProjectSettingsState], new: null },
-            }),
-            {} as SignalStrengthProjectSettingsState,
-        )
-        setSettings(resetSettings)
+        resetSettingsFromSignalStrength()
         setIsSaving(false)
         setSavingError(null)
     }
 
     const handleSave = async () => {
+        if (!settings) return
         if (hasChanges && validationErrors.length === 0) {
             setIsSaving(true)
             const token = await getAccessToken()
@@ -154,13 +140,14 @@ export default function SignalStrengthSettings({
                 const errorMessages = jsonResponse.error.map((err: { message: string }) => err.message).join(", ")
                 setSavingError(errorMessages)
             } else {
-                // TODO: Refetch the signal strength data
-                // TODO: Set all new to null (if that is not covered in the refetch)
+                setTriggerProjectRefetch(true)
                 setSavingError(null)
             }
             setIsSaving(false)
         }
     }
+
+    if (!settings) return null
 
     return (
         <VStack w="100%" gap={0}>
