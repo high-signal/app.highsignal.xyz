@@ -92,7 +92,7 @@ export function validateSignalStrengthProjectSettings(
         ) {
             errors.push({
                 field: "authTypes",
-                message: "Please select at least one authentication type",
+                message: "Select at least one authentication type",
             })
         }
     }

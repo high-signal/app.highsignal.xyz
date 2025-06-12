@@ -76,7 +76,7 @@ export default function SignalStrengthSettings({
     project: ProjectData
     signalStrength: SignalStrengthProjectData
 }) {
-    const [isOpen, setIsOpen] = useState(true)
+    const [isOpen, setIsOpen] = useState(false)
     const [settings, setSettings] = useState<SignalStrengthProjectSettingsState>({
         enabled: {
             current: signalStrength.enabled,
@@ -206,13 +206,15 @@ export default function SignalStrengthSettings({
             </HStack>
             {isOpen && (
                 <VStack
-                    w="100%"
+                    w={{ base: "100%", md: "500px" }}
                     pb={2}
                     gap={5}
                     bg={"contentBackground"}
                     p={4}
-                    borderRadius={{ base: "0px", md: "16px" }}
+                    borderBottomRadius={{ base: "0px", md: "16px" }}
                     alignItems={"start"}
+                    borderTopWidth={3}
+                    borderTopColor={"contentBorder"}
                 >
                     <HStack alignItems={"center"} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
                         <Text fontWeight={"bold"} minW={"120px"}>
@@ -430,13 +432,16 @@ export default function SignalStrengthSettings({
                                     w={"100%"}
                                     flexWrap={"wrap"}
                                 >
-                                    <Text fontWeight={"bold"} minW={"120px"}>
-                                        {signalStrength.displayName.replace(" Engagement", "")} URL
-                                    </Text>
+                                    <HStack gap={3}>
+                                        <Text fontWeight={"bold"}>
+                                            {signalStrength.displayName.replace(" Engagement", "")} URL
+                                        </Text>
+                                        <ValidationErrorDisplay errors={validationErrors} field="url" />
+                                    </HStack>
                                     <SingleLineTextInput
-                                        placeholder={"e.g. https://highsignal.discourse.group"}
+                                        placeholder={"e.g. https://myforum.xyz"}
                                         bg={"pageBackground"}
-                                        maxW={"350px"}
+                                        maxW={"100%"}
                                         h={"32px"}
                                         value={settings.url.new ?? settings.url.current ?? ""}
                                         onChange={(e) => {
@@ -446,11 +451,10 @@ export default function SignalStrengthSettings({
                                             })
                                         }}
                                     />
-                                    <ValidationErrorDisplay errors={validationErrors} field="url" />
                                 </HStack>
                                 <VStack alignItems={"start"} gap={2} w={"100%"}>
-                                    <HStack>
-                                        <Text fontWeight={"bold"} minW={"120px"}>
+                                    <HStack gap={3}>
+                                        <Text fontWeight={"bold"} minW={"120px"} whiteSpace={"nowrap"}>
                                             Authentication options
                                         </Text>
                                         <ValidationErrorDisplay errors={validationErrors} field="authTypes" />
@@ -501,7 +505,7 @@ export default function SignalStrengthSettings({
                                                                 </Text>
                                                                 <SingleLineTextInput
                                                                     placeholder={
-                                                                        "e.g. https://highsignal.discourse.group/t/high-signal-auth-posts/9"
+                                                                        "e.g. https://myforum.xyz/t/auth-posts/9"
                                                                     }
                                                                     bg={"pageBackground"}
                                                                     h={"32px"}
