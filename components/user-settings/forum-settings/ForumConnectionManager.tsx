@@ -67,6 +67,7 @@ export default function ForumConnectionManager({
 
     const [isConnectTypeSelectorOpen, setIsConnectTypeSelectorOpen] = useState(false)
     const [isDisconnectCheckOpen, setIsDisconnectCheckOpen] = useState(false)
+    const [isBrokenConnection, setIsBrokenConnection] = useState(false)
 
     // Check if the user is connected to the forum
     useEffect(() => {
@@ -240,6 +241,17 @@ export default function ForumConnectionManager({
         }
     }
 
+    // Handle the edge case where the api_auth option was disabled after being used by the current user
+    // by displaying a message to the user
+    useEffect(() => {
+        const forumUser = targetUser.forumUsers?.find((forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug)
+        if (isConnected && !forumUser?.authEncryptedPayload && !forumUser?.authPostId) {
+            setIsBrokenConnection(true)
+        } else {
+            setIsBrokenConnection(false)
+        }
+    }, [targetUser, config, isConnected])
+
     return (
         <>
             <ConnectTypeSelectorModal
@@ -309,14 +321,19 @@ export default function ForumConnectionManager({
                         <Menu.Root>
                             <Menu.Trigger asChild>
                                 <Button
-                                    successButton
+                                    {...(isBrokenConnection && {
+                                        secondaryButton: true,
+                                    })}
+                                    {...(!isBrokenConnection && {
+                                        successButton: true,
+                                    })}
                                     h={"100%"}
                                     w={"120px"}
                                     pl={2}
                                     pr={0}
                                     border={"2px solid"}
-                                    color="lozenge.text.active"
-                                    borderColor="lozenge.border.active"
+                                    color={isBrokenConnection ? "textColor" : "lozenge.text.active"}
+                                    borderColor={isBrokenConnection ? "textColor" : "lozenge.border.active"}
                                     borderRightRadius="full"
                                     disabled={isForumSubmitting}
                                 >
@@ -325,7 +342,9 @@ export default function ForumConnectionManager({
                                             <Spinner size="sm" color="lozenge.text.active" />
                                         ) : (
                                             <>
-                                                <Text fontWeight="bold">Connected</Text>
+                                                <Text fontWeight="bold">
+                                                    {isBrokenConnection ? "Refresh" : "Connected"}
+                                                </Text>
                                                 <FontAwesomeIcon icon={faEllipsisVertical} size="lg" />
                                             </>
                                         )}
@@ -344,19 +363,18 @@ export default function ForumConnectionManager({
                                     >
                                         <CustomMenuItem value="connection-type" isHeading>
                                             <HStack overflow={"hidden"} color="textColorMuted" gap={1}>
-                                                <Text fontWeight="bold">Username from</Text>
                                                 <Text fontWeight="bold">
                                                     {targetUser.forumUsers?.find(
                                                         (forumUser) =>
                                                             forumUser.projectUrlSlug === config.projectUrlSlug,
                                                     )?.authEncryptedPayload
-                                                        ? "automatic check"
+                                                        ? "Username from automatic check"
                                                         : targetUser.forumUsers?.find(
                                                                 (forumUser) =>
                                                                     forumUser.projectUrlSlug === config.projectUrlSlug,
                                                             )?.authPostId
-                                                          ? "public post"
-                                                          : "None"}
+                                                          ? " Username from public post"
+                                                          : "Please refresh connection"}
                                                 </Text>
                                             </HStack>
                                         </CustomMenuItem>

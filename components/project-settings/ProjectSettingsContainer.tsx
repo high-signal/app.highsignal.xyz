@@ -54,7 +54,6 @@ export default function ProjectSettingsContainer() {
                 }
 
                 const data = await response.json()
-                console.log("Setting project data")
                 setProject(data[0])
             } catch (err) {
                 console.error("Error in fetchUserData:", err)

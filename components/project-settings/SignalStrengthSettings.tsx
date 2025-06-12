@@ -1,7 +1,7 @@
 import { HStack, Text, VStack, Box, Switch, Button, Span, RadioGroup } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faCheck, faChevronRight } from "@fortawesome/free-solid-svg-icons"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import { usePrivy } from "@privy-io/react-auth"
 import {
@@ -87,19 +87,21 @@ export default function SignalStrengthSettings({
     const [isSaving, setIsSaving] = useState(false)
     const [savingError, setSavingError] = useState<string | null>(null)
 
-    const resetSettingsFromSignalStrength = () =>
-        setSettings({
+    const settingsState = useMemo(
+        () => ({
             enabled: { current: signalStrength.enabled, new: null },
             maxValue: { current: signalStrength.maxValue, new: null },
             previousDays: { current: signalStrength.previousDays, new: null },
             url: { current: signalStrength.url ?? null, new: null },
             authTypes: { current: signalStrength.authTypes ?? null, new: null },
             authParentPostUrl: { current: signalStrength.authParentPostUrl ?? null, new: null },
-        })
+        }),
+        [signalStrength],
+    )
 
     useEffect(() => {
-        resetSettingsFromSignalStrength()
-    }, [signalStrength])
+        setSettings(settingsState)
+    }, [signalStrength, settingsState])
 
     useEffect(() => {
         if (!settings) return
@@ -114,7 +116,7 @@ export default function SignalStrengthSettings({
     }, [settings])
 
     const handleCancel = async () => {
-        resetSettingsFromSignalStrength()
+        setSettings(settingsState)
         setIsSaving(false)
         setSavingError(null)
     }
