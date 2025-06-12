@@ -221,6 +221,7 @@ export default function SignalStrengthSettings({
                             Status
                         </Text>
                         <RadioGroup.Root
+                            flexGrow={1}
                             value={(settings.enabled.new ?? settings.enabled.current ?? false) ? "true" : "false"}
                             onValueChange={(details) => {
                                 setSettings({
@@ -229,13 +230,14 @@ export default function SignalStrengthSettings({
                                 })
                             }}
                         >
-                            <HStack gap={6} alignItems={"start"}>
+                            <HStack gap={6} alignItems={"start"} w={"100%"}>
                                 <RadioGroup.Item
                                     value="true"
                                     cursor={"pointer"}
                                     gap={0}
                                     bg={"pageBackground"}
                                     borderRadius={"full"}
+                                    flexGrow={1}
                                 >
                                     <RadioGroup.ItemHiddenInput />
                                     <Box
@@ -251,7 +253,7 @@ export default function SignalStrengthSettings({
                                             <FontAwesomeIcon icon={faArrowRight} />
                                         )}
                                     </Box>
-                                    <RadioGroup.ItemText>
+                                    <RadioGroup.ItemText flexGrow={1}>
                                         <HStack
                                             bg={"lozenge.background.active"}
                                             px={2}
@@ -261,6 +263,8 @@ export default function SignalStrengthSettings({
                                             borderColor={"lozenge.border.active"}
                                             fontWeight={"bold"}
                                             fontSize={"sm"}
+                                            w={"100%"}
+                                            justifyContent={"center"}
                                         >
                                             <Text color={"lozenge.text.active"}>Active</Text>
                                         </HStack>
@@ -272,6 +276,7 @@ export default function SignalStrengthSettings({
                                     gap={0}
                                     bg={"pageBackground"}
                                     borderRadius={"full"}
+                                    flexGrow={1}
                                 >
                                     <RadioGroup.ItemHiddenInput />
                                     <Box
@@ -287,7 +292,7 @@ export default function SignalStrengthSettings({
                                             <FontAwesomeIcon icon={faArrowRight} />
                                         )}
                                     </Box>
-                                    <RadioGroup.ItemText>
+                                    <RadioGroup.ItemText flexGrow={1}>
                                         <HStack
                                             bg={"lozenge.background.disabled"}
                                             px={2}
@@ -297,6 +302,8 @@ export default function SignalStrengthSettings({
                                             borderColor={"lozenge.border.disabled"}
                                             fontWeight={"bold"}
                                             fontSize={"sm"}
+                                            w={"100%"}
+                                            justifyContent={"center"}
                                         >
                                             <Text color={"lozenge.text.disabled"}>Disabled</Text>
                                         </HStack>
