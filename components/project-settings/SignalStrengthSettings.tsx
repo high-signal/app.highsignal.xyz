@@ -15,7 +15,7 @@ function ValidationErrorDisplay({ errors, field }: { errors: ValidationError[]; 
             {errors
                 .filter((error) => error.field === field)
                 .map((error, index) => (
-                    <Text key={index} color={"orange.500"} fontSize="sm" pl={"14px"}>
+                    <Text key={index} color={"orange.500"} fontSize="sm" fontWeight={"bold"}>
                         {error.message}
                     </Text>
                 ))}
@@ -65,7 +65,7 @@ function AuthTypeSwitch({
                     {isChecked && <FontAwesomeIcon icon={faCheck} />}
                 </Switch.Thumb>
             </Switch.Control>
-            <Switch.Label>{label}</Switch.Label>
+            <Switch.Label fontWeight={"bold"}>{label}</Switch.Label>
         </Switch.Root>
     )
 }
@@ -399,7 +399,7 @@ export default function SignalStrengthSettings({
                                         })
                                     }}
                                 >
-                                    <HStack columnGap={6} rowGap={3} alignItems={"start"} flexWrap={"wrap"}>
+                                    <HStack columnGap={5} rowGap={3} alignItems={"start"} flexWrap={"wrap"}>
                                         {[30, 60, 90].map((days) => (
                                             <RadioGroup.Item
                                                 key={days}
@@ -428,7 +428,7 @@ export default function SignalStrengthSettings({
                                                 <RadioGroup.ItemText>
                                                     <Text
                                                         whiteSpace={"nowrap"}
-                                                        pr={2}
+                                                        pr={3}
                                                         color={
                                                             settings.previousDays.new === days ||
                                                             (!settings.previousDays.new &&
@@ -467,7 +467,7 @@ export default function SignalStrengthSettings({
                                 />
                             </HStack>
                             <VStack alignItems={"start"} gap={2} w={"100%"}>
-                                <HStack gap={3}>
+                                <HStack gap={3} flexWrap={"wrap"}>
                                     <Text fontWeight={"bold"} minW={"120px"} whiteSpace={"nowrap"}>
                                         Authentication options
                                     </Text>
@@ -490,7 +490,7 @@ export default function SignalStrengthSettings({
                                                 if (currentAuthTypes.includes("api_auth")) {
                                                     return (
                                                         <Text fontSize={"sm"} pl={"58px"}>
-                                                            Make sure you have enable user API keys (Link to docs)
+                                                            Make sure you have enabled user API keys (Link to docs)
                                                         </Text>
                                                     )
                                                 }
@@ -514,8 +514,8 @@ export default function SignalStrengthSettings({
                                                     return (
                                                         <VStack gap={1} w={"100%"} alignItems={"start"} pl={"58px"}>
                                                             <Text fontSize={"sm"}>
-                                                                Set the URL of the page that users should post on to
-                                                                confirm ownership
+                                                                {signalStrength.displayName.replace(" Engagement", "")}{" "}
+                                                                page that users should post on to confirm ownership
                                                             </Text>
                                                             <SingleLineTextInput
                                                                 placeholder={"e.g. https://myforum.xyz/t/auth-posts/9"}
@@ -570,7 +570,6 @@ export default function SignalStrengthSettings({
                         </HStack>
                     )}
                     {savingError && <Text color={"orange.500"}>{savingError}</Text>}
-                    <Text>{JSON.stringify(settings)}</Text>
                 </VStack>
             )}
         </VStack>
