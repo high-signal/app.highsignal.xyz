@@ -71,9 +71,8 @@ export default function ForumConnectionManager({
 
     // Check if the user is connected to the forum
     useEffect(() => {
-        const forumUsername = targetUser.forumUsers?.find(
-            (forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug,
-        )?.forumUsername
+        const forumUser = targetUser.forumUsers?.find((forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug)
+        const forumUsername = forumUser?.forumUsername
 
         if (forumUsername) {
             setForumUsername(forumUsername)
@@ -241,11 +240,11 @@ export default function ForumConnectionManager({
         }
     }
 
-    // Handle the edge case where the api_auth option was disabled after being used by the current user
-    // by displaying a message to the user
+    // Handle the edge case where the api_auth option was disabled after
+    // being used by the current user by displaying a message to the user
     useEffect(() => {
         const forumUser = targetUser.forumUsers?.find((forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug)
-        if (isConnected && !forumUser?.authEncryptedPayload && !forumUser?.authPostId) {
+        if (isConnected && config.forumAuthTypes?.includes("api_auth") && !forumUser?.authEncryptedPayload) {
             setIsBrokenConnection(true)
         } else {
             setIsBrokenConnection(false)
