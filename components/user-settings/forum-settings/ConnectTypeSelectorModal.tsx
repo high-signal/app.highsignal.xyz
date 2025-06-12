@@ -351,7 +351,7 @@ export default function ConnectTypeSelectorModal({
                                 mt={2}
                                 loading={isAuthPostCodeCheckSubmitted}
                             >
-                                <HStack>
+                                <HStack px={3}>
                                     <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
                                         {!authPostId || authEncryptedPayload
                                             ? "Check the forum for my post"
