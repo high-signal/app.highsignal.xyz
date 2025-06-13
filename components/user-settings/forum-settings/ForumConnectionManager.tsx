@@ -240,11 +240,11 @@ export default function ForumConnectionManager({
         }
     }
 
-    // Handle the edge case where the api_auth option was disabled after
-    // being used by the current user by displaying a message to the user
+    // Handle the edge case where an auth option was disabled after a
+    // user connected with it by displaying a message to the user
     useEffect(() => {
         const forumUser = targetUser.forumUsers?.find((forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug)
-        if (isConnected && config.forumAuthTypes?.includes("api_auth") && !forumUser?.authEncryptedPayload) {
+        if (forumUser?.forumUsername && !forumUser?.authPostId && !forumUser?.authEncryptedPayload) {
             setIsBrokenConnection(true)
         } else {
             setIsBrokenConnection(false)

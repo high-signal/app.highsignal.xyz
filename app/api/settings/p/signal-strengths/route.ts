@@ -118,21 +118,37 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ error: "Error updating signal strength settings" }, { status: 500 })
         }
 
-        // If the new authTypes no longer contains api_auth, clear auth_encrypted_payload for this project
-        if (
-            (settings.authTypes?.new &&
-                settings.authTypes?.new.length > 0 &&
-                !settings.authTypes?.new?.includes("api_auth")) ||
-            settings.enabled.new === false
-        ) {
-            const { error: updateForumUsersError } = await supabase
-                .from("forum_users")
-                .update({ auth_encrypted_payload: null, auth_post_code: null, auth_post_id: null })
-                .eq("project_id", targetProject.id)
+        // Clear auth-related fields when their corresponding auth types are removed or feature is disabled
+        const authTypeConfigs = [
+            {
+                type: "api_auth",
+                fields: { auth_encrypted_payload: null },
+            },
+            {
+                type: "manual_post",
+                fields: { auth_post_code: null, auth_post_id: null },
+            },
+        ]
 
-            if (updateForumUsersError) {
-                console.error("Error clearing auth_encrypted_payload:", updateForumUsersError)
-                return NextResponse.json({ error: "Error clearing auth_encrypted_payload" }, { status: 500 })
+        for (const config of authTypeConfigs) {
+            if (
+                (settings.authTypes?.new &&
+                    settings.authTypes?.new.length > 0 &&
+                    !settings.authTypes?.new?.includes(config.type)) ||
+                settings.enabled.new === false
+            ) {
+                const { error: updateForumUsersError } = await supabase
+                    .from("forum_users")
+                    .update(config.fields)
+                    .eq("project_id", targetProject.id)
+
+                if (updateForumUsersError) {
+                    console.error(`Error clearing ${Object.keys(config.fields).join(", ")}:`, updateForumUsersError)
+                    return NextResponse.json(
+                        { error: `Error clearing ${Object.keys(config.fields).join(", ")}` },
+                        { status: 500 },
+                    )
+                }
             }
         }
 
