@@ -67,12 +67,12 @@ export default function ForumConnectionManager({
 
     const [isConnectTypeSelectorOpen, setIsConnectTypeSelectorOpen] = useState(false)
     const [isDisconnectCheckOpen, setIsDisconnectCheckOpen] = useState(false)
+    const [isBrokenConnection, setIsBrokenConnection] = useState(false)
 
     // Check if the user is connected to the forum
     useEffect(() => {
-        const forumUsername = targetUser.forumUsers?.find(
-            (forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug,
-        )?.forumUsername
+        const forumUser = targetUser.forumUsers?.find((forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug)
+        const forumUsername = forumUser?.forumUsername
 
         if (forumUsername) {
             setForumUsername(forumUsername)
@@ -134,8 +134,8 @@ export default function ForumConnectionManager({
 
             // Show success message
             toaster.create({
-                title: `✅ ${config.projectDisplayName} forum connected`,
-                description: `Your ${config.projectDisplayName} forum accounts has been connected successfully. View your ${config.projectDisplayName} signal score to see the calculation in progress.`,
+                title: `✅ ${config.projectDisplayName} forum ownership confirmed`,
+                description: `Your ${config.projectDisplayName} forum account ownership has been confirmed. View your ${config.projectDisplayName} signal score to see the calculation in progress.`,
                 type: "success",
                 action: {
                     label: `View your ${config.projectDisplayName} signal score`,
@@ -155,6 +155,11 @@ export default function ForumConnectionManager({
         try {
             setIsForumSubmitting(true)
 
+            // Add timeout to ensure loading state is cleared after 10 seconds
+            const timeoutId = setTimeout(() => {
+                setIsForumSubmitting(false)
+            }, 10000)
+
             const token = await getAccessToken()
             const authRequestResponse = await fetch(
                 `/api/settings/u/accounts/forum_users/auth/api_auth?username=${targetUser.username}&project=${config.projectUrlSlug}`,
@@ -166,6 +171,9 @@ export default function ForumConnectionManager({
                     },
                 },
             )
+
+            // Clear the timeout since we got a response
+            clearTimeout(timeoutId)
 
             if (!authRequestResponse.ok) {
                 const errorData = await authRequestResponse.json()
@@ -240,6 +248,17 @@ export default function ForumConnectionManager({
         }
     }
 
+    // Handle the edge case where an auth option was disabled after a
+    // user connected with it by displaying a message to the user
+    useEffect(() => {
+        const forumUser = targetUser.forumUsers?.find((forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug)
+        if (forumUser?.forumUsername && !forumUser?.authPostId && !forumUser?.authEncryptedPayload) {
+            setIsBrokenConnection(true)
+        } else {
+            setIsBrokenConnection(false)
+        }
+    }, [targetUser, config, isConnected])
+
     return (
         <>
             <ConnectTypeSelectorModal
@@ -309,14 +328,19 @@ export default function ForumConnectionManager({
                         <Menu.Root>
                             <Menu.Trigger asChild>
                                 <Button
-                                    successButton
+                                    {...(isBrokenConnection && {
+                                        secondaryButton: true,
+                                    })}
+                                    {...(!isBrokenConnection && {
+                                        successButton: true,
+                                    })}
                                     h={"100%"}
                                     w={"120px"}
                                     pl={2}
                                     pr={0}
                                     border={"2px solid"}
-                                    color="lozenge.text.active"
-                                    borderColor="lozenge.border.active"
+                                    color={isBrokenConnection ? "textColor" : "lozenge.text.active"}
+                                    borderColor={isBrokenConnection ? "textColor" : "lozenge.border.active"}
                                     borderRightRadius="full"
                                     disabled={isForumSubmitting}
                                 >
@@ -325,7 +349,9 @@ export default function ForumConnectionManager({
                                             <Spinner size="sm" color="lozenge.text.active" />
                                         ) : (
                                             <>
-                                                <Text fontWeight="bold">Connected</Text>
+                                                <Text fontWeight="bold">
+                                                    {isBrokenConnection ? "Refresh" : "Connected"}
+                                                </Text>
                                                 <FontAwesomeIcon icon={faEllipsisVertical} size="lg" />
                                             </>
                                         )}
@@ -344,19 +370,18 @@ export default function ForumConnectionManager({
                                     >
                                         <CustomMenuItem value="connection-type" isHeading>
                                             <HStack overflow={"hidden"} color="textColorMuted" gap={1}>
-                                                <Text fontWeight="bold">Username from</Text>
                                                 <Text fontWeight="bold">
                                                     {targetUser.forumUsers?.find(
                                                         (forumUser) =>
                                                             forumUser.projectUrlSlug === config.projectUrlSlug,
                                                     )?.authEncryptedPayload
-                                                        ? "direct connection"
+                                                        ? "Username from automatic check"
                                                         : targetUser.forumUsers?.find(
                                                                 (forumUser) =>
                                                                     forumUser.projectUrlSlug === config.projectUrlSlug,
                                                             )?.authPostId
-                                                          ? "public post"
-                                                          : "None"}
+                                                          ? " Username from public post"
+                                                          : "Please refresh connection"}
                                                 </Text>
                                             </HStack>
                                         </CustomMenuItem>

@@ -12,6 +12,7 @@ type ProjectSignalStrengths = {
         name: string
         display_name: string
         status: string
+        available_auth_types?: string[]
         model?: string // Requires isSuperAdminRequesting is true
         temperature?: number //Requires isSuperAdminRequesting is true
         max_chars?: number //Requires isSuperAdminRequesting is true
@@ -57,7 +58,8 @@ export async function getProjectsUtil(
                         status,
                         model,
                         temperature,
-                        max_chars
+                        max_chars,
+                        available_auth_types
                     )
                 )
             `,
@@ -99,6 +101,7 @@ export async function getProjectsUtil(
                         status: ps.signal_strengths.status,
                         enabled: ps.enabled,
                         maxValue: ps.max_value,
+                        availableAuthTypes: ps.signal_strengths.available_auth_types,
                         authTypes: ps.auth_types,
                         authParentPostUrl: ps.auth_parent_post_url,
                         ...(isSuperAdminRequesting || isProjectAdminRequesting

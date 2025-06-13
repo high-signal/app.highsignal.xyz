@@ -56,19 +56,19 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: "Error fetching project signal strength URL" }, { status: 500 })
         }
 
-        const ApplicationName = encodeURIComponent(process.env.NEXT_PUBLIC_SITE_NAME!)
-        const ClientId = process.env.DISCOURSE_FORUM_CLIENT_ID!
-        const PublicKey = encodeURIComponent(process.env.DISCOURSE_FORUM_PUBLIC_KEY!.replace(/\\n/g, "\n"))
-        const Nonce = Math.floor(Math.random() * 0xfffffffffffff)
+        const applicationName = encodeURIComponent(process.env.NEXT_PUBLIC_SITE_NAME!)
+        const clientId = process.env.DISCOURSE_FORUM_CLIENT_ID!
+        const publicKey = encodeURIComponent(process.env.DISCOURSE_FORUM_PUBLIC_KEY!.replace(/\\n/g, "\n"))
+        const nonce = Math.floor(Math.random() * 0xfffffffffffff)
             .toString(16)
             .padStart(16, "0")
-        const AuthRedirect = encodeURIComponent(
+        const authRedirect = encodeURIComponent(
             `${process.env.NEXT_PUBLIC_SITE_URL!}/settings/u/${username}?tab=connected-accounts&type=discourse_forum&project=${projectUrlSlug}`,
         )
 
         return NextResponse.json({
             message: "Forum user auth URL generated successfully",
-            url: `${projectSignalStrengthData.url}/user-api-key/new?application_name=${ApplicationName}&client_id=${ClientId}&scopes=session_info&public_key=${PublicKey}&nonce=${Nonce}&auth_redirect=${AuthRedirect}`,
+            url: `${projectSignalStrengthData.url}/user-api-key/new?application_name=${applicationName}&client_id=${clientId}&scopes=session_info&public_key=${publicKey}&nonce=${nonce}&auth_redirect=${authRedirect}`,
         })
     } catch (error) {
         console.error("Error generating forum user auth URL:", error)

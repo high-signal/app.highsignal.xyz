@@ -62,7 +62,7 @@ export default function ConnectTypeSelectorModal({
         )
     }, [targetUser, config.projectUrlSlug])
 
-    const authPostMessage = `This post is proof to High Signal that I own my ${config.projectDisplayName} forum account. My authentication code is: ${authPostCode}`
+    const authPostMessage = `This post is proof to High Signal that I am the owner of this ${config.projectDisplayName} forum account. My authentication code is: ${authPostCode}`
 
     // When modal opens, if no authPostCode is found, generate one
     useEffect(() => {
@@ -117,8 +117,8 @@ export default function ConnectTypeSelectorModal({
         if (data.authPostCodeFound) {
             // Show success message
             toaster.create({
-                title: `✅ ${config.projectDisplayName} forum connected`,
-                description: `Your ${config.projectDisplayName} forum accounts has been connected successfully. View your ${config.projectDisplayName} signal score to see the calculation in progress.`,
+                title: `✅ ${config.projectDisplayName} forum ownership confirmed`,
+                description: `Your ${config.projectDisplayName} forum account ownership has been confirmed. View your ${config.projectDisplayName} signal score to see the calculation in progress.`,
                 type: "success",
                 action: {
                     label: `View your ${config.projectDisplayName} signal score`,
@@ -200,7 +200,7 @@ export default function ConnectTypeSelectorModal({
                 <Dialog.Header>
                     <Dialog.Title textAlign={"center"}>
                         <Text fontWeight="bold" px={4}>
-                            Connect your {config.projectDisplayName} forum account
+                            Confirm ownership of your {config.projectDisplayName} forum account
                         </Text>
                         <Button
                             closeButton
@@ -223,16 +223,16 @@ export default function ConnectTypeSelectorModal({
                     </Dialog.Title>
                 </Dialog.Header>
                 <Dialog.Body>
-                    <HStack flexWrap={"wrap"} alignItems={"start"}>
-                        <TypeSelector option="Option 1 (Recommended)" title="Direct connection">
+                    <HStack flexWrap={"wrap"} alignItems={"start"} pb={{ base: 100, md: 0 }}>
+                        <TypeSelector option="Option 1 (Recommended)" title="Automatic ownership check">
                             <Text>
-                                Connect your {config.projectDisplayName} forum account to High Signal to confirm
-                                ownership.
+                                Allows High Signal to automatically confirm you are the owner of your{" "}
+                                {config.projectDisplayName} forum account.
                             </Text>
                             <Text>
                                 Clicking the{" "}
                                 <Text as="span" fontWeight={"bold"}>
-                                    Connect
+                                    Confirm ownership
                                 </Text>{" "}
                                 button will redirect you to {config.projectDisplayName} forum where you will be asked to{" "}
                                 <Text as="span" fontWeight={"bold"}>
@@ -269,9 +269,11 @@ export default function ConnectTypeSelectorModal({
                                 loading={isForumSubmitting}
                             >
                                 {config.forumAuthTypes?.includes("api_auth") ? (
-                                    <HStack>
+                                    <HStack px={3} py={1}>
                                         <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
-                                            {authEncryptedPayload ? "Connected - Refresh connection" : "Connect"}
+                                            {authEncryptedPayload
+                                                ? "Ownership confirmed - Refresh connection"
+                                                : "Confirm ownership"}
                                         </Text>
                                         {config.forumAuthTypes?.includes("api_auth") && authEncryptedPayload && (
                                             <FontAwesomeIcon icon={faRefresh} size="lg" />
@@ -286,8 +288,8 @@ export default function ConnectTypeSelectorModal({
                         </TypeSelector>
                         <TypeSelector option="Option 2" title="Post a public message">
                             <Text>
-                                This method will allow you to manually connect your {config.projectDisplayName} forum
-                                account to your {config.projectDisplayName} account.
+                                Allows High Signal to confirm you are the owner of your {config.projectDisplayName}{" "}
+                                forum account by checking a public message on the {config.projectDisplayName} forum.
                             </Text>
                             <Text>Copy this message with your access code:</Text>
                             <VStack gap={2}>
@@ -349,11 +351,11 @@ export default function ConnectTypeSelectorModal({
                                 mt={2}
                                 loading={isAuthPostCodeCheckSubmitted}
                             >
-                                <HStack>
+                                <HStack px={3} py={1}>
                                     <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
                                         {!authPostId || authEncryptedPayload
                                             ? "Check the forum for my post"
-                                            : "Connected - Check the forum for my post again"}
+                                            : "Ownership confirmed - Check the forum for my post again"}
                                     </Text>
                                     <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
                                 </HStack>

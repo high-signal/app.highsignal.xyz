@@ -90,6 +90,7 @@ interface SignalStrengthProjectData {
     temperature?: number
     maxChars?: number
     url?: string
+    availableAuthTypes?: string[]
     authTypes?: string[]
     authParentPostUrl?: string
 }
@@ -105,6 +106,15 @@ interface SignalStrengthData {
     temperature?: number
     maxChars?: number
     logs?: string
+}
+
+interface SignalStrengthProjectSettingsState {
+    enabled: { current: boolean | null; new: boolean | null }
+    maxValue: { current: number | null; new: number | string | null }
+    previousDays: { current: number | null; new: number | string | null }
+    url: { current: string | null; new: string | null }
+    authTypes: { current: string[] | null; new: string[] | null }
+    authParentPostUrl: { current: string | null; new: string | null }
 }
 
 interface Prompt {
