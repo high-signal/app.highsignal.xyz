@@ -85,6 +85,7 @@ export async function PUT(request: NextRequest) {
             user_id: targetUserData.id,
             project_id: projectData.id,
             auth_post_code: authPostCode,
+            auth_post_code_created: Math.floor(Date.now() / 1000),
         })
 
         if (upsertError) {
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
 
         const { data: forumUserData, error: forumUserDataError } = await supabase
             .from("forum_users")
-            .select("auth_post_code")
+            .select("auth_post_code, auth_post_code_created")
             .eq("user_id", targetUserData.id)
             .eq("project_id", projectData.id)
             .single()
@@ -169,10 +170,28 @@ export async function POST(request: NextRequest) {
         const authParentPostData = await authParentPostResponse.json()
         const authParentPostPosts = authParentPostData.post_stream.posts
 
-        // Check if the auth post code is in the posts
-        const matchingAuthPost = authParentPostPosts.find((post: any) =>
-            post.cooked.includes(forumUserData.auth_post_code),
-        )
+        interface ForumPost {
+            created_at: string
+            username: string
+            id: number
+            cooked: string
+        }
+
+        const createdAfter = forumUserData.auth_post_code_created // in seconds
+
+        // Filter posts that contain the code and are created after the code was issued
+        const matchingAuthPosts = authParentPostPosts.filter((post: ForumPost) => {
+            const postCreated = Math.floor(new Date(post.created_at).getTime() / 1000) // to seconds
+            return post.cooked.includes(forumUserData.auth_post_code) && postCreated >= createdAfter
+        })
+
+        // Pick the earliest one
+        const matchingAuthPost = matchingAuthPosts.reduce((earliest: ForumPost | null, post: ForumPost) => {
+            if (!earliest) return post
+            const current = new Date(post.created_at).getTime()
+            const earliestTime = new Date(earliest.created_at).getTime()
+            return current < earliestTime ? post : earliest
+        }, null)
 
         if (matchingAuthPost) {
             try {

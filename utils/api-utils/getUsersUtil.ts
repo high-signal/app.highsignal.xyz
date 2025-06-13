@@ -161,7 +161,9 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
             // Get forum users
             const { data: forumUsers, error: forumUsersError } = await supabase
                 .from("forum_users")
-                .select("user_id, project_id, forum_username, auth_encrypted_payload, auth_post_id, auth_post_code")
+                .select(
+                    "user_id, project_id, forum_username, auth_encrypted_payload, auth_post_id, auth_post_code, auth_post_code_created",
+                )
                 .in("user_id", userIds)
 
             if (forumUsersError) {
@@ -178,6 +180,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                     authEncryptedPayload: user.auth_encrypted_payload,
                     authPostId: user.auth_post_id,
                     authPostCode: user.auth_post_code,
+                    authPostCodeCreated: user.auth_post_code_created,
                 })),
             })
         }

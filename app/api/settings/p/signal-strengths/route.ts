@@ -126,7 +126,7 @@ export async function PATCH(request: NextRequest) {
             },
             {
                 type: "manual_post",
-                fields: { auth_post_code: null, auth_post_id: null },
+                fields: { auth_post_code: null, auth_post_code_created: null, auth_post_id: null },
             },
         ]
 
