@@ -155,6 +155,11 @@ export default function ForumConnectionManager({
         try {
             setIsForumSubmitting(true)
 
+            // Add timeout to ensure loading state is cleared after 10 seconds
+            const timeoutId = setTimeout(() => {
+                setIsForumSubmitting(false)
+            }, 10000)
+
             const token = await getAccessToken()
             const authRequestResponse = await fetch(
                 `/api/settings/u/accounts/forum_users/auth/api_auth?username=${targetUser.username}&project=${config.projectUrlSlug}`,
@@ -166,6 +171,9 @@ export default function ForumConnectionManager({
                     },
                 },
             )
+
+            // Clear the timeout since we got a response
+            clearTimeout(timeoutId)
 
             if (!authRequestResponse.ok) {
                 const errorData = await authRequestResponse.json()
