@@ -53,8 +53,9 @@ export async function forumUserManagement({
         user_id: targetUserId,
         project_id: projectId,
         forum_username: forumUsername,
-        auth_encrypted_payload: type === "api_auth" ? data : null, // Clear the api auth if not used as that is the default and would take precedence
-        ...(type === "manual_post" ? { auth_post_id: data } : {}),
+        auth_encrypted_payload: type === "api_auth" ? data : null,
+        auth_post_id: type === "manual_post" ? data : null,
+        ...(type === "api_auth" ? { auth_post_code: null } : {}),
         ...(existingEntries[0]?.last_updated ? { last_updated: null } : {}), // Clear the last_updated if it exists as it will trigger the analysis again for any days that were not already covered
     })
 
