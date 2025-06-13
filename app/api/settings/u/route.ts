@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
                     auth_encrypted_payload,
                     auth_post_id,
                     auth_post_code,
+                    auth_post_code_created,
                     projects!inner (
                         url_slug
                     )
@@ -52,6 +53,7 @@ export async function GET(request: NextRequest) {
                 authEncryptedPayload: forumUser.auth_encrypted_payload,
                 authPostId: forumUser.auth_post_id,
                 authPostCode: forumUser.auth_post_code,
+                authPostCodeCreated: forumUser.auth_post_code_created,
             })),
         }
 
