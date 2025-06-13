@@ -1,6 +1,12 @@
-import { HStack, Text, VStack, Box, Switch, Button, Span, RadioGroup } from "@chakra-ui/react"
+import { HStack, Text, VStack, Box, Switch, Button, Span, RadioGroup, Link } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowRight, faCheck, faChevronRight, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowRight,
+    faCheck,
+    faChevronRight,
+    faTriangleExclamation,
+    faUpRightFromSquare,
+} from "@fortawesome/free-solid-svg-icons"
 import { useEffect, useState, useMemo } from "react"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import { usePrivy } from "@privy-io/react-auth"
@@ -485,7 +491,17 @@ export default function SignalStrengthSettings({
                                 </HStack>
                                 <Text fontSize={"sm"}>
                                     Choose which options will be available to users to confirm ownership of their{" "}
-                                    {shortName.toLowerCase()} account. Read the docs for more information on each.
+                                    {shortName.toLowerCase()} account. To learn about each option{" "}
+                                    <Link
+                                        href={`https://www.notion.so/Project-Settings-Forum-Engagement-211a88585e9580e6b586f248dd6604de`}
+                                        fontSize={"sm"}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        color={"blue.500"}
+                                        _hover={{ textDecoration: "underline" }}
+                                    >
+                                        read the docs <FontAwesomeIcon icon={faUpRightFromSquare} />
+                                    </Link>
                                 </Text>
                                 <VStack alignItems={"start"} gap={3} w={"100%"}>
                                     {signalStrength.availableAuthTypes?.includes("api_auth") && (
@@ -503,7 +519,18 @@ export default function SignalStrengthSettings({
                                                 if (currentAuthTypes.includes("api_auth")) {
                                                     return (
                                                         <Text fontSize={"sm"} pl={"58px"}>
-                                                            Make sure you have enabled user API keys (Link to docs)
+                                                            Make sure you have enabled{" "}
+                                                            <Link
+                                                                href={`https://www.notion.so/Project-Settings-Forum-Engagement-211a88585e9580e6b586f248dd6604de`}
+                                                                fontSize={"sm"}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                color={"blue.500"}
+                                                                _hover={{ textDecoration: "underline" }}
+                                                            >
+                                                                user API keys{" "}
+                                                                <FontAwesomeIcon icon={faUpRightFromSquare} />
+                                                            </Link>
                                                         </Text>
                                                     )
                                                 }

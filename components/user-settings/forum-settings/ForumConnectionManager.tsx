@@ -195,15 +195,6 @@ export default function ForumConnectionManager({
         }
     }
 
-    function checkAuthTypes() {
-        if (config.forumAuthTypes?.length == 1 && config.forumAuthTypes[0] === "api_auth") {
-            // If "api_auth" is the only auth type, use the api auth immediately
-            handleForumAuthApi()
-        } else {
-            setIsConnectTypeSelectorOpen(true)
-        }
-    }
-
     const handleForumDisconnect = async () => {
         try {
             setIsForumSubmitting(true)
@@ -307,7 +298,7 @@ export default function ForumConnectionManager({
                                 primaryButton
                                 h={"100%"}
                                 w={"100%"}
-                                onClick={checkAuthTypes}
+                                onClick={() => setIsConnectTypeSelectorOpen(true)}
                                 borderRadius="full"
                                 disabled={
                                     isForumSubmitting || isConnectTypeSelectorOpen || isProcessingForumAuthRequest
@@ -385,7 +376,10 @@ export default function ForumConnectionManager({
                                                 </Text>
                                             </HStack>
                                         </CustomMenuItem>
-                                        <CustomMenuItem value="refresh" onClick={checkAuthTypes}>
+                                        <CustomMenuItem
+                                            value="refresh"
+                                            onClick={() => setIsConnectTypeSelectorOpen(true)}
+                                        >
                                             <HStack overflow={"hidden"}>
                                                 <Text fontWeight="bold">Refresh connection</Text>
                                                 <Box w="20px">

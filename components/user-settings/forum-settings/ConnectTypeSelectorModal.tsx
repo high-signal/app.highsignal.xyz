@@ -318,7 +318,13 @@ export default function ConnectTypeSelectorModal({
                                 authentication:
                             </Text>
                             <Link href={config.forumAuthParentPostUrl} target="_blank" textDecoration={"none"}>
-                                <Button contentButton px={3} py={1} borderRadius={"full"}>
+                                <Button
+                                    contentButton
+                                    px={3}
+                                    py={1}
+                                    borderRadius={"full"}
+                                    disabled={!config.forumAuthParentPostUrl}
+                                >
                                     <HStack>
                                         <Text whiteSpace="normal">
                                             Go to the {config.projectDisplayName} forum High Signal authentication post
@@ -336,9 +342,11 @@ export default function ConnectTypeSelectorModal({
                                 button to confirm you are the owner of your {config.projectDisplayName} forum account.
                             </Text>
                             <Button
-                                {...(!authPostId || authEncryptedPayload
+                                {...(config.forumAuthTypes?.includes("manual_post") && !authPostId
                                     ? { primaryButton: true }
-                                    : { successButton: true })}
+                                    : authPostId
+                                      ? { successButton: true }
+                                      : { contentButton: true })}
                                 border={"3px solid"}
                                 borderColor={
                                     !authPostId || authEncryptedPayload ? "transparent" : "lozenge.border.active"
@@ -347,17 +355,23 @@ export default function ConnectTypeSelectorModal({
                                 w={"100%"}
                                 onClick={handleAuthPostCodeCheck}
                                 borderRadius="full"
-                                disabled={isAuthPostCodeCheckSubmitted}
+                                disabled={
+                                    !config.forumAuthTypes?.includes("manual_post") || isAuthPostCodeCheckSubmitted
+                                }
                                 mt={2}
                                 loading={isAuthPostCodeCheckSubmitted}
                             >
                                 <HStack px={3} py={1}>
                                     <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
-                                        {!authPostId || authEncryptedPayload
-                                            ? "Check the forum for my post"
-                                            : "Ownership confirmed - Check the forum for my post again"}
+                                        {config.forumAuthTypes?.includes("manual_post")
+                                            ? !authPostId || authEncryptedPayload
+                                                ? "Check the forum for my post"
+                                                : "Ownership confirmed - Check the forum for my post again"
+                                            : `This authentication method has not been enabled by ${config.projectDisplayName}`}
                                     </Text>
-                                    <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
+                                    {config.forumAuthTypes?.includes("manual_post") && (
+                                        <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
+                                    )}
                                 </HStack>
                             </Button>
                             {authPostCheckError && (
