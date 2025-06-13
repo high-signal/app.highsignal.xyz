@@ -1,6 +1,6 @@
 import { HStack, Text, VStack, Box, Switch, Button, Span, RadioGroup } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowRight, faCheck, faChevronRight } from "@fortawesome/free-solid-svg-icons"
+import { faArrowRight, faCheck, faChevronRight, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons"
 import { useEffect, useState, useMemo } from "react"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import { usePrivy } from "@privy-io/react-auth"
@@ -86,6 +86,7 @@ export default function SignalStrengthSettings({
     const [validationErrors, setValidationErrors] = useState<ValidationError[]>([])
     const [isSaving, setIsSaving] = useState(false)
     const [savingError, setSavingError] = useState<string | null>(null)
+    const [authenticationOptionsRemoved, setAuthenticationOptionsRemoved] = useState(false)
 
     const settingsState = useMemo(
         () => ({
@@ -101,10 +102,12 @@ export default function SignalStrengthSettings({
 
     const shortName = signalStrength.displayName.replace(" Engagement", "")
 
+    // Set the settings to the initial state when the signal strength changes
     useEffect(() => {
         setSettings(settingsState)
     }, [signalStrength, settingsState])
 
+    // Check for changes and validate settings whenever they change
     useEffect(() => {
         if (!settings) return
         const hasChanges = Object.values(settings).some(
@@ -117,12 +120,29 @@ export default function SignalStrengthSettings({
         setValidationErrors(errors)
     }, [settings])
 
+    // Check if an authentication option has been removed
+    useEffect(() => {
+        if (!settings) return
+        // If there were current auth types and new auth types are not null
+        if (settings.authTypes.current && settings.authTypes.current?.length > 0 && settings.authTypes.new !== null) {
+            // Check if any current auth type is not in the new auth types
+            const hasRemovedOption = settings.authTypes.current.some(
+                (currentType) => !settings.authTypes.new?.includes(currentType),
+            )
+            setAuthenticationOptionsRemoved(hasRemovedOption)
+        } else {
+            setAuthenticationOptionsRemoved(false)
+        }
+    }, [settings])
+
+    // Reset the settings to the initial state when the cancel button is clicked
     const handleCancel = async () => {
         setSettings(settingsState)
         setIsSaving(false)
         setSavingError(null)
     }
 
+    // Save the settings to the database
     const handleSave = async () => {
         if (!settings) return
         if (hasChanges && validationErrors.length === 0) {
@@ -151,6 +171,7 @@ export default function SignalStrengthSettings({
         }
     }
 
+    // If the settings are not loaded, do not render anything
     if (!settings) return null
 
     return (
@@ -540,6 +561,38 @@ export default function SignalStrengthSettings({
                                         </VStack>
                                     )}
                                 </VStack>
+                                {authenticationOptionsRemoved && (
+                                    <VStack
+                                        w={"100%"}
+                                        justify={"center"}
+                                        bg={"pageBackground"}
+                                        border={"3px solid"}
+                                        borderColor={"red.500"}
+                                        px={2}
+                                        py={1}
+                                        borderRadius={"16px"}
+                                        textAlign={"center"}
+                                        mt={2}
+                                    >
+                                        <HStack
+                                            w={"100%"}
+                                            fontWeight={"bold"}
+                                            justifyContent={"center"}
+                                            color={"red.500"}
+                                        >
+                                            <FontAwesomeIcon icon={faTriangleExclamation} />
+                                            <Text>Warning - Authentication option removed</Text>
+                                            <FontAwesomeIcon icon={faTriangleExclamation} color={"red.500"} />
+                                        </HStack>
+                                        <Text fontSize={"sm"} fontWeight={"bold"}>
+                                            If you remove an option, users who have already connected with that options
+                                            will be required to connect again using an alternative method.
+                                        </Text>
+                                        <Text fontSize={"sm"} fontWeight={"bold"}>
+                                            Even if you later re-enable the option, users will need to connect again.
+                                        </Text>
+                                    </VStack>
+                                )}
                             </VStack>
                         </>
                     )}
