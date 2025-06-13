@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
 
         const { data: forumUserData, error: forumUserDataError } = await supabase
             .from("forum_users")
-            .select("auth_post_code, auth_post_code_created")
+            .select("auth_post_code, auth_post_code_created, auth_post_id")
             .eq("user_id", targetUserData.id)
             .eq("project_id", projectData.id)
             .single()
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
 
         const { data: projectSignalStrengthData, error: projectSignalStrengthDataError } = await supabase
             .from("project_signal_strengths")
-            .select("auth_parent_post_url")
+            .select("url, auth_parent_post_url")
             .eq("project_id", projectData.id)
             .eq("signal_strength_id", signalStrengthData.id)
             .single()
@@ -165,62 +165,96 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Project signal strength not found" }, { status: 404 })
         }
 
-        // Make a call to the auth_parent_post_url to get all the posts on that thread to see if the auth post code is in the posts
-        const authParentPostResponse = await fetch(`${projectSignalStrengthData.auth_parent_post_url}.json`)
-        const authParentPostData = await authParentPostResponse.json()
-        const authParentPostPosts = authParentPostData.post_stream.posts
+        if (forumUserData.auth_post_id) {
+            // If an auth_post_id already exists, then this is an update check
+            // We need to check if the post is still there
+            const authPostResponse = await fetch(
+                `${projectSignalStrengthData.url}/posts/${forumUserData.auth_post_id}.json`,
+            )
+            const authPostData = await authPostResponse.json()
+            if (authPostData) {
+                // Check it still has the auth post code in it
+                if (authPostData.cooked.includes(forumUserData.auth_post_code)) {
+                    // Update the username in the forum user
+                    await forumUserManagement({
+                        type: "manual_post",
+                        supabase,
+                        targetUserId: targetUserData.id,
+                        projectId: projectData.id,
+                        forumUsername: authPostData.username,
+                        data: forumUserData.auth_post_id,
+                        signalStrengthName,
+                        signalStrengthId: signalStrengthData.id,
+                    })
 
-        interface ForumPost {
-            created_at: string
-            username: string
-            id: number
-            cooked: string
-        }
-
-        const createdAfter = forumUserData.auth_post_code_created // in seconds
-
-        // Filter posts that contain the code and are created after the code was issued
-        const matchingAuthPosts = authParentPostPosts.filter((post: ForumPost) => {
-            const postCreated = Math.floor(new Date(post.created_at).getTime() / 1000) // to seconds
-            return post.cooked.includes(forumUserData.auth_post_code) && postCreated >= createdAfter
-        })
-
-        // Pick the earliest one
-        const matchingAuthPost = matchingAuthPosts.reduce((earliest: ForumPost | null, post: ForumPost) => {
-            if (!earliest) return post
-            const current = new Date(post.created_at).getTime()
-            const earliestTime = new Date(earliest.created_at).getTime()
-            return current < earliestTime ? post : earliest
-        }, null)
-
-        if (matchingAuthPost) {
-            try {
-                const forumUsername = matchingAuthPost.username
-                const authPostId = matchingAuthPost.id
-
-                await forumUserManagement({
-                    type: "manual_post",
-                    supabase,
-                    targetUserId: targetUserData.id,
-                    projectId: projectData.id,
-                    forumUsername,
-                    data: authPostId,
-                    signalStrengthName,
-                    signalStrengthId: signalStrengthData.id,
-                })
-
-                return NextResponse.json({ authPostCodeFound: true })
-            } catch (error) {
-                console.error("Error managing forum user:", error)
-                return NextResponse.json(
-                    {
-                        error: error instanceof Error ? error.message : "An unexpected error occurred",
-                    },
-                    { status: 500 },
-                )
+                    return NextResponse.json({ authPostCodeFound: true })
+                } else {
+                    return NextResponse.json({ authPostCodeFound: false })
+                }
+            } else {
+                return NextResponse.json({ authPostCodeFound: false })
             }
         } else {
-            return NextResponse.json({ authPostCodeFound: false })
+            // Else, this is a new post check
+
+            // Make a call to the auth_parent_post_url to get all the
+            // posts on that thread to see if the auth post code is in the posts
+            const authParentPostResponse = await fetch(`${projectSignalStrengthData.auth_parent_post_url}.json`)
+            const authParentPostData = await authParentPostResponse.json()
+            const authParentPostPosts = authParentPostData.post_stream.posts
+
+            interface ForumPost {
+                created_at: string
+                username: string
+                id: number
+                cooked: string
+            }
+
+            const createdAfter = forumUserData.auth_post_code_created // in seconds
+
+            // Filter posts that contain the code and are created after the code was issued
+            const matchingAuthPosts = authParentPostPosts.filter((post: ForumPost) => {
+                const postCreated = Math.floor(new Date(post.created_at).getTime() / 1000) // to seconds
+                return post.cooked.includes(forumUserData.auth_post_code) && postCreated >= createdAfter
+            })
+
+            // Pick the earliest one
+            const matchingAuthPost = matchingAuthPosts.reduce((earliest: ForumPost | null, post: ForumPost) => {
+                if (!earliest) return post
+                const current = new Date(post.created_at).getTime()
+                const earliestTime = new Date(earliest.created_at).getTime()
+                return current < earliestTime ? post : earliest
+            }, null)
+
+            if (matchingAuthPost) {
+                try {
+                    const forumUsername = matchingAuthPost.username
+                    const authPostId = matchingAuthPost.id
+
+                    await forumUserManagement({
+                        type: "manual_post",
+                        supabase,
+                        targetUserId: targetUserData.id,
+                        projectId: projectData.id,
+                        forumUsername,
+                        data: authPostId,
+                        signalStrengthName,
+                        signalStrengthId: signalStrengthData.id,
+                    })
+
+                    return NextResponse.json({ authPostCodeFound: true })
+                } catch (error) {
+                    console.error("Error managing forum user:", error)
+                    return NextResponse.json(
+                        {
+                            error: error instanceof Error ? error.message : "An unexpected error occurred",
+                        },
+                        { status: 500 },
+                    )
+                }
+            } else {
+                return NextResponse.json({ authPostCodeFound: false })
+            }
         }
     } catch (error) {
         console.error("Error generating auth post code:", error)

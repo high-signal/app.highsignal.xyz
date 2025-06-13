@@ -33,6 +33,7 @@ interface ForumUser {
     authEncryptedPayload?: string
     authPostId?: string
     authPostCode?: string
+    authPostCodeCreated?: number
 }
 
 interface PeakSignalUserData {
