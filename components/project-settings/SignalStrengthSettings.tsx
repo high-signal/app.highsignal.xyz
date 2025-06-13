@@ -99,6 +99,8 @@ export default function SignalStrengthSettings({
         [signalStrength],
     )
 
+    const shortName = signalStrength.displayName.replace(" Engagement", "")
+
     useEffect(() => {
         setSettings(settingsState)
     }, [signalStrength, settingsState])
@@ -436,9 +438,7 @@ export default function SignalStrengthSettings({
                             </HStack>
                             <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
                                 <HStack gap={3}>
-                                    <Text fontWeight={"bold"}>
-                                        {signalStrength.displayName.replace(" Engagement", "")} URL
-                                    </Text>
+                                    <Text fontWeight={"bold"}>{shortName} URL</Text>
                                     <ValidationErrorDisplay errors={validationErrors} field="url" />
                                 </HStack>
                                 <SingleLineTextInput
@@ -458,11 +458,14 @@ export default function SignalStrengthSettings({
                             <VStack alignItems={"start"} gap={2} w={"100%"}>
                                 <HStack gap={3} flexWrap={"wrap"}>
                                     <Text fontWeight={"bold"} minW={"120px"} whiteSpace={"nowrap"}>
-                                        Authentication options
+                                        User authentication options
                                     </Text>
                                     <ValidationErrorDisplay errors={validationErrors} field="authTypes" />
                                 </HStack>
-
+                                <Text fontSize={"sm"}>
+                                    Choose which options will be available to users to confirm ownership of their{" "}
+                                    {shortName.toLowerCase()} account. Read the docs for more information on each.
+                                </Text>
                                 <VStack alignItems={"start"} gap={3} w={"100%"}>
                                     {signalStrength.availableAuthTypes?.includes("api_auth") && (
                                         <VStack w={"100%"} alignItems={"start"} gap={1}>
@@ -503,8 +506,8 @@ export default function SignalStrengthSettings({
                                                     return (
                                                         <VStack gap={1} w={"100%"} alignItems={"start"} pl={"58px"}>
                                                             <Text fontSize={"sm"}>
-                                                                {signalStrength.displayName.replace(" Engagement", "")}{" "}
-                                                                page that users should post on to confirm ownership
+                                                                {shortName} page that users should post on to confirm
+                                                                ownership
                                                             </Text>
                                                             <SingleLineTextInput
                                                                 placeholder={"e.g. https://myforum.xyz/t/auth-posts/9"}

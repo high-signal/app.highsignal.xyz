@@ -223,7 +223,7 @@ export default function ConnectTypeSelectorModal({
                     </Dialog.Title>
                 </Dialog.Header>
                 <Dialog.Body>
-                    <HStack flexWrap={"wrap"} alignItems={"start"}>
+                    <HStack flexWrap={"wrap"} alignItems={"start"} pb={{ base: 100, md: 0 }}>
                         <TypeSelector option="Option 1 (Recommended)" title="Automatic ownership check">
                             <Text>
                                 Allows High Signal to automatically confirm you are the owner of your{" "}
@@ -269,7 +269,7 @@ export default function ConnectTypeSelectorModal({
                                 loading={isForumSubmitting}
                             >
                                 {config.forumAuthTypes?.includes("api_auth") ? (
-                                    <HStack>
+                                    <HStack px={3} py={1}>
                                         <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
                                             {authEncryptedPayload
                                                 ? "Ownership confirmed - Refresh connection"
@@ -351,7 +351,7 @@ export default function ConnectTypeSelectorModal({
                                 mt={2}
                                 loading={isAuthPostCodeCheckSubmitted}
                             >
-                                <HStack px={3}>
+                                <HStack px={3} py={1}>
                                     <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
                                         {!authPostId || authEncryptedPayload
                                             ? "Check the forum for my post"

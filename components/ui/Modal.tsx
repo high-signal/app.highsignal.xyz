@@ -1,7 +1,8 @@
-import { Dialog, Portal } from "@chakra-ui/react"
+import { Dialog, Portal, useBreakpointValue } from "@chakra-ui/react"
 import { ReactNode } from "react"
 
 type Placement = "center" | "top" | "bottom"
+type Size = "xs" | "sm" | "md" | "lg" | "full"
 
 interface ModalProps {
     placement?: { base: Placement; md: Placement }
@@ -11,9 +12,12 @@ interface ModalProps {
 }
 
 export default function Modal({ placement = { base: "center", md: "center" }, open, close, children }: ModalProps) {
+    const modalSize = useBreakpointValue({ base: "full", md: "sm" }) as Size
+
     return (
         <Dialog.Root
             placement={placement}
+            size={modalSize}
             motionPreset={"slide-in-bottom"}
             open={open}
             onEscapeKeyDown={() => close()}
