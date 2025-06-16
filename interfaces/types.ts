@@ -8,6 +8,7 @@ interface UserData {
     displayName?: string
     profileImageUrl?: string
     signal?: string
+    projectSlug?: string
     projectData?: ProjectData
     peakSignals?: PeakSignalUserData[]
     signalStrengths?: {

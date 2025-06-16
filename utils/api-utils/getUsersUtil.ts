@@ -273,6 +273,9 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                     username: user.username,
                     displayName: user.display_name,
                     profileImageUrl: user.profile_image_url,
+                    ...(!projectSlug
+                        ? { projectSlug: (score.projects as unknown as { url_slug: string }).url_slug }
+                        : {}),
                     rank: score.rank,
                     score: score.total_score,
                     signal: calculateSignalFromScore(score.total_score),
