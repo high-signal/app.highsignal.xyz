@@ -62,7 +62,7 @@ const MenuItem = ({ isHeading = false, icon, label, value, onClick, textColor = 
                             />
                         </Box>
                     ) : (
-                        <Box w="20px">
+                        <Box w="20px" ml={1} mr={1}>
                             <FontAwesomeIcon icon={icon} />
                         </Box>
                     )}
@@ -172,8 +172,12 @@ export default function UserMenuButton() {
                                 </>
                             )}
                             <MenuItem isHeading label={loggedInUser.displayName} value="username" />
-                            <Link href={`/p/lido/${loggedInUser.username}`}>
-                                <MenuItem icon={faCircleUser} label="Profile" value="profile" />
+                            <Link href={`/u/${loggedInUser.username}`}>
+                                <MenuItem
+                                    icon={loggedInUser.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE}
+                                    label="Profile"
+                                    value="profile"
+                                />
                             </Link>
                             <Link href={`/settings/u/${loggedInUser.username}`}>
                                 <MenuItem icon={faGear} label="Settings" value="settings" />

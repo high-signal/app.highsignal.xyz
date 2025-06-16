@@ -75,10 +75,6 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
     const from = (page - 1) * resultsPerPage
     const to = from + resultsPerPage - 1
 
-    if (!projectSlug) {
-        return NextResponse.json({ error: "Project slug is required" }, { status: 400 })
-    }
-
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
     try {
@@ -98,9 +94,13 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                     )
                 `,
             )
-            .eq("projects.url_slug", projectSlug)
             .order("rank", { ascending: true })
             .range(from, to)
+
+        // Add project filter only if project slug is provided
+        if (projectSlug) {
+            projectScoresQuery = projectScoresQuery.eq("projects.url_slug", projectSlug)
+        }
 
         // Filter by username or display name if provided
         if (username) {
@@ -273,6 +273,9 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                     username: user.username,
                     displayName: user.display_name,
                     profileImageUrl: user.profile_image_url,
+                    ...(!projectSlug
+                        ? { projectSlug: (score.projects as unknown as { url_slug: string }).url_slug }
+                        : {}),
                     rank: score.rank,
                     score: score.total_score,
                     signal: calculateSignalFromScore(score.total_score),

@@ -3,23 +3,29 @@ import { useState, useRef, useEffect } from "react"
 import SingleLineTextInput from "./SingleLineTextInput"
 import { useGetProjects } from "../../hooks/useGetProjects"
 import { ASSETS } from "../../config/constants"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons"
 
 interface ProjectPickerProps {
     onProjectSelect: (project: ProjectData) => void
     onClear?: () => void
+    selectorText?: string
+    placeholder?: string
     isSuperAdminRequesting?: boolean
 }
 
 export default function ProjectPicker({
     onProjectSelect,
     onClear,
+    selectorText,
+    placeholder = "Search projects...",
     isSuperAdminRequesting = false,
 }: ProjectPickerProps) {
     const [searchTerm, setSearchTerm] = useState<string>("")
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null!)
-    const { projects, loading, error } = useGetProjects(debouncedSearchTerm, isSuperAdminRequesting)
+    const { projects, loading, error } = useGetProjects(debouncedSearchTerm, true, isSuperAdminRequesting)
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -29,28 +35,41 @@ export default function ProjectPicker({
     }, [searchTerm])
 
     return (
-        <Box position="relative" minW={{ base: "100%", sm: "250px" }} flexGrow={1}>
-            <SingleLineTextInput
-                ref={inputRef}
-                placeholder="Search projects..."
-                value={searchTerm}
-                onChange={(e) => {
-                    setSearchTerm(e.target.value)
-                }}
-                handleClear={() => {
-                    setSearchTerm("")
-                    if (onClear) {
-                        onClear()
-                    }
-                }}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => {
-                    setTimeout(() => {
-                        setIsFocused(false)
-                    }, 50)
-                }}
-                bg="pageBackground"
-            />
+        <Box position="relative" minW={{ base: "100%", sm: "max-content" }} flexGrow={1}>
+            <Box position="relative">
+                <SingleLineTextInput
+                    ref={inputRef}
+                    placeholder={placeholder}
+                    value={selectorText && !isFocused ? selectorText : searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value)
+                    }}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => {
+                        if (selectorText) {
+                            setSearchTerm("")
+                        }
+                        setTimeout(() => {
+                            setIsFocused(false)
+                        }, 50)
+                    }}
+                    {...(!selectorText && {
+                        handleClear: () => {
+                            setSearchTerm("")
+                            if (onClear) {
+                                onClear()
+                            }
+                        },
+                    })}
+                    isSelectorOnly={Boolean(selectorText)}
+                    bg={selectorText && !isFocused ? "button.secondary.default" : "pageBackground"}
+                />
+                {selectorText && !isFocused && (
+                    <Box position="absolute" right="12px" top="50%" transform="translateY(-50%)" pointerEvents="none">
+                        <FontAwesomeIcon icon={faChevronDown} />
+                    </Box>
+                )}
+            </Box>
             {isFocused && (
                 <Box
                     position="absolute"

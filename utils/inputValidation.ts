@@ -8,8 +8,8 @@ export function validateUsername(username: string): string {
         return "Username is required"
     }
 
-    if (username.length > 20) {
-        return "Username cannot be longer than 20 characters"
+    if (username.length > 16) {
+        return "Username cannot be longer than 16 characters"
     }
 
     const usernameRegex = /^[a-zA-Z0-9_-]+$/
@@ -30,8 +30,8 @@ export function validateDisplayName(displayName: string): string {
         return "Display name is required"
     }
 
-    if (displayName.length > 50) {
-        return "Display name cannot be longer than 50 characters"
+    if (displayName.length > 20) {
+        return "Display name cannot be longer than 20 characters"
     }
 
     return ""

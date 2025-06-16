@@ -33,6 +33,17 @@ export default function SignalDisplayContainer({ project, username }: { project:
         )
     }
 
+    // Filter out signal strengths that are not enabled
+    const enabledSignalStrengths = currentProject?.signalStrengths.filter((signalStrength) => signalStrength.enabled)
+
+    if (enabledSignalStrengths?.length === 0) {
+        return (
+            <VStack gap={10} w="100%" maxW="800px" borderRadius="20px">
+                <Text>No signal strengths are currently enabled for this project</Text>
+            </VStack>
+        )
+    }
+
     if (!currentUser || !currentProject) {
         return (
             <VStack gap={10} w="100%" maxW="800px" borderRadius="20px">
@@ -41,15 +52,16 @@ export default function SignalDisplayContainer({ project, username }: { project:
         )
     }
 
-    // Filter out signal strengths that are not enabled
-    const enabledSignalStrengths = currentProject.signalStrengths.filter((signalStrength) => signalStrength.enabled)
-
     return (
-        <VStack gap={12} w="100%" maxW="700px" py={6}>
-            <VStack gap={0} w="100%" maxW="600px" px={3}>
+        <VStack gap={12} w="100%" maxW="800px" pb={6} pt={{ base: 4, sm: 0 }}>
+            <VStack gap={0} w="100%" maxW="800px" px={3}>
                 <Title projectData={currentProject} />
                 <Box w="100%" h="10px" />
-                <UserInfo profileImageUrl={currentUser.profileImageUrl || ""} name={currentUser.displayName || ""} />
+                <UserInfo
+                    profileImageUrl={currentUser.profileImageUrl || ""}
+                    displayName={currentUser.displayName || ""}
+                    username={currentUser.username || ""}
+                />
                 <Box w="100%" h={{ base: "30px", sm: "20px" }} />
                 <CurrentSignal currentUser={currentUser} />
                 {/* <HStack w="100%" justifyContent="space-between">

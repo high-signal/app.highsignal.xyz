@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useEffect } from "react"
 
 import { useGetUsers } from "../../hooks/useGetUsers"
+import { useGetProjects } from "../../hooks/useGetProjects"
 
 import { ASSETS } from "../../config/constants"
 
@@ -42,7 +43,15 @@ const TableHeader = ({
     </Table.ColumnHeader>
 )
 
-export default function Leaderboard({ project }: { project: ProjectData }) {
+export default function Leaderboard({
+    project,
+    mode = "users",
+    data,
+}: {
+    project?: ProjectData
+    mode?: "users" | "projects"
+    data?: UserData[]
+}) {
     const router = useRouter()
     const searchParams = useSearchParams()
     const initialSearchTerm = searchParams.get("search") || ""
@@ -50,8 +59,50 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialSearchTerm)
     const [isSearching, setIsSearching] = useState(false)
 
-    // Use the fuzzy search when there is a search term
-    const { users, loading, error } = useGetUsers(project.urlSlug, debouncedSearchTerm, debouncedSearchTerm.length > 0)
+    // Use the appropriate hook based on mode
+    const {
+        users,
+        loading: usersLoading,
+        error: usersError,
+    } = useGetUsers(project?.urlSlug, debouncedSearchTerm, debouncedSearchTerm.length > 0)
+    const {
+        projects,
+        loading: projectsLoading,
+        error: projectsError,
+    } = useGetProjects(debouncedSearchTerm, debouncedSearchTerm.length > 0)
+
+    const loading = mode === "users" ? usersLoading : projectsLoading
+    const error = mode === "users" ? usersError : projectsError
+    const items = mode === "users" ? users : projects
+
+    // Helper function to get user data for a project
+    const getUserDataForProject = (projectSlug: string) => {
+        return data?.find((user) => user.projectSlug === projectSlug)
+    }
+
+    // Sort items based on mode
+    const sortedItems = [...items].sort((a, b) => {
+        if (mode === "users") {
+            // For users mode, sort by rank first
+            const rankA = (a as UserData).rank || Number.MAX_SAFE_INTEGER
+            const rankB = (b as UserData).rank || Number.MAX_SAFE_INTEGER
+            if (rankA !== rankB) return rankA - rankB
+        } else {
+            // For projects mode, sort by score first
+            const scoreA = getUserDataForProject((a as ProjectData).urlSlug)?.score
+            const scoreB = getUserDataForProject((b as ProjectData).urlSlug)?.score
+            if (scoreA !== scoreB) {
+                // If either score is undefined/null, put it at the bottom
+                if (!scoreA) return 1
+                if (!scoreB) return -1
+                return scoreB - scoreA // Higher scores first
+            }
+        }
+        // If ranks/scores are equal, sort alphabetically by display name
+        const nameA = a.displayName || ""
+        const nameB = b.displayName || ""
+        return nameA.localeCompare(nameB)
+    })
 
     // Debounce the search term to avoid too many API calls
     useEffect(() => {
@@ -98,7 +149,7 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
         )
     }
 
-    const rankColumnWidth = { base: "20px", sm: "50px" }
+    const rankColumnWidth = mode === "users" ? { base: "20px", sm: "50px" } : { base: "0px", sm: "0px" }
     const displayNameColumnWidth = { base: "120px", sm: "auto" }
     const signalColumnWidth = { base: "40px", sm: "40px" }
     const scoreColumnWidth = { base: "40px", sm: "40px" }
@@ -109,18 +160,20 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
             <Table.Root>
                 <Table.Header>
                     <Table.Row bg="transparent">
-                        <TableHeader textAlign="center" maxW={rankColumnWidth}>
-                            <HStack justifyContent="center">
-                                <Text display={{ base: "block", sm: "none" }}>#</Text>
-                                <Text display={{ base: "none", sm: "block" }}>Rank</Text>
-                            </HStack>
-                        </TableHeader>
+                        {mode === "users" && (
+                            <TableHeader textAlign="center" maxW={rankColumnWidth}>
+                                <HStack justifyContent="center">
+                                    <Text display={{ base: "block", sm: "none" }}>#</Text>
+                                    <Text display={{ base: "none", sm: "block" }}>Rank</Text>
+                                </HStack>
+                            </TableHeader>
+                        )}
                         <TableHeader maxW={displayNameColumnWidth} px={{ base: 2, sm: 2 }}>
                             <SingleLineTextInput
                                 value={searchTerm}
                                 onChange={handleSearchChange}
                                 handleClear={handleClearSearch}
-                                placeholder="Search users..."
+                                placeholder={`Search...`}
                             />
                         </TableHeader>
                         <TableHeader textAlign="center" maxW={signalColumnWidth}>
@@ -132,7 +185,7 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                         <TableHeader
                             textAlign="center"
                             maxW={peakSignalsColumnWidth}
-                            display={{ base: "none", sm: project.peakSignalsEnabled ? "table-cell" : "none" }}
+                            display={{ base: "none", sm: project?.peakSignalsEnabled ? "table-cell" : "none" }}
                         >
                             Peak Signals
                         </TableHeader>
@@ -147,17 +200,26 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                 </VStack>
                             </Table.Cell>
                         </Table.Row>
-                    ) : users.length === 0 ? (
+                    ) : sortedItems.length === 0 ? (
                         <Table.Row bg="pageBackground">
                             <Table.Cell colSpan={5} textAlign="center" py={10} borderColor="contentBorder">
                                 <Text color="textColorMuted">
-                                    {searchTerm ? `No users found with the name "${searchTerm}"` : "No users found"}
+                                    {searchTerm
+                                        ? `No ${mode === "users" ? "users" : "results"} found with the name "${searchTerm}"`
+                                        : `No ${mode === "users" ? "users" : "results"} found`}
                                 </Text>
                             </Table.Cell>
                         </Table.Row>
                     ) : (
-                        users.map((user, index) => {
-                            const linkUrl = `/p/${project.urlSlug}/${user.username}${window.location.search}`
+                        sortedItems.map((item, index) => {
+                            const linkUrl =
+                                mode === "users"
+                                    ? `/p/${project?.urlSlug}/${(item as UserData).username}${window.location.search}`
+                                    : `/p/${(item as ProjectData).urlSlug}/${(data as UserData[])?.[0]?.username}`
+
+                            // Get user data for project if in projects mode
+                            const userData =
+                                mode === "projects" ? getUserDataForProject((item as ProjectData).urlSlug) : null
 
                             return (
                                 <Table.Row
@@ -173,18 +235,20 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                     borderBottom="1px solid"
                                     borderColor="contentBorder"
                                 >
-                                    <Table.Cell
-                                        borderBottom="none"
-                                        py={"6px"}
-                                        px={{ base: 0, sm: 4 }}
-                                        textAlign="center"
-                                    >
-                                        <Link href={linkUrl}>
-                                            <Text fontSize="lg" fontWeight="bold" color="textColor">
-                                                {user.rank}
-                                            </Text>
-                                        </Link>
-                                    </Table.Cell>
+                                    {mode === "users" && (
+                                        <Table.Cell
+                                            borderBottom="none"
+                                            py={"6px"}
+                                            px={{ base: 0, sm: 4 }}
+                                            textAlign="center"
+                                        >
+                                            <Link href={linkUrl}>
+                                                <Text fontSize="lg" fontWeight="bold" color="textColor">
+                                                    {(item as UserData).rank}
+                                                </Text>
+                                            </Link>
+                                        </Table.Cell>
+                                    )}
                                     <Table.Cell borderBottom="none" py={"6px"} pr={0} maxW={displayNameColumnWidth}>
                                         <Link href={linkUrl}>
                                             <HStack gap={3}>
@@ -197,16 +261,22 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                                 >
                                                     <Image
                                                         src={
-                                                            !user.profileImageUrl || user.profileImageUrl === ""
-                                                                ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                                                : user.profileImageUrl
+                                                            mode === "users"
+                                                                ? !(item as UserData).profileImageUrl ||
+                                                                  (item as UserData).profileImageUrl === ""
+                                                                    ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                                                    : (item as UserData).profileImageUrl
+                                                                : !(item as ProjectData).projectLogoUrl ||
+                                                                    (item as ProjectData).projectLogoUrl === ""
+                                                                  ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                                                  : (item as ProjectData).projectLogoUrl
                                                         }
-                                                        alt={`User ${user.username} Profile Image`}
+                                                        alt={`${item.displayName} Image`}
                                                         fit="cover"
                                                     />
                                                 </Box>
                                                 <Text fontSize="lg" color="textColor" truncate>
-                                                    {user.displayName}
+                                                    {item.displayName}
                                                 </Text>
                                             </HStack>
                                         </Link>
@@ -219,9 +289,26 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                                 fontSize="xl"
                                                 fontWeight="bold"
                                             >
-                                                <Text color={`scoreColor.${user.signal || "textColorMuted"}`}>
-                                                    {(user.signal || "").charAt(0).toUpperCase() +
-                                                        (user.signal || "").slice(1)}
+                                                <Text
+                                                    color={
+                                                        mode === "users"
+                                                            ? (item as UserData).signal
+                                                                ? `scoreColor.${(item as UserData).signal}`
+                                                                : "textColorMuted"
+                                                            : userData?.signal
+                                                              ? `scoreColor.${userData.signal}`
+                                                              : "textColorMuted"
+                                                    }
+                                                >
+                                                    {(() => {
+                                                        const signal =
+                                                            (mode === "users"
+                                                                ? (item as UserData).signal
+                                                                : userData?.signal) || ""
+                                                        return signal
+                                                            ? signal.charAt(0).toUpperCase() + signal.slice(1)
+                                                            : "-"
+                                                    })()}
                                                 </Text>
                                             </HStack>
                                         </Link>
@@ -240,12 +327,30 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                                     py={1}
                                                     border="3px solid"
                                                     borderRadius="15px"
-                                                    borderColor={`scoreColor.${user.signal || ""}`}
-                                                    color="textColor"
+                                                    borderColor={
+                                                        mode === "users"
+                                                            ? (item as UserData).signal
+                                                                ? `scoreColor.${(item as UserData).signal}`
+                                                                : "transparent"
+                                                            : userData?.signal
+                                                              ? `scoreColor.${userData.signal}`
+                                                              : "transparent"
+                                                    }
+                                                    color={
+                                                        mode === "users"
+                                                            ? (item as UserData).signal
+                                                                ? "textColor"
+                                                                : "textColorMuted"
+                                                            : userData?.signal
+                                                              ? "textColor"
+                                                              : "textColorMuted"
+                                                    }
                                                     w="fit-content"
                                                     fontSize="lg"
                                                 >
-                                                    {user.score}
+                                                    {mode === "users"
+                                                        ? (item as UserData).score
+                                                        : userData?.score || "0"}
                                                 </Text>
                                             </HStack>
                                         </Link>
@@ -256,12 +361,16 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                                         maxW={peakSignalsColumnWidth}
                                         display={{
                                             base: "none",
-                                            sm: project.peakSignalsEnabled ? "table-cell" : "none",
+                                            sm: project?.peakSignalsEnabled ? "table-cell" : "none",
                                         }}
                                     >
                                         <Link href={linkUrl}>
                                             <HStack justify="center" gap={2}>
-                                                {[...(user.peakSignals || [])]
+                                                {[
+                                                    ...(mode === "users"
+                                                        ? (item as UserData).peakSignals || []
+                                                        : userData?.peakSignals || []),
+                                                ]
                                                     .sort((a, b) => b.value - a.value)
                                                     .slice(0, 5)
                                                     .map((badge, index) => (

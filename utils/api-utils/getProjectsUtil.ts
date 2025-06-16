@@ -33,6 +33,7 @@ export async function getProjectsUtil(
     isSuperAdminRequesting: boolean,
 ) {
     const projectSlug = request ? new URL(request.url).searchParams.get("project") : null
+    const fuzzy = request ? new URL(request.url).searchParams.get("fuzzy") === "true" : false
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
     try {
@@ -64,12 +65,16 @@ export async function getProjectsUtil(
                 )
             `,
             )
-            .order("id", { ascending: true })
+            .order("url_slug", { ascending: true })
             .limit(10)
 
         // If projectSlug is provided, add filter to the query
         if (projectSlug) {
-            projectsQuery = projectsQuery.eq("url_slug", projectSlug)
+            if (fuzzy) {
+                projectsQuery = projectsQuery.ilike("display_name", `%${projectSlug}%`)
+            } else {
+                projectsQuery = projectsQuery.eq("url_slug", projectSlug.toLowerCase())
+            }
         }
 
         // Execute the query
@@ -87,33 +92,42 @@ export async function getProjectsUtil(
         }
 
         // Format the projects to match UI naming conventions
-        const formattedProjects = (projects as unknown as Project[]).map((project) => {
-            return {
-                ...(isSuperAdminRequesting || isProjectAdminRequesting ? { id: project.id } : {}),
-                urlSlug: project.url_slug,
-                displayName: project.display_name,
-                projectLogoUrl: project.project_logo_url,
-                signalStrengths:
-                    project.project_signal_strengths?.map((ps) => ({
-                        url: ps.url,
-                        name: ps.signal_strengths.name,
-                        displayName: ps.signal_strengths.display_name,
-                        status: ps.signal_strengths.status,
-                        enabled: ps.enabled,
-                        maxValue: ps.max_value,
-                        availableAuthTypes: ps.signal_strengths.available_auth_types,
-                        authTypes: ps.auth_types,
-                        authParentPostUrl: ps.auth_parent_post_url,
-                        ...(isSuperAdminRequesting || isProjectAdminRequesting
-                            ? { previousDays: ps.previous_days }
-                            : {}),
+        const formattedProjects = (projects as unknown as Project[])
+            .map((project) => {
+                return {
+                    ...(isSuperAdminRequesting || isProjectAdminRequesting ? { id: project.id } : {}),
+                    urlSlug: project.url_slug,
+                    displayName: project.display_name,
+                    projectLogoUrl: project.project_logo_url,
+                    signalStrengths:
+                        project.project_signal_strengths?.map((ps) => ({
+                            url: ps.url,
+                            name: ps.signal_strengths.name,
+                            displayName: ps.signal_strengths.display_name,
+                            status: ps.signal_strengths.status,
+                            enabled: ps.enabled,
+                            maxValue: ps.max_value,
+                            availableAuthTypes: ps.signal_strengths.available_auth_types,
+                            authTypes: ps.auth_types,
+                            authParentPostUrl: ps.auth_parent_post_url,
+                            ...(isSuperAdminRequesting || isProjectAdminRequesting
+                                ? { previousDays: ps.previous_days }
+                                : {}),
 
-                        ...(isSuperAdminRequesting ? { model: ps.signal_strengths?.model } : {}),
-                        ...(isSuperAdminRequesting ? { temperature: ps.signal_strengths?.temperature } : {}),
-                        ...(isSuperAdminRequesting ? { maxChars: ps.signal_strengths?.max_chars } : {}),
-                    })) || [],
-            }
-        })
+                            ...(isSuperAdminRequesting ? { model: ps.signal_strengths?.model } : {}),
+                            ...(isSuperAdminRequesting ? { temperature: ps.signal_strengths?.temperature } : {}),
+                            ...(isSuperAdminRequesting ? { maxChars: ps.signal_strengths?.max_chars } : {}),
+                        })) || [],
+                }
+            })
+            .filter((project) => {
+                // Only filter out projects with all disabled signals if it is not a super admin request
+                return (
+                    isSuperAdminRequesting ||
+                    isProjectAdminRequesting ||
+                    project.signalStrengths.some((signal) => signal.enabled)
+                )
+            })
 
         return NextResponse.json(formattedProjects)
     } catch (error) {

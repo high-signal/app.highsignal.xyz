@@ -120,7 +120,6 @@ export default function ProjectSettingsContainer() {
                     {
                         value: "general",
                         label: "General",
-                        disabled: true,
                         content: <GeneralSettingsContainer />,
                     },
                     {

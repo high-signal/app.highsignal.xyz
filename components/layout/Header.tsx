@@ -2,6 +2,7 @@
 
 import { HStack, Image, Text, Box, VStack, Button } from "@chakra-ui/react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faXTwitter, IconDefinition } from "@fortawesome/free-brands-svg-icons"
@@ -10,6 +11,7 @@ import UserMenuButton from "./UserMenuButton"
 
 import { ASSETS, SOCIAL_LINKS } from "../../config/constants"
 import { useParticles } from "../../contexts/ParticleContext"
+import ProjectPicker from "../ui/ProjectPicker"
 
 const iconMap = {
     faXTwitter,
@@ -50,6 +52,7 @@ const environmentName =
 
 export default function Header({}) {
     const { showParticles } = useParticles()
+    const router = useRouter()
 
     return (
         <VStack
@@ -83,9 +86,9 @@ export default function Header({}) {
                 justifyContent={"space-between"}
                 alignItems={"center"}
                 px={3}
-                gap={0}
+                gap={{ base: 3, md: 0 }}
             >
-                <HStack gap={{ base: 2, md: 10 }} flexGrow={1}>
+                <HStack gap={{ base: 3, md: 10 }} flexGrow={1}>
                     <Link href="/">
                         <Box>
                             <HStack gap={2} justifyContent={"center"} alignItems={"center"}>
@@ -109,21 +112,16 @@ export default function Header({}) {
                         </Box>
                     </Link>
                     <HStack flexGrow={{ base: 1, md: 0 }} justifyContent={"center"} gap={2}>
-                        <Link href="/p/lido/">
-                            <Button
-                                px={4}
-                                py={1}
-                                w="fit-content"
-                                h="35px"
-                                borderRadius="full"
-                                alignItems="center"
-                                fontSize="md"
-                                aria-label="Leaderboard"
-                                secondaryButton
-                            >
-                                Leaderboard
-                            </Button>
-                        </Link>
+                        <ProjectPicker
+                            onProjectSelect={(project) => {
+                                if (project?.urlSlug) {
+                                    router.push(`/p/${project.urlSlug}`)
+                                }
+                            }}
+                            isSuperAdminRequesting={false}
+                            selectorText={"Search leaderboards"}
+                            placeholder={"Search..."}
+                        />
                     </HStack>
                 </HStack>
                 <HStack gap={{ base: 2, md: 6 }} alignItems={"center"}>

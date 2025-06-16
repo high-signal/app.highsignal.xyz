@@ -26,7 +26,7 @@ export default function SignalStrengthSettingsContainer({
         users: testUser,
         loading: testUserLoading,
         error: testUserError,
-    } = useGetUsers("lido", selectedUsername, false, selectedUsername.length > 0, true)
+    } = useGetUsers(project?.urlSlug || "", selectedUsername, false, selectedUsername.length > 0, true)
 
     useEffect(() => {
         if (selectedUsername && testUser.length > 0 && testUser[0].username === selectedUsername) {
@@ -39,7 +39,7 @@ export default function SignalStrengthSettingsContainer({
         users: rawUser,
         loading: rawUserLoading,
         error: rawUserError,
-    } = useGetUsers("lido", selectedUsername, false, selectedUsername.length > 0, true, true)
+    } = useGetUsers(project?.urlSlug || "", selectedUsername, false, selectedUsername.length > 0, true, true)
 
     useEffect(() => {
         if (selectedUsername && rawUser.length > 0 && rawUser[0].username === selectedUsername) {
@@ -81,6 +81,7 @@ export default function SignalStrengthSettingsContainer({
                         User
                     </Text>
                     <UserPicker
+                        projectUrlSlug={project?.urlSlug || ""}
                         signalStrengths={signalStrengths}
                         onUserSelect={(user) => {
                             setNewUserSelectedTrigger(!newUserSelectedTrigger)
