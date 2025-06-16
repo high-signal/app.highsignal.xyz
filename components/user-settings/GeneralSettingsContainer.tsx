@@ -174,7 +174,7 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
                     <Text fontSize="2xl" fontWeight="bold">
                         Welcome to High Signal 👋
                     </Text>
-                    <Text>This is your profile page.</Text>
+                    <Text>This is your personal settings page.</Text>
                     <Text>A default profile image, username and display name have been created for you.</Text>
                     <Text>Change these here to finish setting up your profile.</Text>
                 </VStack>
