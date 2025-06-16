@@ -9,6 +9,7 @@ import { faTriangleExclamation, faTableList, faLinkSlash } from "@fortawesome/fr
 import { faDiscord, faXTwitter } from "@fortawesome/free-brands-svg-icons"
 
 interface UserPickerProps {
+    projectUrlSlug: string
     signalStrengths: SignalStrengthData[]
     onUserSelect: (user: UserData) => void
     onClear?: () => void
@@ -57,6 +58,7 @@ const TableHeader = ({
 )
 
 export default function UserPicker({
+    projectUrlSlug,
     signalStrengths,
     onUserSelect,
     disabled = false,
@@ -67,7 +69,13 @@ export default function UserPicker({
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null!)
-    const { users, loading, error } = useGetUsers("lido", debouncedSearchTerm, true, isFocused, isSuperAdminRequesting)
+    const { users, loading, error } = useGetUsers(
+        projectUrlSlug,
+        debouncedSearchTerm,
+        true,
+        isFocused,
+        isSuperAdminRequesting,
+    )
 
     useEffect(() => {
         const timer = setTimeout(() => {
