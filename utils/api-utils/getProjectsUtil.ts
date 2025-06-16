@@ -69,7 +69,7 @@ export async function getProjectsUtil(
 
         // If projectSlug is provided, add filter to the query
         if (projectSlug) {
-            projectsQuery = projectsQuery.eq("url_slug", projectSlug)
+            projectsQuery = projectsQuery.eq("url_slug", projectSlug.toLowerCase())
         }
 
         // Execute the query
