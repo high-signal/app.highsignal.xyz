@@ -1,10 +1,10 @@
 import ContentContainer from "../components/layout/ContentContainer"
-import LeaderboardContainer from "../components/leaderboard/LeaderboardContainer"
+import LandingContainer from "../components/landing/LandingContainer"
 
 export default async function Page() {
     return (
         <ContentContainer>
-            <LeaderboardContainer project="lido" />
+            <LandingContainer />
         </ContentContainer>
     )
 }

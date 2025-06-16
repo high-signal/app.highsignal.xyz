@@ -65,7 +65,7 @@ export async function getProjectsUtil(
                 )
             `,
             )
-            .order("id", { ascending: true })
+            .order("url_slug", { ascending: true })
             .limit(10)
 
         // If projectSlug is provided, add filter to the query

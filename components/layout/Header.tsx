@@ -119,7 +119,7 @@ export default function Header({}) {
                                 }
                             }}
                             isSuperAdminRequesting={false}
-                            selectorText={"View Leaderboard"}
+                            selectorText={"View Leaderboards"}
                             placeholder={"Search..."}
                         />
                     </HStack>
