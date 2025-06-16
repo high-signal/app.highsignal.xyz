@@ -178,7 +178,8 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
             // Filter activity data to the past X days
             const filteredActivityData = activityData.filter(
                 (activity) =>
-                    new Date(activity.updated_at) > new Date(new Date().setDate(new Date().getDate() - previousDays)),
+                    new Date(activity.updated_at) > new Date(new Date().setDate(new Date().getDate() - previousDays)) &&
+                    activity.id !== userData.auth_post_id,
             )
 
             console.log(`Filtered activity data to the past ${previousDays} days: ${filteredActivityData.length}`)
