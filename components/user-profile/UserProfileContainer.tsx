@@ -7,6 +7,7 @@ import { useGetUsers } from "../../hooks/useGetUsers"
 import { useParams } from "next/navigation"
 import Leaderboard from "../leaderboard/Leaderboard"
 import { useGetProjects } from "../../hooks/useGetProjects"
+import { ASSETS } from "../../config/constants"
 
 export default function UserProfileContainer() {
     const { username } = useParams()
@@ -32,7 +33,7 @@ export default function UserProfileContainer() {
                         <>
                             <HStack gap={3}>
                                 <Image
-                                    src={users[0]?.profileImageUrl}
+                                    src={users[0]?.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE}
                                     alt={users[0]?.displayName}
                                     boxSize="50px"
                                     borderRadius="full"

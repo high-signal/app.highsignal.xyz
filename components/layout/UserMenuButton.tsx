@@ -173,7 +173,11 @@ export default function UserMenuButton() {
                             )}
                             <MenuItem isHeading label={loggedInUser.displayName} value="username" />
                             <Link href={`/u/${loggedInUser.username}`}>
-                                <MenuItem icon={loggedInUser.profileImageUrl} label="Profile" value="profile" />
+                                <MenuItem
+                                    icon={loggedInUser.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE}
+                                    label="Profile"
+                                    value="profile"
+                                />
                             </Link>
                             <Link href={`/settings/u/${loggedInUser.username}`}>
                                 <MenuItem icon={faGear} label="Settings" value="settings" />

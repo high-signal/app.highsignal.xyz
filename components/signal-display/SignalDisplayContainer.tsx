@@ -34,9 +34,9 @@ export default function SignalDisplayContainer({ project, username }: { project:
     }
 
     // Filter out signal strengths that are not enabled
-    const enabledSignalStrengths = currentProject.signalStrengths.filter((signalStrength) => signalStrength.enabled)
+    const enabledSignalStrengths = currentProject?.signalStrengths.filter((signalStrength) => signalStrength.enabled)
 
-    if (enabledSignalStrengths.length === 0) {
+    if (enabledSignalStrengths?.length === 0) {
         return (
             <VStack gap={10} w="100%" maxW="800px" borderRadius="20px">
                 <Text>No signal strengths are currently enabled for this project</Text>

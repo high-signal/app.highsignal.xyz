@@ -348,7 +348,7 @@ export default function Leaderboard({
                                                 >
                                                     {mode === "users"
                                                         ? (item as UserData).score
-                                                        : userData?.score || "-"}
+                                                        : userData?.score || "0"}
                                                 </Text>
                                             </HStack>
                                         </Link>

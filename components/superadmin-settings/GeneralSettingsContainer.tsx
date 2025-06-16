@@ -1,6 +1,6 @@
 "use client"
 
-import { Text, Spinner, VStack, Button, Image } from "@chakra-ui/react"
+import { Text, Spinner, VStack, Button, Image, HStack } from "@chakra-ui/react"
 
 import Link from "next/link"
 
@@ -8,7 +8,7 @@ import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import { useGetProjects } from "../../hooks/useGetProjects"
 
 export default function GeneralSettingsContainer() {
-    const { projects, loading, error } = useGetProjects()
+    const { projects, loading, error } = useGetProjects(undefined, false, true)
 
     return (
         <SettingsSectionContainer>
@@ -22,7 +22,7 @@ export default function GeneralSettingsContainer() {
                     projects &&
                     projects.length > 0 &&
                     projects.map((project: ProjectData) => (
-                        <Link href={`/settings/p/${project.urlSlug}`} key={project.urlSlug}>
+                        <Link href={`/settings/p/${project.urlSlug}`} key={project.urlSlug} style={{ width: "100%" }}>
                             <Button
                                 contentButton
                                 p={2}
@@ -35,15 +35,24 @@ export default function GeneralSettingsContainer() {
                                 _hover={{
                                     bg: "button.secondary.default",
                                 }}
-                                minW="200px"
+                                w={"100%"}
                             >
-                                <Image
-                                    src={project.projectLogoUrl}
-                                    alt={project.displayName}
-                                    boxSize="25px"
-                                    borderRadius="full"
-                                />
-                                <Text fontSize="lg">{project.displayName}</Text>
+                                <HStack w={"100%"} justifyContent="space-between" flexWrap="wrap">
+                                    <HStack>
+                                        <Image
+                                            src={project.projectLogoUrl}
+                                            alt={project.displayName}
+                                            boxSize="25px"
+                                            borderRadius="full"
+                                        />
+                                        <Text fontSize="lg">{project.displayName}</Text>
+                                    </HStack>
+                                    {project.signalStrengths.length === 0 && (
+                                        <Text color="red.500" fontSize="sm" ml={1}>
+                                            (No Signals Strengths enabled)
+                                        </Text>
+                                    )}
+                                </HStack>
                             </Button>
                         </Link>
                     ))}
