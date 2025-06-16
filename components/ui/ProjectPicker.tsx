@@ -25,7 +25,7 @@ export default function ProjectPicker({
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null!)
-    const { projects, loading, error } = useGetProjects(debouncedSearchTerm, isSuperAdminRequesting)
+    const { projects, loading, error } = useGetProjects(debouncedSearchTerm, true, isSuperAdminRequesting)
 
     useEffect(() => {
         const timer = setTimeout(() => {

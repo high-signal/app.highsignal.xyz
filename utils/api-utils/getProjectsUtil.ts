@@ -33,6 +33,7 @@ export async function getProjectsUtil(
     isSuperAdminRequesting: boolean,
 ) {
     const projectSlug = request ? new URL(request.url).searchParams.get("project") : null
+    const fuzzy = request ? new URL(request.url).searchParams.get("fuzzy") === "true" : false
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
     try {
@@ -69,7 +70,11 @@ export async function getProjectsUtil(
 
         // If projectSlug is provided, add filter to the query
         if (projectSlug) {
-            projectsQuery = projectsQuery.eq("url_slug", projectSlug.toLowerCase())
+            if (fuzzy) {
+                projectsQuery = projectsQuery.ilike("display_name", `%${projectSlug}%`)
+            } else {
+                projectsQuery = projectsQuery.eq("url_slug", projectSlug.toLowerCase())
+            }
         }
 
         // Execute the query

@@ -1,7 +1,7 @@
 import { getAccessToken } from "@privy-io/react-auth"
 import { useState, useEffect } from "react"
 
-export const useGetProjects = (project?: string, isSuperAdminRequesting: boolean = false) => {
+export const useGetProjects = (project?: string, fuzzy: boolean = false, isSuperAdminRequesting: boolean = false) => {
     const [projects, setProjects] = useState<ProjectData[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -16,8 +16,12 @@ export const useGetProjects = (project?: string, isSuperAdminRequesting: boolean
                 isSuperAdminRequesting ? "/api/superadmin/projects" : "/api/projects",
                 window.location.origin,
             )
+
             if (project) {
                 url.searchParams.append("project", project)
+                if (fuzzy) {
+                    url.searchParams.append("fuzzy", "true")
+                }
             }
 
             const token = isSuperAdminRequesting ? await getAccessToken() : null
