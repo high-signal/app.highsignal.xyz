@@ -6,14 +6,10 @@ import ContentContainer from "../layout/ContentContainer"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { useParams } from "next/navigation"
 import Leaderboard from "../leaderboard/Leaderboard"
-import { useGetProjects } from "../../hooks/useGetProjects"
 import { ASSETS } from "../../config/constants"
 
 export default function UserProfileContainer() {
     const { username } = useParams()
-
-    const { projects, loading: projectsLoading, error: projectsError } = useGetProjects()
-
     const { users, loading, error } = useGetUsers(undefined, username as string)
 
     return (
@@ -35,18 +31,18 @@ export default function UserProfileContainer() {
                                 <Image
                                     src={users[0]?.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE}
                                     alt={users[0]?.displayName}
-                                    boxSize="50px"
+                                    boxSize="80px"
                                     borderRadius="full"
                                 />
                                 <Text fontWeight="bold">{users[0]?.displayName} </Text>
                             </HStack>
                         </>
                     ) : (
-                        <HStack w="200px" my={"5px"} h="40px" justifyContent="center">
+                        <HStack w="200px" h="80px" justifyContent="center">
                             {error ? (
                                 <Text fontSize="sm">Error: {error}</Text>
                             ) : (
-                                <Skeleton defaultSkeleton height="40px" width="200px" borderRadius="full" />
+                                <Skeleton defaultSkeleton height="100%" width="200px" borderRadius="full" />
                             )}
                         </HStack>
                     )}
