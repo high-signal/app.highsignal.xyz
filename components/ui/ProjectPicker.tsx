@@ -46,6 +46,9 @@ export default function ProjectPicker({
                     }}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => {
+                        if (selectorText) {
+                            setSearchTerm("")
+                        }
                         setTimeout(() => {
                             setIsFocused(false)
                         }, 50)
