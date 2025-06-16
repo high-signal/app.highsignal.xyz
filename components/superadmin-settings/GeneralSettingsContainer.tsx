@@ -1,27 +1,53 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Text } from "@chakra-ui/react"
-import { toaster } from "../ui/toaster"
+import { Text, Spinner, VStack, Button, Image } from "@chakra-ui/react"
 
-import { useUser } from "../../contexts/UserContext"
-import { usePrivy } from "@privy-io/react-auth"
-import { validateUrlSlug, validateDisplayName } from "../../utils/inputValidation"
+import Link from "next/link"
 
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
-import ImageEditor from "../ui/ImageEditor"
-import SettingsInputField from "../ui/SettingsInputField"
+import { useGetProjects } from "../../hooks/useGetProjects"
 
 export default function GeneralSettingsContainer() {
-    const { refreshUser } = useUser()
-    const { getAccessToken } = usePrivy()
-
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+    const { projects, loading, error } = useGetProjects()
 
     return (
         <SettingsSectionContainer>
-            <Text>No General Settings for Super Admin</Text>
+            <VStack alignItems="start" w={"100%"}>
+                <Text fontSize="xl" fontWeight="bold">
+                    Project Settings Links
+                </Text>
+                {loading && <Spinner />}
+                {error && <Text>Error loading projects</Text>}
+                {!loading &&
+                    projects &&
+                    projects.length > 0 &&
+                    projects.map((project: ProjectData) => (
+                        <Link href={`/settings/p/${project.urlSlug}`} key={project.urlSlug}>
+                            <Button
+                                contentButton
+                                p={2}
+                                pr={3}
+                                borderRadius="full"
+                                bg="pageBackground"
+                                border="3px solid"
+                                borderColor="contentBorder"
+                                justifyContent="start"
+                                _hover={{
+                                    bg: "button.secondary.default",
+                                }}
+                                minW="200px"
+                            >
+                                <Image
+                                    src={project.projectLogoUrl}
+                                    alt={project.displayName}
+                                    boxSize="25px"
+                                    borderRadius="full"
+                                />
+                                <Text fontSize="lg">{project.displayName}</Text>
+                            </Button>
+                        </Link>
+                    ))}
+            </VStack>
         </SettingsSectionContainer>
     )
 }
