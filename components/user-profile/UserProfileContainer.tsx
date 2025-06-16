@@ -26,39 +26,7 @@ export default function UserProfileContainer() {
                 <Text fontSize="2xl" fontWeight="bold">
                     User Profile
                 </Text>
-                <VStack>
-                    {projects
-                        .map((project) => {
-                            const userProject = currentUserData.find((user) => user.projectSlug === project.urlSlug)
-                            return {
-                                project,
-                                userProject,
-                                score: userProject?.score || 0,
-                            }
-                        })
-                        .sort((a, b) => {
-                            // First sort by score (descending)
-                            if (b.score !== a.score) {
-                                return b.score - a.score
-                            }
-                            // If scores are equal, sort alphabetically by urlSlug
-                            return a.project.urlSlug.localeCompare(b.project.urlSlug)
-                        })
-                        .map(({ project, userProject }) => (
-                            <HStack
-                                key={project.urlSlug}
-                                w="100%"
-                                justify="space-between"
-                                p={2}
-                                borderWidth={1}
-                                borderRadius="md"
-                            >
-                                <Text>{project.urlSlug}</Text>
-                                <Text>{userProject?.score || 0}</Text>
-                                <Text>{userProject?.signal || "none"}</Text>
-                            </HStack>
-                        ))}
-                </VStack>
+                <Leaderboard mode="projects" data={currentUserData} />
             </VStack>
         </ContentContainer>
     )
