@@ -172,7 +172,7 @@ export default function UserMenuButton() {
                                 </>
                             )}
                             <MenuItem isHeading label={loggedInUser.displayName} value="username" />
-                            <Link href={`/p/lido/${loggedInUser.username}`}>
+                            <Link href={`/u/${loggedInUser.username}`}>
                                 <MenuItem icon={faCircleUser} label="Profile" value="profile" />
                             </Link>
                             <Link href={`/settings/u/${loggedInUser.username}`}>

@@ -2,7 +2,7 @@ import { getAccessToken } from "@privy-io/react-auth"
 import { useState, useEffect, useCallback } from "react"
 
 export const useGetUsers = (
-    project: string,
+    project?: string,
     username?: string,
     fuzzy: boolean = false,
     shouldFetch: boolean = true,
@@ -24,7 +24,9 @@ export const useGetUsers = (
                     isSuperAdminRequesting ? "/api/superadmin/users" : "/api/users",
                     window.location.origin,
                 )
-                url.searchParams.append("project", project)
+                if (project) {
+                    url.searchParams.append("project", project)
+                }
                 if (username) {
                     url.searchParams.append("user", username)
                     if (fuzzy) {
