@@ -151,7 +151,9 @@ export default function Leaderboard({ project }: { project: ProjectData }) {
                         <Table.Row bg="pageBackground">
                             <Table.Cell colSpan={5} textAlign="center" py={10} borderColor="contentBorder">
                                 <Text color="textColorMuted">
-                                    {searchTerm ? `No users found with the name "${searchTerm}"` : "No users found"}
+                                    {searchTerm
+                                        ? `No users found with the name "${searchTerm}"`
+                                        : "No users found and/or no Signal Strengths enabled for this project"}
                                 </Text>
                             </Table.Cell>
                         </Table.Row>
