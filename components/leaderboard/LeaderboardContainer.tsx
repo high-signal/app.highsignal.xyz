@@ -23,22 +23,30 @@ export default function LeaderboardContainer({ project }: { project: string }) {
             >
                 {!loading && !error ? (
                     <>
-                        <HStack gap={3}>
+                        <HStack gap={3} h="50px">
                             <Image
                                 src={currentProject?.projectLogoUrl}
                                 alt={currentProject?.displayName}
                                 boxSize="50px"
                                 borderRadius="full"
                             />
-                            <Text fontWeight="bold">{currentProject?.displayName} </Text>
+                            <Text
+                                fontWeight="bold"
+                                fontSize={{
+                                    base: currentProject.displayName.length >= 16 ? "2xl" : "3xl",
+                                    sm: "4xl",
+                                }}
+                            >
+                                {currentProject?.displayName}{" "}
+                            </Text>
                         </HStack>
                     </>
                 ) : (
-                    <HStack w="200px" my={"5px"} h="40px" justifyContent="center">
+                    <HStack w="200px" h="50px" justifyContent="center">
                         {error ? (
                             <Text fontSize="sm">Error: {error}</Text>
                         ) : (
-                            <Skeleton defaultSkeleton height="40px" width="200px" borderRadius="full" />
+                            <Skeleton defaultSkeleton height="100%" width="200px" borderRadius="full" />
                         )}
                     </HStack>
                 )}

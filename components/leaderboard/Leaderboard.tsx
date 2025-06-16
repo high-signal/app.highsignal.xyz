@@ -173,7 +173,7 @@ export default function Leaderboard({
                                 value={searchTerm}
                                 onChange={handleSearchChange}
                                 handleClear={handleClearSearch}
-                                placeholder={`Search ${mode}...`}
+                                placeholder={`Search...`}
                             />
                         </TableHeader>
                         <TableHeader textAlign="center" maxW={signalColumnWidth}>
@@ -204,7 +204,9 @@ export default function Leaderboard({
                         <Table.Row bg="pageBackground">
                             <Table.Cell colSpan={5} textAlign="center" py={10} borderColor="contentBorder">
                                 <Text color="textColorMuted">
-                                    {searchTerm ? `No ${mode} found with the name "${searchTerm}"` : `No ${mode} found`}
+                                    {searchTerm
+                                        ? `No ${mode === "users" ? "users" : "results"} found with the name "${searchTerm}"`
+                                        : `No ${mode === "users" ? "users" : "results"} found`}
                                 </Text>
                             </Table.Cell>
                         </Table.Row>
