@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, Text, HStack } from "@chakra-ui/react"
+import { VStack, Text, HStack, Image, Skeleton, Spinner } from "@chakra-ui/react"
 
 import ContentContainer from "../layout/ContentContainer"
 import { useGetUsers } from "../../hooks/useGetUsers"
@@ -13,20 +13,45 @@ export default function UserProfileContainer() {
 
     const { projects, loading: projectsLoading, error: projectsError } = useGetProjects()
 
-    const {
-        users: currentUserData,
-        loading: usersLoading,
-        error: usersError,
-        refreshUserData,
-    } = useGetUsers(undefined, username as string)
+    const { users, loading, error } = useGetUsers(undefined, username as string)
 
     return (
         <ContentContainer>
-            <VStack gap={6} w="100%" maxW="500px" mx="auto" p={4}>
-                <Text fontSize="2xl" fontWeight="bold">
-                    User Profile
-                </Text>
-                <Leaderboard mode="projects" data={currentUserData} />
+            <VStack gap={5} w="100%" maxW="500px" borderRadius="20px">
+                <VStack
+                    fontSize="3xl"
+                    px={6}
+                    pt={6}
+                    w="100%"
+                    textAlign="center"
+                    gap={5}
+                    flexWrap="wrap"
+                    justifyContent="center"
+                >
+                    {!loading && !error ? (
+                        <>
+                            <HStack gap={3}>
+                                <Image
+                                    src={users[0]?.profileImageUrl}
+                                    alt={users[0]?.displayName}
+                                    boxSize="50px"
+                                    borderRadius="full"
+                                />
+                                <Text fontWeight="bold">{users[0]?.displayName} </Text>
+                            </HStack>
+                        </>
+                    ) : (
+                        <HStack w="200px" my={"5px"} h="40px" justifyContent="center">
+                            {error ? (
+                                <Text fontSize="sm">Error: {error}</Text>
+                            ) : (
+                                <Skeleton defaultSkeleton height="40px" width="200px" borderRadius="full" />
+                            )}
+                        </HStack>
+                    )}
+                    <Text>High Signal Profile</Text>
+                </VStack>
+                {loading ? <Spinner /> : users && <Leaderboard mode="projects" data={users} />}
             </VStack>
         </ContentContainer>
     )

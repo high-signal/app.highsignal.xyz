@@ -213,7 +213,7 @@ export default function Leaderboard({
                             const linkUrl =
                                 mode === "users"
                                     ? `/p/${project?.urlSlug}/${(item as UserData).username}${window.location.search}`
-                                    : `/p/${(item as ProjectData).urlSlug}`
+                                    : `/p/${(item as ProjectData).urlSlug}/${(data as UserData[])?.[0]?.username}`
 
                             // Get user data for project if in projects mode
                             const userData =
