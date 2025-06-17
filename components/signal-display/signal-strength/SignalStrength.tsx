@@ -249,13 +249,28 @@ export default function SignalStrength({
                             )}
                             {userData.improvements && (
                                 <VStack alignItems={"start"}>
-                                    <HStack gap={2}>
-                                        <FontAwesomeIcon icon={faLightbulb} size="lg" />
-                                        <Text fontWeight={"bold"}>Suggestions on how to improve</Text>
+                                    <HStack columnGap={5} rowGap={2} flexWrap={"wrap"}>
+                                        <HStack gap={2}>
+                                            <FontAwesomeIcon icon={faLightbulb} size="lg" />
+                                            <Text fontWeight={"bold"}>Suggestions on how to improve</Text>
+                                        </HStack>
+                                        <HStack
+                                            bg={"contentBackground"}
+                                            borderRadius={"full"}
+                                            px={3}
+                                            py={1}
+                                            fontSize={"sm"}
+                                            gap={3}
+                                            cursor={"default"}
+                                        >
+                                            <Text>🏗️</Text>
+                                            <Text>Coming soon</Text>
+                                            <Text>🏗️</Text>
+                                        </HStack>
                                     </HStack>
-                                    <Text color="textColorMuted">
+                                    {/* <Text color="textColorMuted">
                                         {userData.improvements.charAt(0).toUpperCase() + userData.improvements.slice(1)}
-                                    </Text>
+                                    </Text> */}
                                 </VStack>
                             )}
                         </VStack>
