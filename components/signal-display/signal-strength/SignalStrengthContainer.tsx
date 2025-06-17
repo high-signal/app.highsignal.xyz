@@ -22,7 +22,7 @@ export default function SignalStrengthContainer({
         const latestData = matchingUserStrength?.data?.[0] || null
 
         return {
-            projectData: projectStrength,
+            signalStrengthProjectData: projectStrength,
             userData: latestData || null,
         }
     })
@@ -30,8 +30,9 @@ export default function SignalStrengthContainer({
     // Sort matched signal strengths first by status (active first), then by user data value, then by project data maxValue, then alphabetically
     const sortedMatchedSignalStrengths = [...matchedSignalStrengths].sort((a, b) => {
         // First sort by status - active comes first
-        if (a.projectData.status === "active" && b.projectData.status !== "active") return -1
-        if (a.projectData.status !== "active" && b.projectData.status === "active") return 1
+        if (a.signalStrengthProjectData.status === "active" && b.signalStrengthProjectData.status !== "active")
+            return -1
+        if (a.signalStrengthProjectData.status !== "active" && b.signalStrengthProjectData.status === "active") return 1
 
         // Get user values, defaulting to "0" if not available
         const userValueA = a.userData ? parseFloat(a.userData.value) : 0
@@ -43,39 +44,40 @@ export default function SignalStrengthContainer({
         }
 
         // If user values are the same, sort by project maxValue (descending)
-        if (b.projectData.maxValue !== a.projectData.maxValue) {
-            return b.projectData.maxValue - a.projectData.maxValue
+        if (b.signalStrengthProjectData.maxValue !== a.signalStrengthProjectData.maxValue) {
+            return b.signalStrengthProjectData.maxValue - a.signalStrengthProjectData.maxValue
         }
 
         // If maxValues are the same, sort alphabetically by name
-        return a.projectData.name.localeCompare(b.projectData.name)
+        return a.signalStrengthProjectData.name.localeCompare(b.signalStrengthProjectData.name)
     })
 
     return (
         <VStack gap={3} px={{ base: 0, sm: 3 }} w="100%" maxW="600px" alignItems={"center"} pb={"50px"}>
             <Text fontSize="2xl" fontWeight={"bold"} px={3}>
-                📡 Signal Strength
+                📡 Signal Strengths
             </Text>
             <Text color="textColorMuted" textAlign={"center"} px={3}>
                 Signal strengths are live measures of engagement in the {projectData.displayName} community.
             </Text>
             <VStack gap={10} alignItems={"start"} w={"100%"}>
-                {sortedMatchedSignalStrengths.map(({ projectData, userData }, index) => (
+                {sortedMatchedSignalStrengths.map(({ signalStrengthProjectData, userData }, index) => (
                     <SignalStrength
                         key={index}
                         username={currentUser.username || ""}
                         userData={
                             userData || {
                                 day: "",
-                                name: projectData.name,
+                                name: signalStrengthProjectData.name,
                                 value: "0",
-                                maxValue: projectData.maxValue,
+                                maxValue: signalStrengthProjectData.maxValue,
                                 summary: "",
                                 description: "",
                                 improvements: "",
                             }
                         }
                         projectData={projectData}
+                        signalStrengthProjectData={signalStrengthProjectData}
                         isUserConnected={userData ? true : false}
                         refreshUserData={refreshUserData}
                     />

@@ -5,8 +5,8 @@ import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"
 
 export default function Title({ projectData }: { projectData: ProjectData }) {
     return (
-        <VStack justifyContent="center" w="100%" maxW="800px" pb={3} pt={0} gap={{ base: 5, sm: 0 }}>
-            <HStack w={"100%"}>
+        <VStack justifyContent="center" w="100%" maxW="800px" pb={5} pt={0} gap={{ base: 5, sm: 2 }}>
+            <HStack w={"100%"} justifyContent={"center"}>
                 <Link href={`/p/${projectData.urlSlug}${window.location.search}`}>
                     <Button
                         contentButton
@@ -20,7 +20,7 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
                     >
                         <FontAwesomeIcon icon={faArrowLeft} />
                         <Text fontSize="md" fontWeight={"normal"}>
-                            {projectData.displayName} leaderboard
+                            View {projectData.displayName} leaderboard
                         </Text>
                     </Button>
                 </Link>
@@ -36,7 +36,7 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
                     <Text
                         fontSize={{
                             base: projectData.displayName.length >= 16 ? "2xl" : "3xl",
-                            sm: "4xl",
+                            sm: "5xl",
                         }}
                         textAlign="center"
                         fontWeight="bold"

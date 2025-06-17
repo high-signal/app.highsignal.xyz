@@ -192,7 +192,7 @@ export default function SignalStrengthSettings({
                 borderRadius={{ base: "0px", md: "16px" }}
                 borderBottomRadius={{ base: "0px", md: isOpen ? "0px" : "16px" }}
                 flexWrap={"wrap"}
-                cursor={signalStrength.status !== "dev" ? "pointer" : "disabled"}
+                cursor={signalStrength.status !== "dev" ? "pointer" : "default"}
                 onClick={() => signalStrength.status !== "dev" && setIsOpen(!isOpen)}
                 _hover={signalStrength.status !== "dev" ? { bg: "contentBackgroundHover" } : undefined}
             >
@@ -220,7 +220,7 @@ export default function SignalStrengthSettings({
                         bg={
                             signalStrength.status !== "dev" && settings.enabled.current
                                 ? "lozenge.background.active"
-                                : "lozenge.background.disabled"
+                                : "pageBackground"
                         }
                         px={2}
                         py={1}
@@ -229,7 +229,7 @@ export default function SignalStrengthSettings({
                         borderColor={
                             signalStrength.status !== "dev" && settings.enabled.current
                                 ? "lozenge.border.active"
-                                : "lozenge.border.disabled"
+                                : "transparent"
                         }
                         fontWeight={"bold"}
                         fontSize={"sm"}
@@ -238,11 +238,11 @@ export default function SignalStrengthSettings({
                             color={
                                 signalStrength.status !== "dev" && settings.enabled.current
                                     ? "lozenge.text.active"
-                                    : "lozenge.text.disabled"
+                                    : "textColorMuted"
                             }
                         >
                             {signalStrength.status === "dev"
-                                ? "Coming soon 🏗️"
+                                ? "🏗️ Coming soon 🏗️"
                                 : settings.enabled.current
                                   ? "Active"
                                   : "Disabled"}

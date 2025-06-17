@@ -447,7 +447,10 @@ export default function SignalStrengthsSettingsCalculation({
                                         maxValue: 0,
                                     }
                                 }
-                                projectData={project.signalStrengths?.find((s) => s.name === signalStrength.name)!}
+                                projectData={project}
+                                signalStrengthProjectData={
+                                    project.signalStrengths?.find((s) => s.name === signalStrength.name)!
+                                }
                                 isUserConnected={true}
                                 refreshUserData={() => {}}
                             />
@@ -494,7 +497,10 @@ export default function SignalStrengthsSettingsCalculation({
                             <SignalStrength
                                 username={selectedUser?.username || ""}
                                 userData={testResult[0]}
-                                projectData={project?.signalStrengths?.find((s) => s.name === signalStrength.name)!}
+                                projectData={project!}
+                                signalStrengthProjectData={
+                                    project?.signalStrengths?.find((s) => s.name === signalStrength.name)!
+                                }
                                 isUserConnected={true}
                                 refreshUserData={() => {}}
                             />

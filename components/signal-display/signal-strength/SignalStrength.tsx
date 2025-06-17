@@ -9,16 +9,34 @@ import { useUser } from "../../../contexts/UserContext"
 
 import { APP_CONFIG } from "../../../config/constants"
 
+const SignalStrengthLozenge = ({ children }: { children: React.ReactNode }) => (
+    <HStack flexGrow={1} justifyContent={{ base: "center", sm: "end" }}>
+        <HStack
+            gap={2}
+            px={3}
+            py={1}
+            bg={"pageBackground"}
+            borderRadius={"full"}
+            color={"textColorMuted"}
+            cursor={"default"}
+        >
+            {children}
+        </HStack>
+    </HStack>
+)
+
 export default function SignalStrength({
     username,
     userData,
     projectData,
+    signalStrengthProjectData,
     isUserConnected,
     refreshUserData,
 }: {
     username: string
     userData: SignalStrengthUserData
-    projectData: SignalStrengthProjectData
+    projectData: ProjectData
+    signalStrengthProjectData: SignalStrengthProjectData
     isUserConnected: boolean
     refreshUserData: () => void
 }) {
@@ -26,7 +44,7 @@ export default function SignalStrength({
 
     const displayValue = userData.value || userData.rawValue || 0
 
-    const percentageCompleted = (Number(displayValue) / Number(projectData.maxValue)) * 100
+    const percentageCompleted = (Number(displayValue) / Number(signalStrengthProjectData.maxValue)) * 100
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
     const [isOpen, setIsOpen] = useState(true)
     const [countdown, setCountdown] = useState<number | null>(null)
@@ -94,16 +112,16 @@ export default function SignalStrength({
     // Scroll to the project name when the element is loaded if the hash matches the project name
     useEffect(() => {
         // Check if the current hash matches this project's name
-        if (window.location.hash === `#${projectData.name}`) {
+        if (window.location.hash === `#${signalStrengthProjectData.name}`) {
             // Small delay to ensure the element is rendered
             setTimeout(() => {
-                const element = document.getElementById(projectData.name)
+                const element = document.getElementById(signalStrengthProjectData.name)
                 if (element) {
                     element.scrollIntoView({ behavior: "smooth" })
                 }
             }, 100)
         }
-    }, [projectData.name])
+    }, [signalStrengthProjectData.name])
 
     return (
         <VStack
@@ -120,88 +138,108 @@ export default function SignalStrength({
                 alignItems={userDataRefreshTriggered ? "center" : "baseline"}
                 py={2}
                 px={4}
-                justifyContent={"center"}
+                justifyContent={{ base: "center", md: !signalStrengthProjectData.enabled ? "start" : "center" }}
                 border={"5px solid"}
                 borderColor={"pageBackground"}
                 borderRadius={"12px"}
-                gap={3}
+                columnGap={3}
+                rowGap={1}
                 w="100%"
+                flexWrap={"wrap"}
             >
-                <Text as="a" id={projectData.name} fontSize="xl">
-                    {projectData.displayName}
+                <Text
+                    as="a"
+                    id={signalStrengthProjectData.name}
+                    fontSize="xl"
+                    color={!signalStrengthProjectData.enabled ? "textColorMuted" : undefined}
+                >
+                    {signalStrengthProjectData.displayName}
                 </Text>
-                {!countdown && !userDataRefreshTriggered && projectData.status === "active" && (
-                    <HStack
-                        gap={"2px"}
-                        bg={completedBarWidth !== "0%" ? "lozenge.background.active" : "lozenge.background.disabled"}
-                        fontSize="xl"
-                        px={2}
-                        borderRadius="8px"
-                        color={completedBarWidth !== "0%" ? "lozenge.text.active" : "lozenge.text.disabled"}
-                    >
-                        {completedBarWidth !== "0%" && <Text>+</Text>}
-                        <Text>{displayValue}</Text>
-                    </HStack>
+                {!countdown &&
+                    !userDataRefreshTriggered &&
+                    signalStrengthProjectData.status === "active" &&
+                    signalStrengthProjectData.enabled && (
+                        <HStack
+                            gap={"2px"}
+                            bg={
+                                completedBarWidth !== "0%" ? "lozenge.background.active" : "lozenge.background.disabled"
+                            }
+                            fontSize="xl"
+                            px={2}
+                            borderRadius="8px"
+                            color={completedBarWidth !== "0%" ? "lozenge.text.active" : "lozenge.text.disabled"}
+                        >
+                            {completedBarWidth !== "0%" && <Text>+</Text>}
+                            <Text>{displayValue}</Text>
+                        </HStack>
+                    )}
+                {signalStrengthProjectData.status === "dev" && (
+                    <SignalStrengthLozenge>
+                        <Text>🏗️</Text>
+                        <Text>Coming soon</Text>
+                        <Text>🏗️</Text>
+                    </SignalStrengthLozenge>
+                )}
+                {signalStrengthProjectData.status === "active" && !signalStrengthProjectData.enabled && (
+                    <SignalStrengthLozenge>
+                        <Text>Not enabled by {projectData.displayName}</Text>
+                    </SignalStrengthLozenge>
                 )}
             </HStack>
-            <HStack
-                w="100%"
-                justifyContent={"space-between"}
-                alignItems={"center"}
-                fontSize={"lg"}
-                color={"textColorMuted"}
-                px={1}
-            >
-                <Text fontFamily={"monospace"}>0</Text>
+            {signalStrengthProjectData.status !== "dev" && signalStrengthProjectData.enabled && (
                 <HStack
                     w="100%"
-                    h="30px"
-                    bg="lozenge.background.disabled"
-                    borderRadius="md"
-                    overflow="hidden"
-                    className={userDataRefreshTriggered || countdown ? "rainbow-animation" : ""}
-                    border="3px solid"
-                    borderColor={completedBarWidth === "100%" ? "lozenge.border.active" : "pageBackground"}
+                    justifyContent={"space-between"}
+                    alignItems={"center"}
+                    fontSize={"lg"}
+                    color={"textColorMuted"}
+                    px={1}
                 >
-                    {userDataRefreshTriggered ? (
-                        <HStack w={"100%"} justifyContent={"center"}>
-                            <Text fontWeight={"bold"} color="white" textAlign={"center"} fontSize={"md"}>
-                                Loading score...
+                    <Text fontFamily={"monospace"}>0</Text>
+                    <HStack
+                        w="100%"
+                        h="30px"
+                        bg="lozenge.background.disabled"
+                        borderRadius="md"
+                        overflow="hidden"
+                        className={userDataRefreshTriggered || countdown ? "rainbow-animation" : ""}
+                        border="3px solid"
+                        borderColor={completedBarWidth === "100%" ? "lozenge.border.active" : "pageBackground"}
+                    >
+                        {userDataRefreshTriggered ? (
+                            <HStack w={"100%"} justifyContent={"center"}>
+                                <Text fontWeight={"bold"} color="white" textAlign={"center"} fontSize={"md"}>
+                                    Loading score...
+                                </Text>
+                                <Spinner size="sm" />
+                            </HStack>
+                        ) : countdown !== null ? (
+                            <Text fontWeight={"bold"} color="white" w={"100%"} textAlign={"center"} fontSize={"md"}>
+                                {countdownText}{" "}
+                                <Text as="span" fontFamily={"monospace"}>
+                                    {countdown}
+                                </Text>
+                                s
                             </Text>
-                            <Spinner size="sm" />
-                        </HStack>
-                    ) : countdown !== null ? (
-                        <Text fontWeight={"bold"} color="white" w={"100%"} textAlign={"center"} fontSize={"md"}>
-                            {countdownText}{" "}
-                            <Text as="span" fontFamily={"monospace"}>
-                                {countdown}
+                        ) : signalStrengthProjectData.status === "active" && !isUserConnected ? (
+                            <Text color={"lozenge.text.disabled"} w={"100%"} textAlign={"center"} fontSize={"md"}>
+                                Account not connected
                             </Text>
-                            s
-                        </Text>
-                    ) : projectData.status === "active" && !isUserConnected ? (
-                        <Text color={"lozenge.text.disabled"} w={"100%"} textAlign={"center"} fontSize={"md"}>
-                            Account not connected
-                        </Text>
-                    ) : projectData.status === "dev" ? (
-                        <HStack gap={3} color={"textColorMuted"} w={"100%"} justifyContent={"center"} fontSize={"md"}>
-                            <Text>🏗️</Text>
-                            <Text>Coming soon</Text>
-                            <Text>🏗️</Text>
-                        </HStack>
-                    ) : (
-                        <Box
-                            w={completedBarWidth}
-                            h="100%"
-                            bg="lozenge.background.active"
-                            borderRight={
-                                completedBarWidth === "100%" || completedBarWidth === "0%" ? "none" : "3px solid"
-                            }
-                            borderColor={"lozenge.border.active"}
-                        />
-                    )}
+                        ) : (
+                            <Box
+                                w={completedBarWidth}
+                                h="100%"
+                                bg="lozenge.background.active"
+                                borderRight={
+                                    completedBarWidth === "100%" || completedBarWidth === "0%" ? "none" : "3px solid"
+                                }
+                                borderColor={"lozenge.border.active"}
+                            />
+                        )}
+                    </HStack>
+                    <Text fontFamily={"monospace"}>{signalStrengthProjectData.maxValue}</Text>
                 </HStack>
-                <Text fontFamily={"monospace"}>{projectData.maxValue}</Text>
-            </HStack>
+            )}
             {isUserConnected && !countdown && !userDataRefreshTriggered && (
                 <VStack w="100%" gap={0} alignItems={"start"}>
                     <HStack
@@ -252,22 +290,26 @@ export default function SignalStrength({
                                     <HStack columnGap={5} rowGap={2} flexWrap={"wrap"}>
                                         <HStack gap={2}>
                                             <FontAwesomeIcon icon={faLightbulb} size="lg" />
-                                            <Text fontWeight={"bold"}>Suggestions on how to improve</Text>
+                                            <Text>How to improve your score</Text>
                                         </HStack>
-                                        <HStack
-                                            bg={"contentBackground"}
-                                            borderRadius={"full"}
-                                            px={3}
-                                            py={1}
-                                            fontSize={"sm"}
-                                            gap={3}
-                                            cursor={"default"}
-                                        >
-                                            <Text>🏗️</Text>
-                                            <Text>Coming soon</Text>
-                                            <Text>🏗️</Text>
+                                        <HStack flexGrow={1} justifyContent={"center"}>
+                                            <HStack
+                                                bg={"contentBackground"}
+                                                borderRadius={"full"}
+                                                px={3}
+                                                py={1}
+                                                fontSize={"sm"}
+                                                gap={3}
+                                                cursor={"default"}
+                                                color={"textColorMuted"}
+                                            >
+                                                <Text>🏗️</Text>
+                                                <Text>Coming soon</Text>
+                                                <Text>🏗️</Text>
+                                            </HStack>
                                         </HStack>
                                     </HStack>
+                                    {/* TODO: Add improvements when they are better*/}
                                     {/* <Text color="textColorMuted">
                                         {userData.improvements.charAt(0).toUpperCase() + userData.improvements.slice(1)}
                                     </Text> */}
@@ -277,23 +319,25 @@ export default function SignalStrength({
                     )}
                 </VStack>
             )}
-            {projectData.status === "active" && !isUserConnected && loggedInUser?.username === username && (
-                <HStack w={"100%"} justifyContent={"center"} cursor={"disabled"}>
-                    <Link href={`/settings/u/${username}?tab=connected-accounts`}>
-                        <Button
-                            primaryButton
-                            justifyContent={"start"}
-                            fontWeight={"bold"}
-                            fontSize={"sm"}
-                            borderRadius={"full"}
-                            px={3}
-                            py={1}
-                        >
-                            Connect your account
-                        </Button>
-                    </Link>
-                </HStack>
-            )}
+            {signalStrengthProjectData.status === "active" &&
+                !isUserConnected &&
+                loggedInUser?.username === username && (
+                    <HStack w={"100%"} justifyContent={"center"} cursor={"disabled"}>
+                        <Link href={`/settings/u/${username}?tab=connected-accounts`}>
+                            <Button
+                                primaryButton
+                                justifyContent={"start"}
+                                fontWeight={"bold"}
+                                fontSize={"sm"}
+                                borderRadius={"full"}
+                                px={3}
+                                py={1}
+                            >
+                                Connect your account
+                            </Button>
+                        </Link>
+                    </HStack>
+                )}
         </VStack>
     )
 }
