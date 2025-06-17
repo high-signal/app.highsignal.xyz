@@ -63,7 +63,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                     </Text>
                 )}
             </HStack>
-            <VStack align="stretch" gap={1} pb={8} w={"100%"}>
+            <VStack align="stretch" gap={1} pb={8} w={"100%"} bg={"pageBackground"}>
                 <HStack gap={0} h={"30px"} w={"100%"}>
                     {["Low", "Mid", "High"].map((level) => (
                         <Text
@@ -102,7 +102,8 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                         bg={"pageBackground"}
                         border={"3px solid"}
                         borderRadius={"10px"}
-                        borderColor={signalValue === 100 ? `scoreColor.${signal}` : "contentBorder"}
+                        borderColor={`scoreColor.${signal}`}
+                        opacity={0.8}
                         overflow="hidden"
                         position="relative"
                     >
@@ -121,7 +122,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                                 right: 0,
                                 bottom: 0,
                                 bg: `scoreColor.${signal}`,
-                                opacity: 0.5,
+                                opacity: 0.6,
                                 borderLeftRadius: "7px",
                             }}
                         />
@@ -131,7 +132,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                             top="0"
                             bottom="0"
                             borderLeft="3px dashed"
-                            borderColor="contentBorder"
+                            borderColor={`scoreColor.${signal}`}
                         />
                         <Box
                             position="absolute"
@@ -139,7 +140,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                             top="0"
                             bottom="0"
                             borderLeft="3px dashed"
-                            borderColor="contentBorder"
+                            borderColor={`scoreColor.${signal}`}
                         />
                     </HStack>
                 )}
