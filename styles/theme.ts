@@ -229,10 +229,10 @@ export const customConfig = defineConfig({
                 // Score colors
                 scoreColor: {
                     high: {
-                        value: { _light: "{colors.blue.500}", _dark: "{colors.blue.500}" },
+                        value: { _light: "{colors.green.500}", _dark: "{colors.green.500}" },
                     },
                     mid: {
-                        value: { _light: "{colors.orange.500}", _dark: "{colors.orange.500}" },
+                        value: { _light: "{colors.teal.500}", _dark: "{colors.teal.500}" },
                     },
                     low: {
                         value: { _light: "{colors.gray.400}", _dark: "{colors.gray.400}" },
