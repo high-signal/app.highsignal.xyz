@@ -1,6 +1,7 @@
 require("dotenv").config({ path: "../.env" })
 const OpenAI = require("openai")
 const { processObjectForHtml } = require("./processObjectForHtml")
+const { calculateSmartScore } = require("./calculateSmartScores")
 
 // === CONFIG ===
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
@@ -155,6 +156,11 @@ truncatedData.length: ${truncatedData.length}
                 promptId: promptId,
                 maxChars: maxChars,
                 ...JSON.parse(cleanResponse),
+            }
+
+            if (type === "smart") {
+                const smartScore = calculateSmartScore(userData, previousDays)
+                responseWithDataAdded[username].value = smartScore
             }
 
             // Return the results

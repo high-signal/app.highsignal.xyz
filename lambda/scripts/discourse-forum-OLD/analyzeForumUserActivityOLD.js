@@ -308,10 +308,10 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
 
         rawActivityCombinedData = rawActivityCombinedData.map((item) => ({
             id: item.id,
-            summary: item.summary,
+            // summary: item.summary,
             description: item.description,
-            improvements: item.improvements,
-            explained_reasoning: item.explained_reasoning,
+            // improvements: item.improvements,
+            // explained_reasoning: item.explained_reasoning,
             raw_value: item.raw_value,
             max_value: item.max_value,
             day: item.day,
