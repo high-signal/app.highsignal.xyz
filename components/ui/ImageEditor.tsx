@@ -94,7 +94,7 @@ export default function ImageEditor({
             }
 
             toaster.create({
-                title: "✅ Image updated",
+                title: "✅ New image uploaded and saved",
                 type: "success",
             })
         } catch (error) {
