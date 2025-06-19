@@ -221,6 +221,9 @@ export default function Leaderboard({
                             const userData =
                                 mode === "projects" ? getUserDataForProject((item as ProjectData).urlSlug) : null
 
+                            const isScoreZero =
+                                mode === "users" ? ((item as UserData).score ?? 0) === 0 : (userData?.score ?? 0) === 0
+
                             return (
                                 <Table.Row
                                     key={index}
@@ -287,7 +290,7 @@ export default function Leaderboard({
                                                 justifyContent="center"
                                                 alignItems="center"
                                                 fontSize="xl"
-                                                fontWeight="bold"
+                                                fontWeight={isScoreZero ? "normal" : "bold"}
                                             >
                                                 <Text
                                                     color={
@@ -302,9 +305,11 @@ export default function Leaderboard({
                                                 >
                                                     {(() => {
                                                         const signal =
-                                                            (mode === "users"
-                                                                ? (item as UserData).signal
-                                                                : userData?.signal) || ""
+                                                            (isScoreZero
+                                                                ? "-"
+                                                                : mode === "users"
+                                                                  ? (item as UserData).signal
+                                                                  : userData?.signal) || ""
                                                         return signal
                                                             ? signal.charAt(0).toUpperCase() + signal.slice(1)
                                                             : "-"
@@ -328,29 +333,35 @@ export default function Leaderboard({
                                                     border="3px solid"
                                                     borderRadius="15px"
                                                     borderColor={
-                                                        mode === "users"
-                                                            ? (item as UserData).signal
-                                                                ? `scoreColor.${(item as UserData).signal}`
+                                                        isScoreZero
+                                                            ? "transparent"
+                                                            : mode === "users"
+                                                              ? (item as UserData).signal
+                                                                  ? `scoreColor.${(item as UserData).signal}`
+                                                                  : "transparent"
+                                                              : userData?.signal
+                                                                ? `scoreColor.${userData.signal}`
                                                                 : "transparent"
-                                                            : userData?.signal
-                                                              ? `scoreColor.${userData.signal}`
-                                                              : "transparent"
                                                     }
                                                     color={
-                                                        mode === "users"
-                                                            ? (item as UserData).signal
+                                                        isScoreZero
+                                                            ? "textColorMuted"
+                                                            : mode === "users"
+                                                              ? (item as UserData).signal
+                                                                  ? "textColor"
+                                                                  : "textColorMuted"
+                                                              : userData?.signal
                                                                 ? "textColor"
                                                                 : "textColorMuted"
-                                                            : userData?.signal
-                                                              ? "textColor"
-                                                              : "textColorMuted"
                                                     }
                                                     w="fit-content"
                                                     fontSize="lg"
                                                 >
-                                                    {mode === "users"
-                                                        ? (item as UserData).score
-                                                        : userData?.score || "0"}
+                                                    {isScoreZero
+                                                        ? "-"
+                                                        : mode === "users"
+                                                          ? (item as UserData).score
+                                                          : userData?.score || "0"}
                                                 </Text>
                                             </HStack>
                                         </Link>
