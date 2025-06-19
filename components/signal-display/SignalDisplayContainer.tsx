@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, Text, Spinner, Box, HStack } from "@chakra-ui/react"
+import { VStack, Text, Spinner, Box } from "@chakra-ui/react"
 import Title from "./Title"
 import UserInfo from "./UserInfo"
 import CurrentSignal from "./CurrentSignal"
@@ -9,6 +9,7 @@ import SignalStrengthContainer from "./signal-strength/SignalStrengthContainer"
 
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { useGetProjects } from "../../hooks/useGetProjects"
+import AcmeIncPlaceholder from "../ui/AcmeIncPlaceholder"
 
 export default function SignalDisplayContainer({ project, username }: { project: string; username: string }) {
     const { users, loading: usersLoading, error: usersError, refreshUserData } = useGetUsers(project, username)
@@ -39,6 +40,11 @@ export default function SignalDisplayContainer({ project, username }: { project:
                 <Text>Error: No user or project found</Text>
             </VStack>
         )
+    }
+
+    // Display placeholder for example project
+    if (currentProject?.urlSlug === "acme-inc") {
+        return <AcmeIncPlaceholder projectData={currentProject} />
     }
 
     return (

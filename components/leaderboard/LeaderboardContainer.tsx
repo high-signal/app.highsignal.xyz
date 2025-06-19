@@ -3,11 +3,17 @@
 import { VStack, Text, HStack, Image, Skeleton, Spinner } from "@chakra-ui/react"
 import Leaderboard from "./Leaderboard"
 import { useGetProjects } from "../../hooks/useGetProjects"
+import AcmeIncPlaceholder from "../ui/AcmeIncPlaceholder"
 
 export default function LeaderboardContainer({ project }: { project: string }) {
     const { projects, loading, error } = useGetProjects(project)
 
     const currentProject = projects[0]
+
+    // Display placeholder for example project
+    if (currentProject?.urlSlug === "acme-inc") {
+        return <AcmeIncPlaceholder projectData={currentProject} />
+    }
 
     return (
         <VStack gap={5} w="100%" maxW="650px" borderRadius="20px">
