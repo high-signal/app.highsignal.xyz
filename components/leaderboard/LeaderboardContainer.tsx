@@ -32,6 +32,9 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                             />
                             <Text
                                 fontWeight="bold"
+                                whiteSpace="normal"
+                                overflowWrap="break-word"
+                                wordBreak="break-word"
                                 fontSize={{
                                     base: currentProject.displayName.length >= 16 ? "2xl" : "3xl",
                                     sm: "4xl",
