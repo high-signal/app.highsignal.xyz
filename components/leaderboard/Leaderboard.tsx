@@ -247,7 +247,7 @@ export default function Leaderboard({
                                         >
                                             <Link href={linkUrl}>
                                                 <Text fontSize="lg" fontWeight="bold" color="textColor">
-                                                    {(item as UserData).rank}
+                                                    {isScoreZero ? "-" : (item as UserData).rank}
                                                 </Text>
                                             </Link>
                                         </Table.Cell>

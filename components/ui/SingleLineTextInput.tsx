@@ -19,6 +19,7 @@ interface SingleLineTextInputProps {
     isSelectorOnly?: boolean
     ref?: React.RefObject<HTMLInputElement>
     bg?: string
+    borderColor?: string
 }
 
 export default function SingleLineTextInput({
@@ -37,6 +38,7 @@ export default function SingleLineTextInput({
     isSelectorOnly = false,
     ref,
     bg = "contentBackground",
+    borderColor = "transparent",
 }: SingleLineTextInputProps) {
     const showClearButton = Boolean(handleClear) && Boolean(value)
 
@@ -55,7 +57,7 @@ export default function SingleLineTextInput({
                 borderRadius="full"
                 borderRightRadius={rightElement ? "none" : "full"}
                 border={"3px solid"}
-                borderColor="transparent"
+                borderColor={borderColor}
                 _focus={{
                     borderColor: isEditable || isSelectorOnly ? "input.border" : "transparent",
                     boxShadow: "none",

@@ -12,6 +12,7 @@ import UserMenuButton from "./UserMenuButton"
 import { ASSETS, SOCIAL_LINKS } from "../../config/constants"
 import { useParticles } from "../../contexts/ParticleContext"
 import ProjectPicker from "../ui/ProjectPicker"
+import UserPicker from "../ui/UserPicker"
 
 const iconMap = {
     faXTwitter,
@@ -122,6 +123,19 @@ export default function Header({}) {
                             selectorText={"Leaderboards..."}
                             placeholder={"Search..."}
                         />
+                        <Box display={{ base: "none", md: "block" }}>
+                            <UserPicker
+                                projectUrlSlug={""}
+                                selectorText={"Users..."}
+                                placeholder={"Search..."}
+                                signalStrengths={[]}
+                                onUserSelect={(user) => {
+                                    if (user?.username) {
+                                        router.push(`/u/${user.username}`)
+                                    }
+                                }}
+                            />
+                        </Box>
                     </HStack>
                 </HStack>
                 <HStack gap={{ base: 2, md: 6 }} alignItems={"center"}>
