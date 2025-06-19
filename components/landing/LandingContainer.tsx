@@ -19,19 +19,7 @@ export default function LandingContainer() {
                 projects.length > 0 &&
                 projects.map((project: ProjectData) => (
                     <Link href={`/p/${project.urlSlug}`} key={project.urlSlug}>
-                        <Button
-                            secondaryButton
-                            p={3}
-                            pr={4}
-                            borderRadius="full"
-                            bg="pageBackground"
-                            border="3px solid"
-                            borderColor="contentBorder"
-                            justifyContent="center"
-                            _hover={{
-                                bg: "button.secondary.default",
-                            }}
-                        >
+                        <Button secondaryButton p={3} pr={4} borderRadius="full" justifyContent="center">
                             <Image
                                 src={project.projectLogoUrl}
                                 alt={project.displayName}

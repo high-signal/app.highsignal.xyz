@@ -1,4 +1,4 @@
-import { HStack, Text, Box, Image } from "@chakra-ui/react"
+import { HStack, Text, Box, Image, Button } from "@chakra-ui/react"
 import Link from "next/link"
 import { ASSETS } from "../../config/constants"
 
@@ -12,10 +12,8 @@ export default function UserInfo({ profileImageUrl, displayName, username }: Use
     return (
         <HStack justifyContent={"center"} w={"100%"} maxW="600px" pb={2}>
             <Link href={`/u/${username}`}>
-                <HStack
-                    bg={"pageBackground"}
-                    border={"4px solid"}
-                    borderColor={"contentBorder"}
+                <Button
+                    secondaryButton
                     py={0}
                     pr={6}
                     w={"fit-content"}
@@ -23,9 +21,6 @@ export default function UserInfo({ profileImageUrl, displayName, username }: Use
                     borderRadius="full"
                     gap={4}
                     minW="250px"
-                    _hover={{
-                        bg: "contentBackgroundHover",
-                    }}
                 >
                     <Box boxSize="100px" minW="100px" borderRadius="full" overflow="hidden" flexGrow={0}>
                         <Image
@@ -48,7 +43,7 @@ export default function UserInfo({ profileImageUrl, displayName, username }: Use
                             {displayName}
                         </Text>
                     </HStack>
-                </HStack>
+                </Button>
             </Link>
         </HStack>
     )
