@@ -62,7 +62,8 @@ export default function ProjectPicker({
                         },
                     })}
                     isSelectorOnly={Boolean(selectorText)}
-                    bg={selectorText && !isFocused ? "button.secondary.default" : "pageBackground"}
+                    bg={"pageBackground"}
+                    borderColor={"button.secondary.default"}
                 />
                 {selectorText && !isFocused && (
                     <Box position="absolute" right="12px" top="50%" transform="translateY(-50%)" pointerEvents="none">
@@ -83,7 +84,8 @@ export default function ProjectPicker({
                     borderRadius="16px"
                     boxShadow="md"
                     zIndex={5}
-                    maxH="200px"
+                    maxH="50dvh"
+                    minH="45px"
                     overflowY="auto"
                 >
                     {loading ? (
@@ -97,37 +99,39 @@ export default function ProjectPicker({
                     ) : projects.length === 0 && searchTerm.length >= 1 ? (
                         <Text p={2}>No projects found</Text>
                     ) : (
-                        projects.map((project) => (
-                            <Box
-                                key={project.urlSlug}
-                                p={2}
-                                cursor="pointer"
-                                _hover={{ bg: "contentBackground" }}
-                                onMouseDown={(e) => {
-                                    e.preventDefault()
-                                    setSearchTerm(project.displayName)
-                                    setIsFocused(false)
-                                    inputRef.current?.blur()
-                                    onProjectSelect(project)
-                                }}
-                            >
-                                <HStack>
-                                    <Image
-                                        src={
-                                            !project.projectLogoUrl || project.projectLogoUrl === ""
-                                                ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                                : project.projectLogoUrl
-                                        }
-                                        alt={`${project.displayName} Logo`}
-                                        fit="cover"
-                                        transition="transform 0.2s ease-in-out"
-                                        w="25px"
-                                        borderRadius="full"
-                                    />
-                                    <Text>{project.displayName}</Text>
-                                </HStack>
-                            </Box>
-                        ))
+                        projects
+                            .sort((a, b) => (a.displayName || "").localeCompare(b.displayName || ""))
+                            .map((project) => (
+                                <Box
+                                    key={project.urlSlug}
+                                    p={2}
+                                    cursor="pointer"
+                                    _hover={{ bg: "contentBackground" }}
+                                    onMouseDown={(e) => {
+                                        e.preventDefault()
+                                        setSearchTerm(project.displayName)
+                                        setIsFocused(false)
+                                        inputRef.current?.blur()
+                                        onProjectSelect(project)
+                                    }}
+                                >
+                                    <HStack>
+                                        <Image
+                                            src={
+                                                !project.projectLogoUrl || project.projectLogoUrl === ""
+                                                    ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                                    : project.projectLogoUrl
+                                            }
+                                            alt={`${project.displayName} Logo`}
+                                            fit="cover"
+                                            transition="transform 0.2s ease-in-out"
+                                            w="25px"
+                                            borderRadius="full"
+                                        />
+                                        <Text>{project.displayName}</Text>
+                                    </HStack>
+                                </Box>
+                            ))
                     )}
                 </Box>
             )}
