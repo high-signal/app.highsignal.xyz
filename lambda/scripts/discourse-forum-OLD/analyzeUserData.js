@@ -23,6 +23,18 @@ async function analyzeUserData(
 ) {
     console.log(`Day ${dayDate} analysis started...`)
 
+    let calculatedSmartScore
+    if (type === "smart") {
+        const smartScoreResult = calculateSmartScore(userData, previousDays)
+        calculatedSmartScore = smartScoreResult.smartScore
+        const topBandDays = smartScoreResult.topBandDays
+
+        // Filter userData to only include the days that were used in the smart score calculation
+        if (topBandDays.length > 0) {
+            userData = userData.filter((d) => topBandDays.includes(d.day))
+        }
+    }
+
     let promptId
 
     // Returns -2, -1, 0, 1, or 2 with equal probability
@@ -158,9 +170,8 @@ truncatedData.length: ${truncatedData.length}
                 ...JSON.parse(cleanResponse),
             }
 
-            if (type === "smart") {
-                const smartScore = calculateSmartScore(userData, previousDays)
-                responseWithDataAdded[username].value = smartScore
+            if (calculatedSmartScore) {
+                responseWithDataAdded[username].value = calculatedSmartScore
             }
 
             // Return the results
