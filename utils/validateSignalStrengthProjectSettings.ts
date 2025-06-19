@@ -48,11 +48,11 @@ export function validateSignalStrengthProjectSettings(settings: SignalStrengthPr
             } else if (
                 typeof previousDays !== "number" ||
                 !Number.isInteger(previousDays) ||
-                ![30, 60, 90].includes(previousDays)
+                ![60, 120, 180].includes(previousDays)
             ) {
                 errors.push({
                     field: "previousDays",
-                    message: "Previous days must be either 30, 60, or 90",
+                    message: "Previous days must be either 60, 120, or 180",
                 })
             }
         }

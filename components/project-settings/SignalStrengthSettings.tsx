@@ -418,7 +418,7 @@ export default function SignalStrengthSettings({
                                     }}
                                 >
                                     <HStack columnGap={5} rowGap={3} alignItems={"start"} flexWrap={"wrap"}>
-                                        {[30, 60, 90].map((days) => (
+                                        {[60, 120, 180].map((days) => (
                                             <RadioGroup.Item
                                                 key={days}
                                                 value={days.toString()}

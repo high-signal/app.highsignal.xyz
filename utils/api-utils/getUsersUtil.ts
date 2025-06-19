@@ -237,7 +237,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                         }
 
                         // TODO: Make this dynamic based on the previous_days value for the signal strength for the project
-                        const { data, error } = await query.order("day", { ascending: false }).limit(90)
+                        const { data, error } = await query.order("day", { ascending: false }).limit(180)
 
                         if (error) {
                             console.error("signalStrengthsError", error)
