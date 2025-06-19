@@ -1,15 +1,20 @@
 "use client"
 
-import { VStack, Text, HStack, Image, Skeleton, Spinner } from "@chakra-ui/react"
+import { VStack, Text, HStack, Image, Skeleton, Spinner, Button, Box } from "@chakra-ui/react"
+import Link from "next/link"
 
 import ContentContainer from "../layout/ContentContainer"
+import Leaderboard from "../leaderboard/Leaderboard"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { useParams } from "next/navigation"
-import Leaderboard from "../leaderboard/Leaderboard"
 import { ASSETS } from "../../config/constants"
+import { useUser } from "../../contexts/UserContext"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faPencil } from "@fortawesome/free-solid-svg-icons"
 
 export default function UserProfileContainer() {
     const { username } = useParams()
+    const { loggedInUser, loggedInUserLoading } = useUser()
     const { users, loading, error } = useGetUsers(undefined, username as string)
 
     return (
@@ -26,17 +31,29 @@ export default function UserProfileContainer() {
                     justifyContent="center"
                 >
                     {!loading && !error ? (
-                        <>
-                            <HStack gap={3}>
-                                <Image
-                                    src={users[0]?.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE}
-                                    alt={users[0]?.displayName}
-                                    boxSize="80px"
-                                    borderRadius="full"
-                                />
-                                <Text fontWeight="bold">{users[0]?.displayName} </Text>
-                            </HStack>
-                        </>
+                        <HStack gap={3}>
+                            <Image
+                                src={users[0]?.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE}
+                                alt={users[0]?.displayName}
+                                boxSize="80px"
+                                borderRadius="full"
+                            />
+                            <VStack gap={0}>
+                                <Text fontWeight="bold">{users[0]?.displayName}</Text>
+                                {!loggedInUserLoading && loggedInUser?.username === username && (
+                                    <Box mt={"-10px"}>
+                                        <Link href={`/settings/u/${loggedInUser?.username}`}>
+                                            <Button secondaryButton px={2} py={1} borderRadius="full">
+                                                <HStack>
+                                                    <FontAwesomeIcon icon={faPencil} />
+                                                    <Text>Edit profile</Text>
+                                                </HStack>
+                                            </Button>
+                                        </Link>
+                                    </Box>
+                                )}
+                            </VStack>
+                        </HStack>
                     ) : (
                         <HStack w="200px" h="80px" justifyContent="center">
                             {error ? (

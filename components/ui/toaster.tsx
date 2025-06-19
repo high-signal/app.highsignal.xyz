@@ -28,8 +28,8 @@ export default function Toaster() {
                                 <Toast.Title mr={4} ml={toast.description ? 4 : 0} w={"max-content"}>
                                     {typeof toast.title === "string" ? (
                                         <>
-                                            <span style={{ paddingRight: "5px" }}>{toast.title.charAt(0)}</span>
-                                            {toast.title.slice(1)}
+                                            <span style={{ paddingRight: "5px" }}>{Array.from(toast.title)[0]}</span>
+                                            {Array.from(toast.title).slice(1).join("")}
                                         </>
                                     ) : (
                                         toast.title

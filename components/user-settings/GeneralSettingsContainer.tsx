@@ -121,6 +121,7 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
                     setError(responseData.error || "Failed to update settings")
                 }
                 setHasChanges(false)
+                setIsSubmitting(false)
                 return
             }
 
@@ -129,14 +130,21 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
                 type: "success",
             })
 
-            // Refresh the user data after saving changes
-            await refreshUser()
-            setHasChanges(false)
-
             // If username is changed, redirect to the new username
             // Full page reload is needed to stop the page from requesting the old username
             if (changedFields.username) {
-                window.location.href = `/settings/u/${changedFields.username.toLowerCase()}`
+                toaster.create({
+                    title: "🔀 Redirecting to new username...",
+                    type: "success",
+                })
+                setTimeout(() => {
+                    window.location.href = `/settings/u/${changedFields.username.toLowerCase()}`
+                }, 2000)
+            } else {
+                // Refresh the user data after saving changes if username is not changed
+                await refreshUser()
+                setHasChanges(false)
+                setIsSubmitting(false)
             }
         } catch (error) {
             toaster.create({
@@ -146,7 +154,6 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
             })
             console.error("Error updating settings:", error)
             setError("An error occurred while saving changes")
-        } finally {
             setIsSubmitting(false)
         }
     }

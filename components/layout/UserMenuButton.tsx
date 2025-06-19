@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGear, faSignOut, faBars, faScrewdriverWrench } from "@fortawesome/free-solid-svg-icons"
-import { faCircleUser } from "@fortawesome/free-regular-svg-icons"
 import { usePrivy } from "@privy-io/react-auth"
 import { useUser } from "../../contexts/UserContext"
 import { ASSETS } from "../../config/constants"
@@ -175,12 +174,12 @@ export default function UserMenuButton() {
                             <Link href={`/u/${loggedInUser.username}`}>
                                 <MenuItem
                                     icon={loggedInUser.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE}
-                                    label="Profile"
+                                    label="Public profile"
                                     value="profile"
                                 />
                             </Link>
                             <Link href={`/settings/u/${loggedInUser.username}`}>
-                                <MenuItem icon={faGear} label="Settings" value="settings" />
+                                <MenuItem icon={faGear} label="My settings" value="settings" />
                             </Link>
                             <MenuItem icon={faSignOut} label="Logout" value="logout" onClick={handleLogout} />
                         </Menu.Content>
