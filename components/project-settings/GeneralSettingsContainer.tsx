@@ -121,6 +121,7 @@ export default function GeneralSettingsContainer({ project }: { project: Project
                     setError(responseData.error || "Failed to update settings")
                 }
                 setHasChanges(false)
+                setIsSubmitting(false)
                 return
             }
 
@@ -129,14 +130,21 @@ export default function GeneralSettingsContainer({ project }: { project: Project
                 type: "success",
             })
 
-            // Refresh the user data after saving changes
-            await refreshUser()
-            setHasChanges(false)
-
             // If urlSlug is changed, redirect to the new urlSlug
             // Full page reload is needed to stop the page from requesting the old urlSlug
             if (changedFields.urlSlug) {
-                window.location.href = `/settings/p/${changedFields.urlSlug.toLowerCase()}`
+                toaster.create({
+                    title: "🔀 Redirecting to new project page...",
+                    type: "success",
+                })
+                setTimeout(() => {
+                    window.location.href = `/settings/p/${changedFields.urlSlug.toLowerCase()}`
+                }, 2000)
+            } else {
+                // Refresh the user data after saving changes if urlSlug is not changed
+                await refreshUser()
+                setHasChanges(false)
+                setIsSubmitting(false)
             }
         } catch (error) {
             toaster.create({
@@ -146,7 +154,6 @@ export default function GeneralSettingsContainer({ project }: { project: Project
             })
             console.error("Error updating settings:", error)
             setError("An error occurred while saving changes")
-        } finally {
             setIsSubmitting(false)
         }
     }
