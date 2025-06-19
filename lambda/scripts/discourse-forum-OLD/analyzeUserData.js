@@ -37,9 +37,6 @@ async function analyzeUserData(
 
     let promptId
 
-    // Returns -2, -1, 0, 1, or 2 with equal probability
-    const randomVariation = Math.floor(Math.random() * 5) - 2
-
     const rawTestingInputData = testingData?.testingInputData?.rawTestingInputData
     const smartTestingInputData = testingData?.testingInputData?.smartTestingInputData
 
