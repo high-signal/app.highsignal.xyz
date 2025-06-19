@@ -17,8 +17,10 @@ const SignalStrengthLozenge = ({ children }: { children: React.ReactNode }) => (
             py={1}
             bg={"pageBackground"}
             borderRadius={"full"}
-            color={"textColorMuted"}
             cursor={"default"}
+            fontWeight={"semibold"}
+            color={"teal.500"}
+            fontSize={"sm"}
         >
             {children}
         </HStack>
@@ -301,7 +303,8 @@ export default function SignalStrength({
                                                 fontSize={"sm"}
                                                 gap={3}
                                                 cursor={"default"}
-                                                color={"textColorMuted"}
+                                                fontWeight={"semibold"}
+                                                color={"teal.500"}
                                             >
                                                 <Text>🏗️</Text>
                                                 <Text>Coming soon</Text>
