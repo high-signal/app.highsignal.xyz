@@ -291,7 +291,7 @@ export default function ConnectTypeSelectorModal({
                                 Allows High Signal to confirm you are the owner of your {config.projectDisplayName}{" "}
                                 forum account by checking a public message on the {config.projectDisplayName} forum.
                             </Text>
-                            <Text>Copy this message with your access code:</Text>
+                            <Text>Copy this message with your unique code:</Text>
                             <VStack gap={2}>
                                 <HStack bg={"pageBackground"} py={2} px={4} borderRadius={"16px"} fontWeight={"bold"}>
                                     <Text>{authPostCode ? authPostMessage : "Generating auth code..."}</Text>
