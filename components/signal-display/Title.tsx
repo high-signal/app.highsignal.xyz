@@ -25,7 +25,7 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
             >
                 <Link href={`/p/${projectData.urlSlug}${window.location.search}`}>
                     <Button
-                        contentButton
+                        secondaryButton
                         gap={2}
                         px={3}
                         py={2}

@@ -253,7 +253,7 @@ export default function ConnectTypeSelectorModal({
                                     ? { primaryButton: true }
                                     : authEncryptedPayload
                                       ? { successButton: true }
-                                      : { contentButton: true })}
+                                      : { secondaryButton: true })}
                                 border={"3px solid"}
                                 borderColor={
                                     config.forumAuthTypes?.includes("api_auth") && authEncryptedPayload
@@ -298,7 +298,7 @@ export default function ConnectTypeSelectorModal({
                                     {authPostCode ? null : <Spinner size="sm" color="white" />}
                                 </HStack>
                                 <Button
-                                    contentButton
+                                    secondaryButton
                                     h={"100%"}
                                     pl={3}
                                     pr={2}
@@ -319,7 +319,7 @@ export default function ConnectTypeSelectorModal({
                             </Text>
                             <Link href={config.forumAuthParentPostUrl} target="_blank" textDecoration={"none"}>
                                 <Button
-                                    contentButton
+                                    secondaryButton
                                     px={3}
                                     py={1}
                                     borderRadius={"full"}
@@ -346,7 +346,7 @@ export default function ConnectTypeSelectorModal({
                                     ? { primaryButton: true }
                                     : authPostId
                                       ? { successButton: true }
-                                      : { contentButton: true })}
+                                      : { secondaryButton: true })}
                                 border={"3px solid"}
                                 borderColor={
                                     !authPostId || authEncryptedPayload ? "transparent" : "lozenge.border.active"

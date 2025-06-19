@@ -20,7 +20,7 @@ export default function LandingContainer() {
                 projects.map((project: ProjectData) => (
                     <Link href={`/p/${project.urlSlug}`} key={project.urlSlug}>
                         <Button
-                            contentButton
+                            secondaryButton
                             p={3}
                             pr={4}
                             borderRadius="full"

@@ -33,10 +33,12 @@ export default function ParticleToggle() {
                     setShowParticles(false)
                 }
             }}
-            _active={{ _hover: { bg: "button.secondary.hover" } }}
+            // _active={{ _hover: { bg: "button.secondary.hover" } }}
             transition="opacity 0.2s"
-            fontSize={"xl"}
+            fontSize={"18px"}
             borderRadius={"full"}
+            border={"2px solid"}
+            borderColor={showParticles ? "teal.500" : "transparent"}
             h={"28px"}
             w={"28px"}
             minW={"28px"}

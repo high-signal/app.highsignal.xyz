@@ -158,17 +158,6 @@ export const customConfig = defineConfig({
                     },
                     secondary: {
                         default: {
-                            value: { _light: "{colors.teal.300}", _dark: "{colors.teal.600}" },
-                        },
-                        hover: {
-                            value: { _light: "{colors.teal.400}", _dark: "{colors.teal.400}" },
-                        },
-                        active: {
-                            value: { _light: "{colors.teal.300}", _dark: "{colors.teal.600}" },
-                        },
-                    },
-                    contentButton: {
-                        default: {
                             value: { _light: "{colors.teal.300}", _dark: "{colors.teal.800}" },
                         },
                         hover: {

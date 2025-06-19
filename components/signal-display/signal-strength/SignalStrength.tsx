@@ -255,7 +255,7 @@ export default function SignalStrength({
                         borderRadius={"10px"}
                         borderBottomRadius={hasContent ? (isOpen ? "none" : "10px") : "10px"}
                         onClick={hasContent ? () => setIsOpen(!isOpen) : undefined}
-                        _hover={hasContent ? { bg: "button.contentButton.default" } : undefined}
+                        _hover={hasContent ? { bg: "button.secondary.default" } : undefined}
                     >
                         {hasContent ? (
                             <Box transform={isOpen ? "rotate(90deg)" : "rotate(0deg)"} transition="transform 0.2s">

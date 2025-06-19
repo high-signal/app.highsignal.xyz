@@ -228,9 +228,9 @@ export default function Leaderboard({
                                     bg={"pageBackground"}
                                     _hover={{
                                         bg: "contentBackground",
-                                        _active: { bg: "button.contentButton.active" },
+                                        _active: { bg: "button.secondary.active" },
                                     }}
-                                    _active={{ bg: "button.contentButton.active" }}
+                                    _active={{ bg: "button.secondary.active" }}
                                     transition="all 0.1s ease"
                                     borderBottom="1px solid"
                                     borderColor="contentBorder"

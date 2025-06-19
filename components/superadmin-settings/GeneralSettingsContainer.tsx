@@ -24,7 +24,7 @@ export default function GeneralSettingsContainer() {
                     projects.map((project: ProjectData) => (
                         <Link href={`/settings/p/${project.urlSlug}`} key={project.urlSlug} style={{ width: "100%" }}>
                             <Button
-                                contentButton
+                                secondaryButton
                                 p={2}
                                 pr={3}
                                 borderRadius="full"

@@ -30,8 +30,8 @@ const CustomMenuItem = ({ value, onClick, isHeading = false, children }: CustomM
         overflow={"hidden"}
         onClick={onClick}
         transition={"all 0.2s ease"}
-        _active={{ bg: "button.contentButton.active" }}
-        _highlighted={{ bg: "button.contentButton.hover" }}
+        _active={{ bg: "button.secondary.active" }}
+        _highlighted={{ bg: "button.secondary.hover" }}
         px={4}
         py={3}
     >
