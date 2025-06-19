@@ -179,7 +179,7 @@ export default function UserMenuButton() {
                                 />
                             </Link>
                             <Link href={`/settings/u/${loggedInUser.username}`}>
-                                <MenuItem icon={faGear} label="User settings" value="settings" />
+                                <MenuItem icon={faGear} label="My settings" value="settings" />
                             </Link>
                             <MenuItem icon={faSignOut} label="Logout" value="logout" onClick={handleLogout} />
                         </Menu.Content>
