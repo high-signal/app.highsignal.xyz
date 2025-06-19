@@ -331,7 +331,7 @@ export default function ForumConnectionManager({
                                     pr={0}
                                     border={"2px solid"}
                                     color={isBrokenConnection ? "textColor" : "lozenge.text.active"}
-                                    borderColor={isBrokenConnection ? "textColor" : "lozenge.border.active"}
+                                    borderColor={isBrokenConnection ? "teal.500" : "lozenge.border.active"}
                                     borderRightRadius="full"
                                     disabled={isForumSubmitting}
                                 >
