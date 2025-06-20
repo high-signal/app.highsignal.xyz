@@ -39,19 +39,21 @@ export async function PATCH(request: NextRequest) {
             }))
         }
 
-        // Clear last_updated for all users in usersToUpdate
         const userIds = usersToUpdate.map((u) => u.userId)
-        if (userIds.length > 0) {
-            const { error: clearError } = await supabase
-                .from("forum_users")
-                .update({ last_updated: null })
-                .in("user_id", userIds)
-                .eq("project_id", projectId)
-            if (clearError) {
-                console.error("Error clearing last_updated:", clearError)
-                return NextResponse.json({ error: "Error clearing last_updated" }, { status: 500 })
-            }
-        }
+        // if (process.env.NODE_ENV === "development") {
+        //     // Clear last_updated for all users in usersToUpdate
+        //     if (userIds.length > 0) {
+        //         const { error: clearError } = await supabase
+        //             .from("forum_users")
+        //             .update({ last_updated: null })
+        //             .in("user_id", userIds)
+        //             .eq("project_id", projectId)
+        //         if (clearError) {
+        //             console.error("Error clearing last_updated:", clearError)
+        //             return NextResponse.json({ error: "Error clearing last_updated" }, { status: 500 })
+        //         }
+        //     }
+        // }
 
         // Lookup the signal_strength_id for the given signalStrengthName
         const { data: signalStrengthData, error: signalStrengthDataError } = await supabase
@@ -64,21 +66,22 @@ export async function PATCH(request: NextRequest) {
             console.error("Error fetching signal strength ID:", signalStrengthDataError)
             return NextResponse.json({ error: "Error fetching signal strength ID" }, { status: 500 })
         }
-        const signalStrengthId = signalStrengthData.id
 
         // Delete all user_signal_strengths for these users, project, and signal strength
-        if (userIds.length > 0) {
-            const { error: deleteError } = await supabase
-                .from("user_signal_strengths")
-                .delete()
-                .in("user_id", userIds)
-                .eq("project_id", projectId)
-                .eq("signal_strength_id", signalStrengthId)
-            if (deleteError) {
-                console.error("Error deleting user_signal_strengths:", deleteError)
-                return NextResponse.json({ error: "Error deleting user_signal_strengths" }, { status: 500 })
-            }
-        }
+        // if (process.env.NODE_ENV === "development") {
+        //     if (userIds.length > 0) {
+        //         const { error: deleteError } = await supabase
+        //             .from("user_signal_strengths")
+        //             .delete()
+        //             .in("user_id", userIds)
+        //             .eq("project_id", projectId)
+        //             .eq("signal_strength_id", signalStrengthId)
+        //         if (deleteError) {
+        //             console.error("Error deleting user_signal_strengths:", deleteError)
+        //             return NextResponse.json({ error: "Error deleting user_signal_strengths" }, { status: 500 })
+        //         }
+        //     }
+        // }
 
         // Trigger lambda for each user
         const results = await Promise.all(

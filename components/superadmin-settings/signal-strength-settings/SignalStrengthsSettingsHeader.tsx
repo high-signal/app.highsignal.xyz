@@ -64,7 +64,7 @@ export default function SignalStrengthsSettingsHeader({
                             {signalStrength.status.charAt(0).toUpperCase() + signalStrength.status.slice(1)}
                         </Text>
                     </HStack>
-                    {project && dev && (
+                    {project && (
                         <Button
                             primaryButton
                             px={2}
@@ -179,7 +179,7 @@ export default function SignalStrengthsSettingsHeader({
                         )
                     })()}
             </HStack>
-            {selectedUser && dev && (
+            {selectedUser && (
                 <HStack maxW={"100%"} justifyContent={"center"} flexWrap={"wrap"} gap={3} minH={"35px"}>
                     <>
                         <Text textAlign={"center"}>
