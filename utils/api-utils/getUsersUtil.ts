@@ -197,17 +197,34 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
 
         const signalStrengthIdValues = signalStrengthIds?.map((item) => item.id) || []
 
-        // Get signal strengths
-        const signalStrengthsResults = await Promise.all(
-            // For each user
-            userIds.map(async (userId) => {
-                const signalData = await Promise.all(
-                    // For each signal strength
-                    signalStrengthIdValues.map(async (signalStrengthId) => {
-                        let query = supabase
-                            .from("user_signal_strengths")
-                            .select(
-                                `
+        // Create a map of user_id to project_ids
+        const userProjectsMap = new Map<string, string[]>()
+        userProjectScores.forEach((score) => {
+            if (!userProjectsMap.has(score.user_id)) {
+                userProjectsMap.set(score.user_id, [])
+            }
+            userProjectsMap.get(score.user_id)?.push(score.project_id)
+        })
+
+        // Only fetch signal strengths if we have filters applied (username or project)
+        let signalStrengths: SignalStrengthGroup[] = []
+        if (username || projectSlug) {
+            // Get signal strengths
+            const signalStrengthsResults = await Promise.all(
+                // For each user
+                Array.from(userProjectsMap.keys()).map(async (userId) => {
+                    const projectIds = userProjectsMap.get(userId) || []
+
+                    const userSignalData = await Promise.all(
+                        // For each project of the user
+                        projectIds.map(async (projectId) => {
+                            const projectSignalData = await Promise.all(
+                                // For each signal strength
+                                signalStrengthIdValues.map(async (signalStrengthId) => {
+                                    let query = supabase
+                                        .from("user_signal_strengths")
+                                        .select(
+                                            `
                                 id,
                                 signal_strengths!inner (
                                     name
@@ -217,48 +234,51 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                                 ),
                                 *
                                 `,
+                                        )
+                                        .eq("user_id", userId)
+                                        .eq("project_id", projectId)
+                                        .eq("signal_strength_id", signalStrengthId)
+
+                                    // Filter test data
+                                    if (isSuperAdminRequesting && showTestDataOnly) {
+                                        query = query.not("test_requesting_user", "is", null)
+                                    } else {
+                                        query = query.is("test_requesting_user", null)
+                                    }
+
+                                    // Filter raw score calc
+                                    if (isSuperAdminRequesting && showRawScoreCalcOnly) {
+                                        query = query.not("raw_value", "is", null)
+                                    } else {
+                                        query = query.is("raw_value", null)
+                                    }
+
+                                    // TODO: Make this dynamic based on the previous_days value for the signal strength for the project
+                                    const { data, error } = await query.order("day", { ascending: false }).limit(180)
+
+                                    if (error) {
+                                        console.error("signalStrengthsError", error)
+                                        return null
+                                    }
+
+                                    return {
+                                        signalStrengthId,
+                                        data: data as SignalStrengthData[],
+                                    }
+                                }),
                             )
-                            .eq("user_id", userId)
-                            .eq("project_id", userProjectScores[0]?.project_id)
-                            .eq("signal_strength_id", signalStrengthId)
+                            return projectSignalData.filter(Boolean) as SignalStrengthGroup[]
+                        }),
+                    )
+                    return userSignalData.flat()
+                }),
+            )
 
-                        // Filter test data
-                        if (isSuperAdminRequesting && showTestDataOnly) {
-                            query = query.not("test_requesting_user", "is", null)
-                        } else {
-                            query = query.is("test_requesting_user", null)
-                        }
+            signalStrengths = signalStrengthsResults.flat()
 
-                        // Filter raw score calc
-                        if (isSuperAdminRequesting && showRawScoreCalcOnly) {
-                            query = query.not("raw_value", "is", null)
-                        } else {
-                            query = query.is("raw_value", null)
-                        }
-
-                        // TODO: Make this dynamic based on the previous_days value for the signal strength for the project
-                        const { data, error } = await query.order("day", { ascending: false }).limit(180)
-
-                        if (error) {
-                            console.error("signalStrengthsError", error)
-                            return null
-                        }
-
-                        return {
-                            signalStrengthId,
-                            data: data as SignalStrengthData[],
-                        }
-                    }),
-                )
-
-                return signalData.filter(Boolean) as SignalStrengthGroup[]
-            }),
-        )
-
-        const signalStrengths = signalStrengthsResults.flat()
-
-        if (!signalStrengths) {
-            return NextResponse.json({ error: "Error fetching signal strengths" }, { status: 500 })
+            if (!signalStrengths) {
+                return NextResponse.json({ error: "Error fetching signal strengths" }, { status: 500 })
+            }
         }
 
         const formattedUsers = userProjectScores
@@ -266,7 +286,21 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                 const user = (userDetails as unknown as User[])?.find((u) => u.id === score.user_id)
                 if (!user) return null
 
-                const userSignalStrengths = signalStrengths?.filter((ss) => ss?.data[0]?.user_id === user.id) || []
+                // If no username or project filter is applied, return only basic user info
+                if (!username && !projectSlug) {
+                    return {
+                        ...(isSuperAdminRequesting ? { id: user.id } : {}),
+                        username: user.username,
+                        displayName: user.display_name,
+                        profileImageUrl: user.profile_image_url,
+                    }
+                }
+
+                // For filtered requests, return full data with project-specific information
+                const userSignalStrengths =
+                    signalStrengths?.filter(
+                        (ss) => ss?.data[0]?.user_id === user.id && ss?.data[0]?.project_id === score.project_id,
+                    ) || []
 
                 return {
                     ...(isSuperAdminRequesting ? { id: user.id } : {}),
@@ -276,7 +310,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                     ...(!projectSlug
                         ? { projectSlug: (score.projects as unknown as { url_slug: string }).url_slug }
                         : {}),
-                    rank: score.rank,
+                    ...(score.total_score > 0 ? { rank: score.rank } : {}),
                     score: score.total_score,
                     signal: calculateSignalFromScore(score.total_score),
                     ...(isSuperAdminRequesting
@@ -331,6 +365,17 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                 }
             })
             .filter(Boolean) // Remove nulls if any usernames didn't match filter
+
+        // If no filters applied, deduplicate by user_id to avoid multiple entries per user
+        if (!username && !projectSlug) {
+            const uniqueUsers = new Map()
+            formattedUsers.forEach((user) => {
+                if (user && !uniqueUsers.has(user.username)) {
+                    uniqueUsers.set(user.username, user)
+                }
+            })
+            return NextResponse.json(Array.from(uniqueUsers.values()))
+        }
 
         return NextResponse.json(formattedUsers)
     } catch (error) {
