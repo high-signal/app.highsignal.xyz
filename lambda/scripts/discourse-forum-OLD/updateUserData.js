@@ -14,6 +14,7 @@ async function updateUserData(
     try {
         console.log(`Updating database for user ${username}`)
 
+        // TODO: Move this to only happen after the results are successfully stored in the database
         if (!testingData) {
             // Store the new last_updated date to be used to know when to re-run the AI analysis
             // This will run for every update, so the first time it will run X times for each day
