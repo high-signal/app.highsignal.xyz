@@ -16,9 +16,10 @@ export default function LeaderboardContainer({ project }: { project: string }) {
     }
 
     // If no project is found, return a message
-    if (!currentProject) {
+    if (!currentProject && !loading) {
         return (
             <VStack
+                mt={10}
                 gap={3}
                 textAlign="center"
                 bg={"contentBackground"}
