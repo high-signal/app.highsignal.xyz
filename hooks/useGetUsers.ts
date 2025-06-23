@@ -8,8 +8,10 @@ export const useGetUsers = (
     shouldFetch: boolean = true,
     isSuperAdminRequesting: boolean = false,
     isRawData: boolean = false,
+    page: number = 1,
 ) => {
     const [users, setUsers] = useState<UserData[]>([])
+    const [maxPage, setMaxPage] = useState(1)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
@@ -24,9 +26,13 @@ export const useGetUsers = (
                     isSuperAdminRequesting ? "/api/superadmin/users" : "/api/users",
                     window.location.origin,
                 )
+
+                url.searchParams.append("page", page.toString())
+
                 if (project) {
                     url.searchParams.append("project", project)
                 }
+
                 if (username) {
                     url.searchParams.append("user", username)
                     if (fuzzy) {
@@ -52,13 +58,14 @@ export const useGetUsers = (
                 const dataJson = await response.json()
                 const data = dataJson.data
                 setUsers(data)
+                setMaxPage(dataJson.maxPage)
             } catch (err) {
                 setError(err instanceof Error ? err.message : "An error occurred")
             } finally {
                 setLoading(false)
             }
         },
-        [project, username, fuzzy],
+        [project, username, fuzzy, page],
     )
 
     useEffect(() => {
@@ -75,5 +82,5 @@ export const useGetUsers = (
         fetchData(true)
     }, [fetchData])
 
-    return { users, loading, error, refreshUserData }
+    return { users, maxPage, loading, error, refreshUserData }
 }
