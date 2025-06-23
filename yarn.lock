@@ -839,6 +839,11 @@
     "@ethersproject/properties" "^5.8.0"
     "@ethersproject/strings" "^5.8.0"
 
+"@feedback-fish/react@^1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@feedback-fish/react/-/react-1.2.2.tgz#88e51bc611d205dca18c00d5eee8c4124db43b3f"
+  integrity sha512-T6VxMM8nNsD3b5ulVsrcvcrNDAc4d73RLYK8Iw+6PFPIdMU2I/mOiuAHvfGauBVIWYHflja4VOdjm3z4CtlvYQ==
+
 "@floating-ui/core@^1.6.0":
   version "1.6.9"
   resolved "https://registry.yarnpkg.com/@floating-ui/core/-/core-1.6.9.tgz#64d1da251433019dafa091de9b2886ff35ec14e6"

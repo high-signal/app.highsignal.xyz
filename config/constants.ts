@@ -25,8 +25,13 @@ export const APP_CONFIG = {
     TEST_TIMER_MAX_DURATION: 30000,
 } as const
 
-//Social media links
-export const SOCIAL_LINKS = {
+// External links
+export const EXTERNAL_LINKS = {
+    website: {
+        url: "https://highsignal.xyz",
+        label: "High Signal",
+        icon: "faGlobe",
+    },
     X: {
         url: "https://x.com/highsignalxyz",
         label: "High Signal X",
