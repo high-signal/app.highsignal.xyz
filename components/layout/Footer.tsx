@@ -43,14 +43,19 @@ export default function Footer() {
                         Eridian
                     </Link>
                 </Text> */}
-                <FeedbackFish projectId="d610a65469bc8f" userId={loggedInUser?.username}>
-                    <Button secondaryButton px={3} py={1} borderRadius={"full"}>
-                        <HStack>
-                            <Text>Give us feedback</Text>
-                            <FontAwesomeIcon icon={faMessage} />
-                        </HStack>
-                    </Button>
-                </FeedbackFish>
+                {process.env.NEXT_PUBLIC_FEEDBACK_FISH_PROJECT_ID && (
+                    <FeedbackFish
+                        projectId={process.env.NEXT_PUBLIC_FEEDBACK_FISH_PROJECT_ID}
+                        userId={loggedInUser?.username || "anonymous"}
+                    >
+                        <Button secondaryButton px={3} py={1} borderRadius={"full"}>
+                            <HStack>
+                                <Text>Give us feedback</Text>
+                                <FontAwesomeIcon icon={faMessage} />
+                            </HStack>
+                        </Button>
+                    </FeedbackFish>
+                )}
             </HStack>
             <HStack
                 position={{ base: "relative", sm: "absolute" }}
