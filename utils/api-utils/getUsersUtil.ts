@@ -78,7 +78,7 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
     try {
-        if ((!projectSlug && !username) || fuzzy) {
+        if (!projectSlug && (!username || fuzzy)) {
             return usersOnly(supabase, from, to, resultsPerPage, page, fuzzy, username || "")
         } else {
             let projectScoresQuery = supabase
