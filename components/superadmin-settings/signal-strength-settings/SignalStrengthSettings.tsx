@@ -117,7 +117,8 @@ export default function SignalStrengthSettings({
                     },
                 )
 
-                const testResult = await testResultResponse.json()
+                const testResultResponseJson = await testResultResponse.json()
+                const testResult = testResultResponseJson.data
 
                 // If the smart score is found in the DB then the test is complete
                 const foundSignalStrength = testResult[0].signalStrengths?.find(
@@ -142,9 +143,10 @@ export default function SignalStrengthSettings({
                     )
 
                     const testResultRawDataJson = await testResultRawData.json()
+                    const testResultRawDataData = testResultRawDataJson.data
 
                     setTestResultRawData(
-                        testResultRawDataJson[0].signalStrengths?.find(
+                        testResultRawDataData[0].signalStrengths?.find(
                             (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
                         )?.data,
                     )

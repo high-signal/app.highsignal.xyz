@@ -49,7 +49,8 @@ export const useGetUsers = (
                 if (!response.ok) {
                     throw new Error("Failed to fetch data")
                 }
-                const data = await response.json()
+                const dataJson = await response.json()
+                const data = dataJson.data
                 setUsers(data)
             } catch (err) {
                 setError(err instanceof Error ? err.message : "An error occurred")
