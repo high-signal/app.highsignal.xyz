@@ -269,7 +269,7 @@ export default function SignalStrengthSettings({
                         <RadioGroup.Root
                             flexGrow={1}
                             value={(settings.enabled.new ?? settings.enabled.current ?? false) ? "true" : "false"}
-                            onValueChange={(details) => {
+                            onValueChange={(details: { value: string | null }) => {
                                 setSettings({
                                     ...settings,
                                     enabled: { ...settings.enabled, new: details.value === "true" },
@@ -407,12 +407,12 @@ export default function SignalStrengthSettings({
                                         settings.previousDays.current?.toString() ??
                                         "30"
                                     }
-                                    onValueChange={(details) => {
+                                    onValueChange={(details: { value: string | null }) => {
                                         setSettings({
                                             ...settings,
                                             previousDays: {
                                                 ...settings.previousDays,
-                                                new: parseInt(details.value),
+                                                new: parseInt(details.value as string),
                                             },
                                         })
                                     }}

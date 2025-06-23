@@ -9,7 +9,7 @@ import { faXTwitter, IconDefinition } from "@fortawesome/free-brands-svg-icons"
 
 import UserMenuButton from "./UserMenuButton"
 
-import { ASSETS, SOCIAL_LINKS } from "../../config/constants"
+import { ASSETS, EXTERNAL_LINKS } from "../../config/constants"
 import { useParticles } from "../../contexts/ParticleContext"
 import ProjectPicker from "../ui/ProjectPicker"
 import UserPicker from "../ui/UserPicker"
@@ -18,7 +18,7 @@ const iconMap = {
     faXTwitter,
 }
 
-const socialLinks = Object.values(SOCIAL_LINKS).map((link) => ({
+const socialLinks = Object.values(EXTERNAL_LINKS).map((link) => ({
     href: link.url,
     label: link.label,
     icon: iconMap[link.icon as keyof typeof iconMap],
