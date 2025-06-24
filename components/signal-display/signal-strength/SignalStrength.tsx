@@ -6,8 +6,10 @@ import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
 import { useState, useEffect } from "react"
 
 import { useUser } from "../../../contexts/UserContext"
+import { usePrivy } from "@privy-io/react-auth"
 
 import { APP_CONFIG } from "../../../config/constants"
+import { useRouter } from "next/navigation"
 
 const SignalStrengthLozenge = ({ children }: { children: React.ReactNode }) => (
     <HStack flexGrow={1} justifyContent={{ base: "center", sm: "end" }}>
@@ -32,31 +34,36 @@ export default function SignalStrength({
     userData,
     projectData,
     signalStrengthProjectData,
-    isUserConnected,
     refreshUserData,
 }: {
     username: string
     userData: SignalStrengthUserData
     projectData: ProjectData
     signalStrengthProjectData: SignalStrengthProjectData
-    isUserConnected: boolean
     refreshUserData: () => void
 }) {
     const { loggedInUser } = useUser()
+    const { login, authenticated } = usePrivy()
+    const router = useRouter()
 
     const displayValue = userData.value || userData.rawValue || 0
 
     const percentageCompleted = (Number(displayValue) / Number(signalStrengthProjectData.maxValue)) * 100
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
-    const [isOpen, setIsOpen] = useState(true)
+    const [isOpen, setIsOpen] = useState(userData.description ? true : false)
     const [countdown, setCountdown] = useState<number | null>(null)
     const [countdownText, setCountdownText] = useState<string | null>("Analyzing engagement...")
     const [userDataRefreshTriggered, setUserDataRefreshTriggered] = useState(false)
 
-    // Check if the box should be openable
-    const hasContent = Boolean(userData.description || userData.improvements)
-
     const countdownDuration = APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
+
+    const expandableContent =
+        userData && (parseInt(userData.value) > 0 || !userData.summary?.includes("No activity in the past"))
+
+    const userContentAvailable =
+        userData && (parseInt(userData.value) > 0 || userData.summary?.includes("No activity in the past"))
+            ? true
+            : false
 
     useEffect(() => {
         if (userDataRefreshTriggered) {
@@ -188,66 +195,66 @@ export default function SignalStrength({
                     </SignalStrengthLozenge>
                 )}
             </HStack>
-            {signalStrengthProjectData.status !== "dev" && signalStrengthProjectData.enabled && (
-                <HStack
-                    w="100%"
-                    justifyContent={"space-between"}
-                    alignItems={"center"}
-                    fontSize={"lg"}
-                    color={"textColorMuted"}
-                    px={1}
-                >
-                    <Text fontFamily={"monospace"}>0</Text>
+            {userContentAvailable &&
+                signalStrengthProjectData.status !== "dev" &&
+                signalStrengthProjectData.enabled && (
                     <HStack
                         w="100%"
-                        h="30px"
-                        bg="lozenge.background.disabled"
-                        borderRadius="md"
-                        overflow="hidden"
-                        className={userDataRefreshTriggered || countdown ? "rainbow-animation" : ""}
-                        border="3px solid"
-                        borderColor={completedBarWidth === "100%" ? "lozenge.border.active" : "pageBackground"}
+                        justifyContent={"space-between"}
+                        alignItems={"center"}
+                        fontSize={"lg"}
+                        color={"textColorMuted"}
+                        px={1}
                     >
-                        {userDataRefreshTriggered ? (
-                            <HStack w={"100%"} justifyContent={"center"}>
-                                <Text fontWeight={"bold"} color="white" textAlign={"center"} fontSize={"md"}>
-                                    Loading score...
+                        <Text fontFamily={"monospace"}>0</Text>
+                        <HStack
+                            w="100%"
+                            h="30px"
+                            bg="lozenge.background.disabled"
+                            borderRadius="md"
+                            overflow="hidden"
+                            className={userDataRefreshTriggered || countdown ? "rainbow-animation" : ""}
+                            border="3px solid"
+                            borderColor={completedBarWidth === "100%" ? "lozenge.border.active" : "pageBackground"}
+                        >
+                            {userDataRefreshTriggered ? (
+                                <HStack w={"100%"} justifyContent={"center"}>
+                                    <Text fontWeight={"bold"} color="white" textAlign={"center"} fontSize={"md"}>
+                                        Loading score...
+                                    </Text>
+                                    <Spinner size="sm" />
+                                </HStack>
+                            ) : countdown !== null ? (
+                                <Text fontWeight={"bold"} color="white" w={"100%"} textAlign={"center"} fontSize={"md"}>
+                                    {countdownText}{" "}
+                                    <Text as="span" fontFamily={"monospace"}>
+                                        {countdown}
+                                    </Text>
+                                    s
                                 </Text>
-                                <Spinner size="sm" />
-                            </HStack>
-                        ) : countdown !== null ? (
-                            <Text fontWeight={"bold"} color="white" w={"100%"} textAlign={"center"} fontSize={"md"}>
-                                {countdownText}{" "}
-                                <Text as="span" fontFamily={"monospace"}>
-                                    {countdown}
-                                </Text>
-                                s
-                            </Text>
-                        ) : signalStrengthProjectData.status === "active" && !isUserConnected ? (
-                            <Text color={"lozenge.text.disabled"} w={"100%"} textAlign={"center"} fontSize={"md"}>
-                                Account not connected
-                            </Text>
-                        ) : (
-                            <Box
-                                w={completedBarWidth}
-                                h="100%"
-                                bg="lozenge.background.active"
-                                borderRight={
-                                    completedBarWidth === "100%" || completedBarWidth === "0%" ? "none" : "3px solid"
-                                }
-                                borderColor={"lozenge.border.active"}
-                            />
-                        )}
+                            ) : (
+                                <Box
+                                    w={completedBarWidth}
+                                    h="100%"
+                                    bg="lozenge.background.active"
+                                    borderRight={
+                                        completedBarWidth === "100%" || completedBarWidth === "0%"
+                                            ? "none"
+                                            : "3px solid"
+                                    }
+                                    borderColor={"lozenge.border.active"}
+                                />
+                            )}
+                        </HStack>
+                        <Text fontFamily={"monospace"}>{signalStrengthProjectData.maxValue}</Text>
                     </HStack>
-                    <Text fontFamily={"monospace"}>{signalStrengthProjectData.maxValue}</Text>
-                </HStack>
-            )}
-            {isUserConnected && !countdown && !userDataRefreshTriggered && (
+                )}
+            {userContentAvailable && !countdown && !userDataRefreshTriggered && (
                 <VStack w="100%" gap={0} alignItems={"start"}>
                     <HStack
                         alignItems={"center"}
                         justifyContent={"start"}
-                        cursor={hasContent ? "pointer" : "default"}
+                        cursor={expandableContent ? "pointer" : "default"}
                         py={2}
                         pl={3}
                         pr={4}
@@ -255,22 +262,22 @@ export default function SignalStrength({
                         w={"100%"}
                         bg={"pageBackground"}
                         borderRadius={"10px"}
-                        borderBottomRadius={hasContent ? (isOpen ? "none" : "10px") : "10px"}
-                        onClick={hasContent ? () => setIsOpen(!isOpen) : undefined}
-                        _hover={hasContent ? { bg: "button.secondary.default" } : undefined}
+                        borderBottomRadius={expandableContent ? (isOpen ? "none" : "10px") : "10px"}
+                        onClick={expandableContent ? () => setIsOpen(!isOpen) : undefined}
+                        _hover={expandableContent ? { bg: "button.secondary.default" } : undefined}
                     >
-                        {/* {hasContent ? (
-                            <Box transform={isOpen ? "rotate(90deg)" : "rotate(0deg)"} transition="transform 0.2s">
-                                <FontAwesomeIcon icon={faChevronRight} />
-                            </Box>
-                        ) : (
+                        {userData.summary && userData.summary.includes("No activity in the past") ? (
                             <Box color="textColorMuted">
                                 <FontAwesomeIcon icon={faInfoCircle} size="lg" />
                             </Box>
-                        )} */}
-                        <Text>{userData.summary ? userData.summary : "No summary available"}</Text>
+                        ) : (
+                            <Box transform={isOpen ? "rotate(90deg)" : "rotate(0deg)"} transition="transform 0.2s">
+                                <FontAwesomeIcon icon={faChevronRight} />
+                            </Box>
+                        )}
+                        {userData.summary && <Text>{userData.summary}</Text>}
                     </HStack>
-                    {isOpen && hasContent && (
+                    {isOpen && expandableContent && (
                         <VStack
                             w="100%"
                             gap={5}
@@ -282,10 +289,69 @@ export default function SignalStrength({
                             justifyContent={"start"}
                             alignItems={"start"}
                         >
-                            {userData.description && (
+                            {userData.description ? (
                                 <Text color="textColorMuted">
                                     {userData.description?.charAt(0).toUpperCase() + userData.description?.slice(1)}
                                 </Text>
+                            ) : (
+                                <HStack position={"relative"} w={"100%"} justifyContent={"center"}>
+                                    <HStack
+                                        position={"absolute"}
+                                        bg={"pageBackground"}
+                                        justifyContent={"center"}
+                                        zIndex={1}
+                                        px={5}
+                                        py={3}
+                                        borderRadius={"16px"}
+                                        border={"3px solid"}
+                                        borderColor={"contentBorder"}
+                                        boxShadow={"lg"}
+                                        flexWrap={"wrap"}
+                                    >
+                                        {authenticated ? (
+                                            <VStack>
+                                                <Text>You can only view your own insights</Text>
+                                                <Button
+                                                    secondaryButton
+                                                    px={3}
+                                                    py={1}
+                                                    borderRadius={"full"}
+                                                    onClick={() =>
+                                                        router.push(
+                                                            `/p/${projectData.urlSlug}/${loggedInUser?.username}`,
+                                                        )
+                                                    }
+                                                >
+                                                    <Text fontWeight={"bold"}>View your own insights</Text>
+                                                </Button>
+                                            </VStack>
+                                        ) : (
+                                            <>
+                                                <Text>View your own insights by</Text>
+                                                <Button
+                                                    primaryButton
+                                                    px={3}
+                                                    py={1}
+                                                    borderRadius={"full"}
+                                                    onClick={login}
+                                                >
+                                                    <Text fontWeight={"bold"}>Logging in</Text>
+                                                </Button>
+                                            </>
+                                        )}
+                                    </HStack>
+                                    <Text
+                                        filter={"blur(5px)"}
+                                        cursor={"default"}
+                                        pointerEvents={"none"}
+                                        userSelect={"none"}
+                                    >
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce accumsan leo
+                                        vitae lectus aliquam congue. Mauris suscipit enim vel euismod lobortis. Aenean
+                                        quis ultricies sapien. Fusce egestas in dolor vitae tempor. Phasellus euismod,
+                                        est a fermentum ullamcorper, diam arcu molestie nisl.
+                                    </Text>
+                                </HStack>
                             )}
                             {userData.improvements && (
                                 <VStack alignItems={"start"}>
@@ -323,7 +389,7 @@ export default function SignalStrength({
                 </VStack>
             )}
             {signalStrengthProjectData.status === "active" &&
-                !isUserConnected &&
+                !userContentAvailable &&
                 loggedInUser?.username === username && (
                     <HStack w={"100%"} justifyContent={"center"} cursor={"disabled"}>
                         <Link href={`/settings/u/${username}?tab=connected-accounts`}>
