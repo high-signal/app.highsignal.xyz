@@ -37,13 +37,16 @@ export default function UserProfileContainer() {
                             <Image
                                 src={(users && users[0]?.profileImageUrl) || ASSETS.DEFAULT_PROFILE_IMAGE}
                                 alt={(users && users[0]?.displayName) || ""}
-                                boxSize="80px"
+                                boxSize="100px"
                                 borderRadius="full"
                             />
-                            <VStack gap={0}>
+                            <VStack gap={0} alignItems="center">
                                 <Text fontWeight="bold">{users && users[0]?.displayName}</Text>
+                                <Text fontSize="md" color="textColorMuted" mt={"-5px"}>
+                                    {users && users[0]?.username}
+                                </Text>
                                 {!loggedInUserLoading && loggedInUser?.username === username && (
-                                    <Box mt={"-10px"}>
+                                    <Box mt={"-5px"}>
                                         <Link href={`/settings/u/${loggedInUser?.username}`}>
                                             <Button secondaryButton px={2} py={1} borderRadius="full">
                                                 <HStack>
@@ -65,7 +68,6 @@ export default function UserProfileContainer() {
                             )}
                         </HStack>
                     )}
-                    <Text>High Signal Profile</Text>
                 </VStack>
                 {loading ? <Spinner /> : users && <Leaderboard mode="projects" data={users} />}
             </VStack>
