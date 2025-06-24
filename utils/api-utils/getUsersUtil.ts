@@ -347,8 +347,8 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                                 ...(isSuperAdminRequesting || index === 0
                                     ? {
                                           summary: d.summary,
-                                          description: d.description,
-                                          improvements: d.improvements,
+                                          //   description: d.description,
+                                          //   improvements: d.improvements,
                                       }
                                     : {}),
                                 ...(isSuperAdminRequesting

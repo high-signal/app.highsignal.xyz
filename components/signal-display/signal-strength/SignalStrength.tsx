@@ -259,7 +259,7 @@ export default function SignalStrength({
                         onClick={hasContent ? () => setIsOpen(!isOpen) : undefined}
                         _hover={hasContent ? { bg: "button.secondary.default" } : undefined}
                     >
-                        {hasContent ? (
+                        {/* {hasContent ? (
                             <Box transform={isOpen ? "rotate(90deg)" : "rotate(0deg)"} transition="transform 0.2s">
                                 <FontAwesomeIcon icon={faChevronRight} />
                             </Box>
@@ -267,7 +267,7 @@ export default function SignalStrength({
                             <Box color="textColorMuted">
                                 <FontAwesomeIcon icon={faInfoCircle} size="lg" />
                             </Box>
-                        )}
+                        )} */}
                         <Text>{userData.summary ? userData.summary : "No summary available"}</Text>
                     </HStack>
                     {isOpen && hasContent && (
