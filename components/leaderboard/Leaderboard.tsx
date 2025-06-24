@@ -107,7 +107,7 @@ export default function Leaderboard({
     }
 
     // Sort items based on mode
-    const sortedItems = [...items].sort((a, b) => {
+    const sortedItems = [...(items || [])].sort((a, b) => {
         if (mode === "users") {
             // For users mode, sort by rank first
             const rankA = (a as UserData).rank || Number.MAX_SAFE_INTEGER

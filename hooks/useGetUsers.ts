@@ -22,7 +22,7 @@ export const useGetUsers = ({
     page = 1,
     isUserDataVisible = false,
 }: UseGetUsersOptions = {}) => {
-    const [users, setUsers] = useState<UserData[]>([])
+    const [users, setUsers] = useState<UserData[] | null>(null)
     const [maxPage, setMaxPage] = useState(1)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -88,7 +88,7 @@ export const useGetUsers = ({
         if (shouldFetch) {
             fetchData()
         } else {
-            setUsers([])
+            setUsers(null)
             setLoading(false)
             setError(null)
         }

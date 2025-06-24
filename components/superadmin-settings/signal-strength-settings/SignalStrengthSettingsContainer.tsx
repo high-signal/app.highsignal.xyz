@@ -35,7 +35,7 @@ export default function SignalStrengthSettingsContainer({
     })
 
     useEffect(() => {
-        if (selectedUsername && testUser.length > 0 && testUser[0].username === selectedUsername) {
+        if (selectedUsername && testUser && testUser.length > 0 && testUser[0].username === selectedUsername) {
             setSelectedUser(testUser[0])
         }
     }, [selectedUsername, testUser, newUserSelectedTrigger])
@@ -55,7 +55,7 @@ export default function SignalStrengthSettingsContainer({
     })
 
     useEffect(() => {
-        if (selectedUsername && rawUser.length > 0 && rawUser[0].username === selectedUsername) {
+        if (selectedUsername && rawUser && rawUser.length > 0 && rawUser[0].username === selectedUsername) {
             setSelectedUserRawData(rawUser[0])
         }
     }, [selectedUsername, rawUser, newUserSelectedTrigger])

@@ -35,13 +35,13 @@ export default function UserProfileContainer() {
                     {!loading && !error ? (
                         <HStack gap={3}>
                             <Image
-                                src={users[0]?.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE}
-                                alt={users[0]?.displayName}
+                                src={(users && users[0]?.profileImageUrl) || ASSETS.DEFAULT_PROFILE_IMAGE}
+                                alt={(users && users[0]?.displayName) || ""}
                                 boxSize="80px"
                                 borderRadius="full"
                             />
                             <VStack gap={0}>
-                                <Text fontWeight="bold">{users[0]?.displayName}</Text>
+                                <Text fontWeight="bold">{users && users[0]?.displayName}</Text>
                                 {!loggedInUserLoading && loggedInUser?.username === username && (
                                     <Box mt={"-10px"}>
                                         <Link href={`/settings/u/${loggedInUser?.username}`}>
