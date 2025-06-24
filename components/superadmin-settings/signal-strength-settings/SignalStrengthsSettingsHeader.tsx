@@ -32,7 +32,7 @@ export default function SignalStrengthsSettingsHeader({
             gap={4}
         >
             <HStack flexWrap={"wrap"} gap={4} justifyContent={"space-between"} w="100%" minH={"46px"}>
-                <HStack gap={5} justifyContent={"space-between"} w={{ base: "100%", sm: "auto" }}>
+                <HStack gap={5} flexWrap={"wrap"} justifyContent={"space-between"} w={{ base: "100%", sm: "auto" }}>
                     <Text
                         w="fit-content"
                         fontWeight="bold"

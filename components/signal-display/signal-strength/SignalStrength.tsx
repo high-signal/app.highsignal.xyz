@@ -62,7 +62,8 @@ export default function SignalStrength({
 
     const userContentAvailable =
         userData &&
-        (Number(userData.value || 0) > 0 ||
+        (userData.lastChecked ||
+            Number(userData.value || 0) > 0 ||
             Number(userData.rawValue || 0) > 0 ||
             userData.summary?.includes("No activity in the past"))
             ? true
