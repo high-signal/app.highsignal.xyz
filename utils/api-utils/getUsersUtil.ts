@@ -61,10 +61,14 @@ type SignalStrengthGroup = {
     data: SignalStrengthData[]
 }
 
-export async function getUsersUtil(request: Request, isSuperAdminRequesting: boolean = false) {
+export async function getUsersUtil(
+    request: Request,
+    isSuperAdminRequesting: boolean = false,
+    isUserDataVisible: boolean = false,
+) {
     const { searchParams } = new URL(request.url)
     const projectSlug = searchParams.get("project")
-    const username = searchParams.get("user")
+    const username = searchParams.get("username")
     const fuzzy = searchParams.get("fuzzy") === "true"
     const showTestDataOnly = searchParams.get("showTestDataOnly") === "true" || false
     const showRawScoreCalcOnly = searchParams.get("showRawScoreCalcOnly") === "true" || false
@@ -343,12 +347,22 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                                 day: d.day,
                                 value: d.value,
                                 maxValue: d.max_value,
-                                // Only show details for the latest result to the user
-                                ...(isSuperAdminRequesting || index === 0
+                                // Only show summary for the latest result, if it is not `No activity in the past` but to anyone
+                                // Super admin can see all summaries for all results
+                                ...(isSuperAdminRequesting ||
+                                (isUserDataVisible && index === 0) ||
+                                (index === 0 && !d.summary?.includes("No activity in the past"))
                                     ? {
                                           summary: d.summary,
-                                          //   description: d.description,
-                                          //   improvements: d.improvements,
+                                      }
+                                    : {}),
+
+                                // Only show details for the latest result to the user or project admin
+                                // Super admin can see all details for all results
+                                ...(isSuperAdminRequesting || (isUserDataVisible && index === 0)
+                                    ? {
+                                          description: d.description,
+                                          improvements: d.improvements,
                                       }
                                     : {}),
                                 ...(isSuperAdminRequesting

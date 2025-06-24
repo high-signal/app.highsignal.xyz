@@ -7,7 +7,6 @@ type ProjectData = {
 }
 
 type FormattedUserData = {
-    id: string
     username: string
     displayName: string
     profileImageUrl: string
@@ -61,7 +60,6 @@ export async function fetchUserData(
         }
 
         const formattedUserData: FormattedUserData = {
-            id: userData.id,
             username: userData.username,
             displayName: userData.display_name,
             profileImageUrl: userData.profile_image_url,

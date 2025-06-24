@@ -75,7 +75,7 @@ export default function SignalStrengthViewerPicker({ userSignalStrengths, onSele
                     zIndex={5}
                     maxH="200px"
                     overflowY="auto"
-                    w={{ base: "100%", sm: "300px" }}
+                    w={{ base: "100%", sm: "350px" }}
                 >
                     {userSignalStrengths.map((signalStrengthEntry) => (
                         <Box

@@ -69,15 +69,15 @@ export default function Leaderboard({
         maxPage: usersMaxPage,
         loading: usersLoading,
         error: usersError,
-    } = useGetUsers(
-        project?.urlSlug,
-        debouncedSearchTerm,
-        debouncedSearchTerm.length > 0,
-        mode === "users",
-        false,
-        false,
-        resultsPage,
-    )
+    } = useGetUsers({
+        project: project?.urlSlug,
+        username: debouncedSearchTerm,
+        fuzzy: debouncedSearchTerm.length > 0,
+        shouldFetch: mode === "users",
+        isSuperAdminRequesting: false,
+        isRawData: false,
+        page: resultsPage,
+    })
 
     // TODO: Add conditional to projects call so it only makes the request if mode is projects
     const {
@@ -94,11 +94,12 @@ export default function Leaderboard({
     // Set the max page for the pagination based on the results from the API call
     useEffect(() => {
         if (mode === "projects" && projects && projects.length > 0) {
+            // TODO: Add projects max page
             // setMaxResultsPage(projectsMaxPage)
         } else if (mode === "users" && users && users.length > 0) {
             setMaxResultsPage(usersMaxPage)
         }
-    }, [projects, users])
+    }, [projects, users, mode, usersMaxPage])
 
     // Helper function to get user data for a project
     const getUserDataForProject = (projectSlug: string) => {
@@ -106,7 +107,7 @@ export default function Leaderboard({
     }
 
     // Sort items based on mode
-    const sortedItems = [...items].sort((a, b) => {
+    const sortedItems = [...(items || [])].sort((a, b) => {
         if (mode === "users") {
             // For users mode, sort by rank first
             const rankA = (a as UserData).rank || Number.MAX_SAFE_INTEGER

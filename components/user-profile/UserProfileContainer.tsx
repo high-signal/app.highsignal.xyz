@@ -15,7 +15,9 @@ import { faPencil } from "@fortawesome/free-solid-svg-icons"
 export default function UserProfileContainer() {
     const { username } = useParams()
     const { loggedInUser, loggedInUserLoading } = useUser()
-    const { users, loading, error } = useGetUsers(undefined, username as string)
+    const { users, loading, error } = useGetUsers({
+        username: username as string,
+    })
 
     return (
         <ContentContainer>
@@ -33,13 +35,13 @@ export default function UserProfileContainer() {
                     {!loading && !error ? (
                         <HStack gap={3}>
                             <Image
-                                src={users[0]?.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE}
-                                alt={users[0]?.displayName}
+                                src={(users && users[0]?.profileImageUrl) || ASSETS.DEFAULT_PROFILE_IMAGE}
+                                alt={(users && users[0]?.displayName) || ""}
                                 boxSize="80px"
                                 borderRadius="full"
                             />
                             <VStack gap={0}>
-                                <Text fontWeight="bold">{users[0]?.displayName}</Text>
+                                <Text fontWeight="bold">{users && users[0]?.displayName}</Text>
                                 {!loggedInUserLoading && loggedInUser?.username === username && (
                                     <Box mt={"-10px"}>
                                         <Link href={`/settings/u/${loggedInUser?.username}`}>
