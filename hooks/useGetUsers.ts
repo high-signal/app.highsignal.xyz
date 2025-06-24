@@ -50,7 +50,7 @@ export const useGetUsers = ({
                 }
 
                 if (username) {
-                    url.searchParams.append("user", username)
+                    url.searchParams.append("username", username)
                     if (fuzzy) {
                         url.searchParams.append("fuzzy", "true")
                     }

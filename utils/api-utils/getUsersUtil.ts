@@ -68,7 +68,7 @@ export async function getUsersUtil(
 ) {
     const { searchParams } = new URL(request.url)
     const projectSlug = searchParams.get("project")
-    const username = searchParams.get("user")
+    const username = searchParams.get("username")
     const fuzzy = searchParams.get("fuzzy") === "true"
     const showTestDataOnly = searchParams.get("showTestDataOnly") === "true" || false
     const showRawScoreCalcOnly = searchParams.get("showRawScoreCalcOnly") === "true" || false
