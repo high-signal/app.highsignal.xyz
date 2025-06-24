@@ -94,11 +94,12 @@ export default function Leaderboard({
     // Set the max page for the pagination based on the results from the API call
     useEffect(() => {
         if (mode === "projects" && projects && projects.length > 0) {
+            // TODO: Add projects max page
             // setMaxResultsPage(projectsMaxPage)
         } else if (mode === "users" && users && users.length > 0) {
             setMaxResultsPage(usersMaxPage)
         }
-    }, [projects, users])
+    }, [projects, users, mode, usersMaxPage])
 
     // Helper function to get user data for a project
     const getUserDataForProject = (projectSlug: string) => {
