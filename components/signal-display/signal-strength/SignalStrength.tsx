@@ -58,10 +58,13 @@ export default function SignalStrength({
     const countdownDuration = APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
 
     const expandableContent =
-        userData && (parseInt(userData.value) > 0 || !userData.summary?.includes("No activity in the past"))
+        userData && (Number(userData.value || 0) > 0 || !userData.summary?.includes("No activity in the past"))
 
     const userContentAvailable =
-        userData && (parseInt(userData.value) > 0 || userData.summary?.includes("No activity in the past"))
+        userData &&
+        (Number(userData.value || 0) > 0 ||
+            Number(userData.rawValue || 0) > 0 ||
+            userData.summary?.includes("No activity in the past"))
             ? true
             : false
 

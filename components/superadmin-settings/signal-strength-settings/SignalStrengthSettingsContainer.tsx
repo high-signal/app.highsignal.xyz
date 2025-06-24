@@ -32,6 +32,7 @@ export default function SignalStrengthSettingsContainer({
         fuzzy: false,
         shouldFetch: selectedUsername.length > 0,
         isSuperAdminRequesting: true,
+        isUserDataVisible: true,
     })
 
     useEffect(() => {
@@ -52,6 +53,7 @@ export default function SignalStrengthSettingsContainer({
         shouldFetch: selectedUsername.length > 0,
         isSuperAdminRequesting: true,
         isRawData: true,
+        isUserDataVisible: true,
     })
 
     useEffect(() => {
