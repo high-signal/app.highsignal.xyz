@@ -13,6 +13,7 @@ import { useGetProjects } from "../../hooks/useGetProjects"
 import { ASSETS } from "../../config/constants"
 
 import SingleLineTextInput from "../ui/SingleLineTextInput"
+import LeaderboardPagination from "./LeaderboardPagination"
 
 const TableHeader = ({
     children,
@@ -59,14 +60,29 @@ export default function Leaderboard({
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialSearchTerm)
     const [isSearching, setIsSearching] = useState(false)
 
+    const [resultsPage, setResultsPage] = useState(parseInt(searchParams.get("page") || "1"))
+    const [maxResultsPage, setMaxResultsPage] = useState(1)
+
     // Use the appropriate hook based on mode
     const {
         users,
+        maxPage: usersMaxPage,
         loading: usersLoading,
         error: usersError,
-    } = useGetUsers(project?.urlSlug, debouncedSearchTerm, debouncedSearchTerm.length > 0)
+    } = useGetUsers(
+        project?.urlSlug,
+        debouncedSearchTerm,
+        debouncedSearchTerm.length > 0,
+        mode === "users",
+        false,
+        false,
+        resultsPage,
+    )
+
+    // TODO: Add conditional to projects call so it only makes the request if mode is projects
     const {
         projects,
+        // maxPage: projectsMaxPage,
         loading: projectsLoading,
         error: projectsError,
     } = useGetProjects(debouncedSearchTerm, debouncedSearchTerm.length > 0)
@@ -74,6 +90,15 @@ export default function Leaderboard({
     const loading = mode === "users" ? usersLoading : projectsLoading
     const error = mode === "users" ? usersError : projectsError
     const items = mode === "users" ? users : projects
+
+    // Set the max page for the pagination based on the results from the API call
+    useEffect(() => {
+        if (mode === "projects" && projects && projects.length > 0) {
+            // setMaxResultsPage(projectsMaxPage)
+        } else if (mode === "users" && users && users.length > 0) {
+            setMaxResultsPage(usersMaxPage)
+        }
+    }, [projects, users])
 
     // Helper function to get user data for a project
     const getUserDataForProject = (projectSlug: string) => {
@@ -414,6 +439,9 @@ export default function Leaderboard({
                     )}
                 </Table.Body>
             </Table.Root>
+            {!isSearching && maxResultsPage > 1 && (
+                <LeaderboardPagination page={resultsPage} maxPage={maxResultsPage} onPageChange={setResultsPage} />
+            )}
         </Box>
     )
 }

@@ -15,6 +15,26 @@ export default function LeaderboardContainer({ project }: { project: string }) {
         return <AcmeIncPlaceholder projectData={currentProject} />
     }
 
+    // If no project is found, return a message
+    if (!currentProject && !loading) {
+        return (
+            <VStack
+                mt={10}
+                gap={3}
+                textAlign="center"
+                bg={"contentBackground"}
+                px={5}
+                py={3}
+                borderRadius="20px"
+                border={"3px solid"}
+                borderColor={"contentBorder"}
+            >
+                <Text>This project may not exist or may need more configuration.</Text>
+                <Text>If you are the project owner, please check your project settings.</Text>
+            </VStack>
+        )
+    }
+
     return (
         <VStack gap={5} w="100%" maxW="650px" borderRadius="20px">
             <VStack
@@ -42,7 +62,7 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                                 overflowWrap="break-word"
                                 wordBreak="break-word"
                                 fontSize={{
-                                    base: currentProject.displayName.length >= 16 ? "2xl" : "3xl",
+                                    base: currentProject?.displayName?.length >= 16 ? "2xl" : "3xl",
                                     sm: "4xl",
                                 }}
                             >

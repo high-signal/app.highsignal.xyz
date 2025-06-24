@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient, SupabaseClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import { calculateSignalFromScore } from "../calculateSignal"
 
@@ -78,10 +78,13 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
     try {
-        let projectScoresQuery = supabase
-            .from("user_project_scores")
-            .select(
-                `
+        if (!projectSlug && (!username || fuzzy)) {
+            return usersOnly(supabase, from, to, resultsPerPage, page, fuzzy, username || "")
+        } else {
+            let projectScoresQuery = supabase
+                .from("user_project_scores")
+                .select(
+                    `
                     user_id,
                     username,
                     display_name,
@@ -93,42 +96,49 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                         url_slug
                     )
                 `,
-            )
-            .order("rank", { ascending: true })
-            .range(from, to)
+                    { count: "exact" },
+                )
+                .range(from, to)
+                .order("rank", { ascending: true })
+                .order("display_name", { ascending: true })
 
-        // Add project filter only if project slug is provided
-        if (projectSlug) {
-            projectScoresQuery = projectScoresQuery.eq("projects.url_slug", projectSlug)
-        }
-
-        // Filter by username or display name if provided
-        if (username) {
-            if (fuzzy) {
-                projectScoresQuery = projectScoresQuery.ilike("display_name", `%${username}%`)
-            } else {
-                projectScoresQuery = projectScoresQuery.eq("username", username)
+            // Add project filter only if project slug is provided
+            if (projectSlug) {
+                projectScoresQuery = projectScoresQuery.eq("projects.url_slug", projectSlug)
             }
-        }
 
-        const { data: userProjectScores, error: scoresError } = await projectScoresQuery
+            // Filter by username or display name if provided
+            if (username) {
+                // Fuzzy search only if and project slug is provided
+                if (fuzzy && projectSlug) {
+                    projectScoresQuery = projectScoresQuery.ilike("display_name", `%${username}%`)
+                } else {
+                    projectScoresQuery = projectScoresQuery.eq("username", username)
+                }
+            }
 
-        if (scoresError) {
-            console.error("scoresError", scoresError)
-            return NextResponse.json({ error: "Error fetching user scores" }, { status: 500 })
-        }
+            const { data: userProjectScores, count, error: scoresError } = await projectScoresQuery
 
-        if (!userProjectScores || userProjectScores.length === 0) {
-            return NextResponse.json([])
-        }
+            const maxPage = Math.ceil((count || 0) / resultsPerPage)
+            const maxPageResponse = await checkMaxPage(page, count || 0, resultsPerPage, maxPage)
+            if (maxPageResponse instanceof NextResponse) return maxPageResponse
 
-        const userIds = userProjectScores.map((score) => score.user_id)
+            if (scoresError) {
+                console.error("scoresError", scoresError)
+                return NextResponse.json({ error: "Error fetching user scores" }, { status: 500 })
+            }
 
-        // Get user details
-        let userDetailsQuery = supabase
-            .from("users")
-            .select(
-                `
+            if (!userProjectScores || userProjectScores.length === 0) {
+                return NextResponse.json({ data: [], total: 0, page, resultsPerPage })
+            }
+
+            const userIds = userProjectScores.map((score) => score.user_id)
+
+            // Get user details
+            let userDetailsQuery = supabase
+                .from("users")
+                .select(
+                    `
                     id,
                     username,
                     display_name,
@@ -145,86 +155,86 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                     )
                     )
                 `,
-            )
-            .in("id", userIds)
-
-        const { data: userDetails, error: usersError } = await userDetailsQuery
-
-        if (usersError) {
-            console.error("usersError", usersError)
-            return NextResponse.json({ error: "Error fetching users" }, { status: 500 })
-        }
-
-        // If superadmin is requesting, get all connected accounts for the user
-        let connectedAccounts = []
-        if (isSuperAdminRequesting) {
-            // Get forum users
-            const { data: forumUsers, error: forumUsersError } = await supabase
-                .from("forum_users")
-                .select(
-                    "user_id, project_id, forum_username, auth_encrypted_payload, auth_post_id, auth_post_code, auth_post_code_created",
                 )
-                .in("user_id", userIds)
+                .in("id", userIds)
 
-            if (forumUsersError) {
-                console.error("forumUsersError", forumUsersError)
-                return NextResponse.json({ error: "Error fetching forum users" }, { status: 500 })
+            const { data: userDetails, error: usersError } = await userDetailsQuery
+
+            if (usersError) {
+                console.error("usersError", usersError)
+                return NextResponse.json({ error: "Error fetching users" }, { status: 500 })
             }
 
-            connectedAccounts.push({
-                name: "discourse_forum",
-                data: forumUsers.map((user) => ({
-                    userId: user.user_id,
-                    projectId: user.project_id,
-                    forumUsername: user.forum_username,
-                    authEncryptedPayload: user.auth_encrypted_payload,
-                    authPostId: user.auth_post_id,
-                    authPostCode: user.auth_post_code,
-                    authPostCodeCreated: user.auth_post_code_created,
-                })),
+            // If superadmin is requesting, get all connected accounts for the user
+            let connectedAccounts = []
+            if (isSuperAdminRequesting) {
+                // Get forum users
+                const { data: forumUsers, error: forumUsersError } = await supabase
+                    .from("forum_users")
+                    .select(
+                        "user_id, project_id, forum_username, auth_encrypted_payload, auth_post_id, auth_post_code, auth_post_code_created",
+                    )
+                    .in("user_id", userIds)
+
+                if (forumUsersError) {
+                    console.error("forumUsersError", forumUsersError)
+                    return NextResponse.json({ error: "Error fetching forum users" }, { status: 500 })
+                }
+
+                connectedAccounts.push({
+                    name: "discourse_forum",
+                    data: forumUsers.map((user) => ({
+                        userId: user.user_id,
+                        projectId: user.project_id,
+                        forumUsername: user.forum_username,
+                        authEncryptedPayload: user.auth_encrypted_payload,
+                        authPostId: user.auth_post_id,
+                        authPostCode: user.auth_post_code,
+                        authPostCodeCreated: user.auth_post_code_created,
+                    })),
+                })
+            }
+
+            // Get all available signal strengths
+            const { data: signalStrengthIds, error: signalStrengthIdsError } = await supabase
+                .from("signal_strengths")
+                .select("id")
+
+            if (signalStrengthIdsError) {
+                console.error("signalStrengthIdsError", signalStrengthIdsError)
+                return NextResponse.json({ error: "Error fetching signal strength ids" }, { status: 500 })
+            }
+
+            const signalStrengthIdValues = signalStrengthIds?.map((item) => item.id) || []
+
+            // Create a map of user_id to project_ids
+            const userProjectsMap = new Map<string, string[]>()
+            userProjectScores.forEach((score) => {
+                if (!userProjectsMap.has(score.user_id)) {
+                    userProjectsMap.set(score.user_id, [])
+                }
+                userProjectsMap.get(score.user_id)?.push(score.project_id)
             })
-        }
 
-        // Get all available signal strengths
-        const { data: signalStrengthIds, error: signalStrengthIdsError } = await supabase
-            .from("signal_strengths")
-            .select("id")
+            // Only fetch signal strengths if we have filters applied (username or project)
+            let signalStrengths: SignalStrengthGroup[] = []
+            if (username || projectSlug) {
+                // Get signal strengths
+                const signalStrengthsResults = await Promise.all(
+                    // For each user
+                    Array.from(userProjectsMap.keys()).map(async (userId) => {
+                        const projectIds = userProjectsMap.get(userId) || []
 
-        if (signalStrengthIdsError) {
-            console.error("signalStrengthIdsError", signalStrengthIdsError)
-            return NextResponse.json({ error: "Error fetching signal strength ids" }, { status: 500 })
-        }
-
-        const signalStrengthIdValues = signalStrengthIds?.map((item) => item.id) || []
-
-        // Create a map of user_id to project_ids
-        const userProjectsMap = new Map<string, string[]>()
-        userProjectScores.forEach((score) => {
-            if (!userProjectsMap.has(score.user_id)) {
-                userProjectsMap.set(score.user_id, [])
-            }
-            userProjectsMap.get(score.user_id)?.push(score.project_id)
-        })
-
-        // Only fetch signal strengths if we have filters applied (username or project)
-        let signalStrengths: SignalStrengthGroup[] = []
-        if (username || projectSlug) {
-            // Get signal strengths
-            const signalStrengthsResults = await Promise.all(
-                // For each user
-                Array.from(userProjectsMap.keys()).map(async (userId) => {
-                    const projectIds = userProjectsMap.get(userId) || []
-
-                    const userSignalData = await Promise.all(
-                        // For each project of the user
-                        projectIds.map(async (projectId) => {
-                            const projectSignalData = await Promise.all(
-                                // For each signal strength
-                                signalStrengthIdValues.map(async (signalStrengthId) => {
-                                    let query = supabase
-                                        .from("user_signal_strengths")
-                                        .select(
-                                            `
+                        const userSignalData = await Promise.all(
+                            // For each project of the user
+                            projectIds.map(async (projectId) => {
+                                const projectSignalData = await Promise.all(
+                                    // For each signal strength
+                                    signalStrengthIdValues.map(async (signalStrengthId) => {
+                                        let query = supabase
+                                            .from("user_signal_strengths")
+                                            .select(
+                                                `
                                 id,
                                 signal_strengths!inner (
                                     name
@@ -234,152 +244,230 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                                 ),
                                 *
                                 `,
-                                        )
-                                        .eq("user_id", userId)
-                                        .eq("project_id", projectId)
-                                        .eq("signal_strength_id", signalStrengthId)
+                                            )
+                                            .eq("user_id", userId)
+                                            .eq("project_id", projectId)
+                                            .eq("signal_strength_id", signalStrengthId)
 
-                                    // Filter test data
-                                    if (isSuperAdminRequesting && showTestDataOnly) {
-                                        query = query.not("test_requesting_user", "is", null)
-                                    } else {
-                                        query = query.is("test_requesting_user", null)
-                                    }
+                                        // Filter test data
+                                        if (isSuperAdminRequesting && showTestDataOnly) {
+                                            query = query.not("test_requesting_user", "is", null)
+                                        } else {
+                                            query = query.is("test_requesting_user", null)
+                                        }
 
-                                    // Filter raw score calc
-                                    if (isSuperAdminRequesting && showRawScoreCalcOnly) {
-                                        query = query.not("raw_value", "is", null)
-                                    } else {
-                                        query = query.is("raw_value", null)
-                                    }
+                                        // Filter raw score calc
+                                        if (isSuperAdminRequesting && showRawScoreCalcOnly) {
+                                            query = query.not("raw_value", "is", null)
+                                        } else {
+                                            query = query.is("raw_value", null)
+                                        }
 
-                                    // TODO: Make this dynamic based on the previous_days value for the signal strength for the project
-                                    const { data, error } = await query.order("day", { ascending: false }).limit(180)
+                                        // TODO: Make this dynamic based on the previous_days value for the signal strength for the project
+                                        const { data, error } = await query
+                                            .order("day", { ascending: false })
+                                            .limit(180)
 
-                                    if (error) {
-                                        console.error("signalStrengthsError", error)
-                                        return null
-                                    }
+                                        if (error) {
+                                            console.error("signalStrengthsError", error)
+                                            return null
+                                        }
 
-                                    return {
-                                        signalStrengthId,
-                                        data: data as SignalStrengthData[],
-                                    }
-                                }),
-                            )
-                            return projectSignalData.filter(Boolean) as SignalStrengthGroup[]
-                        }),
-                    )
-                    return userSignalData.flat()
-                }),
-            )
+                                        return {
+                                            signalStrengthId,
+                                            data: data as SignalStrengthData[],
+                                        }
+                                    }),
+                                )
+                                return projectSignalData.filter(Boolean) as SignalStrengthGroup[]
+                            }),
+                        )
+                        return userSignalData.flat()
+                    }),
+                )
 
-            signalStrengths = signalStrengthsResults.flat()
+                signalStrengths = signalStrengthsResults.flat()
 
-            if (!signalStrengths) {
-                return NextResponse.json({ error: "Error fetching signal strengths" }, { status: 500 })
+                if (!signalStrengths) {
+                    return NextResponse.json({ error: "Error fetching signal strengths" }, { status: 500 })
+                }
             }
-        }
 
-        const formattedUsers = userProjectScores
-            .map((score) => {
-                const user = (userDetails as unknown as User[])?.find((u) => u.id === score.user_id)
-                if (!user) return null
+            const formattedUsers = userProjectScores
+                .map((score) => {
+                    const user = (userDetails as unknown as User[])?.find((u) => u.id === score.user_id)
+                    if (!user) return null
 
-                // If no username or project filter is applied, return only basic user info
-                if (!username && !projectSlug) {
+                    // If no username or project filter is applied, return only basic user info
+                    if (!username && !projectSlug) {
+                        return {
+                            ...(isSuperAdminRequesting ? { id: user.id } : {}),
+                            username: user.username,
+                            displayName: user.display_name,
+                            profileImageUrl: user.profile_image_url,
+                        }
+                    }
+
+                    // For filtered requests, return full data with project-specific information
+                    const userSignalStrengths =
+                        signalStrengths?.filter(
+                            (ss) => ss?.data[0]?.user_id === user.id && ss?.data[0]?.project_id === score.project_id,
+                        ) || []
+
                     return {
                         ...(isSuperAdminRequesting ? { id: user.id } : {}),
                         username: user.username,
                         displayName: user.display_name,
                         profileImageUrl: user.profile_image_url,
-                    }
-                }
-
-                // For filtered requests, return full data with project-specific information
-                const userSignalStrengths =
-                    signalStrengths?.filter(
-                        (ss) => ss?.data[0]?.user_id === user.id && ss?.data[0]?.project_id === score.project_id,
-                    ) || []
-
-                return {
-                    ...(isSuperAdminRequesting ? { id: user.id } : {}),
-                    username: user.username,
-                    displayName: user.display_name,
-                    profileImageUrl: user.profile_image_url,
-                    ...(!projectSlug
-                        ? { projectSlug: (score.projects as unknown as { url_slug: string }).url_slug }
-                        : {}),
-                    ...(score.total_score > 0 ? { rank: score.rank } : {}),
-                    score: score.total_score,
-                    signal: calculateSignalFromScore(score.total_score),
-                    ...(isSuperAdminRequesting
-                        ? {
-                              connectedAccounts: connectedAccounts.map((account) => ({
-                                  name: account.name,
-                                  data: account.data
-                                      .filter((item) => item.userId === user.id)
-                                      .map(({ userId, ...rest }) => rest),
-                              })),
-                          }
-                        : {}),
-                    signalStrengths: userSignalStrengths.map((uss) => ({
-                        signalStrengthName: uss.data[0]?.signal_strengths?.name || uss.signalStrengthId,
-                        data: uss.data.map((d, index) => ({
-                            ...(d.last_checked ? { lastChecked: d.last_checked } : {}),
-                            // These are always available to the user for every result for historical charts
-                            day: d.day,
-                            value: d.value,
-                            maxValue: d.max_value,
-                            // Only show details for the latest result to the user
-                            ...(isSuperAdminRequesting || index === 0
-                                ? {
-                                      summary: d.summary,
-                                      description: d.description,
-                                      improvements: d.improvements,
-                                  }
-                                : {}),
-                            ...(isSuperAdminRequesting
-                                ? {
-                                      id: d.id,
-                                      requestId: d.request_id,
-                                      created: d.created,
-                                      user_id: d.user_id,
-                                      project_id: d.project_id,
-                                      signal_strength_id: d.signal_strength_id,
-                                      explainedReasoning: d.explained_reasoning,
-                                      model: d.model,
-                                      promptId: d.prompt_id,
-                                      prompt: d.prompts?.prompt,
-                                      temperature: d.temperature,
-                                      maxChars: d.max_chars,
-                                      logs: d.logs,
-                                      promptTokens: d.prompt_tokens,
-                                      completionTokens: d.completion_tokens,
-                                      rawValue: d.raw_value,
-                                      testRequestingUser: d.test_requesting_user,
-                                  }
-                                : {}),
+                        ...(!projectSlug
+                            ? { projectSlug: (score.projects as unknown as { url_slug: string }).url_slug }
+                            : {}),
+                        ...(score.total_score > 0 ? { rank: score.rank } : {}),
+                        score: score.total_score,
+                        signal: calculateSignalFromScore(score.total_score),
+                        ...(isSuperAdminRequesting
+                            ? {
+                                  connectedAccounts: connectedAccounts.map((account) => ({
+                                      name: account.name,
+                                      data: account.data
+                                          .filter((item) => item.userId === user.id)
+                                          .map(({ userId, ...rest }) => rest),
+                                  })),
+                              }
+                            : {}),
+                        signalStrengths: userSignalStrengths.map((uss) => ({
+                            signalStrengthName: uss.data[0]?.signal_strengths?.name || uss.signalStrengthId,
+                            data: uss.data.map((d, index) => ({
+                                ...(d.last_checked ? { lastChecked: d.last_checked } : {}),
+                                // These are always available to the user for every result for historical charts
+                                day: d.day,
+                                value: d.value,
+                                maxValue: d.max_value,
+                                // Only show details for the latest result to the user
+                                ...(isSuperAdminRequesting || index === 0
+                                    ? {
+                                          summary: d.summary,
+                                          //   description: d.description,
+                                          //   improvements: d.improvements,
+                                      }
+                                    : {}),
+                                ...(isSuperAdminRequesting
+                                    ? {
+                                          id: d.id,
+                                          requestId: d.request_id,
+                                          created: d.created,
+                                          user_id: d.user_id,
+                                          project_id: d.project_id,
+                                          signal_strength_id: d.signal_strength_id,
+                                          explainedReasoning: d.explained_reasoning,
+                                          model: d.model,
+                                          promptId: d.prompt_id,
+                                          prompt: d.prompts?.prompt,
+                                          temperature: d.temperature,
+                                          maxChars: d.max_chars,
+                                          logs: d.logs,
+                                          promptTokens: d.prompt_tokens,
+                                          completionTokens: d.completion_tokens,
+                                          rawValue: d.raw_value,
+                                          testRequestingUser: d.test_requesting_user,
+                                      }
+                                    : {}),
+                            })),
                         })),
-                    })),
-                }
-            })
-            .filter(Boolean) // Remove nulls if any usernames didn't match filter
+                    }
+                })
+                .filter(Boolean) // Remove nulls if any usernames didn't match filter
 
-        // If no filters applied, deduplicate by user_id to avoid multiple entries per user
-        if (!username && !projectSlug) {
-            const uniqueUsers = new Map()
-            formattedUsers.forEach((user) => {
-                if (user && !uniqueUsers.has(user.username)) {
-                    uniqueUsers.set(user.username, user)
-                }
+            // If no filters applied, deduplicate by user_id to avoid multiple entries per user
+            if (!username && !projectSlug) {
+                const uniqueUsers = new Map()
+                formattedUsers.forEach((user) => {
+                    if (user && !uniqueUsers.has(user.username)) {
+                        uniqueUsers.set(user.username, user)
+                    }
+                })
+                return NextResponse.json({
+                    data: Array.from(uniqueUsers.values()),
+                    maxPage,
+                    totalResults: count,
+                    currentPage: page,
+                    resultsPerPage,
+                })
+            }
+
+            return NextResponse.json({
+                data: formattedUsers,
+                maxPage,
+                totalResults: count,
+                currentPage: page,
+                resultsPerPage,
             })
-            return NextResponse.json(Array.from(uniqueUsers.values()))
         }
-
-        return NextResponse.json(formattedUsers)
     } catch (error) {
         console.error("Unhandled error", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}
+
+async function usersOnly(
+    supabase: SupabaseClient,
+    from: number,
+    to: number,
+    resultsPerPage: number,
+    page: number,
+    fuzzy: boolean,
+    username: string,
+) {
+    let usersOnlyQuery = supabase
+        .from("users")
+        .select("username, display_name, profile_image_url", { count: "exact" })
+        .range(from, to)
+        .order("display_name", { ascending: true })
+
+    if (fuzzy) {
+        usersOnlyQuery = usersOnlyQuery.ilike("display_name", `%${username}%`)
+    } else if (username) {
+        usersOnlyQuery = usersOnlyQuery.eq("username", username)
+    }
+
+    const { data: usersOnly, count, error: usersOnlyError } = await usersOnlyQuery
+
+    if (usersOnlyError) {
+        console.error("usersOnlyError", usersOnlyError)
+        return NextResponse.json({ error: "Error fetching user scores" }, { status: 500 })
+    }
+
+    const maxPage = Math.ceil((count || 0) / resultsPerPage)
+    const maxPageResponse = await checkMaxPage(page, count || 0, resultsPerPage, maxPage)
+    if (maxPageResponse instanceof NextResponse) return maxPageResponse
+
+    const formattedUsers = usersOnly.map((user) => ({
+        username: user.username,
+        displayName: user.display_name,
+        profileImageUrl: user.profile_image_url,
+    }))
+
+    return NextResponse.json({
+        data: formattedUsers,
+        maxPage,
+        totalResults: count,
+        currentPage: page,
+        resultsPerPage,
+    })
+}
+
+async function checkMaxPage(page: number, count: number, resultsPerPage: number, maxPage: number) {
+    if (maxPage > 0 && page > maxPage) {
+        console.log("maxPage", maxPage)
+        return NextResponse.json(
+            {
+                error: `Invalid page number. Page ${page} exceeds the maximum page number of ${maxPage}`,
+                maxPage,
+                totalResults: count,
+                currentPage: page,
+                resultsPerPage,
+            },
+            { status: 400 },
+        )
     }
 }
