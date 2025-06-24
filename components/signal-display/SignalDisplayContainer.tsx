@@ -1,6 +1,8 @@
 "use client"
 
 import { VStack, Text, Spinner, Box } from "@chakra-ui/react"
+import { useEffect, useState } from "react"
+
 import Title from "./Title"
 import UserInfo from "./UserInfo"
 import CurrentSignal from "./CurrentSignal"
@@ -10,15 +12,47 @@ import SignalStrengthContainer from "./signal-strength/SignalStrengthContainer"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { useGetProjects } from "../../hooks/useGetProjects"
 import AcmeIncPlaceholder from "../ui/AcmeIncPlaceholder"
+import { useUser } from "../../contexts/UserContext"
 
 export default function SignalDisplayContainer({ project, username }: { project: string; username: string }) {
-    const { users, loading: usersLoading, error: usersError, refreshUserData } = useGetUsers(project, username)
+    const { loggedInUser, loggedInUserLoading } = useUser()
+    const [isUserDataVisible, setIsUserDataVisible] = useState(false)
+    const [shouldFetch, setShouldFetch] = useState(false)
+
+    // Check if the logged in user has access to the target user data
+    useEffect(() => {
+        if (!loggedInUserLoading) {
+            if (
+                loggedInUser?.username === username ||
+                loggedInUser?.projectAdmins?.some((adminProject) => adminProject?.urlSlug === project) ||
+                loggedInUser?.isSuperAdmin
+            ) {
+                setIsUserDataVisible(true)
+                setShouldFetch(true)
+            } else {
+                setIsUserDataVisible(false)
+                setShouldFetch(true)
+            }
+        }
+    }, [loggedInUserLoading, loggedInUser, project, username])
+
+    const {
+        users,
+        loading: usersLoading,
+        error: usersError,
+        refreshUserData,
+    } = useGetUsers({
+        project: project,
+        username: username,
+        shouldFetch: shouldFetch,
+        isUserDataVisible: isUserDataVisible,
+    })
     const { projects, loading: projectsLoading, error: projectsError } = useGetProjects(project)
 
     const currentUser = users[0]
     const currentProject = projects[0]
 
-    if (usersLoading || projectsLoading) {
+    if (loggedInUserLoading || usersLoading || projectsLoading) {
         return (
             <VStack gap={10} w="100%" minH="300px" justifyContent="center" alignItems="center" borderRadius="20px">
                 <Spinner size="lg" />

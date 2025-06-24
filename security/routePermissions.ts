@@ -50,6 +50,15 @@ export const routePermissions: RoutePermission[] = [
         },
     },
     {
+        path: "/api/private-data/users",
+        methods: {
+            GET: {
+                requiresAuth: true,
+                allowedAccess: ["targetUser", "projectAdmin", "superAdmin"],
+            },
+        },
+    },
+    {
         path: "/api/projects",
         methods: {
             // Public read access to project config data

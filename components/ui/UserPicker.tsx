@@ -73,13 +73,13 @@ export default function UserPicker({
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null!)
-    const { users, loading, error } = useGetUsers(
-        projectUrlSlug,
-        debouncedSearchTerm,
-        true,
-        isFocused,
-        isSuperAdminRequesting,
-    )
+    const { users, loading, error } = useGetUsers({
+        project: projectUrlSlug,
+        username: debouncedSearchTerm,
+        fuzzy: true,
+        shouldFetch: isFocused,
+        isSuperAdminRequesting: isSuperAdminRequesting,
+    })
 
     useEffect(() => {
         const timer = setTimeout(() => {

@@ -15,7 +15,9 @@ import { faPencil } from "@fortawesome/free-solid-svg-icons"
 export default function UserProfileContainer() {
     const { username } = useParams()
     const { loggedInUser, loggedInUserLoading } = useUser()
-    const { users, loading, error } = useGetUsers(undefined, username as string)
+    const { users, loading, error } = useGetUsers({
+        username: username as string,
+    })
 
     return (
         <ContentContainer>

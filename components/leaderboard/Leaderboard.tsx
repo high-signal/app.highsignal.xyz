@@ -69,15 +69,15 @@ export default function Leaderboard({
         maxPage: usersMaxPage,
         loading: usersLoading,
         error: usersError,
-    } = useGetUsers(
-        project?.urlSlug,
-        debouncedSearchTerm,
-        debouncedSearchTerm.length > 0,
-        mode === "users",
-        false,
-        false,
-        resultsPage,
-    )
+    } = useGetUsers({
+        project: project?.urlSlug,
+        username: debouncedSearchTerm,
+        fuzzy: debouncedSearchTerm.length > 0,
+        shouldFetch: mode === "users",
+        isSuperAdminRequesting: false,
+        isRawData: false,
+        page: resultsPage,
+    })
 
     // TODO: Add conditional to projects call so it only makes the request if mode is projects
     const {

@@ -52,7 +52,9 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
 
     const [isCanvasLoading, setIsCanvasLoading] = useState(true)
 
-    const { users, loading, error } = useGetUsers(project.urlSlug)
+    const { users, loading, error } = useGetUsers({
+        project: project.urlSlug,
+    })
     const { zoom, transformOrigin, isZooming, handleWheel, containerRef } = useZoom({
         initialZoom,
         maxZoom: 5,

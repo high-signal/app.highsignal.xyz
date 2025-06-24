@@ -61,7 +61,11 @@ type SignalStrengthGroup = {
     data: SignalStrengthData[]
 }
 
-export async function getUsersUtil(request: Request, isSuperAdminRequesting: boolean = false) {
+export async function getUsersUtil(
+    request: Request,
+    isSuperAdminRequesting: boolean = false,
+    isUserDataVisible: boolean = false,
+) {
     const { searchParams } = new URL(request.url)
     const projectSlug = searchParams.get("project")
     const username = searchParams.get("user")
@@ -343,12 +347,20 @@ export async function getUsersUtil(request: Request, isSuperAdminRequesting: boo
                                 day: d.day,
                                 value: d.value,
                                 maxValue: d.max_value,
-                                // Only show details for the latest result to the user
+                                // Only show summary for the latest result, but to anyone
+                                // Super admin can see all summaries for all results
                                 ...(isSuperAdminRequesting || index === 0
                                     ? {
                                           summary: d.summary,
-                                          //   description: d.description,
-                                          //   improvements: d.improvements,
+                                      }
+                                    : {}),
+
+                                // Only show details for the latest result to the user or project admin
+                                // Super admin can see all details for all results
+                                ...(isSuperAdminRequesting || (isUserDataVisible && index === 0)
+                                    ? {
+                                          description: d.description,
+                                          improvements: d.improvements,
                                       }
                                     : {}),
                                 ...(isSuperAdminRequesting

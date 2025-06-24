@@ -1,15 +1,27 @@
 import { getAccessToken } from "@privy-io/react-auth"
 import { useState, useEffect, useCallback } from "react"
 
-export const useGetUsers = (
-    project?: string,
-    username?: string,
-    fuzzy: boolean = false,
-    shouldFetch: boolean = true,
-    isSuperAdminRequesting: boolean = false,
-    isRawData: boolean = false,
-    page: number = 1,
-) => {
+interface UseGetUsersOptions {
+    project?: string
+    username?: string
+    fuzzy?: boolean
+    shouldFetch?: boolean
+    isSuperAdminRequesting?: boolean
+    isRawData?: boolean
+    page?: number
+    isUserDataVisible?: boolean
+}
+
+export const useGetUsers = ({
+    project,
+    username,
+    fuzzy = false,
+    shouldFetch = true,
+    isSuperAdminRequesting = false,
+    isRawData = false,
+    page = 1,
+    isUserDataVisible = false,
+}: UseGetUsersOptions = {}) => {
     const [users, setUsers] = useState<UserData[]>([])
     const [maxPage, setMaxPage] = useState(1)
     const [loading, setLoading] = useState(true)
@@ -23,7 +35,11 @@ export const useGetUsers = (
                 }
 
                 const url = new URL(
-                    isSuperAdminRequesting ? "/api/superadmin/users" : "/api/users",
+                    isSuperAdminRequesting
+                        ? "/api/superadmin/users"
+                        : isUserDataVisible
+                          ? "/api/private-data/users"
+                          : "/api/users",
                     window.location.origin,
                 )
 
@@ -44,11 +60,11 @@ export const useGetUsers = (
                     url.searchParams.append("showRawScoreCalcOnly", "true")
                 }
 
-                const token = isSuperAdminRequesting ? await getAccessToken() : null
+                const token = isSuperAdminRequesting || isUserDataVisible ? await getAccessToken() : null
                 const response = await fetch(url.toString(), {
                     method: "GET",
                     headers: {
-                        ...(isSuperAdminRequesting && token ? { Authorization: `Bearer ${token}` } : {}),
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                 })
 
@@ -65,7 +81,7 @@ export const useGetUsers = (
                 setLoading(false)
             }
         },
-        [project, username, fuzzy, page],
+        [project, username, fuzzy, page, isUserDataVisible],
     )
 
     useEffect(() => {
