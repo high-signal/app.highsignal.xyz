@@ -1,9 +1,10 @@
 "use client"
 
-import { Spinner } from "@chakra-ui/react"
+import { Spinner, VStack } from "@chakra-ui/react"
 import { useGetProjects } from "../../hooks/useGetProjects"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import ForumConnectionManager from "./forum-settings/ForumConnectionManager"
+import LinkDiscordContainer from "./LinkDiscordContainer"
 
 export default function ConnectedAccountsContainer({ targetUser }: { targetUser: UserData }) {
     const { projects, loading: projectsLoading, error: projectsError } = useGetProjects()
@@ -34,9 +35,12 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
             {!targetUser || projectsLoading ? (
                 <Spinner />
             ) : (
-                forumConfigs.map((config, index) => (
-                    <ForumConnectionManager key={index} targetUser={targetUser} config={config} />
-                ))
+                <VStack w={"100%"}>
+                    <LinkDiscordContainer />
+                    {forumConfigs.map((config, index) => (
+                        <ForumConnectionManager key={index} targetUser={targetUser} config={config} />
+                    ))}
+                </VStack>
             )}
         </SettingsSectionContainer>
     )
