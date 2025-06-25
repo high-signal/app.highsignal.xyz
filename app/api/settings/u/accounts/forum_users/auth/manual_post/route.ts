@@ -197,14 +197,29 @@ export async function POST(request: NextRequest) {
         } else {
             // Else, this is a new post check
 
-            // Make a call to the auth_parent_post_url to get all the
-            // posts on that thread to see if the auth post code is in the posts
-            // TODO: print=true may have rate limiting issues, so work out a better way to do this
-            const authParentPostResponse = await fetch(
-                `${projectSignalStrengthData.auth_parent_post_url}.json?print=true`,
+            // Make a call to the auth_parent_post_url to get the 60 latest posts
+            // Fetch topic metadata
+            const topicUrl = `${projectSignalStrengthData.auth_parent_post_url}`
+            const topicMetadataResponse = await fetch(`${topicUrl}.json`)
+            const topicMetadata = await topicMetadataResponse.json()
+            const parentPostId = topicMetadata.id
+
+            // Get the latest post IDs from the stream
+            // 60 is the max number of posts that can be fetched at once from the API
+            // Using 20 as that is the number of posts fetched by default
+            const stream = topicMetadata.post_stream.stream
+            const latestIds = stream.slice(-20)
+
+            // Build a query string with those latest post_ids[]
+            const params = new URLSearchParams()
+            latestIds.forEach((id: string) => params.append("post_ids[]", id))
+
+            // Fetch the specific posts
+            const latestPostsResponse = await fetch(
+                `${projectSignalStrengthData.url}/t/${parentPostId}/posts.json?${params.toString()}`,
             )
 
-            const authParentPostData = await authParentPostResponse.json()
+            const authParentPostData = await latestPostsResponse.json()
             const authParentPostPosts = authParentPostData.post_stream.posts
 
             interface ForumPost {
