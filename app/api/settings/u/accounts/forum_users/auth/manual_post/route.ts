@@ -199,7 +199,11 @@ export async function POST(request: NextRequest) {
 
             // Make a call to the auth_parent_post_url to get all the
             // posts on that thread to see if the auth post code is in the posts
-            const authParentPostResponse = await fetch(`${projectSignalStrengthData.auth_parent_post_url}.json`)
+            // TODO: print=true may have rate limiting issues, so work out a better way to do this
+            const authParentPostResponse = await fetch(
+                `${projectSignalStrengthData.auth_parent_post_url}.json?print=true`,
+            )
+
             const authParentPostData = await authParentPostResponse.json()
             const authParentPostPosts = authParentPostData.post_stream.posts
 
