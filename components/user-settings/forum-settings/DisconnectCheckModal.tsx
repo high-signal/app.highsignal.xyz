@@ -23,7 +23,7 @@ export default function DisconnectCheckModal({
             <Dialog.Content borderRadius={{ base: "0px", md: "16px" }} p={0} bg={"pageBackground"}>
                 <Dialog.Header>
                     <Dialog.Title>
-                        <Text fontWeight="bold" pr={3}>
+                        <Text fontWeight="bold" pr={10}>
                             Disconnect your {projectDisplayName} forum account
                         </Text>
                         <Button

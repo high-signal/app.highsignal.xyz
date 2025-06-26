@@ -18,8 +18,6 @@ export default function LinkDiscordContainer() {
     const [isBrokenConnection, setIsBrokenConnection] = useState(false)
     const [isDisconnectCheckOpen, setIsDisconnectCheckOpen] = useState(false)
 
-    const signalStrengthName = "discord_engagement"
-
     // Check if the user is connected to Discord
     useEffect(() => {
         const isDiscordConnected = !!user?.discord?.username
@@ -86,7 +84,6 @@ export default function LinkDiscordContainer() {
         urlSlug: "discord",
         logoUrl: "faDiscord",
         logoIcon: faDiscord,
-        signalStrengthName,
         apiEndpoints: {
             authRequest: "", // TODO
             authProcess: "", // TODO

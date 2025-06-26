@@ -227,7 +227,6 @@ export default function ForumConnectionManager({
         urlSlug: config.projectUrlSlug,
         logoUrl: config.projectLogoUrl,
         connectionType: "Forum",
-        signalStrengthName,
         apiEndpoints: {
             authRequest: `/api/settings/u/accounts/forum_users/auth/api_auth?username=${targetUser.username}&project=${config.projectUrlSlug}`,
             authProcess: `/api/settings/u/accounts/forum_users/auth/api_auth?username=${targetUser.username}&project=${config.projectUrlSlug}`,
@@ -300,7 +299,6 @@ export default function ForumConnectionManager({
                 onClose={() => setIsDisconnectCheckOpen(false)}
                 onDisconnect={handleForumDisconnect}
                 projectDisplayName={config.projectDisplayName}
-                hasRefreshText={true}
             />
         </AccountConnectionManager>
     )

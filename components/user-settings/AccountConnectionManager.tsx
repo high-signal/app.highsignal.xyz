@@ -38,7 +38,6 @@ export interface AccountConnectionConfig {
     logoUrl?: string
     logoIcon?: FontAwesomeIconProps["icon"]
     connectionType?: string // e.g., "Forum", "Discord", "Telegram"
-    signalStrengthName?: string
     apiEndpoints?: {
         authRequest: string
         authProcess: string
@@ -65,8 +64,8 @@ export interface AccountConnectionManagerProps {
     isBrokenConnection: boolean
     onConnect: () => void
     onDisconnect: () => void
-    onRefresh: () => void
-    getConnectionTypeText: () => string
+    onRefresh?: () => void
+    getConnectionTypeText?: () => string
     getConnectionDescription: () => string
     children?: React.ReactNode // For modals and other custom elements
 }
@@ -180,19 +179,23 @@ export default function AccountConnectionManager({
                                         p={0}
                                         bg={"pageBackground"}
                                     >
-                                        <CustomMenuItem value="connection-type" isHeading>
-                                            <HStack overflow={"hidden"} color="textColorMuted" gap={1}>
-                                                <Text fontWeight="bold">{getConnectionTypeText()}</Text>
-                                            </HStack>
-                                        </CustomMenuItem>
-                                        <CustomMenuItem value="refresh" onClick={onRefresh}>
-                                            <HStack overflow={"hidden"}>
-                                                <Text fontWeight="bold">Refresh connection</Text>
-                                                <Box w="20px">
-                                                    <FontAwesomeIcon icon={faRefresh} />
-                                                </Box>
-                                            </HStack>
-                                        </CustomMenuItem>
+                                        {getConnectionTypeText && (
+                                            <CustomMenuItem value="connection-type" isHeading>
+                                                <HStack overflow={"hidden"} color="textColorMuted" gap={1}>
+                                                    <Text fontWeight="bold">{getConnectionTypeText()}</Text>
+                                                </HStack>
+                                            </CustomMenuItem>
+                                        )}
+                                        {onRefresh && (
+                                            <CustomMenuItem value="refresh" onClick={onRefresh}>
+                                                <HStack overflow={"hidden"}>
+                                                    <Text fontWeight="bold">Refresh connection</Text>
+                                                    <Box w="20px">
+                                                        <FontAwesomeIcon icon={faRefresh} />
+                                                    </Box>
+                                                </HStack>
+                                            </CustomMenuItem>
+                                        )}
                                         <CustomMenuItem value="disconnect" onClick={onDisconnect}>
                                             <HStack overflow={"hidden"}>
                                                 <Text fontWeight="bold" color="orange.500">
