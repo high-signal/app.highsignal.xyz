@@ -174,7 +174,7 @@ export default function UserMenuButton() {
                             <Link href={`/u/${loggedInUser.username}`}>
                                 <MenuItem
                                     icon={loggedInUser.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE}
-                                    label="Public profile"
+                                    label="My scores"
                                     value="profile"
                                 />
                             </Link>

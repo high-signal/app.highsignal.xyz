@@ -78,7 +78,6 @@ export default function SignalStrengthContainer({
                         }
                         projectData={projectData}
                         signalStrengthProjectData={signalStrengthProjectData}
-                        isUserConnected={userData ? true : false}
                         refreshUserData={refreshUserData}
                     />
                 ))}

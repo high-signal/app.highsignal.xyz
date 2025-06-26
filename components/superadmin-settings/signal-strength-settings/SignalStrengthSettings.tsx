@@ -107,7 +107,7 @@ export default function SignalStrengthSettings({
             const testStartTime = Date.now()
             const pollTestResult = async () => {
                 const testResultResponse = await fetch(
-                    `/api/superadmin/users/?project=${project?.urlSlug}&user=${selectedUser?.username}&showTestDataOnly=true`,
+                    `/api/superadmin/users/?project=${project?.urlSlug}&username=${selectedUser?.username}&showTestDataOnly=true`,
                     {
                         method: "GET",
                         headers: {
@@ -132,7 +132,7 @@ export default function SignalStrengthSettings({
 
                     // Then fetch the test result raw user data
                     const testResultRawData = await fetch(
-                        `/api/superadmin/users/?project=${project?.urlSlug}&user=${selectedUser?.username}&showTestDataOnly=true&showRawScoreCalcOnly=true`,
+                        `/api/superadmin/users/?project=${project?.urlSlug}&username=${selectedUser?.username}&showTestDataOnly=true&showRawScoreCalcOnly=true`,
                         {
                             method: "GET",
                             headers: {

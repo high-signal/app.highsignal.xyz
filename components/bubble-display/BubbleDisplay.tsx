@@ -52,7 +52,9 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
 
     const [isCanvasLoading, setIsCanvasLoading] = useState(true)
 
-    const { users, loading, error } = useGetUsers(project.urlSlug)
+    const { users, loading, error } = useGetUsers({
+        project: project.urlSlug,
+    })
     const { zoom, transformOrigin, isZooming, handleWheel, containerRef } = useZoom({
         initialZoom,
         maxZoom: 5,
@@ -215,7 +217,7 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                 if (user.profileImageUrl && user.profileImageUrl != ASSETS.DEFAULT_PROFILE_IMAGE) {
                     // Extract the public ID from the profile image URL
                     const publicId = user.profileImageUrl.split("/").pop()?.split(".")[0]
-                    const cssId = `profile-images-${user.id}-${publicId}`
+                    const cssId = `profile-images-${user.username}-${publicId}`
 
                     // Check if the classId exists in the css on the document
                     // TODO: See if this check is happening before the sprite is loaded

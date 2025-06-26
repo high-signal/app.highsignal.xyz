@@ -287,18 +287,24 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
         // After the raw daily analysis is complete, generate a smart score for the user
 
         let rawActivityCombinedData = []
-        // TODO: Ignore tests for now.
+
+        let query = supabase
+            .from("user_signal_strengths")
+            .select("*")
+            .eq("user_id", user_id)
+            .eq("project_id", project_id)
+            .eq("signal_strength_id", signal_strength_id)
+            .not("raw_value", "is", null)
+
+        if (testingData) {
+            query = query.not("test_requesting_user", "is", null)
+        } else {
+            query = query.is("test_requesting_user", null)
+        }
 
         rawActivityCombinedData =
             (
-                await supabase
-                    .from("user_signal_strengths")
-                    .select("*")
-                    .eq("user_id", user_id)
-                    .eq("project_id", project_id)
-                    .eq("signal_strength_id", signal_strength_id)
-                    .not("raw_value", "is", null)
-                    .is("test_requesting_user", null)
+                await query
                     .gte(
                         "day",
                         new Date(new Date().setDate(new Date().getDate() - previousDays)).toISOString().split("T")[0],
@@ -335,7 +341,7 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
         const dateYesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
 
         // If a non-test smart score is already in the database for dateYesterday, skip the analysis
-        const { data: existingData, error: existingError } = await supabase
+        let existingQuery = supabase
             .from("user_signal_strengths")
             .select("id")
             .eq("day", dateYesterday)
@@ -343,8 +349,14 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
             .eq("project_id", project_id)
             .eq("signal_strength_id", signal_strength_id)
             .not("value", "is", null)
-            .is("test_requesting_user", null)
-            .single()
+
+        if (testingData) {
+            existingQuery = existingQuery.not("test_requesting_user", "is", null)
+        } else {
+            existingQuery = existingQuery.is("test_requesting_user", null)
+        }
+
+        const { data: existingData, error: existingError } = await existingQuery.single()
 
         if (!testingData && existingData) {
             console.log(

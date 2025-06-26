@@ -451,7 +451,6 @@ export default function SignalStrengthsSettingsCalculation({
                                 signalStrengthProjectData={
                                     project.signalStrengths?.find((s) => s.name === signalStrength.name)!
                                 }
-                                isUserConnected={true}
                                 refreshUserData={() => {}}
                             />
                         ) : (
@@ -501,7 +500,6 @@ export default function SignalStrengthsSettingsCalculation({
                                 signalStrengthProjectData={
                                     project?.signalStrengths?.find((s) => s.name === signalStrength.name)!
                                 }
-                                isUserConnected={true}
                                 refreshUserData={() => {}}
                             />
                         ) : selectedUser ? (

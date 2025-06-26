@@ -73,13 +73,13 @@ export default function UserPicker({
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null!)
-    const { users, loading, error } = useGetUsers(
-        projectUrlSlug,
-        debouncedSearchTerm,
-        true,
-        isFocused,
-        isSuperAdminRequesting,
-    )
+    const { users, loading, error } = useGetUsers({
+        project: projectUrlSlug,
+        username: debouncedSearchTerm,
+        fuzzy: true,
+        shouldFetch: isFocused,
+        isSuperAdminRequesting: isSuperAdminRequesting,
+    })
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -208,13 +208,14 @@ export default function UserPicker({
                                             </Text>
                                         </Table.Cell>
                                     </Table.Row>
-                                ) : users.length === 0 ? (
+                                ) : users && users.length === 0 ? (
                                     <Table.Row bg="pageBackground">
                                         <Table.Cell>
                                             <Text ml={"2px"}>No users found</Text>
                                         </Table.Cell>
                                     </Table.Row>
                                 ) : (
+                                    users &&
                                     users.map((user) => (
                                         <Table.Row
                                             key={user.username}
@@ -314,9 +315,10 @@ export default function UserPicker({
                         <Text p={2} color="red.500">
                             Error loading users
                         </Text>
-                    ) : users.length === 0 && searchTerm.length >= 1 ? (
+                    ) : users && users.length === 0 && searchTerm.length >= 1 ? (
                         <Text p={2}>No users found</Text>
                     ) : (
+                        users &&
                         users
                             .sort((a, b) => (a.username || "").localeCompare(b.username || ""))
                             .filter(
