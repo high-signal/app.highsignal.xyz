@@ -51,7 +51,7 @@ export default function DisconnectCheckModal({
                         <Text>Are you sure you want to disconnect your {projectDisplayName} forum account?</Text>
                         <Text>This will remove all your engagement data for this project and reduce your score.</Text>
                         <Text>
-                            If you want to update your forum username or change the connection method, you can use the{" "}
+                            If you want to update your username or change the connection method, you can use the{" "}
                             <Text as="span" fontWeight="bold">
                                 Refresh connection
                             </Text>{" "}

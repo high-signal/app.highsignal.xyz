@@ -35,7 +35,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
             {!targetUser || projectsLoading ? (
                 <Spinner />
             ) : (
-                <VStack w={"100%"}>
+                <VStack w={"100%"} gap={6}>
                     <LinkDiscordContainer />
                     {forumConfigs.map((config, index) => (
                         <ForumConnectionManager key={index} targetUser={targetUser} config={config} />
