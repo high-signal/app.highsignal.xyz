@@ -268,11 +268,27 @@ export default function Leaderboard({
                                         <Table.Cell
                                             borderBottom="none"
                                             py={"6px"}
-                                            px={{ base: 0, sm: 4 }}
+                                            px={0}
                                             textAlign="center"
+                                            minW={rankColumnWidth}
+                                            maxW={rankColumnWidth}
                                         >
                                             <Link href={linkUrl}>
-                                                <Text fontSize="lg" fontWeight="bold" color="textColor">
+                                                <Text
+                                                    fontSize={{
+                                                        base: (() => {
+                                                            const rankText = isScoreZero
+                                                                ? "-"
+                                                                : (item as UserData).rank?.toString() || ""
+                                                            if (rankText.length > 3) return "sm"
+                                                            if (rankText.length > 2) return "md"
+                                                            return "lg"
+                                                        })(),
+                                                        sm: "lg",
+                                                    }}
+                                                    fontWeight="bold"
+                                                    color="textColor"
+                                                >
                                                     {isScoreZero ? "-" : (item as UserData).rank}
                                                 </Text>
                                             </Link>
