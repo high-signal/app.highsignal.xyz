@@ -243,15 +243,19 @@ export default function Leaderboard({
                                     ? `/p/${project?.urlSlug}/${(item as UserData).username}${window.location.search}`
                                     : `/p/${(item as ProjectData).urlSlug}/${(data as UserData[])?.[0]?.username}`
 
-                            // Check if the user data is loading
-                            const isScoreCalculating =
-                                (item as UserData).signalStrengths?.some((strength) =>
-                                    strength.data?.some((dataPoint) => dataPoint.lastChecked),
-                                ) || false
-
                             // Get user data for project if in projects mode
                             const userData =
                                 mode === "projects" ? getUserDataForProject((item as ProjectData).urlSlug) : null
+
+                            // Check if the user data is loading
+                            const isScoreCalculating =
+                                mode === "users"
+                                    ? (item as UserData).signalStrengths?.some((strength) =>
+                                          strength.data?.some((dataPoint) => dataPoint.lastChecked),
+                                      ) || false
+                                    : (userData as UserData)?.signalStrengths?.some((strength) =>
+                                          strength.data?.some((dataPoint) => dataPoint.lastChecked),
+                                      ) || false
 
                             const isScoreZero =
                                 mode === "users" ? ((item as UserData).score ?? 0) === 0 : (userData?.score ?? 0) === 0
