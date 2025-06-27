@@ -73,12 +73,12 @@ export default function ForumAccountsContainer({ targetUser }: { targetUser: Use
         : false
 
     return (
-        <VStack w={"100%"} gap={2} alignItems="start">
+        <VStack w="100%" bg="contentBackground" borderRadius="16px" px={3} py={4} gap={4} alignItems="start">
             <HStack fontWeight="bold" fontSize="lg" pl={3} gap={2}>
                 <FontAwesomeIcon icon={faDiscourse} size="lg" />
                 <Text>Forum Accounts</Text>
             </HStack>
-            <VStack w="100%" border="2px solid" borderColor="contentBorder" borderRadius="16px" px={3} py={4} gap={6}>
+            <VStack w={"100%"} gap={4}>
                 {projectsLoading ? (
                     <Spinner />
                 ) : (

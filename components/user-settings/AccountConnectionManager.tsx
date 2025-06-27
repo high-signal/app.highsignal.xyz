@@ -1,6 +1,6 @@
 "use client"
 
-import { Text, Button, Spinner, Menu, Portal, HStack, Box, Image, Skeleton } from "@chakra-ui/react"
+import { Text, Button, Spinner, Menu, Portal, HStack, Box, Image, Skeleton, VStack } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import type { FontAwesomeIconProps } from "@fortawesome/react-fontawesome"
 import { faEllipsisVertical, faRefresh, faSignOut } from "@fortawesome/free-solid-svg-icons"
@@ -86,7 +86,7 @@ export default function AccountConnectionManager({
     children,
 }: AccountConnectionManagerProps) {
     return (
-        <>
+        <VStack w={"100%"}>
             {children}
             <SettingsInputField
                 label={`${config.displayName} ${config.connectionType || ""}`}
@@ -213,6 +213,6 @@ export default function AccountConnectionManager({
                     )
                 }
             />
-        </>
+        </VStack>
     )
 }

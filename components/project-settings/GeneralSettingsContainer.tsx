@@ -169,7 +169,7 @@ export default function GeneralSettingsContainer({ project }: { project: Project
             />
             <SettingsInputField
                 label="Project URL Slug"
-                description="Your project URL slug is unique and is used to identify your project."
+                description="Your project URL slug is unique."
                 isPrivate={false}
                 value={formData.urlSlug}
                 onChange={(e) => handleFieldChange("urlSlug", e.target.value)}

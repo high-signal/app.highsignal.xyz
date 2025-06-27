@@ -36,7 +36,15 @@ export default function SettingsInputField({
     h = "35px",
 }: SettingsInputFieldProps) {
     return (
-        <VStack align="stretch" w="100%">
+        <VStack
+            align="stretch"
+            w="100%"
+            border="2px solid"
+            borderColor="contentBorder"
+            borderRadius="16px"
+            p={3}
+            bg={"pageBackground"}
+        >
             <HStack justify="space-between" px={2} pb={labelIcon ? "2px" : undefined}>
                 <HStack>
                     {labelIcon}
