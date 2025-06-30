@@ -31,19 +31,30 @@ exports.handler = async (event) => {
             }
         }
 
-        // Process the request based on the signal strength name
-        if (signalStrengthName === "discourse_forum") {
-            // TODO: Update to new engine when ready
-            await analyzeForumUserActivityOLD(userId, projectId, signalStrengthUsername, testingData)
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ message: "Analysis completed successfully" }),
-            }
+        // Add job to queue
+        const { runJob, job } = await addAndMaybeRunJob(body, 10)
+
+        if (!runJob) {
+            console.log("Job is queued, governor will pick it up.")
         } else {
-            console.log(`Signal strength (${signalStrengthName}) not configured for updates`)
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ error: `Signal strength (${signalStrengthName}) not configured for updates` }),
+            console.log("Running the job now:", job)
+
+            // Process the request based on the signal strength name
+            if (signalStrengthName === "discourse_forum") {
+                // TODO: Update to new engine when ready
+                await analyzeForumUserActivityOLD(userId, projectId, signalStrengthUsername, testingData)
+                return {
+                    statusCode: 200,
+                    body: JSON.stringify({ message: "Analysis completed successfully" }),
+                }
+            } else {
+                console.log(`Signal strength (${signalStrengthName}) not configured for updates`)
+                return {
+                    statusCode: 400,
+                    body: JSON.stringify({
+                        error: `Signal strength (${signalStrengthName}) not configured for updates`,
+                    }),
+                }
             }
         }
     } catch (error) {
