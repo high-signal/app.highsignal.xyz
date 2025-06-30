@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { usePrivy, useLinkAccount, getAccessToken } from "@privy-io/react-auth"
+import { usePrivy, useLinkAccount, getAccessToken, User } from "@privy-io/react-auth"
 import { toaster } from "../ui/toaster"
 import { FontAwesomeIconProps } from "@fortawesome/react-fontawesome"
 
@@ -18,12 +18,14 @@ export interface LinkPrivyAccountsContainerProps {
         privyLinkMethod: string
     }
     disabled?: boolean
+    loginOnly?: boolean
 }
 
 export default function LinkPrivyAccountsContainer({
     targetUser,
     accountConfig,
     disabled = false,
+    loginOnly = false,
 }: LinkPrivyAccountsContainerProps) {
     // **********************************
     // ADD ADDITIONAL ACCOUNT TYPES HERE
@@ -88,13 +90,26 @@ export default function LinkPrivyAccountsContainer({
 
     // Check if the user is connected to the account type
     useEffect(() => {
-        if (targetUser[accountConfig.type as keyof UserData]) {
-            setIsConnected(true)
+        if (loginOnly && privyUser) {
+            const linkedAccount = privyUser[accountConfig.privyLinkMethod as keyof User]
+            if (linkedAccount && typeof linkedAccount === "object") {
+                if ("username" in linkedAccount && linkedAccount.username) {
+                    setAccountUsername(linkedAccount.username as string)
+                    setIsConnected(true)
+                }
+                if ("email" in linkedAccount && linkedAccount.email) {
+                    setAccountUsername(linkedAccount.email as string)
+                    setIsConnected(true)
+                }
+            }
+            setIsConnectedLoading(false)
+        } else if (targetUser[accountConfig.type as keyof UserData]) {
             if (accountConfig.type === "discordUsername") {
                 setAccountUsername((targetUser[accountConfig.type as keyof UserData] as string).split("#")[0])
             } else {
                 setAccountUsername(targetUser[accountConfig.type as keyof UserData] as string)
             }
+            setIsConnected(true)
             setIsConnectedLoading(false)
         } else {
             setIsConnected(false)
@@ -120,13 +135,13 @@ export default function LinkPrivyAccountsContainer({
         if (accountConfig.type === "farcasterUsername") {
             linkFarcaster()
         }
-        if (accountConfig.type === "githubUsername") {
+        if (accountConfig.type === "github") {
             linkGithub()
         }
         if (accountConfig.type === "google") {
             linkGoogle()
         }
-        if (accountConfig.type === "telegramUsername") {
+        if (accountConfig.type === "telegram") {
             linkTelegram()
         }
     }
@@ -156,10 +171,10 @@ export default function LinkPrivyAccountsContainer({
                 await unlinkTwitter(privyUser.twitter.subject)
             } else if (accountConfig.type === "farcasterUsername" && privyUser?.farcaster?.fid) {
                 await unlinkFarcaster(privyUser.farcaster.fid as number)
-                // } else if (accountConfig.type === "githubUsername" && privyUser?.github?.subject) {
-                //     await unlinkGithub(privyUser.github.subject)
-                // } else if (accountConfig.type === "google" && privyUser?.google?.subject) {
-                //     await unlinkGoogle(privyUser.google.subject)
+            } else if (accountConfig.type === "github" && privyUser?.github?.subject) {
+                await unlinkGithub(privyUser.github.subject)
+            } else if (accountConfig.type === "google" && privyUser?.google?.subject) {
+                await unlinkGoogle(privyUser.google.subject)
                 // } else if (accountConfig.type === "telegramUsername" && privyUser?.telegram?.subject) {
                 //     await unlinkTelegram(privyUser.telegram.subject)
             } else {

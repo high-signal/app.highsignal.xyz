@@ -23,6 +23,16 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                     <LinkPrivyAccountsContainer
                         targetUser={targetUser}
                         accountConfig={{
+                            type: "email",
+                            displayName: "email",
+                            logoIcon: faEnvelope,
+                            privyLinkMethod: "email",
+                        }}
+                        disabled={!isOwner}
+                    />
+                    <LinkPrivyAccountsContainer
+                        targetUser={targetUser}
+                        accountConfig={{
                             type: "discordUsername",
                             displayName: "Discord",
                             logoIcon: faDiscord,
@@ -73,16 +83,6 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                 used to calculate your High Signal score.
                             </Text>
                         </VStack>
-                        <LinkPrivyAccountsContainer
-                            targetUser={targetUser}
-                            accountConfig={{
-                                type: "email",
-                                displayName: "email",
-                                logoIcon: faEnvelope,
-                                privyLinkMethod: "email",
-                            }}
-                            disabled={!isOwner}
-                        />
                         {isOwner ? (
                             <>
                                 <LinkPrivyAccountsContainer
@@ -91,8 +91,9 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                         type: "github",
                                         displayName: "GitHub",
                                         logoIcon: faGithub,
-                                        privyLinkMethod: "github_oauth",
+                                        privyLinkMethod: "github",
                                     }}
+                                    loginOnly={true}
                                 />
                                 <LinkPrivyAccountsContainer
                                     targetUser={targetUser}
@@ -100,8 +101,9 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                         type: "google",
                                         displayName: "Google",
                                         logoIcon: faGoogle,
-                                        privyLinkMethod: "google_oauth",
+                                        privyLinkMethod: "google",
                                     }}
+                                    loginOnly={true}
                                 />
                                 <LinkPrivyAccountsContainer
                                     targetUser={targetUser}
@@ -109,8 +111,10 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                         type: "telegram",
                                         displayName: "Telegram",
                                         logoIcon: faTelegram,
-                                        privyLinkMethod: "telegram_oauth",
+                                        privyLinkMethod: "telegram",
                                     }}
+                                    loginOnly={true}
+                                    disabled={true}
                                 />
                             </>
                         ) : (
