@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { usePrivy, useLinkAccount, getAccessToken, User } from "@privy-io/react-auth"
+import { useUser } from "../../contexts/UserContext"
 import { toaster } from "../ui/toaster"
 import { FontAwesomeIconProps } from "@fortawesome/react-fontawesome"
 
@@ -46,14 +47,19 @@ export default function LinkPrivyAccountsContainer({
                         },
                     })
 
+                    // Refresh the user data to update the targetUser state
+                    refreshUser()
+
+                    // Reset the connection state
                     setIsSubmitting(false)
+                    setIsConnected(true)
+                    setIsConnectedLoading(false)
+
                     toaster.create({
                         title: `✅ ${accountConfig.displayName} Account ownership confirmed`,
                         description: `You have successfully confirmed ownership of your ${accountConfig.displayName} account.`,
                         type: "success",
                     })
-                    setIsConnected(true)
-                    setIsConnectedLoading(false)
                 }
             },
             onError: (error) => {
@@ -83,6 +89,8 @@ export default function LinkPrivyAccountsContainer({
         unlinkGoogle,
         unlinkTelegram,
     } = usePrivy()
+
+    const { refreshUser } = useUser()
 
     const [isConnected, setIsConnected] = useState(false)
     const [isConnectedLoading, setIsConnectedLoading] = useState(true)
@@ -117,7 +125,7 @@ export default function LinkPrivyAccountsContainer({
             setIsConnected(false)
             setIsConnectedLoading(false)
         }
-    }, [targetUser, accountConfig.type])
+    }, [targetUser, accountConfig, privyUser, loginOnly])
 
     // Handle account connection
     const handleConnect = async () => {
@@ -192,7 +200,12 @@ export default function LinkPrivyAccountsContainer({
                 },
             })
 
+            // Refresh the user data to update the targetUser state
+            refreshUser()
+
+            // Reset the connection state
             setIsConnected(false)
+
             toaster.create({
                 title: `✅ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account has been removed`,
                 description: `Your ${accountConfig.displayName} account has been successfully removed.`,
