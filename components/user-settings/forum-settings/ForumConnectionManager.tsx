@@ -2,46 +2,19 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Text, Button, Spinner, Menu, Portal, HStack, Box, Image, Skeleton } from "@chakra-ui/react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faEllipsisVertical, faRefresh, faSignOut } from "@fortawesome/free-solid-svg-icons"
-
 import { useUser } from "../../../contexts/UserContext"
 import { usePrivy } from "@privy-io/react-auth"
 
 import { toaster } from "../../ui/toaster"
-import SettingsInputField from "../../ui/SettingsInputField"
+import AccountConnectionManager, { AccountConnectionConfig } from "../AccountConnectionManager"
 import ConnectTypeSelectorModal from "./ConnectTypeSelectorModal"
-import DisconnectCheckModal from "./DisconnectCheckModal"
-
-interface CustomMenuItemProps {
-    value: string
-    onClick?: () => void
-    isHeading?: boolean
-    children: React.ReactNode
-}
-
-const CustomMenuItem = ({ value, onClick, isHeading = false, children }: CustomMenuItemProps) => (
-    <Menu.Item
-        h={"35px"}
-        pointerEvents={isHeading ? "none" : "auto"}
-        cursor={"pointer"}
-        value={value}
-        overflow={"hidden"}
-        onClick={onClick}
-        transition={"all 0.2s ease"}
-        _active={{ bg: "button.secondary.active" }}
-        _highlighted={{ bg: "button.secondary.hover" }}
-        px={4}
-        py={3}
-    >
-        {children}
-    </Menu.Item>
-)
+import DisconnectConfirmationModal from "./../DisconnectConfirmationModal"
 
 export default function ForumConnectionManager({
     targetUser,
     config,
+    disabled,
+    lozengeTypes,
 }: {
     targetUser: UserData
     config: {
@@ -52,6 +25,8 @@ export default function ForumConnectionManager({
         forumAuthTypes: string[] | undefined
         forumAuthParentPostUrl: string | undefined
     }
+    disabled: boolean
+    lozengeTypes?: ("public" | "private" | "comingSoon" | "notifications" | "score")[]
 }) {
     const { refreshUser } = useUser()
     const { getAccessToken } = usePrivy()
@@ -250,8 +225,73 @@ export default function ForumConnectionManager({
         }
     }, [targetUser, config, isConnected])
 
+    // Create the account connection config
+    const accountConnectionConfig: AccountConnectionConfig = {
+        displayName: config.projectDisplayName,
+        urlSlug: config.projectUrlSlug,
+        logoUrl: config.projectLogoUrl,
+        connectionType: "Forum",
+        apiEndpoints: {
+            authRequest: `/api/settings/u/accounts/forum_users/auth/api_auth?username=${targetUser.username}&project=${config.projectUrlSlug}`,
+            authProcess: `/api/settings/u/accounts/forum_users/auth/api_auth?username=${targetUser.username}&project=${config.projectUrlSlug}`,
+            disconnect: `/api/settings/u/accounts/forum_users?username=${targetUser?.username}&project=${config.projectUrlSlug}`,
+        },
+        successMessages: {
+            connected: `✅ ${config.projectDisplayName} forum ownership confirmed`,
+            disconnected: "✅ Forum account disconnected",
+        },
+        errorMessages: {
+            authRequest: "Failed to get forum user auth URL",
+            authProcess: "Failed to process forum auth request",
+            disconnect: "Failed to disconnect forum username",
+        },
+    }
+
+    const getConnectionTypeText = () => {
+        const forumUser = targetUser.forumUsers?.find((forumUser) => forumUser.projectUrlSlug === config.projectUrlSlug)
+
+        if (forumUser?.authEncryptedPayload) {
+            return "Username from automatic check"
+        } else if (forumUser?.authPostId) {
+            return "Username from public post"
+        } else {
+            return "Please refresh connection"
+        }
+    }
+
+    const getConnectionDescription = () => {
+        return !isConnectedLoading && isConnected ? `Your ${config.projectDisplayName} forum username.` : ""
+    }
+
+    const handleConnect = () => {
+        setIsConnectTypeSelectorOpen(true)
+    }
+
+    const handleDisconnect = () => {
+        setIsDisconnectCheckOpen(true)
+    }
+
+    const handleRefresh = () => {
+        setIsConnectTypeSelectorOpen(true)
+    }
+
     return (
-        <>
+        <AccountConnectionManager
+            config={accountConnectionConfig}
+            isConnected={isConnected}
+            isConnectedLoading={isConnectedLoading}
+            connectionValue={forumUsername}
+            isSubmitting={isForumSubmitting}
+            isProcessingAuthRequest={isProcessingForumAuthRequest}
+            isBrokenConnection={isBrokenConnection}
+            onConnect={handleConnect}
+            onDisconnect={handleDisconnect}
+            onRefresh={handleRefresh}
+            getConnectionTypeText={getConnectionTypeText}
+            getConnectionDescription={getConnectionDescription}
+            disabled={disabled}
+            lozengeTypes={lozengeTypes}
+        >
             <ConnectTypeSelectorModal
                 isOpen={isConnectTypeSelectorOpen}
                 onClose={() => setIsConnectTypeSelectorOpen(false)}
@@ -260,153 +300,13 @@ export default function ForumConnectionManager({
                 isForumSubmitting={isForumSubmitting}
                 handleForumAuthApi={handleForumAuthApi}
             />
-            <DisconnectCheckModal
+            <DisconnectConfirmationModal
                 isOpen={isDisconnectCheckOpen}
                 onClose={() => setIsDisconnectCheckOpen(false)}
-                onDisconnect={handleForumDisconnect}
-                projectDisplayName={config.projectDisplayName}
+                onConfirm={() => handleForumDisconnect()}
+                name={`${config.projectDisplayName} forum`}
+                refreshConnectionOption={true}
             />
-            <SettingsInputField
-                label={`${config.projectDisplayName} Forum`}
-                labelIcon={
-                    config.projectLogoUrl && (
-                        <Box boxSize="16px" ml={1} mr={1} mb={1}>
-                            <Image
-                                src={config.projectLogoUrl}
-                                alt={config.projectDisplayName}
-                                boxSize="100%"
-                                objectFit="cover"
-                                borderRadius="full"
-                                transform="scale(1.5)"
-                            />
-                        </Box>
-                    )
-                }
-                description={
-                    !isConnectedLoading && isConnected ? `Your ${config.projectDisplayName} Forum username.` : ""
-                }
-                isPrivate={true}
-                value={forumUsername}
-                error=""
-                isEditable={!isForumSubmitting && !isConnected}
-                inputReplacement={
-                    isConnectedLoading ? (
-                        <Skeleton defaultSkeleton h={"100%"} w={"100%"} borderRadius="full" />
-                    ) : (
-                        !isConnected && (
-                            <Button
-                                primaryButton
-                                h={"100%"}
-                                w={"100%"}
-                                onClick={() => setIsConnectTypeSelectorOpen(true)}
-                                borderRadius="full"
-                                disabled={
-                                    isForumSubmitting || isConnectTypeSelectorOpen || isProcessingForumAuthRequest
-                                }
-                            >
-                                {isForumSubmitting || isConnectTypeSelectorOpen || isProcessingForumAuthRequest ? (
-                                    <Spinner size="sm" color="white" />
-                                ) : (
-                                    <Text fontWeight="bold">Connect</Text>
-                                )}
-                            </Button>
-                        )
-                    )
-                }
-                rightElement={
-                    !isConnectedLoading &&
-                    isConnected && (
-                        <Menu.Root>
-                            <Menu.Trigger asChild>
-                                <Button
-                                    {...(isBrokenConnection && {
-                                        secondaryButton: true,
-                                    })}
-                                    {...(!isBrokenConnection && {
-                                        successButton: true,
-                                    })}
-                                    h={"100%"}
-                                    w={"120px"}
-                                    pl={2}
-                                    pr={0}
-                                    border={"2px solid"}
-                                    color={isBrokenConnection ? "textColor" : "lozenge.text.active"}
-                                    borderColor={isBrokenConnection ? "teal.500" : "lozenge.border.active"}
-                                    borderRightRadius="full"
-                                    disabled={isForumSubmitting}
-                                >
-                                    <HStack gap={1}>
-                                        {isForumSubmitting ? (
-                                            <Spinner size="sm" color="lozenge.text.active" />
-                                        ) : (
-                                            <>
-                                                <Text fontWeight="bold">
-                                                    {isBrokenConnection ? "Refresh" : "Connected"}
-                                                </Text>
-                                                <FontAwesomeIcon icon={faEllipsisVertical} size="lg" />
-                                            </>
-                                        )}
-                                    </HStack>
-                                </Button>
-                            </Menu.Trigger>
-                            <Portal>
-                                <Menu.Positioner mt={"-4px"}>
-                                    <Menu.Content
-                                        borderRadius={"12px"}
-                                        borderWidth={2}
-                                        borderColor={"contentBorder"}
-                                        overflow={"hidden"}
-                                        p={0}
-                                        bg={"pageBackground"}
-                                    >
-                                        <CustomMenuItem value="connection-type" isHeading>
-                                            <HStack overflow={"hidden"} color="textColorMuted" gap={1}>
-                                                <Text fontWeight="bold">
-                                                    {targetUser.forumUsers?.find(
-                                                        (forumUser) =>
-                                                            forumUser.projectUrlSlug === config.projectUrlSlug,
-                                                    )?.authEncryptedPayload
-                                                        ? "Username from automatic check"
-                                                        : targetUser.forumUsers?.find(
-                                                                (forumUser) =>
-                                                                    forumUser.projectUrlSlug === config.projectUrlSlug,
-                                                            )?.authPostId
-                                                          ? " Username from public post"
-                                                          : "Please refresh connection"}
-                                                </Text>
-                                            </HStack>
-                                        </CustomMenuItem>
-                                        <CustomMenuItem
-                                            value="refresh"
-                                            onClick={() => setIsConnectTypeSelectorOpen(true)}
-                                        >
-                                            <HStack overflow={"hidden"}>
-                                                <Text fontWeight="bold">Refresh connection</Text>
-                                                <Box w="20px">
-                                                    <FontAwesomeIcon icon={faRefresh} />
-                                                </Box>
-                                            </HStack>
-                                        </CustomMenuItem>
-                                        <CustomMenuItem
-                                            value="disconnect"
-                                            onClick={() => setIsDisconnectCheckOpen(true)}
-                                        >
-                                            <HStack overflow={"hidden"}>
-                                                <Text fontWeight="bold" color="orange.500">
-                                                    Disconnect
-                                                </Text>
-                                                <Box w="20px">
-                                                    <FontAwesomeIcon icon={faSignOut} />
-                                                </Box>
-                                            </HStack>
-                                        </CustomMenuItem>
-                                    </Menu.Content>
-                                </Menu.Positioner>
-                            </Portal>
-                        </Menu.Root>
-                    )
-                }
-            />
-        </>
+        </AccountConnectionManager>
     )
 }

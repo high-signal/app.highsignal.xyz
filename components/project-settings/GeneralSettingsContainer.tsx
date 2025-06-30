@@ -169,8 +169,8 @@ export default function GeneralSettingsContainer({ project }: { project: Project
             />
             <SettingsInputField
                 label="Project URL Slug"
-                description="Your project URL slug is unique and is used to identify your project."
-                isPrivate={false}
+                description="Your project URL slug is unique."
+                lozengeTypes={["public"]}
                 value={formData.urlSlug}
                 onChange={(e) => handleFieldChange("urlSlug", e.target.value)}
                 error={errors.urlSlug}
@@ -183,7 +183,7 @@ export default function GeneralSettingsContainer({ project }: { project: Project
             <SettingsInputField
                 label="Display Name"
                 description="Your display name is shown on your project page."
-                isPrivate={false}
+                lozengeTypes={["public"]}
                 value={formData.displayName}
                 onChange={(e) => handleFieldChange("displayName", e.target.value)}
                 error={errors.displayName}

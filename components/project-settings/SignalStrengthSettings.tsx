@@ -491,7 +491,7 @@ export default function SignalStrengthSettings({
                                 </HStack>
                                 <Text fontSize={"sm"}>
                                     Choose which options will be available to users to confirm ownership of their{" "}
-                                    {shortName.toLowerCase()} account. To learn about each option{" "}
+                                    {shortName} account. To learn about each option{" "}
                                     <Link
                                         href={`https://www.notion.so/Project-Settings-Forum-Engagement-211a88585e9580e6b586f248dd6604de`}
                                         fontSize={"sm"}

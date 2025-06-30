@@ -294,6 +294,13 @@ export const customConfig = defineConfig({
             textShadow: "0px 0px 5px black !important",
             animation: `${rainbowAnimation} 20s linear infinite !important`,
         },
+        ".chakra-popover__arrowTip": {
+            backgroundColor: "{colors.pageBackground} !important",
+            borderColor: "{colors.contentBorder} !important",
+            borderTopWidth: "2px !important",
+            borderInlineStartWidth: "2px !important",
+            marginTop: "1px !important",
+        },
         // Temp workaround for menu items
         // Otherwise, the first item is focused when the menu is opened
         "a:focus, a:focus-visible": {

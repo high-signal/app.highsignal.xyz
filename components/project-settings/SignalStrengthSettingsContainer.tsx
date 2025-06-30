@@ -25,7 +25,7 @@ export default function SignalStrengthSettingsContainer({
     })
 
     return (
-        <SettingsSectionContainer maxWidth="800px" px={{ base: 0, md: 4 }}>
+        <SettingsSectionContainer maxWidth="800px">
             {sortedSignalStrengths.map((signalStrength) => (
                 <SignalStrengthSettings
                     key={signalStrength.name}
