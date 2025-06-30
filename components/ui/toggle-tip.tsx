@@ -17,9 +17,8 @@ export const ToggleTip = React.forwardRef<HTMLDivElement, ToggleTipProps>(functi
                 <ChakraPopover.Positioner>
                     <ChakraPopover.Content
                         maxW={"90dvw"}
-                        px="2"
-                        py="1"
-                        rounded="8px"
+                        p={2}
+                        rounded="12px"
                         ref={ref}
                         bg={"pageBackground"}
                         borderWidth={2}

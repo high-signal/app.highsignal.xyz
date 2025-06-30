@@ -12,7 +12,7 @@ interface ModalProps {
 }
 
 export default function Modal({ placement = { base: "center", md: "center" }, open, close, children }: ModalProps) {
-    const modalSize = useBreakpointValue({ base: "full", md: "sm" }) as Size
+    const modalSize = useBreakpointValue({ base: "lg", md: "sm" }) as Size
 
     return (
         <Dialog.Root

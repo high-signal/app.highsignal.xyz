@@ -77,8 +77,27 @@ export default function SettingsInputField({
     const Lozenge = ({ type }: { type: keyof typeof typeConfig }) => {
         const config = typeConfig[type]
 
+        let extraTip = ""
+        if (lozengeTypes.includes("score") && type === "comingSoon") {
+            extraTip =
+                "You can confirm this account in advance, but it will not count towards your Signal Score until the feature is launched."
+        }
         return (
-            <ToggleTip content={<Text textAlign="center">{config.tip}</Text>} positioning={{ placement: "top" }}>
+            <ToggleTip
+                content={
+                    <Text textAlign="center">
+                        {config.tip}
+                        {extraTip && (
+                            <>
+                                <br />
+                                <br />
+                                {extraTip}
+                            </>
+                        )}
+                    </Text>
+                }
+                positioning={{ placement: "top" }}
+            >
                 <HStack
                     fontSize="sm"
                     color={config.color}
