@@ -14,6 +14,7 @@ export default function ForumConnectionManager({
     targetUser,
     config,
     disabled,
+    lozengeTypes,
 }: {
     targetUser: UserData
     config: {
@@ -25,6 +26,7 @@ export default function ForumConnectionManager({
         forumAuthParentPostUrl: string | undefined
     }
     disabled: boolean
+    lozengeTypes?: ("public" | "private" | "comingSoon" | "notifications" | "score")[]
 }) {
     const { refreshUser } = useUser()
     const { getAccessToken } = usePrivy()
@@ -288,6 +290,7 @@ export default function ForumConnectionManager({
             getConnectionTypeText={getConnectionTypeText}
             getConnectionDescription={getConnectionDescription}
             disabled={disabled}
+            lozengeTypes={lozengeTypes}
         >
             <ConnectTypeSelectorModal
                 isOpen={isConnectTypeSelectorOpen}

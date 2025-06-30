@@ -69,6 +69,7 @@ export interface AccountConnectionManagerProps {
     getConnectionDescription: () => string
     disabled?: boolean
     children?: React.ReactNode // For modals and other custom elements
+    lozengeTypes?: ("public" | "private" | "comingSoon" | "notifications" | "score")[]
 }
 
 export default function AccountConnectionManager({
@@ -86,6 +87,7 @@ export default function AccountConnectionManager({
     getConnectionDescription,
     disabled = false,
     children,
+    lozengeTypes = [],
 }: AccountConnectionManagerProps) {
     return (
         <VStack w={"100%"}>
@@ -109,7 +111,7 @@ export default function AccountConnectionManager({
                     )
                 }
                 description={getConnectionDescription()}
-                isPrivate={true}
+                lozengeTypes={lozengeTypes}
                 value={connectionValue}
                 error=""
                 isEditable={!isSubmitting && !isConnected}
@@ -129,7 +131,7 @@ export default function AccountConnectionManager({
                                 {isSubmitting || isProcessingAuthRequest ? (
                                     <Spinner size="sm" color="white" />
                                 ) : (
-                                    <Text fontWeight="bold">Connect</Text>
+                                    <Text fontWeight="bold">Confirm ownership</Text>
                                 )}
                             </Button>
                         )
@@ -163,7 +165,7 @@ export default function AccountConnectionManager({
                                         ) : (
                                             <>
                                                 <Text fontWeight="bold">
-                                                    {isBrokenConnection ? "Refresh" : "Connected"}
+                                                    {isBrokenConnection ? "Refresh" : "Confirmed"}
                                                 </Text>
                                                 <FontAwesomeIcon icon={faEllipsisVertical} size="lg" />
                                             </>

@@ -19,6 +19,7 @@ export interface LinkPrivyAccountsContainerProps {
     }
     disabled?: boolean
     loginOnly?: boolean
+    lozengeTypes?: ("public" | "private" | "comingSoon" | "notifications" | "score")[]
 }
 
 export default function LinkPrivyAccountsContainer({
@@ -26,6 +27,7 @@ export default function LinkPrivyAccountsContainer({
     accountConfig,
     disabled = false,
     loginOnly = false,
+    lozengeTypes = [],
 }: LinkPrivyAccountsContainerProps) {
     // **********************************
     // ADD ADDITIONAL ACCOUNT TYPES HERE
@@ -240,6 +242,7 @@ export default function LinkPrivyAccountsContainer({
                     return !isConnectedLoading && isConnected ? `Your ${accountConfig.displayName} account.` : ""
                 }}
                 disabled={disabled}
+                lozengeTypes={lozengeTypes}
             />
 
             {accountConfig.confirmDelete && (

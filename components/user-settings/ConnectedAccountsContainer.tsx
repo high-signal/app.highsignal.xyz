@@ -1,6 +1,6 @@
 "use client"
 
-import { Spinner, VStack, HStack, Text } from "@chakra-ui/react"
+import { Spinner, VStack, HStack, Text, Span, Box } from "@chakra-ui/react"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import ForumAccountsContainer from "./forum-settings/ForumAccountsContainer"
 import LinkPrivyAccountsContainer from "./LinkPrivyAccountsContainer"
@@ -29,7 +29,10 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                             privyLinkMethod: "email",
                         }}
                         disabled={!isOwner}
+                        lozengeTypes={["notifications", "private"]}
                     />
+                    <ForumAccountsContainer targetUser={targetUser} disabled={!isOwner} />
+
                     <LinkPrivyAccountsContainer
                         targetUser={targetUser}
                         accountConfig={{
@@ -40,6 +43,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                             privyLinkMethod: "discord_oauth",
                         }}
                         disabled={!isOwner}
+                        lozengeTypes={["comingSoon", "score", "private"]}
                     />
                     <LinkPrivyAccountsContainer
                         targetUser={targetUser}
@@ -51,6 +55,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                             privyLinkMethod: "twitter_oauth",
                         }}
                         disabled={!isOwner}
+                        lozengeTypes={["comingSoon", "score", "private"]}
                     />
                     <LinkPrivyAccountsContainer
                         targetUser={targetUser}
@@ -62,8 +67,9 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                             privyLinkMethod: "farcaster",
                         }}
                         disabled={!isOwner}
+                        lozengeTypes={["comingSoon", "score", "private"]}
                     />
-                    <ForumAccountsContainer targetUser={targetUser} disabled={!isOwner} />
+                    <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
                     <VStack
                         w="100%"
                         bg="contentBackground"
@@ -75,12 +81,15 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                     >
                         <HStack fontWeight="bold" fontSize="lg" pl={3} gap={2}>
                             <FontAwesomeIcon icon={faRightToBracket} size="lg" />
-                            <Text>More ways to log in to High Signal</Text>
+                            <Text>
+                                Other log in options{" "}
+                                <Span display={{ base: "none", sm: "inline" }}>for High Signal</Span>
+                            </Text>
                         </HStack>
                         <VStack w={"100%"} gap={4} fontSize="sm" px={2}>
                             <Text>
-                                You can add additional log in methods to your account. These are private and will not be
-                                used to calculate your High Signal score.
+                                You can add other log in methods to your High Signal account. These are private and are
+                                not used to calculate your Signal Score.
                             </Text>
                         </VStack>
                         {isOwner ? (
@@ -94,6 +103,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                         privyLinkMethod: "github",
                                     }}
                                     loginOnly={true}
+                                    lozengeTypes={["private"]}
                                 />
                                 <LinkPrivyAccountsContainer
                                     targetUser={targetUser}
@@ -104,6 +114,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                         privyLinkMethod: "google",
                                     }}
                                     loginOnly={true}
+                                    lozengeTypes={["private"]}
                                 />
                                 <LinkPrivyAccountsContainer
                                     targetUser={targetUser}
@@ -115,6 +126,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     }}
                                     loginOnly={true}
                                     disabled={true}
+                                    lozengeTypes={["comingSoon", "private"]}
                                 />
                             </>
                         ) : (

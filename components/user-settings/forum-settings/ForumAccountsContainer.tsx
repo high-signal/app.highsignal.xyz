@@ -92,6 +92,7 @@ export default function ForumAccountsContainer({ targetUser, disabled }: { targe
                                         targetUser={targetUser}
                                         config={config}
                                         disabled={disabled}
+                                        lozengeTypes={["private"]}
                                     />
                                 ))}
                             </VStack>
@@ -129,6 +130,7 @@ export default function ForumAccountsContainer({ targetUser, disabled }: { targe
                                             targetUser={targetUser}
                                             config={selectedConfig}
                                             disabled={disabled}
+                                            lozengeTypes={["score", "private"]}
                                         />
                                     ))}
                             </VStack>
