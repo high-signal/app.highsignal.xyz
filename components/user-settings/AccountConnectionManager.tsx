@@ -61,7 +61,7 @@ export interface AccountConnectionManagerProps {
     connectionValue: string
     isSubmitting: boolean
     isProcessingAuthRequest?: boolean
-    isBrokenConnection: boolean
+    isBrokenConnection?: boolean
     onConnect: () => void
     onDisconnect: () => void
     onRefresh?: () => void
@@ -77,7 +77,7 @@ export default function AccountConnectionManager({
     connectionValue,
     isSubmitting,
     isProcessingAuthRequest = false,
-    isBrokenConnection,
+    isBrokenConnection = false,
     onConnect,
     onDisconnect,
     onRefresh,
@@ -89,7 +89,7 @@ export default function AccountConnectionManager({
         <VStack w={"100%"}>
             {children}
             <SettingsInputField
-                label={`${config.displayName} ${config.connectionType || ""}`}
+                label={(config.displayName || "").charAt(0).toUpperCase() + (config.displayName || "").slice(1)}
                 labelIcon={
                     config.logoUrl && config.logoUrl.startsWith("http") ? (
                         <Box boxSize="16px" ml={1} mr={1} mb={1}>

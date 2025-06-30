@@ -19,6 +19,8 @@ interface UserData {
     isSuperAdmin?: boolean
     connectedAccounts?: ConnectedAccount[]
     defaultProfile?: boolean
+    email?: string
+    discordUsername?: string
 }
 
 interface ConnectedAccount {

@@ -6,7 +6,7 @@ import { toaster } from "../ui/toaster"
 import AccountConnectionManager, { AccountConnectionConfig } from "./AccountConnectionManager"
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons"
 
-export default function LinkEmailContainer() {
+export default function LinkEmailContainer({ targetUser }: { targetUser: UserData }) {
     const { linkEmail } = useLinkAccount({
         onSuccess: ({ linkMethod }) => {
             if (linkMethod === "email") {
@@ -114,7 +114,7 @@ export default function LinkEmailContainer() {
             config={accountConnectionConfig}
             isConnected={isConnected}
             isConnectedLoading={isConnectedLoading}
-            connectionValue={userEmailAddress}
+            connectionValue={targetUser.email || ""}
             isSubmitting={isSubmitting}
             isBrokenConnection={isBrokenConnection}
             onConnect={handleConnect}
