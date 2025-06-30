@@ -5,6 +5,8 @@ import { fetchUserData } from "./fetchUserData"
 const AUTH_TYPE_MAPPING = {
     email: { dbColumn: "email", privyField: "address" },
     discord_oauth: { dbColumn: "discord_username", privyField: "username" },
+    twitter_oauth: { dbColumn: "x_username", privyField: "username" },
+    farcaster: { dbColumn: "farcaster_username", privyField: "username" },
     // privy_type: { dbColumn: "db_column_name", privyField: "privy_field_name" }
 } as const
 

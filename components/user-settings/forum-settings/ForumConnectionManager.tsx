@@ -13,6 +13,7 @@ import DisconnectConfirmationModal from "./../DisconnectConfirmationModal"
 export default function ForumConnectionManager({
     targetUser,
     config,
+    disabled,
 }: {
     targetUser: UserData
     config: {
@@ -23,6 +24,7 @@ export default function ForumConnectionManager({
         forumAuthTypes: string[] | undefined
         forumAuthParentPostUrl: string | undefined
     }
+    disabled: boolean
 }) {
     const { refreshUser } = useUser()
     const { getAccessToken } = usePrivy()
@@ -256,7 +258,7 @@ export default function ForumConnectionManager({
     }
 
     const getConnectionDescription = () => {
-        return !isConnectedLoading && isConnected ? `Your ${config.projectDisplayName} Forum username.` : ""
+        return !isConnectedLoading && isConnected ? `Your ${config.projectDisplayName} forum username.` : ""
     }
 
     const handleConnect = () => {
@@ -285,6 +287,7 @@ export default function ForumConnectionManager({
             onRefresh={handleRefresh}
             getConnectionTypeText={getConnectionTypeText}
             getConnectionDescription={getConnectionDescription}
+            disabled={disabled}
         >
             <ConnectTypeSelectorModal
                 isOpen={isConnectTypeSelectorOpen}

@@ -67,6 +67,7 @@ export interface AccountConnectionManagerProps {
     onRefresh?: () => void
     getConnectionTypeText?: () => string
     getConnectionDescription: () => string
+    disabled?: boolean
     children?: React.ReactNode // For modals and other custom elements
 }
 
@@ -83,6 +84,7 @@ export default function AccountConnectionManager({
     onRefresh,
     getConnectionTypeText,
     getConnectionDescription,
+    disabled = false,
     children,
 }: AccountConnectionManagerProps) {
     return (
@@ -122,7 +124,7 @@ export default function AccountConnectionManager({
                                 w={"100%"}
                                 onClick={onConnect}
                                 borderRadius="full"
-                                disabled={isSubmitting || isProcessingAuthRequest}
+                                disabled={isSubmitting || isProcessingAuthRequest || disabled}
                             >
                                 {isSubmitting || isProcessingAuthRequest ? (
                                     <Spinner size="sm" color="white" />
@@ -153,7 +155,7 @@ export default function AccountConnectionManager({
                                     color={isBrokenConnection ? "textColor" : "lozenge.text.active"}
                                     borderColor={isBrokenConnection ? "teal.500" : "lozenge.border.active"}
                                     borderRightRadius="full"
-                                    disabled={isSubmitting}
+                                    disabled={isSubmitting || disabled}
                                 >
                                     <HStack gap={1}>
                                         {isSubmitting ? (

@@ -8,7 +8,7 @@ import ForumConnectionManager from "./ForumConnectionManager"
 import { faDiscourse } from "@fortawesome/free-brands-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-export default function ForumAccountsContainer({ targetUser }: { targetUser: UserData }) {
+export default function ForumAccountsContainer({ targetUser, disabled }: { targetUser: UserData; disabled: boolean }) {
     const { projects, loading: projectsLoading } = useGetProjects()
     const [selectedProjectToConnect, setSelectedProjectToConnect] = useState<ProjectData | null>(null)
 
@@ -87,7 +87,12 @@ export default function ForumAccountsContainer({ targetUser }: { targetUser: Use
                         {connectedForumConfigs.length > 0 && (
                             <VStack gap={6} w="100%">
                                 {connectedForumConfigs.map((config, index) => (
-                                    <ForumConnectionManager key={index} targetUser={targetUser} config={config} />
+                                    <ForumConnectionManager
+                                        key={index}
+                                        targetUser={targetUser}
+                                        config={config}
+                                        disabled={disabled}
+                                    />
                                 ))}
                             </VStack>
                         )}
@@ -120,7 +125,11 @@ export default function ForumAccountsContainer({ targetUser }: { targetUser: Use
                                             You are already connected to {selectedConfig.projectDisplayName} forum
                                         </Text>
                                     ) : (
-                                        <ForumConnectionManager targetUser={targetUser} config={selectedConfig} />
+                                        <ForumConnectionManager
+                                            targetUser={targetUser}
+                                            config={selectedConfig}
+                                            disabled={disabled}
+                                        />
                                     ))}
                             </VStack>
                         )}

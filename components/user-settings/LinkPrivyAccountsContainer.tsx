@@ -17,47 +17,68 @@ export interface LinkPrivyAccountsContainerProps {
         confirmDelete?: boolean
         privyLinkMethod: string
     }
+    disabled?: boolean
 }
 
-export default function LinkPrivyAccountsContainer({ targetUser, accountConfig }: LinkPrivyAccountsContainerProps) {
-    const { linkEmail, linkDiscord } = useLinkAccount({
-        onSuccess: async ({ linkMethod }) => {
-            if (linkMethod === accountConfig.privyLinkMethod) {
-                // Call the API to update the Privy accounts
-                const token = await getAccessToken()
-                await fetch(`/api/settings/u/accounts/privy-accounts?username=${targetUser.username}`, {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                })
+export default function LinkPrivyAccountsContainer({
+    targetUser,
+    accountConfig,
+    disabled = false,
+}: LinkPrivyAccountsContainerProps) {
+    // **********************************
+    // ADD ADDITIONAL ACCOUNT TYPES HERE
+    // **********************************
+    const { linkEmail, linkDiscord, linkTwitter, linkFarcaster, linkGithub, linkGoogle, linkTelegram } = useLinkAccount(
+        {
+            onSuccess: async ({ linkMethod }) => {
+                if (linkMethod === accountConfig.privyLinkMethod) {
+                    // Call the API to update the Privy accounts
+                    const token = await getAccessToken()
+                    await fetch(`/api/settings/u/accounts/privy-accounts?username=${targetUser.username}`, {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    })
 
-                setIsSubmitting(false)
-                toaster.create({
-                    title: `✅ ${accountConfig.displayName} Account ownership confirmed`,
-                    description: `You have successfully confirmed ownership of your ${accountConfig.displayName} account.`,
-                    type: "success",
-                })
-                setIsConnected(true)
-                setIsConnectedLoading(false)
-            }
+                    setIsSubmitting(false)
+                    toaster.create({
+                        title: `✅ ${accountConfig.displayName} Account ownership confirmed`,
+                        description: `You have successfully confirmed ownership of your ${accountConfig.displayName} account.`,
+                        type: "success",
+                    })
+                    setIsConnected(true)
+                    setIsConnectedLoading(false)
+                }
+            },
+            onError: (error) => {
+                if (isSubmitting) {
+                    console.error(`Failed to link ${accountConfig.type}:`, error)
+                    toaster.create({
+                        title: `❌ Error confirming ${accountConfig.displayName} account`,
+                        description: `Failed to confirm ownership of your ${accountConfig.displayName} account. Please try again.`,
+                        type: "error",
+                    })
+                    setIsSubmitting(false)
+                }
+            },
         },
-        onError: (error) => {
-            if (isSubmitting) {
-                console.error(`Failed to link ${accountConfig.type}:`, error)
-                toaster.create({
-                    title: `❌ Error confirming ${accountConfig.displayName} account`,
-                    description: `Failed to confirm ownership of your ${accountConfig.displayName} account. Please try again.`,
-                    type: "error",
-                })
-                setIsSubmitting(false)
-            }
-        },
-    })
+    )
 
-    // TODO: ADD ACCOUNT TYPES
-    const { user: privyUser, unlinkEmail, unlinkDiscord } = usePrivy()
+    // **********************************
+    // ADD ADDITIONAL ACCOUNT TYPES HERE
+    // **********************************
+    const {
+        user: privyUser,
+        unlinkEmail,
+        unlinkDiscord,
+        unlinkTwitter,
+        unlinkFarcaster,
+        unlinkGithub,
+        unlinkGoogle,
+        unlinkTelegram,
+    } = usePrivy()
 
     const [isConnected, setIsConnected] = useState(false)
     const [isConnectedLoading, setIsConnectedLoading] = useState(true)
@@ -84,11 +105,29 @@ export default function LinkPrivyAccountsContainer({ targetUser, accountConfig }
     // Handle account connection
     const handleConnect = async () => {
         setIsSubmitting(true)
+        // **********************************
+        // ADD ADDITIONAL ACCOUNT TYPES HERE
+        // **********************************
         if (accountConfig.type === "email") {
             linkEmail()
         }
         if (accountConfig.type === "discordUsername") {
             linkDiscord()
+        }
+        if (accountConfig.type === "xUsername") {
+            linkTwitter()
+        }
+        if (accountConfig.type === "farcasterUsername") {
+            linkFarcaster()
+        }
+        if (accountConfig.type === "githubUsername") {
+            linkGithub()
+        }
+        if (accountConfig.type === "google") {
+            linkGoogle()
+        }
+        if (accountConfig.type === "telegramUsername") {
+            linkTelegram()
         }
     }
 
@@ -105,10 +144,24 @@ export default function LinkPrivyAccountsContainer({ targetUser, accountConfig }
     const performDisconnect = async () => {
         try {
             setIsSubmitting(true)
+            // **********************************
+            // ADD ADDITIONAL ACCOUNT TYPES HERE
+            // **********************************
             if (accountConfig.type === "email" && privyUser?.email?.address) {
                 await unlinkEmail(privyUser.email.address)
             } else if (accountConfig.type === "discordUsername" && privyUser?.discord?.subject) {
                 await unlinkDiscord(privyUser.discord.subject)
+            } else if (accountConfig.type === "xUsername" && privyUser?.twitter?.subject) {
+                console.log("privyUser.twitter.subject", privyUser.twitter.subject)
+                await unlinkTwitter(privyUser.twitter.subject)
+            } else if (accountConfig.type === "farcasterUsername" && privyUser?.farcaster?.fid) {
+                await unlinkFarcaster(privyUser.farcaster.fid as number)
+                // } else if (accountConfig.type === "githubUsername" && privyUser?.github?.subject) {
+                //     await unlinkGithub(privyUser.github.subject)
+                // } else if (accountConfig.type === "google" && privyUser?.google?.subject) {
+                //     await unlinkGoogle(privyUser.google.subject)
+                // } else if (accountConfig.type === "telegramUsername" && privyUser?.telegram?.subject) {
+                //     await unlinkTelegram(privyUser.telegram.subject)
             } else {
                 throw new Error(`No ${accountConfig.type} account found to remove`)
             }
@@ -171,6 +224,7 @@ export default function LinkPrivyAccountsContainer({ targetUser, accountConfig }
                 getConnectionDescription={() => {
                     return !isConnectedLoading && isConnected ? `Your ${accountConfig.displayName} account.` : ""
                 }}
+                disabled={disabled}
             />
 
             {accountConfig.confirmDelete && (

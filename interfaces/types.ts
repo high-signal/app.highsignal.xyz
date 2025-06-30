@@ -21,6 +21,8 @@ interface UserData {
     defaultProfile?: boolean
     email?: string
     discordUsername?: string
+    xUsername?: string
+    farcasterUsername?: string
 }
 
 interface ConnectedAccount {

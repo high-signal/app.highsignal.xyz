@@ -29,6 +29,8 @@ export async function GET(request: NextRequest) {
                 default_profile,
                 email,
                 discord_username,
+                x_username,
+                farcaster_username,
                 forum_users (
                     forum_username,
                     auth_encrypted_payload,
@@ -56,6 +58,8 @@ export async function GET(request: NextRequest) {
             defaultProfile: targetUser.default_profile,
             email: targetUser.email,
             discordUsername: targetUser.discord_username,
+            xUsername: targetUser.x_username,
+            farcasterUsername: targetUser.farcaster_username,
             forumUsers: targetUser.forum_users.map((forumUser: any) => ({
                 projectUrlSlug: forumUser.projects.url_slug,
                 forumUsername: forumUser.forum_username,
