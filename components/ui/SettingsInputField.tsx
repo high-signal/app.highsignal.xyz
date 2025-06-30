@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBell, faEarthAmericas, faHourglassHalf, faLock, faStar } from "@fortawesome/free-solid-svg-icons"
 import SingleLineTextInput from "./SingleLineTextInput"
 import { ReactNode } from "react"
+import { ToggleTip } from "./toggle-tip"
 
 interface SettingsInputFieldProps {
     label: string
@@ -41,30 +42,35 @@ export default function SettingsInputField({
             color: "blue.100",
             icon: faLock,
             text: "Private",
+            tip: "This information is private and is not visible to other users.",
         },
         public: {
             bgColor: "green.500",
             color: "textColor",
             icon: faEarthAmericas,
             text: "Public",
+            tip: "This information is public and can be seen by anyone.",
         },
         comingSoon: {
             bgColor: "blue.500",
             color: "blue.100",
             icon: faHourglassHalf,
             text: "Coming Soon",
+            tip: "This feature is currently in development and will be available soon.",
         },
         notifications: {
             bgColor: "gold.500",
             color: "gold.950",
             icon: faBell,
             text: "Notifications",
+            tip: "Confirming this account will allow you to receive notifications from High Signal.",
         },
         score: {
             bgColor: "green.500",
             color: "green.100",
             icon: faStar,
             text: "Signal Score",
+            tip: "Confirming this account will allow your activity to contribute to your Signal Score.",
         },
     }
 
@@ -72,19 +78,21 @@ export default function SettingsInputField({
         const config = typeConfig[type]
 
         return (
-            <HStack
-                fontSize="sm"
-                color={config.color}
-                cursor="default"
-                gap={"6px"}
-                bg={config.bgColor}
-                borderRadius="full"
-                px={2}
-                py={"1px"}
-            >
-                <FontAwesomeIcon icon={config.icon} />
-                <Text>{config.text}</Text>
-            </HStack>
+            <ToggleTip content={<Text textAlign="center">{config.tip}</Text>} positioning={{ placement: "top" }}>
+                <HStack
+                    fontSize="sm"
+                    color={config.color}
+                    cursor="pointer"
+                    gap={"6px"}
+                    bg={config.bgColor}
+                    borderRadius="full"
+                    px={2}
+                    py={"1px"}
+                >
+                    <FontAwesomeIcon icon={config.icon} />
+                    <Text>{config.text}</Text>
+                </HStack>
+            </ToggleTip>
         )
     }
 
