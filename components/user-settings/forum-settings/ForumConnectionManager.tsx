@@ -8,7 +8,7 @@ import { usePrivy } from "@privy-io/react-auth"
 import { toaster } from "../../ui/toaster"
 import AccountConnectionManager, { AccountConnectionConfig } from "../AccountConnectionManager"
 import ConnectTypeSelectorModal from "./ConnectTypeSelectorModal"
-import DisconnectCheckModal from "./DisconnectCheckModal"
+import DisconnectConfirmationModal from "./../DisconnectConfirmationModal"
 
 export default function ForumConnectionManager({
     targetUser,
@@ -294,11 +294,12 @@ export default function ForumConnectionManager({
                 isForumSubmitting={isForumSubmitting}
                 handleForumAuthApi={handleForumAuthApi}
             />
-            <DisconnectCheckModal
+            <DisconnectConfirmationModal
                 isOpen={isDisconnectCheckOpen}
                 onClose={() => setIsDisconnectCheckOpen(false)}
-                onDisconnect={handleForumDisconnect}
-                projectDisplayName={config.projectDisplayName}
+                onConfirm={() => handleForumDisconnect()}
+                name={`${config.projectDisplayName} forum`}
+                refreshConnectionOption={true}
             />
         </AccountConnectionManager>
     )

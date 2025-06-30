@@ -6,7 +6,7 @@ import { toaster } from "../ui/toaster"
 import { FontAwesomeIconProps } from "@fortawesome/react-fontawesome"
 
 import AccountConnectionManager, { AccountConnectionConfig } from "./AccountConnectionManager"
-import GenericConfirmModal from "./GenericConfirmModal"
+import GenericConfirmModal from "./DisconnectConfirmationModal"
 
 export interface LinkPrivyAccountsContainerProps {
     targetUser: UserData
@@ -124,7 +124,7 @@ export default function LinkPrivyAccountsContainer({ targetUser, accountConfig }
 
             setIsConnected(false)
             toaster.create({
-                title: `✅ ${accountConfig.displayName} account has been removed`,
+                title: `✅ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account has been removed`,
                 description: `Your ${accountConfig.displayName} account has been successfully removed.`,
                 type: "success",
             })
