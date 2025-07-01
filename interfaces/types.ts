@@ -36,6 +36,7 @@ interface UserAddress {
 interface UserAddressShared {
     projectUrlSlug: string
     projectDisplayName: string
+    projectLogoUrl?: string
 }
 
 interface ConnectedAccount {

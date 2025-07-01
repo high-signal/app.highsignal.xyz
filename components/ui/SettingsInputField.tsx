@@ -8,7 +8,7 @@ import { Lozenges } from "./Lozenges"
 interface SettingsInputFieldProps {
     label: string
     labelIcon?: ReactNode
-    description?: string
+    description?: string | ReactNode
     value: string
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
@@ -73,13 +73,15 @@ export default function SettingsInputField({
                 <Text color="orange.700" fontSize="sm" px={2}>
                     {error}
                 </Text>
-            ) : (
-                description && (
+            ) : description ? (
+                typeof description === "string" ? (
                     <Text fontSize="sm" color="gray.500" px={2}>
                         {description}
                     </Text>
+                ) : (
+                    description
                 )
-            )}
+            ) : null}
         </VStack>
     )
 }

@@ -66,7 +66,7 @@ export interface AccountConnectionManagerProps {
     onDisconnect: () => void
     onRefresh?: () => void
     getConnectionTypeText?: () => string
-    getConnectionDescription?: () => string
+    getConnectionDescription?: () => string | React.ReactNode
     disabled?: boolean
     children?: React.ReactNode // For modals and other custom elements
     lozengeTypes?: LozengeType[]

@@ -22,7 +22,7 @@ const typeConfig = {
     },
     public: {
         bgColor: "green.500",
-        color: "textColor",
+        color: "green.100",
         icon: faEarthAmericas,
         text: "Public",
         tip: "This information is public and can be seen by anyone.",
