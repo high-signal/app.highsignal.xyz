@@ -151,4 +151,4 @@ interface TestingInputData {
     testingMaxChars?: string
 }
 
-type LozengeType = "public" | "private" | "comingSoon" | "notifications" | "score"
+type LozengeType = "public" | "private" | "shared" | "comingSoon" | "notifications" | "score"

@@ -2,7 +2,14 @@
 
 import { HStack, Text } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBell, faEarthAmericas, faHourglassHalf, faLock, faChartLine } from "@fortawesome/free-solid-svg-icons"
+import {
+    faBell,
+    faEarthAmericas,
+    faHourglassHalf,
+    faLock,
+    faChartLine,
+    faShare,
+} from "@fortawesome/free-solid-svg-icons"
 import { ToggleTip } from "./toggle-tip"
 
 const typeConfig = {
@@ -19,6 +26,13 @@ const typeConfig = {
         icon: faEarthAmericas,
         text: "Public",
         tip: "This information is public and can be seen by anyone.",
+    },
+    shared: {
+        bgColor: "teal.500",
+        color: "teal.100",
+        icon: faShare,
+        text: "Shared",
+        tip: "You have chosen to share this address with the projects listed below. Only the address is shared, not any custom name you have set.",
     },
     comingSoon: {
         bgColor: "blue.500",

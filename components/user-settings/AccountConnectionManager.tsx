@@ -3,7 +3,7 @@
 import { Text, Button, Spinner, Menu, Portal, HStack, Box, Image, Skeleton, VStack } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import type { FontAwesomeIconProps } from "@fortawesome/react-fontawesome"
-import { faEllipsisVertical, faRefresh, faSignOut } from "@fortawesome/free-solid-svg-icons"
+import { faEllipsisVertical, faRefresh, faTrashCan } from "@fortawesome/free-solid-svg-icons"
 
 import SettingsInputField from "../ui/SettingsInputField"
 
@@ -66,7 +66,7 @@ export interface AccountConnectionManagerProps {
     onDisconnect: () => void
     onRefresh?: () => void
     getConnectionTypeText?: () => string
-    getConnectionDescription: () => string
+    getConnectionDescription?: () => string
     disabled?: boolean
     children?: React.ReactNode // For modals and other custom elements
     lozengeTypes?: LozengeType[]
@@ -114,7 +114,7 @@ export default function AccountConnectionManager({
                         config.logoIcon && <FontAwesomeIcon icon={config.logoIcon} size="lg" />
                     )
                 }
-                description={getConnectionDescription()}
+                description={getConnectionDescription && getConnectionDescription()}
                 lozengeTypes={lozengeTypes}
                 value={connectionValue}
                 valueFontFamily={connectionValueFontFamily}
@@ -210,10 +210,10 @@ export default function AccountConnectionManager({
                                         <CustomMenuItem value="disconnect" onClick={onDisconnect}>
                                             <HStack overflow={"hidden"}>
                                                 <Text fontWeight="bold" color="orange.500">
-                                                    Disconnect
+                                                    Remove
                                                 </Text>
                                                 <Box w="20px">
-                                                    <FontAwesomeIcon icon={faSignOut} />
+                                                    <FontAwesomeIcon icon={faTrashCan} />
                                                 </Box>
                                             </HStack>
                                         </CustomMenuItem>

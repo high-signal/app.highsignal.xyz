@@ -8,7 +8,7 @@ import { Lozenges } from "./Lozenges"
 interface SettingsInputFieldProps {
     label: string
     labelIcon?: ReactNode
-    description: string
+    description?: string
     value: string
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void

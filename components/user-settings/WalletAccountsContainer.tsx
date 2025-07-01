@@ -27,6 +27,12 @@ export default function WalletAccountsContainer({ targetUser, disabled }: { targ
                     sm: `${userAddress.address.slice(0, 10)}...${userAddress.address.slice(-10)}`,
                 })
 
+                const lozengeTypes: LozengeType[] = userAddress.isPublic
+                    ? ["public"]
+                    : userAddress.userAddressesShared.length > 0
+                      ? ["shared"]
+                      : ["private"]
+
                 return (
                     <AccountConnectionManager
                         key={userAddress.address}
@@ -44,11 +50,8 @@ export default function WalletAccountsContainer({ targetUser, disabled }: { targ
                         onDisconnect={() => {
                             unlinkWallet(userAddress.address)
                         }}
-                        getConnectionDescription={() => {
-                            return "Testing"
-                        }}
                         disabled={disabled}
-                        lozengeTypes={["public"]}
+                        lozengeTypes={lozengeTypes}
                         loginOnly={false}
                     />
                 )
