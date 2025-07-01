@@ -137,3 +137,5 @@ interface TestingInputData {
     testingTemperature?: string
     testingMaxChars?: string
 }
+
+type LozengeType = "public" | "private" | "comingSoon" | "notifications" | "score"

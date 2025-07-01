@@ -6,7 +6,6 @@ import ProjectPicker from "../../ui/ProjectPicker"
 import { useGetProjects } from "../../../hooks/useGetProjects"
 import ForumConnectionManager from "./ForumConnectionManager"
 import { faDiscourse } from "@fortawesome/free-brands-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import SettingsGroupContainer from "../../ui/SettingsGroupContainer"
 
 export default function ForumAccountsContainer({ targetUser, disabled }: { targetUser: UserData; disabled: boolean }) {

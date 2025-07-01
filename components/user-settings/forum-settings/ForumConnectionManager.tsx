@@ -26,7 +26,7 @@ export default function ForumConnectionManager({
         forumAuthParentPostUrl: string | undefined
     }
     disabled: boolean
-    lozengeTypes?: ("public" | "private" | "comingSoon" | "notifications" | "score")[]
+    lozengeTypes?: LozengeType[]
 }) {
     const { refreshUser } = useUser()
     const { getAccessToken } = usePrivy()

@@ -69,7 +69,7 @@ export interface AccountConnectionManagerProps {
     getConnectionDescription: () => string
     disabled?: boolean
     children?: React.ReactNode // For modals and other custom elements
-    lozengeTypes?: ("public" | "private" | "comingSoon" | "notifications" | "score")[]
+    lozengeTypes?: LozengeType[]
 }
 
 export default function AccountConnectionManager({

@@ -20,7 +20,7 @@ export interface LinkPrivyAccountsContainerProps {
     }
     disabled?: boolean
     loginOnly?: boolean
-    lozengeTypes?: ("public" | "private" | "comingSoon" | "notifications" | "score")[]
+    lozengeTypes?: LozengeType[]
 }
 
 export default function LinkPrivyAccountsContainer({

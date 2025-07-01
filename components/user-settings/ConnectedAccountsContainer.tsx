@@ -33,7 +33,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                         lozengeTypes={["notifications", "private"]}
                     />
                     <ForumAccountsContainer targetUser={targetUser} disabled={!isOwner} />
-                    <SettingsGroupContainer icon={faBullhorn} title="Social Accounts">
+                    <SettingsGroupContainer icon={faBullhorn} title="Social Accounts" lozengeTypes={["score"]}>
                         <LinkPrivyAccountsContainer
                             targetUser={targetUser}
                             accountConfig={{
@@ -44,7 +44,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                 privyLinkMethod: "discord_oauth",
                             }}
                             disabled={!isOwner}
-                            lozengeTypes={["comingSoon", "score", "private"]}
+                            lozengeTypes={["comingSoon", "private"]}
                         />
                         <LinkPrivyAccountsContainer
                             targetUser={targetUser}
@@ -56,7 +56,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                 privyLinkMethod: "twitter_oauth",
                             }}
                             disabled={!isOwner}
-                            lozengeTypes={["comingSoon", "score", "private"]}
+                            lozengeTypes={["comingSoon", "private"]}
                         />
                         <LinkPrivyAccountsContainer
                             targetUser={targetUser}
@@ -68,7 +68,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                 privyLinkMethod: "farcaster",
                             }}
                             disabled={!isOwner}
-                            lozengeTypes={["comingSoon", "score", "private"]}
+                            lozengeTypes={["comingSoon", "private"]}
                         />
                     </SettingsGroupContainer>
                     <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
