@@ -55,3 +55,4 @@ lambda/lambda-code.zip
 # Generated code and tool directories
 .windsurf/
 /project-management
+**/dist
