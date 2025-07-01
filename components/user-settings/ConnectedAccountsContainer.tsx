@@ -1,6 +1,6 @@
 "use client"
 
-import { Spinner, VStack, HStack, Text, Span, Box } from "@chakra-ui/react"
+import { Spinner, VStack, Text, Box } from "@chakra-ui/react"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import ForumAccountsContainer from "./forum-settings/ForumAccountsContainer"
 import LinkPrivyAccountsContainer from "./LinkPrivyAccountsContainer"
@@ -12,11 +12,10 @@ import {
     faRightToBracket,
     faWallet,
 } from "@fortawesome/free-solid-svg-icons"
-import { faDiscord, faGithub, faGoogle, faTelegram, faXTwitter } from "@fortawesome/free-brands-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faDiscord, faGithub, faGoogle, faXTwitter } from "@fortawesome/free-brands-svg-icons"
 import { useUser } from "../../contexts/UserContext"
 import SettingsGroupContainer from "../ui/SettingsGroupContainer"
-import WalletAccountsContainer from "./WalletAccountsContainer"
+import WalletAccountsContainer from "./wallet-settings/WalletAccountsContainer"
 
 export default function ConnectedAccountsContainer({ targetUser }: { targetUser: UserData }) {
     const { loggedInUser } = useUser()

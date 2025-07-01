@@ -1,9 +1,11 @@
 "use client"
 
-import { VStack, Text, HStack } from "@chakra-ui/react"
+import { VStack, Text, HStack, Button } from "@chakra-ui/react"
 import SingleLineTextInput from "./SingleLineTextInput"
 import { ReactNode } from "react"
 import { Lozenges } from "./Lozenges"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faPencil } from "@fortawesome/free-solid-svg-icons"
 
 interface SettingsInputFieldProps {
     label: string
@@ -19,6 +21,7 @@ interface SettingsInputFieldProps {
     h?: string
     lozengeTypes?: LozengeType[]
     valueFontFamily?: string
+    onEditButton?: () => void
 }
 
 export default function SettingsInputField({
@@ -35,6 +38,7 @@ export default function SettingsInputField({
     h = "35px",
     lozengeTypes = [],
     valueFontFamily,
+    onEditButton,
 }: SettingsInputFieldProps) {
     return (
         <VStack
@@ -47,12 +51,30 @@ export default function SettingsInputField({
             bg={"pageBackground"}
             gap={1}
         >
-            <HStack justify="space-between" alignItems="start" px={2} pb={labelIcon ? 2 : 1} gap={2}>
+            <HStack justify="space-between" alignItems="start" px={2} pb={labelIcon ? 2 : 1} gap={2} flexWrap="wrap">
                 <HStack>
                     {labelIcon}
                     <Text fontWeight="bold">{label}</Text>
                 </HStack>
-                <Lozenges types={lozengeTypes} />
+                <HStack>
+                    {onEditButton && (
+                        <Button
+                            secondaryButton
+                            pl={2}
+                            pr={3}
+                            py={"2px"}
+                            h={"23px"}
+                            borderRadius="full"
+                            onClick={onEditButton}
+                        >
+                            <HStack gap={1}>
+                                <FontAwesomeIcon icon={faPencil} />
+                                <Text whiteSpace="wrap">Edit</Text>
+                            </HStack>
+                        </Button>
+                    )}
+                    <Lozenges types={lozengeTypes} />
+                </HStack>
             </HStack>
             <HStack w="100%" gap={0} bg={"pageBackground"} h={h}>
                 {inputReplacement ? (

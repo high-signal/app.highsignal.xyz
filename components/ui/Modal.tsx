@@ -1,5 +1,6 @@
 import { Dialog, Portal, useBreakpointValue } from "@chakra-ui/react"
 import { ReactNode } from "react"
+import { RemoveScroll } from "react-remove-scroll"
 
 type Placement = "center" | "top" | "bottom"
 type Size = "xs" | "sm" | "md" | "lg" | "full"
@@ -27,10 +28,14 @@ export default function Modal({ placement = { base: "center", md: "center" }, op
                 }
             }}
         >
-            <Portal>
-                <Dialog.Backdrop bg="rgba(0, 0, 0, 0.5)" backdropFilter="blur(3px)" />
-                <Dialog.Positioner>{children}</Dialog.Positioner>
-            </Portal>
+            {open && (
+                <Portal>
+                    <Dialog.Backdrop bg="rgba(0, 0, 0, 0.5)" backdropFilter="blur(3px)" />
+                    <RemoveScroll>
+                        <Dialog.Positioner>{children}</Dialog.Positioner>
+                    </RemoveScroll>
+                </Portal>
+            )}
         </Dialog.Root>
     )
 }

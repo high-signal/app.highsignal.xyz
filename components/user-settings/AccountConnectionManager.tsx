@@ -72,6 +72,7 @@ export interface AccountConnectionManagerProps {
     lozengeTypes?: LozengeType[]
     loginOnly?: boolean
     connectionValueFontFamily?: string
+    onEditButton?: () => void
 }
 
 export default function AccountConnectionManager({
@@ -92,6 +93,7 @@ export default function AccountConnectionManager({
     lozengeTypes = [],
     loginOnly = false,
     connectionValueFontFamily,
+    onEditButton,
 }: AccountConnectionManagerProps) {
     return (
         <VStack w={"100%"}>
@@ -115,6 +117,7 @@ export default function AccountConnectionManager({
                     )
                 }
                 description={getConnectionDescription && getConnectionDescription()}
+                onEditButton={onEditButton}
                 lozengeTypes={lozengeTypes}
                 value={connectionValue}
                 valueFontFamily={connectionValueFontFamily}
@@ -137,7 +140,7 @@ export default function AccountConnectionManager({
                                     <Spinner size="sm" color="white" />
                                 ) : (
                                     <Text fontWeight="bold">
-                                        {loginOnly ? "Add log in option" : "Confirm ownership"}
+                                        {loginOnly ? "Add this log in option to your account" : "Confirm ownership"}
                                     </Text>
                                 )}
                             </Button>
