@@ -170,119 +170,121 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
         )[0].updated_at
 
         // === Check if update is required ===
-        if (!testingData && !updateRequired(lastUpdated, latestActivityDate)) {
-            console.log(
-                `${displayName} (forum username: ${forum_username}) forum data is up to date. No raw daily analysis needed.`,
-            )
-        } else {
-            // Filter activity data to the past X days
-            const filteredActivityData = activityData.filter(
-                (activity) =>
-                    new Date(activity.updated_at) > new Date(new Date().setDate(new Date().getDate() - previousDays)) &&
-                    Number(activity.id) !== Number(userData.auth_post_id),
-            )
+        // TODO: This is broken as the first run is setting lastUpdated even if it has not been updated yet
+        // if (!testingData && !updateRequired(lastUpdated, latestActivityDate)) {
+        //     console.log(
+        //         `${displayName} (forum username: ${forum_username}) forum data is up to date. No raw daily analysis needed.`,
+        //     )
+        // } else {
+        // Filter activity data to the past X days
+        const filteredActivityData = activityData.filter(
+            (activity) =>
+                new Date(activity.updated_at) > new Date(new Date().setDate(new Date().getDate() - previousDays)) &&
+                Number(activity.id) !== Number(userData.auth_post_id),
+        )
 
-            console.log(`Filtered activity data to the past ${previousDays} days: ${filteredActivityData.length}`)
-            logs += `\nActivity past ${previousDays} days: ${filteredActivityData.length}`
+        console.log(`Filtered activity data to the past ${previousDays} days: ${filteredActivityData.length}`)
+        logs += `\nActivity past ${previousDays} days: ${filteredActivityData.length}`
 
-            // console.log("filteredActivityData", filteredActivityData)
+        // console.log("filteredActivityData", filteredActivityData)
 
-            // Create an array of filteredActivityData that contains one element per day
-            // starting from yesterday and going back previousDays
-            const dailyActivityData = []
-            for (let i = 0; i < previousDays; i++) {
-                const date = new Date(new Date().setDate(new Date().getDate() - (i + 1))) // Start yesterday
-                const activitiesForDay = filteredActivityData.filter((activity) => {
-                    const activityDate = new Date(activity.updated_at)
-                    return activityDate.toISOString().split("T")[0] === date.toISOString().split("T")[0]
-                })
-                dailyActivityData.push({
-                    date: date.toISOString().split("T")[0],
-                    data: activitiesForDay,
-                })
-            }
+        // Create an array of filteredActivityData that contains one element per day
+        // starting from yesterday and going back previousDays
+        const dailyActivityData = []
+        for (let i = 0; i < previousDays; i++) {
+            const date = new Date(new Date().setDate(new Date().getDate() - (i + 1))) // Start yesterday
+            const activitiesForDay = filteredActivityData.filter((activity) => {
+                const activityDate = new Date(activity.updated_at)
+                return activityDate.toISOString().split("T")[0] === date.toISOString().split("T")[0]
+            })
+            dailyActivityData.push({
+                date: date.toISOString().split("T")[0],
+                data: activitiesForDay,
+            })
+        }
 
-            console.log(
-                "Number of days to analyze for raw score calculation:",
-                dailyActivityData.filter((day) => day.data && day.data.length > 0).length,
-            )
-            logs += `\nUnique activity days: ${dailyActivityData.filter((day) => day.data && day.data.length > 0).length}\n`
+        console.log(
+            "Number of days to analyze for raw score calculation:",
+            dailyActivityData.filter((day) => day.data && day.data.length > 0).length,
+        )
+        logs += `\nUnique activity days: ${dailyActivityData.filter((day) => day.data && day.data.length > 0).length}\n`
 
-            // For each day with data in dailyActivityData, run the analyzeUserData function
-            const analysisPromises = dailyActivityData.map(async (day) => {
-                if (day.data.length > 0) {
-                    // Check if the day is already in the database for the raw score calculation
-                    const { data: existingData, error: existingDataError } = await supabase
-                        .from("user_signal_strengths")
-                        .select("*")
-                        .eq("day", day.date)
-                        .eq("user_id", user_id)
-                        .eq("project_id", project_id)
-                        .eq("signal_strength_id", signal_strength_id)
-                        .not("raw_value", "is", null)
+        // For each day with data in dailyActivityData, run the analyzeUserData function
+        const analysisPromises = dailyActivityData.map(async (day) => {
+            if (day.data.length > 0) {
+                // Check if the day is already in the database for the raw score calculation
+                // TODO: This should get all the data for the range for the user in one call
+                const { data: existingData, error: existingDataError } = await supabase
+                    .from("user_signal_strengths")
+                    .select("*")
+                    .eq("day", day.date)
+                    .eq("user_id", user_id)
+                    .eq("project_id", project_id)
+                    .eq("signal_strength_id", signal_strength_id)
+                    .not("raw_value", "is", null)
 
-                    if (existingDataError) {
-                        console.error("Error fetching existing data:", existingDataError)
-                        return
-                    }
+                if (existingDataError) {
+                    console.error("Error fetching existing data:", existingDataError)
+                    return
+                }
 
-                    if (!testingData && existingData && existingData.length > 0) {
-                        console.log(`Day ${day.date} already exists in the database. Skipping raw score calculation...`)
-                        return
-                    }
+                if (!testingData && existingData && existingData.length > 0) {
+                    console.log(`Day ${day.date} already exists in the database. Skipping raw score calculation...`)
+                    return
+                }
 
-                    const analysisResults = await analyzeUserData(
-                        signalStrengthData,
-                        day.data,
-                        forum_username,
-                        displayName,
-                        maxValue,
-                        previousDays,
-                        testingData,
-                        day.date,
-                        "raw", // type
-                        logs + `Day ${day.date} activity: ${day.data.length}\n`,
-                    )
+                const analysisResults = await analyzeUserData(
+                    signalStrengthData,
+                    day.data,
+                    forum_username,
+                    displayName,
+                    maxValue,
+                    previousDays,
+                    testingData,
+                    day.date,
+                    "raw", // type
+                    logs + `Day ${day.date} activity: ${day.data.length}\n`,
+                )
 
-                    // === Validity check on maxValue ===
-                    if (analysisResults && !analysisResults.error) {
-                        if (analysisResults[forum_username].value > maxValue) {
-                            console.log(
-                                `User ${forum_username} has a score greater than ${maxValue}. Setting to ${maxValue}.`,
-                            )
-                            analysisResults[forum_username].value = maxValue
-                        }
-                    }
-
-                    // === Store the analysis results in the database ===
-                    if (analysisResults && !analysisResults.error) {
-                        await updateUserData(
-                            supabase,
-                            project_id,
-                            signal_strength_id,
-                            forum_username,
-                            userData,
-                            latestActivityDate,
-                            analysisResults,
-                            maxValue,
-                            testingData,
-                            true, // isRawScoreCalc
-                            day.date,
+                // === Validity check on maxValue ===
+                if (analysisResults && !analysisResults.error) {
+                    if (analysisResults[forum_username].value > maxValue) {
+                        console.log(
+                            `User ${forum_username} has a score greater than ${maxValue}. Setting to ${maxValue}.`,
                         )
-                        console.log(`User data successfully updated for day ${day.date}`)
-                        console.log("")
-                    } else {
-                        console.error(
-                            `Analysis failed for ${forum_username} on day ${day.date}:`,
-                            analysisResults?.error || "Unknown error",
-                        )
+                        analysisResults[forum_username].value = maxValue
                     }
                 }
-            })
 
-            // Wait for all daily analyses to complete
-            await Promise.all(analysisPromises)
-        }
+                // === Store the analysis results in the database ===
+                if (analysisResults && !analysisResults.error) {
+                    await updateUserData(
+                        supabase,
+                        project_id,
+                        signal_strength_id,
+                        forum_username,
+                        userData,
+                        latestActivityDate,
+                        analysisResults,
+                        maxValue,
+                        testingData,
+                        true, // isRawScoreCalc
+                        day.date,
+                    )
+                    console.log(`User data successfully updated for day ${day.date}`)
+                    console.log("")
+                } else {
+                    console.error(
+                        `Analysis failed for ${forum_username} on day ${day.date}:`,
+                        analysisResults?.error || "Unknown error",
+                    )
+                }
+            }
+        })
+
+        // Wait for all daily analyses to complete
+        await Promise.all(analysisPromises)
+        // }
 
         // After the raw daily analysis is complete, generate a smart score for the user
 
