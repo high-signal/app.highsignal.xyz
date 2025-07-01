@@ -31,7 +31,7 @@ export default function Modal({ placement = { base: "center", md: "center" }, op
             {open && (
                 <Portal>
                     <Dialog.Backdrop bg="rgba(0, 0, 0, 0.5)" backdropFilter="blur(3px)" />
-                    <RemoveScroll>
+                    <RemoveScroll allowPinchZoom>
                         <Dialog.Positioner>{children}</Dialog.Positioner>
                     </RemoveScroll>
                 </Portal>

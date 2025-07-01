@@ -1,15 +1,14 @@
 "use client"
 
-import { VStack, Text, Button, useBreakpointValue, HStack, Image, Dialog } from "@chakra-ui/react"
+import { VStack, Text, useBreakpointValue, HStack, Image } from "@chakra-ui/react"
 
 import { faWallet } from "@fortawesome/free-solid-svg-icons"
 import { usePrivy } from "@privy-io/react-auth"
 
-import Modal from "../../ui/Modal"
 import AccountConnectionManager from "../AccountConnectionManager"
 import { ASSETS } from "../../../config/constants"
 import { useState } from "react"
-import ModalCloseButton from "../../ui/ModalCloseButton"
+import WalletAccountsEditor from "./WalletAccountsEditor"
 
 export default function WalletAccountsManager({
     userAddress,
@@ -101,51 +100,11 @@ export default function WalletAccountsManager({
                 setIsEditModalOpen(true)
             }}
         >
-            <Modal open={isEditModalOpen} close={() => setIsEditModalOpen(false)}>
-                <Dialog.Content borderRadius={{ base: "0px", md: "16px" }} p={0} bg={"pageBackground"}>
-                    <Dialog.Header>
-                        <Dialog.Title>
-                            <HStack flexWrap="wrap">
-                                <Text fontWeight="bold" pr={10}>
-                                    Edit settings for address:
-                                </Text>
-                                <Text fontSize="sm">{userAddress.address}</Text>
-                            </HStack>
-                            <ModalCloseButton onClose={() => setIsEditModalOpen(false)} />
-                        </Dialog.Title>
-                    </Dialog.Header>
-                    <Dialog.Body>
-                        <VStack gap={2} alignItems={"start"}>
-                            <Text>Edit settings here...</Text>
-                        </VStack>
-                    </Dialog.Body>
-                    <Dialog.Footer>
-                        <HStack minW={"100%"} justifyContent={{ base: "center", md: "end" }} flexWrap={"wrap"} gap={5}>
-                            <Button
-                                secondaryButton
-                                borderRadius={"full"}
-                                px={4}
-                                py={2}
-                                onClick={() => setIsEditModalOpen(false)}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                primaryButton
-                                borderRadius={"full"}
-                                px={4}
-                                py={2}
-                                onClick={() => {
-                                    // TODO: Implement save functionality
-                                    setIsEditModalOpen(false)
-                                }}
-                            >
-                                <Text>Save changes</Text>
-                            </Button>
-                        </HStack>
-                    </Dialog.Footer>
-                </Dialog.Content>
-            </Modal>
+            <WalletAccountsEditor
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                userAddress={userAddress}
+            />
         </AccountConnectionManager>
     )
 }
