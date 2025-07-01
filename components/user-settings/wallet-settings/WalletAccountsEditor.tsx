@@ -1,12 +1,14 @@
 "use client"
 
-import { VStack, Text, Button, HStack, Dialog } from "@chakra-ui/react"
+import { VStack, Text, Button, HStack, Dialog, RadioGroup } from "@chakra-ui/react"
 import Modal from "../../ui/Modal"
 import { useState } from "react"
 import ModalCloseButton from "../../ui/ModalCloseButton"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCopy } from "@fortawesome/free-solid-svg-icons"
+import { faCopy, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { faCheckCircle } from "@fortawesome/free-regular-svg-icons"
+import SingleLineTextInput from "../../ui/SingleLineTextInput"
+import { CustomRadioItem } from "../../ui/CustomRadioGroup"
 
 export default function WalletAccountsEditor({
     isOpen,
@@ -40,9 +42,7 @@ export default function WalletAccountsEditor({
                 <Dialog.Header>
                     <Dialog.Title maxW={"100%"}>
                         <HStack flexWrap="wrap">
-                            <Text fontWeight="bold" pr={3}>
-                                Edit settings for address:
-                            </Text>
+                            <Text fontWeight="bold">Edit settings for address</Text>
                             <HStack bg={"contentBackground"} borderRadius={"full"} gap={0}>
                                 <Text
                                     fontSize={"md"}
@@ -76,8 +76,96 @@ export default function WalletAccountsEditor({
                     </Dialog.Title>
                 </Dialog.Header>
                 <Dialog.Body>
-                    <VStack gap={2} alignItems={"start"}>
-                        <Text>Edit settings here...</Text>
+                    <VStack gap={6} alignItems={"start"}>
+                        <HStack w={"100%"} gap={2}>
+                            <Text fontWeight={"bold"} fontSize={"md"}>
+                                Address name
+                            </Text>
+                            <SingleLineTextInput
+                                value={userAddress.addressName || ""}
+                                onChange={(e) => {
+                                    // TODO: Implement save functionality
+                                }}
+                                maxW={"200px"}
+                                minW={"100px"}
+                                h={"36px"}
+                            />
+                        </HStack>
+                        <VStack w={"100%"} alignItems={"start"} gap={3}>
+                            <Text fontWeight={"bold"} fontSize={"md"}>
+                                Sharing settings
+                            </Text>
+                            <VStack>
+                                <RadioGroup.Root
+                                // value={sharingSettings}
+                                // onValueChange={(details) => {
+                                //     // TODO: Implement sharing settings change
+                                // }}
+                                >
+                                    <VStack gap={6} alignItems={"start"} w={"100%"}>
+                                        {[
+                                            {
+                                                value: "private",
+                                                text: "Private",
+                                                bgColor: "blue.800",
+                                                borderColor: "transparent",
+                                                textColor: "blue.100",
+                                                itemBackground: "contentBackground",
+                                                tip: "Private addresses are not visible to other users.",
+                                            },
+                                            {
+                                                value: "public",
+                                                text: "Public",
+                                                bgColor: "green.500",
+                                                borderColor: "transparent",
+                                                textColor: "white",
+                                                itemBackground: "contentBackground",
+                                                tip: "Public addresses are visible to everyone.",
+                                            },
+                                            {
+                                                value: "shared",
+                                                text: "Shared",
+                                                bgColor: "teal.500",
+                                                borderColor: "transparent",
+                                                textColor: "white",
+                                                itemBackground: "contentBackground",
+                                                tip: "Share this address with selected projects. Only the address is shared, not any custom name you have set.",
+                                            },
+                                        ].map((option) => (
+                                            <HStack
+                                                key={option.value}
+                                                gap={4}
+                                                alignItems={{ base: "start", md: "center" }}
+                                            >
+                                                <HStack minW={"110px"}>
+                                                    <CustomRadioItem option={option} />
+                                                </HStack>
+                                                <Text fontSize={"sm"} color={"textColorMuted"}>
+                                                    {option.tip}
+                                                </Text>
+                                            </HStack>
+                                        ))}
+                                    </VStack>
+                                </RadioGroup.Root>
+                            </VStack>
+                            <HStack bg={"contentBackground"} borderRadius={"16px"} p={4} w={"100%"} flexWrap={"wrap"}>
+                                <Text>(Project Picker - Select projects to share this address with)</Text>
+                                <HStack>
+                                    <HStack
+                                        pl={3}
+                                        pr={2}
+                                        py={1}
+                                        bg={"pageBackground"}
+                                        borderRadius={"full"}
+                                        fontSize={"md"}
+                                        gap={3}
+                                    >
+                                        <Text>Project 1</Text>
+                                        <FontAwesomeIcon icon={faXmark} />
+                                    </HStack>
+                                </HStack>
+                            </HStack>
+                        </VStack>
                     </VStack>
                 </Dialog.Body>
                 <Dialog.Footer>
