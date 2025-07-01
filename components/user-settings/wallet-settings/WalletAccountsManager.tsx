@@ -9,8 +9,7 @@ import Modal from "../../ui/Modal"
 import AccountConnectionManager from "../AccountConnectionManager"
 import { ASSETS } from "../../../config/constants"
 import { useState } from "react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faXmark } from "@fortawesome/free-solid-svg-icons"
+import ModalCloseButton from "../../ui/ModalCloseButton"
 
 export default function WalletAccountsManager({
     userAddress,
@@ -112,24 +111,7 @@ export default function WalletAccountsManager({
                                 </Text>
                                 <Text fontSize="sm">{userAddress.address}</Text>
                             </HStack>
-                            <Button
-                                closeButton
-                                position="absolute"
-                                right={{ base: "10px", md: "28px" }}
-                                top="28px"
-                                onClick={() => setIsEditModalOpen(false)}
-                                borderRadius="full"
-                                color={"pageBackground"}
-                                w="20px"
-                                h="20px"
-                                minW="20px"
-                                maxW="20px"
-                                justifyContent={"center"}
-                                alignItems={"center"}
-                                display="flex"
-                            >
-                                <FontAwesomeIcon icon={faXmark} />
-                            </Button>
+                            <ModalCloseButton onClose={() => setIsEditModalOpen(false)} />
                         </Dialog.Title>
                     </Dialog.Header>
                     <Dialog.Body>

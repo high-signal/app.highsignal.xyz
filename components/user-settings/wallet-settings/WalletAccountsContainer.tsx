@@ -20,8 +20,10 @@ export default function WalletAccountsContainer({ targetUser, disabled }: { targ
                     users.
                 </Text>
             </VStack>
-            <Button primaryButton h={"35px"} w={"100%"} borderRadius="full" onClick={linkWallet}>
-                Link address
+            <Button primaryButton h={"35px"} w={"100%"} borderRadius="full" onClick={linkWallet} fontWeight="bold">
+                Confirm a
+                {targetUser && targetUser?.userAddresses && targetUser?.userAddresses?.length > 0 ? "nother" : "n"}{" "}
+                address
             </Button>
             {targetUser.userAddresses?.map((userAddress, index) => {
                 return <WalletAccountsManager key={index} userAddress={userAddress} disabled={disabled} index={index} />

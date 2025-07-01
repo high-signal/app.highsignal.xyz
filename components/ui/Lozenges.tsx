@@ -22,14 +22,14 @@ const typeConfig = {
     },
     public: {
         bgColor: "green.500",
-        color: "green.100",
+        color: "white",
         icon: faEarthAmericas,
         text: "Public",
         tip: "This information is public and can be seen by anyone.",
     },
     shared: {
         bgColor: "teal.500",
-        color: "teal.100",
+        color: "white",
         icon: faShare,
         text: "Shared",
         tip: "You have chosen to share this address with the projects listed below. Only the address is shared, not any custom name you have set.",
@@ -50,7 +50,7 @@ const typeConfig = {
     },
     score: {
         bgColor: "green.500",
-        color: "green.100",
+        color: "white",
         icon: faChartLine,
         text: "Signal Score",
         tip: "When confirmed, your activity on these accounts will contribute to your Signal Score.",

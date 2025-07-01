@@ -2,8 +2,7 @@
 
 import { Text, Button, Dialog, VStack, HStack } from "@chakra-ui/react"
 import Modal from "../ui/Modal"
-import { faXmark } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import ModalCloseButton from "../ui/ModalCloseButton"
 
 interface GenericConfirmModalProps {
     isOpen: boolean
@@ -24,28 +23,11 @@ export default function GenericConfirmModal({
         <Modal open={isOpen} close={onClose} placement={{ base: "top", md: "center" }}>
             <Dialog.Content borderRadius={{ base: "0px", md: "16px" }} p={0} bg={"pageBackground"}>
                 <Dialog.Header>
-                    <Dialog.Title>
-                        <Text fontWeight="bold" pr={10}>
+                    <Dialog.Title overflow={"hidden"}>
+                        <Text fontWeight="bold" pr={5}>
                             Remove your {name} account
                         </Text>
-                        <Button
-                            closeButton
-                            position="absolute"
-                            right={{ base: "10px", md: "28px" }}
-                            top="28px"
-                            onClick={onClose}
-                            borderRadius="full"
-                            color={"pageBackground"}
-                            w="20px"
-                            h="20px"
-                            minW="20px"
-                            maxW="20px"
-                            justifyContent={"center"}
-                            alignItems={"center"}
-                            display="flex"
-                        >
-                            <FontAwesomeIcon icon={faXmark} />
-                        </Button>
+                        <ModalCloseButton onClose={onClose} />
                     </Dialog.Title>
                 </Dialog.Header>
                 <Dialog.Body>
