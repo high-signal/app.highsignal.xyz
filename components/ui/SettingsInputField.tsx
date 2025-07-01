@@ -45,7 +45,7 @@ export default function SettingsInputField({
             bg={"pageBackground"}
             gap={1}
         >
-            <HStack justify="space-between" px={2} pb={labelIcon ? 2 : 1} flexWrap={"wrap"} gap={2}>
+            <HStack justify="space-between" alignItems="start" px={2} pb={labelIcon ? 2 : 1} gap={2}>
                 <HStack>
                     {labelIcon}
                     <Text fontWeight="bold">{label}</Text>

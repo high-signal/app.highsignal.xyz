@@ -2,7 +2,7 @@
 
 import { HStack, Text } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBell, faEarthAmericas, faHourglassHalf, faLock, faStar } from "@fortawesome/free-solid-svg-icons"
+import { faBell, faEarthAmericas, faHourglassHalf, faLock, faChartLine } from "@fortawesome/free-solid-svg-icons"
 import { ToggleTip } from "./toggle-tip"
 
 const typeConfig = {
@@ -25,7 +25,7 @@ const typeConfig = {
         color: "blue.100",
         icon: faHourglassHalf,
         text: "Coming Soon",
-        tip: "This feature is currently in development and will be available soon.",
+        tip: "This feature is currently in development and will be available soon. You can confirm this account now, but it will not count towards your Signal Score until the feature is launched.",
     },
     notifications: {
         bgColor: "gold.500",
@@ -37,9 +37,9 @@ const typeConfig = {
     score: {
         bgColor: "green.500",
         color: "green.100",
-        icon: faStar,
+        icon: faChartLine,
         text: "Signal Score",
-        tip: "Confirming this account will allow your activity to contribute to your Signal Score.",
+        tip: "When confirmed, your activity on these accounts will contribute to your Signal Score.",
     },
 }
 
@@ -51,28 +51,8 @@ interface LozengeProps {
 export function Lozenge({ type, lozengeTypes = [] }: LozengeProps) {
     const config = typeConfig[type]
 
-    let extraTip = ""
-    if (lozengeTypes.includes("score") && type === "comingSoon") {
-        extraTip =
-            "You can confirm this account in advance, but it will not count towards your Signal Score until the feature is launched."
-    }
-
     return (
-        <ToggleTip
-            content={
-                <Text textAlign="center">
-                    {config.tip}
-                    {extraTip && (
-                        <>
-                            <br />
-                            <br />
-                            {extraTip}
-                        </>
-                    )}
-                </Text>
-            }
-            positioning={{ placement: "top" }}
-        >
+        <ToggleTip content={<Text textAlign="center">{config.tip}</Text>} positioning={{ placement: "top" }}>
             <HStack
                 fontSize="sm"
                 color={config.color}
@@ -96,7 +76,7 @@ interface LozengesProps {
 
 export function Lozenges({ types }: LozengesProps) {
     return (
-        <HStack flexWrap={"wrap"} gap={2}>
+        <HStack flexWrap={"wrap-reverse"} gap={2} justifyContent="flex-end">
             {types.map((type) => (
                 <Lozenge key={type} type={type} lozengeTypes={types} />
             ))}

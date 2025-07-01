@@ -103,7 +103,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     loginOnly={true}
                                     lozengeTypes={["private"]}
                                 />
-                                <LinkPrivyAccountsContainer
+                                {/* <LinkPrivyAccountsContainer
                                     targetUser={targetUser}
                                     accountConfig={{
                                         type: "telegram",
@@ -114,7 +114,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     loginOnly={true}
                                     disabled={true}
                                     lozengeTypes={["comingSoon", "private"]}
-                                />
+                                /> */}
                             </>
                         ) : (
                             <Text color={"orange.500"} textAlign="center" w={"100%"}>

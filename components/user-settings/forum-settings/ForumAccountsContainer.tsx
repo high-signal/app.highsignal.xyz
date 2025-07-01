@@ -73,7 +73,7 @@ export default function ForumAccountsContainer({ targetUser, disabled }: { targe
         : false
 
     return (
-        <SettingsGroupContainer icon={faDiscourse} title="Forum Accounts">
+        <SettingsGroupContainer icon={faDiscourse} title="Forum Accounts" lozengeTypes={["score"]}>
             {projectsLoading ? (
                 <Spinner />
             ) : (
@@ -87,7 +87,7 @@ export default function ForumAccountsContainer({ targetUser, disabled }: { targe
                                     targetUser={targetUser}
                                     config={config}
                                     disabled={disabled}
-                                    lozengeTypes={["score", "private"]}
+                                    lozengeTypes={["private"]}
                                 />
                             ))}
                         </VStack>

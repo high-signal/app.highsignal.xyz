@@ -16,8 +16,8 @@ export default function SettingsGroupContainer({
 }) {
     return (
         <VStack w="100%" bg="contentBackground" borderRadius="16px" px={3} py={4} gap={4} alignItems="start">
-            <HStack>
-                <HStack fontWeight="bold" fontSize="lg" pl={3} gap={2}>
+            <HStack w="100%" justifyContent="space-between" px={3}>
+                <HStack fontWeight="bold" fontSize="lg" gap={2}>
                     <FontAwesomeIcon icon={icon} size="lg" />
                     <Text>{title}</Text>
                 </HStack>
