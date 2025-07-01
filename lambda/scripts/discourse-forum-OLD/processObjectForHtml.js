@@ -4,8 +4,8 @@
  * @returns {string} - The string with HTML tags removed
  */
 function stripHtml(html) {
-  if (typeof html !== "string") return html;
-  return html.replace(/<[^>]*>/g, "");
+    if (typeof html !== "string") return html
+    return html.replace(/<[^>]*>/g, "")
 }
 
 /**
@@ -14,27 +14,27 @@ function stripHtml(html) {
  * @returns {Object|Array|string|number|boolean} - The processed object
  */
 function processObjectForHtml(obj) {
-  if (obj === null || obj === undefined) return obj;
+    if (obj === null || obj === undefined) return obj
 
-  if (typeof obj === "string") {
-    return stripHtml(obj);
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map((item) => processObjectForHtml(item));
-  }
-
-  if (typeof obj === "object") {
-    const result = {};
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        result[key] = processObjectForHtml(obj[key]);
-      }
+    if (typeof obj === "string") {
+        return stripHtml(obj)
     }
-    return result;
-  }
 
-  return obj;
+    if (Array.isArray(obj)) {
+        return obj.map((item) => processObjectForHtml(item))
+    }
+
+    if (typeof obj === "object") {
+        const result = {}
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                result[key] = processObjectForHtml(obj[key])
+            }
+        }
+        return result
+    }
+
+    return obj
 }
 
-module.exports = { processObjectForHtml };
+module.exports = { processObjectForHtml }

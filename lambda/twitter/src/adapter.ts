@@ -1,0 +1,1 @@
+// Twitter adapter main logic
