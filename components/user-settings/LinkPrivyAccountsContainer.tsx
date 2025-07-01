@@ -33,8 +33,8 @@ export default function LinkPrivyAccountsContainer({
     // **********************************
     // ADD ADDITIONAL ACCOUNT TYPES HERE
     // **********************************
-    const { linkEmail, linkDiscord, linkTwitter, linkFarcaster, linkGithub, linkGoogle, linkTelegram } = useLinkAccount(
-        {
+    const { linkEmail, linkDiscord, linkTwitter, linkFarcaster, linkGithub, linkGoogle, linkTelegram, linkPasskey } =
+        useLinkAccount({
             onSuccess: async ({ linkMethod }) => {
                 if (linkMethod === accountConfig.privyLinkMethod) {
                     // Call the API to update the Privy accounts
@@ -63,18 +63,18 @@ export default function LinkPrivyAccountsContainer({
                 }
             },
             onError: (error) => {
-                if (isSubmitting) {
+                // Passkey seems to throw an error even when it succeeds
+                if (isSubmitting && accountConfig.type !== "passkey") {
                     console.error(`Failed to link ${accountConfig.type}:`, error)
                     toaster.create({
                         title: `❌ Error confirming ${accountConfig.displayName} account`,
                         description: `Failed to confirm ownership of your ${accountConfig.displayName} account. Please try again.`,
                         type: "error",
                     })
-                    setIsSubmitting(false)
                 }
+                setIsSubmitting(false)
             },
-        },
-    )
+        })
 
     // **********************************
     // ADD ADDITIONAL ACCOUNT TYPES HERE
@@ -88,6 +88,7 @@ export default function LinkPrivyAccountsContainer({
         unlinkGithub,
         unlinkGoogle,
         unlinkTelegram,
+        unlinkPasskey,
     } = usePrivy()
 
     const { refreshUser } = useUser()
@@ -112,6 +113,18 @@ export default function LinkPrivyAccountsContainer({
                     setIsConnected(true)
                 }
             }
+
+            // If the account has a passkey, set the account username to the passkey
+            if (
+                accountConfig.type === "passkey" &&
+                privyUser?.linkedAccounts?.some((account) => account.type === "passkey")
+            ) {
+                setAccountUsername(
+                    privyUser.linkedAccounts.find((account) => account.type === "passkey")?.authenticatorName as string,
+                )
+                setIsConnected(true)
+            }
+
             setIsConnectedLoading(false)
         } else if (targetUser[accountConfig.type as keyof UserData]) {
             if (accountConfig.type === "discordUsername") {
@@ -154,6 +167,9 @@ export default function LinkPrivyAccountsContainer({
         if (accountConfig.type === "telegram") {
             linkTelegram()
         }
+        if (accountConfig.type === "passkey") {
+            linkPasskey()
+        }
     }
 
     const handleDisconnect = async () => {
@@ -185,6 +201,13 @@ export default function LinkPrivyAccountsContainer({
                 await unlinkGithub(privyUser.github.subject)
             } else if (accountConfig.type === "google" && privyUser?.google?.subject) {
                 await unlinkGoogle(privyUser.google.subject)
+            } else if (
+                accountConfig.type === "passkey" &&
+                privyUser?.linkedAccounts?.some((account) => account.type === "passkey")
+            ) {
+                await unlinkPasskey(
+                    privyUser.linkedAccounts.find((account) => account.type === "passkey")?.credentialId as string,
+                )
                 // } else if (accountConfig.type === "telegramUsername" && privyUser?.telegram?.subject) {
                 //     await unlinkTelegram(privyUser.telegram.subject)
             } else {

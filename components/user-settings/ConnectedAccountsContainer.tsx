@@ -4,11 +4,19 @@ import { Spinner, VStack, HStack, Text, Span, Box } from "@chakra-ui/react"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import ForumAccountsContainer from "./forum-settings/ForumAccountsContainer"
 import LinkPrivyAccountsContainer from "./LinkPrivyAccountsContainer"
-import { faBullhorn, faEnvelope, faMobileScreen, faRightToBracket } from "@fortawesome/free-solid-svg-icons"
+import {
+    faBullhorn,
+    faEnvelope,
+    faKey,
+    faMobileScreen,
+    faRightToBracket,
+    faWallet,
+} from "@fortawesome/free-solid-svg-icons"
 import { faDiscord, faGithub, faGoogle, faTelegram, faXTwitter } from "@fortawesome/free-brands-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useUser } from "../../contexts/UserContext"
 import SettingsGroupContainer from "../ui/SettingsGroupContainer"
+import WalletAccountsContainer from "./WalletAccountsContainer"
 
 export default function ConnectedAccountsContainer({ targetUser }: { targetUser: UserData }) {
     const { loggedInUser } = useUser()
@@ -71,6 +79,8 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                             lozengeTypes={["comingSoon", "private"]}
                         />
                     </SettingsGroupContainer>
+                    <WalletAccountsContainer targetUser={targetUser} disabled={!isOwner} />
+
                     <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
                     <SettingsGroupContainer icon={faRightToBracket} title="Other log in options">
                         <VStack w={"100%"} gap={4} fontSize="sm" px={2}>
@@ -99,6 +109,17 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                         displayName: "Google",
                                         logoIcon: faGoogle,
                                         privyLinkMethod: "google",
+                                    }}
+                                    loginOnly={true}
+                                    lozengeTypes={["private"]}
+                                />
+                                <LinkPrivyAccountsContainer
+                                    targetUser={targetUser}
+                                    accountConfig={{
+                                        type: "passkey",
+                                        displayName: "Passkey",
+                                        logoIcon: faKey,
+                                        privyLinkMethod: "passkey",
                                     }}
                                     loginOnly={true}
                                     lozengeTypes={["private"]}
