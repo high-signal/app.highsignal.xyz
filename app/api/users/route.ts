@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import { getUsersUtil } from "../../../utils/api-utils/getUsersUtil"
 import { uniqueNamesGenerator, adjectives, colors } from "unique-names-generator"
+import { updatePrivyAccounts } from "../../../utils/updatePrivyAccounts"
 
 // Unauthenticated GET request
 // Returns user data for a given project
@@ -124,6 +125,8 @@ export async function POST(request: Request) {
             console.error("Error creating user:", insertError)
             return NextResponse.json({ error: "Error creating user" }, { status: 500 })
         }
+
+        await updatePrivyAccounts(privyId, newUser.username)
 
         return NextResponse.json(newUser, { status: 201 })
     } catch (error) {

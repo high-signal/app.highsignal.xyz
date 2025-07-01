@@ -2,13 +2,13 @@ import { VStack, Text } from "@chakra-ui/react"
 
 interface SettingsSectionContainerProps {
     maxWidth?: string
-    px?: number | { [key: string]: number }
+    px?: { [key: string]: number }
     children: React.ReactNode
 }
 
 export default function SettingsSectionContainer({
     maxWidth = "500px",
-    px = 4,
+    px = { base: 4, sm: 2 },
     children,
 }: SettingsSectionContainerProps) {
     return (

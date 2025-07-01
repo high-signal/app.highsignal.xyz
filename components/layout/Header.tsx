@@ -119,7 +119,6 @@ export default function Header({}) {
                                     router.push(`/p/${project.urlSlug}`)
                                 }
                             }}
-                            isSuperAdminRequesting={false}
                             selectorText={"Leaderboards..."}
                             placeholder={"Search..."}
                         />

@@ -1,30 +1,32 @@
 "use client"
 
 import { Text, Button, Dialog, VStack, HStack } from "@chakra-ui/react"
-import Modal from "../../ui/Modal"
+import Modal from "../ui/Modal"
 import { faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-interface DisconnectCheckModalProps {
+interface GenericConfirmModalProps {
     isOpen: boolean
     onClose: () => void
-    onDisconnect: () => void
-    projectDisplayName: string
+    onConfirm: () => void
+    name: string
+    refreshConnectionOption?: boolean
 }
 
-export default function DisconnectCheckModal({
+export default function GenericConfirmModal({
     isOpen,
     onClose,
-    onDisconnect,
-    projectDisplayName,
-}: DisconnectCheckModalProps) {
+    onConfirm,
+    name,
+    refreshConnectionOption = false,
+}: GenericConfirmModalProps) {
     return (
         <Modal open={isOpen} close={onClose} placement={{ base: "top", md: "center" }}>
             <Dialog.Content borderRadius={{ base: "0px", md: "16px" }} p={0} bg={"pageBackground"}>
                 <Dialog.Header>
                     <Dialog.Title>
-                        <Text fontWeight="bold" pr={3}>
-                            Disconnect your {projectDisplayName} forum account
+                        <Text fontWeight="bold" pr={10}>
+                            Remove your {name} account
                         </Text>
                         <Button
                             closeButton
@@ -48,15 +50,17 @@ export default function DisconnectCheckModal({
                 </Dialog.Header>
                 <Dialog.Body>
                     <VStack gap={2} alignItems={"start"}>
-                        <Text>Are you sure you want to disconnect your {projectDisplayName} forum account?</Text>
-                        <Text>This will remove all your engagement data for this project and reduce your score.</Text>
-                        <Text>
-                            If you want to update your forum username or change the connection method, you can use the{" "}
-                            <Text as="span" fontWeight="bold">
-                                Refresh connection
-                            </Text>{" "}
-                            button instead.
-                        </Text>
+                        <Text>Are you sure you want to remove your {name} account?</Text>
+                        <Text>This will remove all your {name} engagement data and reduce your High Signal score.</Text>
+                        {refreshConnectionOption && (
+                            <Text>
+                                If you want to update your or change the connection method, you can use the{" "}
+                                <Text as="span" fontWeight="bold">
+                                    Refresh connection
+                                </Text>{" "}
+                                button instead.
+                            </Text>
+                        )}
                     </VStack>
                 </Dialog.Body>
                 <Dialog.Footer>
@@ -71,10 +75,10 @@ export default function DisconnectCheckModal({
                             py={2}
                             onClick={() => {
                                 onClose()
-                                onDisconnect()
+                                onConfirm()
                             }}
                         >
-                            <Text>Yes I&apos;m sure - Disconnect</Text>
+                            <Text>Yes I&apos;m sure - Remove</Text>
                         </Button>
                     </HStack>
                 </Dialog.Footer>

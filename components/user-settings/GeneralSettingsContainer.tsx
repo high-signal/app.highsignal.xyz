@@ -189,7 +189,7 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
             <SettingsInputField
                 label="Username"
                 description="Your username is unique and is used to identify you."
-                isPrivate={false}
+                lozengeTypes={["public"]}
                 value={formData.username}
                 onChange={(e) => handleFieldChange("username", e.target.value)}
                 error={errors.username}
@@ -202,7 +202,7 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
             <SettingsInputField
                 label="Display Name"
                 description="Your display name is shown on your profile."
-                isPrivate={false}
+                lozengeTypes={["public"]}
                 value={formData.displayName}
                 onChange={(e) => handleFieldChange("displayName", e.target.value)}
                 error={errors.displayName}

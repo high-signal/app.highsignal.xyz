@@ -1619,20 +1619,27 @@
   dependencies:
     zod "^3.24.3"
 
-"@privy-io/chains@0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@privy-io/chains/-/chains-0.0.1.tgz#4edb46ffabcacac95d6606ac4fc15c0573c3c7e9"
-  integrity sha512-UVRK4iSCmMx1kPt2b6Dolu4dBzesB7DvwEFMFaYggDCVlKXYtuRB7QxeHcKsLpeU9swluiBDAw4r5udG1xCpNg==
+"@privy-io/api-base@1.5.2":
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/@privy-io/api-base/-/api-base-1.5.2.tgz#ca59943c485b19e3fe8cbc8f438281596b255350"
+  integrity sha512-0eJBoQNmCSsWSWhzEVSU8WqPm7bgeN6VaAmqeXvjk8Ni0jM8nyTYjmRAqiCSs3mRzsnlQVchkGR6lsMTHkHKbw==
+  dependencies:
+    zod "^3.24.3"
 
-"@privy-io/ethereum@0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@privy-io/ethereum/-/ethereum-0.0.1.tgz#51512088f9dac64cfd68c937a23f0aa88105b652"
-  integrity sha512-w4GcEZM1JzQs0thG+JneU0LbYIR0EmIMDSCNJVOU29q89Fg7i9z1AXluQrCJXhd9qGG05eoXeyWwUF8/0xNMMw==
+"@privy-io/chains@0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@privy-io/chains/-/chains-0.0.2.tgz#0734f5e196cd08817e4c5f80ecc2b817f6ba938e"
+  integrity sha512-vT+EcPstcKbvrPyGA2YDD1W8YxaJhKFKYGmS9PaycODpL9HvMsPpkJ1y6SddmVAKL+WIow+nH9cV1/q0aCmPXA==
 
-"@privy-io/js-sdk-core@0.52.0":
-  version "0.52.0"
-  resolved "https://registry.yarnpkg.com/@privy-io/js-sdk-core/-/js-sdk-core-0.52.0.tgz#bbb4d3d4a551fad37c99af227abdd1b4c692a057"
-  integrity sha512-SVS2zVoO0UK2dDaaUAPHRKXhndcErOlM/eLwlpH0KAZPv1e8SJM6uArnJCqOLi+dqbSFSyq6c56UTD91yQ/Cag==
+"@privy-io/ethereum@0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@privy-io/ethereum/-/ethereum-0.0.2.tgz#1b6eddf48e5e0c3aa13adb8ca61f62496f744677"
+  integrity sha512-FnJ1dzgg/tij4jLeKHLlZM9uNk4WN+iIOkc8CG0FZKUQxqXH60Fs/dMF6Xbndd5CQkUO8LUU7FLom/405VKXpQ==
+
+"@privy-io/js-sdk-core@0.52.2":
+  version "0.52.2"
+  resolved "https://registry.yarnpkg.com/@privy-io/js-sdk-core/-/js-sdk-core-0.52.2.tgz#8e01e85de2ba4576a53f584043ee645e53d4469e"
+  integrity sha512-MXghPqfKgh5gLPpAc3feJORWsUPt0cokCF1ZedZrN3rVs0WMcy30TIBOUJwkLmwtjsjm0y4PjfyhqmPGIqVR6Q==
   dependencies:
     "@ethersproject/abstract-signer" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -1640,9 +1647,9 @@
     "@ethersproject/providers" "^5.7.2"
     "@ethersproject/transactions" "^5.7.0"
     "@ethersproject/units" "^5.7.0"
-    "@privy-io/api-base" "1.5.1"
-    "@privy-io/chains" "0.0.1"
-    "@privy-io/public-api" "2.35.0"
+    "@privy-io/api-base" "1.5.2"
+    "@privy-io/chains" "0.0.2"
+    "@privy-io/public-api" "2.37.0"
     canonicalize "^2.0.0"
     eventemitter3 "^5.0.1"
     fetch-retry "^6.0.0"
@@ -1663,10 +1670,21 @@
     viem "^2"
     zod "^3.24.3"
 
-"@privy-io/react-auth@^2.16.0":
-  version "2.16.0"
-  resolved "https://registry.yarnpkg.com/@privy-io/react-auth/-/react-auth-2.16.0.tgz#b09f0059c561775f7aee778dcb18a8382f19893a"
-  integrity sha512-Z7Vv/hZ+oV2/+EMptxtF2/LRPG8u+TcrKkdWaTW7awf9ZjlnPWK/F0pD7GcfKsHHVnzQ85KEAqOXprLUPNJEag==
+"@privy-io/public-api@2.37.0":
+  version "2.37.0"
+  resolved "https://registry.yarnpkg.com/@privy-io/public-api/-/public-api-2.37.0.tgz#de7a21288ed083e08451bb1b3a98b32cc335c134"
+  integrity sha512-gG8MV6EFbrjhFwSjRURKYqfD+VjP7P+FKnfvmpxqCIMBax1ZJbB8Kk8dvb4fWitiauSrwJFv2oxrFJuOT06D/A==
+  dependencies:
+    "@privy-io/api-base" "1.5.2"
+    bs58 "^5.0.0"
+    libphonenumber-js "^1.10.31"
+    viem "^2"
+    zod "^3.24.3"
+
+"@privy-io/react-auth@^2.17.0":
+  version "2.17.1"
+  resolved "https://registry.yarnpkg.com/@privy-io/react-auth/-/react-auth-2.17.1.tgz#0e63ed4727f63c0a8834fcc4ea3d051b9eb52027"
+  integrity sha512-JlLnGpio4dPsAzuwNv8RHm3hl/EIm8z5WGHGHAEz0YJxWXCdGQCFv/6Kbm6bJQJ3Jpdo/doq20+M/RxuoidvTQ==
   dependencies:
     "@coinbase/wallet-sdk" "4.3.2"
     "@floating-ui/react" "^0.26.22"
@@ -1674,10 +1692,12 @@
     "@heroicons/react" "^2.1.1"
     "@marsidev/react-turnstile" "^0.4.1"
     "@metamask/eth-sig-util" "^6.0.0"
-    "@privy-io/chains" "0.0.1"
-    "@privy-io/ethereum" "0.0.1"
-    "@privy-io/js-sdk-core" "0.52.0"
-    "@reown/appkit" "^1.7.8"
+    "@privy-io/api-base" "1.5.2"
+    "@privy-io/chains" "0.0.2"
+    "@privy-io/ethereum" "0.0.2"
+    "@privy-io/js-sdk-core" "0.52.2"
+    "@privy-io/public-api" "2.37.0"
+    "@reown/appkit" "^1.7.11"
     "@scure/base" "^1.2.5"
     "@simplewebauthn/browser" "^9.0.1"
     "@solana/wallet-adapter-base" "0.9.23"
@@ -1787,110 +1807,112 @@
   resolved "https://registry.yarnpkg.com/@react-types/shared/-/shared-3.30.0.tgz#616f3644e687ec3657e97bb821f8c219f6771311"
   integrity sha512-COIazDAx1ncDg046cTJ8SFYsX8aS3lB/08LDnbkH/SkdYrFPWDlXMrO/sUam8j1WWM+PJ+4d1mj7tODIKNiFog==
 
-"@reown/appkit-common@1.7.10":
-  version "1.7.10"
-  resolved "https://registry.yarnpkg.com/@reown/appkit-common/-/appkit-common-1.7.10.tgz#d14d76930b460e1bd6820e72656267d7ecfe23ee"
-  integrity sha512-x/JHotUZXCaIOxrv02sdqs0pKVVtrJr46yc9OkZSAkeZk3PlWJY5Vc0AZ8WUQhktyljH9g1kVarbbXstcoLgGA==
+"@reown/appkit-common@1.7.11":
+  version "1.7.11"
+  resolved "https://registry.yarnpkg.com/@reown/appkit-common/-/appkit-common-1.7.11.tgz#617bcd0c96353b9114f7a32ed499eafc8df2f797"
+  integrity sha512-GLrufhNpLMwHnqK5zIf8LAtJQ1uHB8azYtG7KwFSf9L7zYe+2PkB3tTnr0oCvSLJRplcjMq6Vr0ZVlOzVgs9qw==
   dependencies:
     big.js "6.2.2"
     dayjs "1.11.13"
-    viem ">=2.29.0"
+    viem ">=2.31.3"
 
-"@reown/appkit-controllers@1.7.10":
-  version "1.7.10"
-  resolved "https://registry.yarnpkg.com/@reown/appkit-controllers/-/appkit-controllers-1.7.10.tgz#b7b79dd2bfae34bbe276fdbf64d2b04a354acab6"
-  integrity sha512-zXO67l0omHbjlMmEClk3va07FLDRhrfgcMkk0pOCsBPAEPJxiY/tpoJrjhavQdrm2HwkwB9+hsx67wvjZb+8lg==
+"@reown/appkit-controllers@1.7.11":
+  version "1.7.11"
+  resolved "https://registry.yarnpkg.com/@reown/appkit-controllers/-/appkit-controllers-1.7.11.tgz#1d33fea6d547e5df82c82897d7a0eec46fcaf54b"
+  integrity sha512-D2sVqxsaqjbNIbior0L/m5vzqhp8kc+BQ09PO2l2/8X/JsoAME+DxFKOcbfKMwC2aSNkOnIdVTH/ivbknriQOA==
   dependencies:
-    "@reown/appkit-common" "1.7.10"
-    "@reown/appkit-wallet" "1.7.10"
+    "@reown/appkit-common" "1.7.11"
+    "@reown/appkit-wallet" "1.7.11"
     "@walletconnect/universal-provider" "2.21.3"
     valtio "1.13.2"
-    viem ">=2.29.0"
+    viem ">=2.31.3"
 
-"@reown/appkit-pay@1.7.10":
-  version "1.7.10"
-  resolved "https://registry.yarnpkg.com/@reown/appkit-pay/-/appkit-pay-1.7.10.tgz#c2df37e4eadb071223003650a80bd3d1c90c8adc"
-  integrity sha512-dmWkyPnT5RIYiIlgqp++Fdd8Yct7//yCw7NLKQmhoceeqC2APc15o6AC8+8HHZjsSdzHW88wwhreA+Oyz4zjTQ==
+"@reown/appkit-pay@1.7.11":
+  version "1.7.11"
+  resolved "https://registry.yarnpkg.com/@reown/appkit-pay/-/appkit-pay-1.7.11.tgz#94f87cbf4d0674066a7aa896770d4667b086ec40"
+  integrity sha512-dunlSguhHJ5jO30pQSouWbzrihU77EMofohzK7vqfAX+tcbtTq9IyoSKXXsJdd+9AILTjG/tnfbFA3uJlyeJXQ==
   dependencies:
-    "@reown/appkit-common" "1.7.10"
-    "@reown/appkit-controllers" "1.7.10"
-    "@reown/appkit-ui" "1.7.10"
-    "@reown/appkit-utils" "1.7.10"
+    "@reown/appkit-common" "1.7.11"
+    "@reown/appkit-controllers" "1.7.11"
+    "@reown/appkit-ui" "1.7.11"
+    "@reown/appkit-utils" "1.7.11"
     lit "3.3.0"
     valtio "1.13.2"
 
-"@reown/appkit-polyfills@1.7.10":
-  version "1.7.10"
-  resolved "https://registry.yarnpkg.com/@reown/appkit-polyfills/-/appkit-polyfills-1.7.10.tgz#571af832fcc68db10178c70cc81969abe4304f9f"
-  integrity sha512-aeLLJfmrPYWmIqXe4RPfi2BOgwmFOUvHmOX67XmrYWk3qbKmygprZOHaiwlFVVBSenSatRwr06TPKemPa9XLXQ==
+"@reown/appkit-polyfills@1.7.11":
+  version "1.7.11"
+  resolved "https://registry.yarnpkg.com/@reown/appkit-polyfills/-/appkit-polyfills-1.7.11.tgz#c7f9f1977204f74048a600032f157ba90403af0c"
+  integrity sha512-gZ+6MZUN1PVAouyipltdaRtLMDl8tZ5kGePKn93eGG+bD6OJXFQ02co3OUSL3YtZQWiYlD51EFwCD3woyl69zg==
   dependencies:
     buffer "6.0.3"
 
-"@reown/appkit-scaffold-ui@1.7.10":
-  version "1.7.10"
-  resolved "https://registry.yarnpkg.com/@reown/appkit-scaffold-ui/-/appkit-scaffold-ui-1.7.10.tgz#f710c891015fac639190d5e4c341548c5bc199f5"
-  integrity sha512-kMSz7FmXK66iZ4YV/SIh0EATUvC7FJPMnlxxZ9c65e6YtlKfHowdyfP6X2e1P9a5tMRBEeRus9T2kX/7s03tXA==
+"@reown/appkit-scaffold-ui@1.7.11":
+  version "1.7.11"
+  resolved "https://registry.yarnpkg.com/@reown/appkit-scaffold-ui/-/appkit-scaffold-ui-1.7.11.tgz#c7adb512fd0d9286d45561a9e4826c63c4746c70"
+  integrity sha512-UMIwlUIWdNUEUzinoAdlu2q1uzvfdb/7Dhc6bTJGGK6FqlO5QPqQMOoR64j8d9OGQdSZhe6yNHOHQvMtqUnQEw==
   dependencies:
-    "@reown/appkit-common" "1.7.10"
-    "@reown/appkit-controllers" "1.7.10"
-    "@reown/appkit-ui" "1.7.10"
-    "@reown/appkit-utils" "1.7.10"
-    "@reown/appkit-wallet" "1.7.10"
+    "@reown/appkit-common" "1.7.11"
+    "@reown/appkit-controllers" "1.7.11"
+    "@reown/appkit-ui" "1.7.11"
+    "@reown/appkit-utils" "1.7.11"
+    "@reown/appkit-wallet" "1.7.11"
     lit "3.3.0"
 
-"@reown/appkit-ui@1.7.10":
-  version "1.7.10"
-  resolved "https://registry.yarnpkg.com/@reown/appkit-ui/-/appkit-ui-1.7.10.tgz#2457d8c1a559a4373d360afc0229a3e5e5298779"
-  integrity sha512-0MpR1pfbMpIBzRsTo5dBms9aFFqkdALUYHBbURWGK3C1qB9V7xAiYyBi8nipp3F/uUMEGGwiyJgJEX8aouDIvw==
+"@reown/appkit-ui@1.7.11":
+  version "1.7.11"
+  resolved "https://registry.yarnpkg.com/@reown/appkit-ui/-/appkit-ui-1.7.11.tgz#5cafb0c0844ebecc703cea0b9477b1e4a38a6a7b"
+  integrity sha512-gTJ4JiYlwnGSWv0hhfClY6lk9+Ru8EZLssItz1scR5H41gNjgXEJ2/mDm1Ejpf42A9Cehgqbv8E8vqUcautY5A==
   dependencies:
-    "@reown/appkit-common" "1.7.10"
-    "@reown/appkit-controllers" "1.7.10"
-    "@reown/appkit-wallet" "1.7.10"
+    "@reown/appkit-common" "1.7.11"
+    "@reown/appkit-controllers" "1.7.11"
+    "@reown/appkit-wallet" "1.7.11"
     lit "3.3.0"
     qrcode "1.5.3"
 
-"@reown/appkit-utils@1.7.10":
-  version "1.7.10"
-  resolved "https://registry.yarnpkg.com/@reown/appkit-utils/-/appkit-utils-1.7.10.tgz#1d17905e8a32d1a4d59ccee4967322dbcd15c4a9"
-  integrity sha512-LxI1eTbwFiS729E6RaBpVRkv1nI33KHr1u2t4EuW9Wsv0yMt2z3KfFCw8XuHAdkXeGciXM/1lKPO7cU3YvQjpQ==
+"@reown/appkit-utils@1.7.11":
+  version "1.7.11"
+  resolved "https://registry.yarnpkg.com/@reown/appkit-utils/-/appkit-utils-1.7.11.tgz#bf51ac45c3d84d0bd4101bac6740c56451076db2"
+  integrity sha512-hdOc1OJKH1nk6X56diAX9oDrbbo6obkTSkYA5k6JpMMJjZcOhLthXKF89PF8hjGlVDgUhL/p9UPTTTc8O5XTTg==
   dependencies:
-    "@reown/appkit-common" "1.7.10"
-    "@reown/appkit-controllers" "1.7.10"
-    "@reown/appkit-polyfills" "1.7.10"
-    "@reown/appkit-wallet" "1.7.10"
+    "@reown/appkit-common" "1.7.11"
+    "@reown/appkit-controllers" "1.7.11"
+    "@reown/appkit-polyfills" "1.7.11"
+    "@reown/appkit-wallet" "1.7.11"
+    "@wallet-standard/wallet" "1.1.0"
     "@walletconnect/logger" "2.1.2"
     "@walletconnect/universal-provider" "2.21.3"
     valtio "1.13.2"
-    viem ">=2.29.0"
+    viem ">=2.31.3"
 
-"@reown/appkit-wallet@1.7.10":
-  version "1.7.10"
-  resolved "https://registry.yarnpkg.com/@reown/appkit-wallet/-/appkit-wallet-1.7.10.tgz#ceeb28113699fa2bf33424680d14ab5bd7928a73"
-  integrity sha512-QPSgUiIofNdoyELxF+34+Ttv6AbSuD5lm/B1C7lOiDPe9w4ihlTiU2JN7Dp/auFO1sa7tyr5JWi7IIY9g3EE+w==
+"@reown/appkit-wallet@1.7.11":
+  version "1.7.11"
+  resolved "https://registry.yarnpkg.com/@reown/appkit-wallet/-/appkit-wallet-1.7.11.tgz#6093a691fdaecad83bd60a8fb3fa3971d6028e0c"
+  integrity sha512-IEdIPip8rBeU295uFv+LvJ1LdgfAK8gRwqBedvC7PuuPFPZe2HanlHT84UrPZjUpy3Xysch5x+UQeUlm+w6UZw==
   dependencies:
-    "@reown/appkit-common" "1.7.10"
-    "@reown/appkit-polyfills" "1.7.10"
+    "@reown/appkit-common" "1.7.11"
+    "@reown/appkit-polyfills" "1.7.11"
     "@walletconnect/logger" "2.1.2"
     zod "3.22.4"
 
-"@reown/appkit@^1.7.8":
-  version "1.7.10"
-  resolved "https://registry.yarnpkg.com/@reown/appkit/-/appkit-1.7.10.tgz#3d8a8332289d49f53c61a62213bba86f837e601d"
-  integrity sha512-+qzVp1XsXlRm1zufPBZWN5rkludNfrEgxmyrbiSHNmKfJ7FbUbZ6/wh8OAn5y7mvhiAWbGQdOqpDdPXcK394YQ==
+"@reown/appkit@^1.7.11":
+  version "1.7.11"
+  resolved "https://registry.yarnpkg.com/@reown/appkit/-/appkit-1.7.11.tgz#2c0af7431d66cb75e6de83cf5bd626ad1feb0d55"
+  integrity sha512-CeEWIkD6xqSh1cmTJ9ulODC3DZmtvlnf2Jh2F5+ggoR8w3tamAuj3AW9p1PFuxgp24Umv3o2z27Ilt3h+7YEmQ==
   dependencies:
-    "@reown/appkit-common" "1.7.10"
-    "@reown/appkit-controllers" "1.7.10"
-    "@reown/appkit-pay" "1.7.10"
-    "@reown/appkit-polyfills" "1.7.10"
-    "@reown/appkit-scaffold-ui" "1.7.10"
-    "@reown/appkit-ui" "1.7.10"
-    "@reown/appkit-utils" "1.7.10"
-    "@reown/appkit-wallet" "1.7.10"
+    "@reown/appkit-common" "1.7.11"
+    "@reown/appkit-controllers" "1.7.11"
+    "@reown/appkit-pay" "1.7.11"
+    "@reown/appkit-polyfills" "1.7.11"
+    "@reown/appkit-scaffold-ui" "1.7.11"
+    "@reown/appkit-ui" "1.7.11"
+    "@reown/appkit-utils" "1.7.11"
+    "@reown/appkit-wallet" "1.7.11"
     "@walletconnect/types" "2.21.3"
     "@walletconnect/universal-provider" "2.21.3"
     bs58 "6.0.0"
+    semver "7.7.2"
     valtio "1.13.2"
-    viem ">=2.29.0"
+    viem ">=2.31.3"
 
 "@rtsao/scc@^1.1.0":
   version "1.1.0"
@@ -2582,7 +2604,7 @@
   dependencies:
     "@wallet-standard/base" "^1.1.0"
 
-"@wallet-standard/wallet@^1.1.0":
+"@wallet-standard/wallet@1.1.0", "@wallet-standard/wallet@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@wallet-standard/wallet/-/wallet-1.1.0.tgz#a1e46a3f1b2d06a0206058562169b1f0e9652d0f"
   integrity sha512-Gt8TnSlDZpAl+RWOOAB/kuvC7RpcdWAlFbHNoi4gsXsfaWa1QCT6LBcfIYTPdOZC9OVZUDwqGuGAcqZejDmHjg==
@@ -7133,15 +7155,15 @@ secure-password-utilities@^0.2.1:
   resolved "https://registry.yarnpkg.com/secure-password-utilities/-/secure-password-utilities-0.2.1.tgz#14a0d0c17c26ace573f5e5383df4cc2b51c27479"
   integrity sha512-znUg8ae3cpuAaogiFBhP82gD2daVkSz4Qv/L7OWjB7wWvfbCdeqqQuJkm2/IvhKQPOV0T739YPR6rb7vs0uWaw==
 
+semver@7.7.2, semver@^7.3.8, semver@^7.6.0, semver@^7.7.1, semver@^7.7.2:
+  version "7.7.2"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-7.7.2.tgz#67d99fdcd35cec21e6f8b87a7fd515a33f982b58"
+  integrity sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==
+
 semver@^6.3.1:
   version "6.3.1"
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.1.tgz#556d2ef8689146e46dcea4bfdd095f3434dffcb4"
   integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
-
-semver@^7.3.8, semver@^7.6.0, semver@^7.7.1, semver@^7.7.2:
-  version "7.7.2"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-7.7.2.tgz#67d99fdcd35cec21e6f8b87a7fd515a33f982b58"
-  integrity sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==
 
 set-blocking@^2.0.0:
   version "2.0.0"
@@ -8011,7 +8033,7 @@ viem@2.31.0:
     ox "0.7.1"
     ws "8.18.2"
 
-viem@>=2.29.0, viem@^2, viem@^2.30.6:
+viem@>=2.31.3, viem@^2, viem@^2.30.6:
   version "2.31.4"
   resolved "https://registry.yarnpkg.com/viem/-/viem-2.31.4.tgz#a8cce5579cc495a2586a16dd4062deecc0f53f1d"
   integrity sha512-0UZ/asvzl6p44CIBRDbwEcn3HXIQQurBZcMo5qmLhQ8s27Ockk+RYohgTLlpLvkYs8/t4UUEREAbHLuek1kXcw==

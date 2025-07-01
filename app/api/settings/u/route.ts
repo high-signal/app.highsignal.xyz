@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { validateUsername, validateDisplayName } from "../../../../utils/inputValidation"
 import { sanitize } from "../../../../utils/sanitize"
+import { updatePrivyAccounts } from "../../../../utils/updatePrivyAccounts"
 
 export async function GET(request: NextRequest) {
     try {
@@ -10,6 +11,10 @@ export async function GET(request: NextRequest) {
         if (!targetUsername) {
             return NextResponse.json({ error: "Username is required" }, { status: 400 })
         }
+
+        // Update the target user Privy accounts
+        const privyId = request.headers.get("x-privy-id")!
+        await updatePrivyAccounts(privyId, targetUsername)
 
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -22,6 +27,10 @@ export async function GET(request: NextRequest) {
                 display_name,
                 profile_image_url,
                 default_profile,
+                email,
+                discord_username,
+                x_username,
+                farcaster_username,
                 forum_users (
                     forum_username,
                     auth_encrypted_payload,
@@ -47,6 +56,10 @@ export async function GET(request: NextRequest) {
             displayName: targetUser.display_name,
             profileImageUrl: targetUser.profile_image_url,
             defaultProfile: targetUser.default_profile,
+            email: targetUser.email,
+            discordUsername: targetUser.discord_username,
+            xUsername: targetUser.x_username,
+            farcasterUsername: targetUser.farcaster_username,
             forumUsers: targetUser.forum_users.map((forumUser: any) => ({
                 projectUrlSlug: forumUser.projects.url_slug,
                 forumUsername: forumUser.forum_username,
