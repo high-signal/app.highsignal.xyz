@@ -1,7 +1,7 @@
 import { Logger } from "winston"
 import { SupabaseClient } from "@supabase/supabase-js"
 import axios from "axios"
-import { AIOrchestrator } from "../../engine/src/aiOrchestrator"
+import { AIOrchestrator } from "@engine/aiOrchestrator"
 import { 
     getForumUsersForProject, 
     getUserLastUpdate, 
@@ -11,9 +11,9 @@ import {
     getSmartScoreForUser, 
     saveScore, 
     getSignalStrengthConfig 
-} from "../../engine/src/dbClient"
-import { AiConfig, ForumUser } from "../../engine/src/types"
-import { DiscourseAdapterRuntimeConfig } from "../../engine/src/config"
+} from "@engine/dbClient"
+import { AiConfig, ForumUser } from "@engine/types"
+import { DiscourseAdapterRuntimeConfig } from "@engine/config"
 import { fetchUserActivity } from "./apiClient"
 import { DiscourseUserActivity, DiscourseUserAction } from "./types"
 
@@ -188,7 +188,10 @@ export class DiscourseAdapter {
                     summary: result.score.summary ?? "",
                     description: result.score.description ?? "",
                     improvements: result.score.improvements ?? "",
-                    explained_reasoning: result.score.explained_reasoning ?? "",
+                    explained_reasoning:
+                        typeof result.score.explained_reasoning === "string"
+                            ? result.score.explained_reasoning
+                            : result.score.explained_reasoning?.reason ?? "",
                     created: Math.floor(new Date().getTime() / 1000),
                 })
 
@@ -247,8 +250,14 @@ export class DiscourseAdapter {
             return
         }
 
+        // Map raw_value to value to match the expected input for smart score generation.
+        const mappedScores = rawScores.map((score) => ({
+            ...score,
+            value: score.raw_value,
+        }))
+
         const result = await this.aiOrchestrator.generateSmartScoreFromRawScores(
-            rawScores,
+            mappedScores,
             user,
             this.config.PROJECT_ID,
             this.config.SIGNAL_STRENGTH_ID,
@@ -266,7 +275,10 @@ export class DiscourseAdapter {
                 summary: result.score.summary ?? "",
                 description: result.score.description ?? "",
                 improvements: result.score.improvements ?? "",
-                explained_reasoning: result.score.explained_reasoning ?? "",
+                explained_reasoning:
+                    typeof result.score.explained_reasoning === "string"
+                        ? result.score.explained_reasoning
+                        : result.score.explained_reasoning?.reason ?? "",
                 created: Math.floor(new Date().getTime() / 1000),
             })
             this.logger.info(

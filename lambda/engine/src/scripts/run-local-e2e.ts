@@ -4,7 +4,7 @@ import * as winston from "winston"
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
 import nock from "nock"
 import { AIOrchestrator } from "../aiOrchestrator"
-import { DiscourseAdapter } from "../../../discourse/src/adapter"
+import { DiscourseAdapter } from "@discourse/adapter"
 import { getAiConfig } from "../dbClient"
 import { AppConfig, DiscourseAdapterRuntimeConfig } from "../config"
 import { ForumUser, User } from "../types"
@@ -184,9 +184,9 @@ const runTestSuite = async () => {
 
     const { data: rawScores, error: rawScoresError } = await supabase
         .from("user_signal_strengths")
-        .select("raw_value")
+        .select("id")
         .eq("user_id", TEST_USER_ID)
-        .not("raw_value", "is", null)
+        .eq("signal_strength_id", SIGNAL_STRENGTH_ID) // Explicitly check for raw scores
     if (rawScoresError) throw rawScoresError
     if (rawScores.length !== 2) {
         throw new Error(`[Test Case 1] Expected 2 raw scores, but found ${rawScores.length}.`)
@@ -327,11 +327,11 @@ const runTestSuite = async () => {
 
     const { data: scores5, error: scoresError5 } = await supabase
         .from("user_signal_strengths")
-        .select("id, raw_value")
+        .select("id")
         .eq("user_id", TEST_USER_ID)
-        .is("value", null) // only raw scores
+        .eq("signal_strength_id", SIGNAL_STRENGTH_ID) // only raw scores
     if (scoresError5) throw scoresError5
-    // The mock returns 3 activities on the same day, so we expect 1 raw score record.
+    // The mock returns activity on one day, so we expect 1 raw score record.
     if (scores5.length !== 1) {
         throw new Error(`[Test Case 5] Expected 1 raw score, but found ${scores5.length}.`)
     }

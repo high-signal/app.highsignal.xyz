@@ -1,0 +1,28 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+*.tsbuildinfo
+
+# Compiled files that might accidentally end up in source folders
+**/src/**/*.js
+**/src/**/*.js.map
+**/src/**/*.d.ts
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs & Caches
+logs
+*.log
+coverage
+
+# OS generated files
+.DS_Store
+
+# Editor directories
+.idea
+.vscode

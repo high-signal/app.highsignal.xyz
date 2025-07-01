@@ -6,8 +6,9 @@
   "main": "index.js",
   "scripts": {
     "prepare": "husky",
-    "build": "tsc -p engine && tsc -p discourse && tsc -p twitter && tsc -p discord",
-    "test": "vitest",
+    "clean": "find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '*.tsbuildinfo' -type f -delete",
+    "build": "yarn clean && tsc --build",
+    "test": "vitest --config ./vitest.config.ts",
     "coverage": "vitest run --coverage",
     "package": "mkdir -p bundle && rsync -a . bundle/ --exclude bundle --exclude lambda-code.zip --exclude .git --exclude node_modules && rsync -a node_modules/ bundle/node_modules/ && cd bundle && zip -r ../lambda-code.zip . && cd .. && rm -rf bundle"
   },
@@ -22,6 +23,7 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
+    "@types/nock": "^11.1.0",
     "@types/node": "^20.11.24",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
@@ -31,10 +33,13 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.0",
     "husky": "^9.1.7",
+    "nock": "^14.0.5",
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.1",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.3"
   }
 }

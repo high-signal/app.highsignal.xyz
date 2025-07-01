@@ -436,26 +436,44 @@ export async function getSmartScoreForUser(
 }
 
 /**
- * Atomically saves a score to the database using `upsert`.
+ * Saves a score to the database by first deleting any existing score for the same
+ * user, project, signal, and day, and then inserting the new score.
  *
- * This function handles both raw and smart scores, preventing race conditions by
- * relying on the database's atomic `upsert` capability. The `onConflict` clause
- * uses the unique constraint on (`user_id`, `project_id`, `signal_strength_id`, `day`).
+ * This two-step process replicates the legacy system's behavior to ensure only the
+ * latest score for a given context exists, without relying on database `ON CONFLICT`
+ * constraints.
  *
- * @param scoreData The complete score object to be inserted or updated.
+ * @param scoreData The complete score object to be inserted.
  * @returns A promise that resolves when the operation is complete.
  */
 export async function saveScore(
     scoreData: Omit<UserSignalStrength, "id" | "created_at" | "test_requesting_user">,
 ): Promise<void> {
-    const supabase = await getSupabaseClient()
+    const supabase = await getSupabaseClient();
 
-    const { error } = await supabase.from("user_signal_strengths").upsert(scoreData, {
-        onConflict: "user_id,project_id,signal_strength_id,day",
-    })
+    // Step 1: Delete any existing score for the same unique combination.
+    // This replicates the legacy `clearLastChecked.js` functionality.
+    const { error: deleteError } = await supabase
+        .from("user_signal_strengths")
+        .delete()
+        .match({
+            user_id: scoreData.user_id,
+            project_id: scoreData.project_id,
+            signal_strength_id: scoreData.signal_strength_id,
+            day: scoreData.day,
+        });
 
-    if (error) {
-        throw new Error(`Failed to save score: ${error.message}`)
+    if (deleteError) {
+        throw new Error(`Failed to clear previous score: ${deleteError.message}`);
+    }
+
+    // Step 2: Insert the new score.
+    const { error: insertError } = await supabase
+        .from("user_signal_strengths")
+        .insert(scoreData);
+
+    if (insertError) {
+        throw new Error(`Failed to save score: ${insertError.message}`);
     }
 }
 

@@ -2,9 +2,10 @@
   "extends": "./tsconfig.base.json",
   "files": [],
   "references": [
-    { "path": "../interfaces" },
     { "path": "./shared" },
     { "path": "./engine" },
-    { "path": "./discourse" }
+    { "path": "./discourse" },
+    { "path": "./twitter" },
+    { "path": "./discord" }
   ]
 }

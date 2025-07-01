@@ -1,13 +1,25 @@
 /**
- * @file Defines the core data structures and types for the Lambda Engine.
- * The most critical type is PlatformOutput, which is the standardized schema
- * that all platform adapters must return.
+ * @file This file serves as the single source of truth for all shared data structures in the project.
+ * It imports the raw, auto-generated types from `supabase-types.ts` and then re-exports
+ * the specific types needed by the various modules (engine, adapters, etc.).
+ * This ensures consistency and avoids type duplication.
  */
 
-import type { Database } from "@interfaces/supabase-types"
+import { Database, Json } from "./supabase-types"
+
+// Extract the core schema types for easier access.
+type Tables<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Row"]
+type Enums<T extends keyof Database["public"]["Enums"]> = Database["public"]["Enums"][T]
 
 // ==========================================================================
-// 1. CORE DATA STRUCTURES
+// 1. CORE EXPORTS
+// These are the fundamental types that will be used across the application.
+// ==========================================================================
+
+export type { Database, Json }
+
+// ==========================================================================
+// 2. STANDARDIZED ADAPTER-ENGINE INTERFACE
 // ==========================================================================
 
 /**
@@ -61,9 +73,7 @@ export interface PlatformOutput {
 }
 
 // ==========================================================================
-// 2. SUPABASE-DERIVED TYPES
-// These types are derived directly from the auto-generated Supabase schema
-// to ensure perfect alignment with the database.
+// 3. RE-EXPORTED SUPABASE TABLE TYPES
 // ==========================================================================
 
 /**
@@ -76,105 +86,122 @@ export type UserSignalStrength = Database["public"]["Tables"]["user_signal_stren
  * Represents a row from the 'prompts' table.
  * Contains a specific prompt template and its metadata.
  */
-export type Prompt = Database["public"]["Tables"]["prompts"]["Row"]
+export type Prompt = Tables<"prompts">
 
 /**
  * Represents a row from the 'users' table.
  * Contains core information about a user across all platforms.
  */
-export type User = Database["public"]["Tables"]["users"]["Row"]
+export type User = Tables<"users">
 
 /**
  * Represents a row from the 'forum_users' table.
  * This table links a user from the 'users' table to their platform-specific identity.
  */
-export type ForumUser = Database["public"]["Tables"]["forum_users"]["Row"]
-
-// ==========================================================================
-// 3. AI & CONFIGURATION TYPES
-// ==========================================================================
+export type ForumUser = Tables<"forum_users">
 
 /**
- * Represents the comprehensive AI configuration for a specific signal strength,
- * combining details from both the 'signal_strengths' and 'prompts' tables.
+ * Represents a row from the 'projects' table.
  */
-export interface AiConfig {
-    signalStrengthId: number
-    model: string
-    temperature: number
-    maxChars: number
-    prompts: Prompt[]
+export type Project = Tables<"projects">
+
+/**
+ * Represents a row from the 'project_signal_strengths' table,
+ * which configures a signal for a specific project.
+ */
+export type ProjectSignalStrength = Tables<"project_signal_strengths">
+
+// ==========================================================================
+// 4. USER DATA STRUCTURES
+// ==========================================================================
+
+interface UserData {
+    id?: number
+    rank?: number
+    score?: number
+    peakSignalScore?: number
+    signalStrengthScore?: number
+    username?: string
+    displayName?: string
+    profileImageUrl?: string
+    signal?: string
+    projectSlug?: string
+    projectData?: ProjectData
+    peakSignals?: PeakSignalUserData[]
+    signalStrengths?: {
+        signalStrengthName: string
+        data: SignalStrengthUserData[]
+    }[]
+    forumUsers?: ForumUser[]
+    isSuperAdmin?: boolean
+    connectedAccounts?: ConnectedAccount[]
+    defaultProfile?: boolean
+    email?: string
+    discordUsername?: string
+    xUsername?: string
+    farcasterUsername?: string
+}
+
+interface ConnectedAccount {
+    name: string
+    data: ForumUser[]
+}
+
+interface PeakSignalUserData {
+    name: string
+    displayName: string
+    value: number
+    imageSrc: string
+    imageAlt: string
+}
+
+interface SignalStrengthUserData {
+    id?: number
+    day: string
+    name: string
+    value: string
     maxValue: number
-}
-
-/**
- * Configuration for a generic AI model call.
- * This is distinct from AiConfig, which includes database-specific details and prompts.
- */
-export interface ModelConfig {
-    /** The identifier of the AI model to be used (e.g., "gpt-3.5-turbo"). */
-    model: string
-    /** The temperature setting for the AI model, controlling randomness. */
-    temperature: number
-    /** Optional: Maximum number of tokens to generate in the completion. */
-    maxTokens?: number
-}
-
-/**
- * Represents the structured output from an AI service call.
- * This is a generic format before being mapped to specific database schemas like UserSignalStrength.
- */
-export interface AIScoreOutput {
-    /** The primary score value generated by the AI. */
-    value?: number
-    /** A one-sentence summary of the user's contribution. */
     summary: string
-    /** A detailed paragraph describing the user's engagement, tone, and the substance of their posts. */
     description: string
-    /** A paragraph with actionable suggestions for how the user could improve their contributions. */
     improvements: string
-    /** A paragraph explaining how the score was derived, referencing specific examples from the user's content. */
-    explained_reasoning: string
-
-    // --- Metadata related to the AI call execution ---
-    /** The actual model identifier that was used for the call. */
-    modelUsed: string
-    /** Optional: The request ID from the AI provider, for tracing. */
-    requestId?: string
-    /** Optional: Number of tokens used in the prompt. */
+    explainedReasoning?: string
+    model?: string
+    promptId?: string
+    prompt?: string
+    temperature?: number
+    maxChars?: number
+    logs?: string
     promptTokens?: number
-    /** Optional: Number of tokens generated in the completion. */
     completionTokens?: number
+    lastChecked?: number
+    rawValue?: number
+    testRequestingUser?: number
 }
 
-// ==========================================================================
-// 4. SERVICE INTERFACES
-// ==========================================================================
-
-/**
- * Interface for a generic AI service client.
- * Implementations of this interface will handle communication with specific AI providers.
- */
-/**
- * Defines the standard interface for a platform-specific adapter.
- * The Engine Core interacts with this interface, allowing for loose coupling.
- */
-export interface PlatformAdapter {
-  /**
-   * The main entry point for an adapter to process a single user.
-   * @param userId The unique ID of the user to process.
-   * @param projectId The ID of the project context to run against.
-   * @param aiConfig The AI configuration for generating scores.
-   */
-  processUser(userId: string, projectId: number, aiConfig: AiConfig): Promise<void>;
+interface ProjectData {
+    id?: number
+    urlSlug: string
+    displayName: string
+    projectLogoUrl: string
+    peakSignalsEnabled: boolean
+    peakSignalsMaxValue: number
+    signalStrengths: SignalStrengthProjectData[]
 }
 
-export interface AIServiceClient {
-    /**
-     * Sends a prompt to an AI model and expects a structured response.
-     * @param prompt The fully constructed prompt string to send to the AI model.
-     * @param modelConfig Configuration settings for the AI model.
-     * @returns A Promise that resolves to an AIScoreOutput object.
-     */
-    getStructuredResponse(prompt: string, modelConfig: ModelConfig): Promise<AIScoreOutput>
+interface SignalStrengthProjectData {
+    id?: number
+    name: string
+    displayName: string
+    status: string
+    maxValue: number
+    enabled: boolean
+    previousDays: number
+    promptId?: string
+    prompt?: string
+    model?: string
+    temperature?: number
+    maxChars?: number
+    url?: string
+    availableAuthTypes?: string[]
+    authTypes?: string[]
 }

@@ -1,97 +1,23 @@
 /**
- * @file Defines the core data structures and types for the Lambda Engine.
- * The most critical type is PlatformOutput, which is the standardized schema
- * that all platform adapters must return.
+ * @file Defines the internal data structures and types for the Lambda Engine.
+ * It imports shared data structures from the @shared module and defines
+ * types specific to the engine's orchestration and AI processing logic.
  */
 
-import type { Database } from "@interfaces/supabase-types"
+import type {
+    Database,
+    PlatformOutput,
+    UserSignalStrength,
+    Prompt,
+    User,
+    ForumUser,
+} from "@shared/types"
+
+// Re-export shared types for consumers of the engine module
+export type { PlatformOutput, UserSignalStrength, Prompt, User, ForumUser, Database }
 
 // ==========================================================================
-// 1. CORE DATA STRUCTURES
-// ==========================================================================
-
-/**
- * The standardized data structure that all platform adapters must produce.
- * This schema is critical for ensuring zero disruption to downstream systems.
- * It is based on the original output of the legacy Discourse scripts.
- */
-export interface PlatformOutput {
-    /**
-     * The unique identifier of the topic, post, or message from the source platform.
-     * Can be a number (e.g., Discourse topic_id) or a string (e.g., Discord message ID).
-     */
-    topic_id: number | string
-
-    /**
-     * The username or identifier of the content author on the source platform.
-     */
-    author: string
-
-    /**
-     * The main text content of the post or message.
-     */
-    content: string
-
-    /**
-     * The creation timestamp of the content in ISO 8601 format (e.g., "2023-10-27T10:00:00Z").
-     */
-    timestamp: string
-
-    /**
-     * The number of replies to the content. Defaults to 0 if not applicable.
-     */
-    reply_count: number
-
-    /**
-     * The number of likes or reactions to the content. Defaults to 0 if not applicable.
-     */
-    like_count: number
-
-    /**
-     * An array of tags or keywords associated with the content.
-     */
-    tags: string[]
-
-    /**
-     * An optional field for any additional, platform-specific metadata that does not
-     * fit into the core schema. This provides flexibility for future use cases.
-     * Use with caution to avoid creating downstream dependencies on non-standard data.
-     */
-    metadata?: Record<string, any>
-}
-
-// ==========================================================================
-// 2. SUPABASE-DERIVED TYPES
-// These types are derived directly from the auto-generated Supabase schema
-// to ensure perfect alignment with the database.
-// ==========================================================================
-
-/**
- * Represents the structure for inserting a new entry into the 'user_signal_strengths' table.
- * This is the primary data structure for storing AI-generated scores.
- */
-export type UserSignalStrength = Database["public"]["Tables"]["user_signal_strengths"]["Insert"]
-
-/**
- * Represents a row from the 'prompts' table.
- * Contains a specific prompt template and its metadata.
- */
-export type Prompt = Database["public"]["Tables"]["prompts"]["Row"]
-
-/**
- * Represents a row from the 'users' table.
- * Contains core information about a user across all platforms.
- */
-export type User = Database["public"]["Tables"]["users"]["Row"]
-
-/**
- * Represents a row from the 'forum_users' table.
- * This table links a user from the 'users' table to their platform-specific identity.
- */
-export type ForumUser = Database["public"]["Tables"]["forum_users"]["Row"]
-
-// ==========================================================================
-// 3. AI & CONFIGURATION TYPES
+// AI & CONFIGURATION TYPES (Engine-Specific)
 // ==========================================================================
 
 /**
@@ -133,8 +59,10 @@ export interface AIScoreOutput {
     description: string
     /** A paragraph with actionable suggestions for how the user could improve their contributions. */
     improvements: string
-    /** A paragraph explaining how the score was derived, referencing specific examples from the user's content. */
-    explained_reasoning: string
+    /**
+     * A paragraph explaining how the score was derived. For smart scores, this can be an object.
+     */
+    explained_reasoning: string | { value: number; reason: string }
 
     // --- Metadata related to the AI call execution ---
     /** The actual model identifier that was used for the call. */
@@ -148,7 +76,7 @@ export interface AIScoreOutput {
 }
 
 // ==========================================================================
-// 4. SERVICE INTERFACES
+// SERVICE INTERFACES (Engine-Specific)
 // ==========================================================================
 
 /**
