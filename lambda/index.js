@@ -43,7 +43,9 @@ exports.handler = async (event) => {
             console.log(`Signal strength (${signalStrengthName}) not configured for updates`)
             return {
                 statusCode: 400,
-                body: JSON.stringify({ error: `Signal strength (${signalStrengthName}) not configured for updates` }),
+                body: JSON.stringify({
+                    error: `Signal strength (${signalStrengthName}) not configured for updates`,
+                }),
             }
         }
     } catch (error) {
