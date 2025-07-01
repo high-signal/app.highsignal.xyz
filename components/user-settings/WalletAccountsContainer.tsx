@@ -1,18 +1,16 @@
 "use client"
 
-import { VStack, Text, Button } from "@chakra-ui/react"
+import { VStack, Text, Button, useBreakpointValue } from "@chakra-ui/react"
 
-import SettingsGroupContainer from "../ui/SettingsGroupContainer"
 import { faWallet } from "@fortawesome/free-solid-svg-icons"
-import LinkPrivyAccountsContainer from "./LinkPrivyAccountsContainer"
 import { useLinkAccount, usePrivy } from "@privy-io/react-auth"
 
+import SettingsGroupContainer from "../ui/SettingsGroupContainer"
+import AccountConnectionManager from "./AccountConnectionManager"
+
 export default function WalletAccountsContainer({ targetUser, disabled }: { targetUser: UserData; disabled: boolean }) {
-    const { linkWallet, linkPasskey } = useLinkAccount()
-
-    const { user: privyUser, unlinkWallet } = usePrivy()
-
-    // console.log(privyUser)
+    const { linkWallet } = useLinkAccount()
+    const { unlinkWallet } = usePrivy()
 
     return (
         <SettingsGroupContainer icon={faWallet} title="Addresses" lozengeTypes={[]}>
@@ -20,15 +18,40 @@ export default function WalletAccountsContainer({ targetUser, disabled }: { targ
                 <Text>By default, addresses are private and are not used to calculate your Signal Score.</Text>
                 <Text>You can select specific projects to be able to see them to verify your address.</Text>
             </VStack>
-            <Button onClick={linkWallet}>Link Wallet</Button>
-            {privyUser?.linkedAccounts.map((wallet) => {
-                if ("connectorType" in wallet && wallet.connectorType !== "embedded" && "address" in wallet) {
-                    return (
-                        <Text fontFamily={"monospace"} key={wallet.address}>
-                            {wallet.address.slice(0, 6)}...{wallet.address.slice(-5)}
-                        </Text>
-                    )
-                }
+            <Button primaryButton h={"35px"} w={"100%"} borderRadius="full" onClick={linkWallet}>
+                Link address
+            </Button>
+            {targetUser.userAddresses?.map((userAddress, index) => {
+                const truncatedAddress = useBreakpointValue({
+                    base: `${userAddress.address.slice(0, 5)}...${userAddress.address.slice(-5)}`,
+                    sm: `${userAddress.address.slice(0, 10)}...${userAddress.address.slice(-10)}`,
+                })
+
+                return (
+                    <AccountConnectionManager
+                        key={userAddress.address}
+                        config={{
+                            connectionType: "wallet",
+                            displayName: userAddress.addressName || `Address ${index + 1}`,
+                            logoIcon: faWallet,
+                        }}
+                        isConnected={true}
+                        isConnectedLoading={false}
+                        connectionValue={truncatedAddress || ""}
+                        connectionValueFontFamily={"monospace"}
+                        isSubmitting={false}
+                        onConnect={() => {}}
+                        onDisconnect={() => {
+                            unlinkWallet(userAddress.address)
+                        }}
+                        getConnectionDescription={() => {
+                            return "Testing"
+                        }}
+                        disabled={disabled}
+                        lozengeTypes={["public"]}
+                        loginOnly={false}
+                    />
+                )
             })}
         </SettingsGroupContainer>
     )

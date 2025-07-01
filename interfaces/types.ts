@@ -23,6 +23,19 @@ interface UserData {
     discordUsername?: string
     xUsername?: string
     farcasterUsername?: string
+    userAddresses?: UserAddress[]
+}
+
+interface UserAddress {
+    address: string
+    addressName?: string
+    isPublic: boolean
+    userAddressesShared: UserAddressShared[]
+}
+
+interface UserAddressShared {
+    projectUrlSlug: string
+    projectDisplayName: string
 }
 
 interface ConnectedAccount {

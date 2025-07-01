@@ -281,7 +281,6 @@ export default function LinkPrivyAccountsContainer({
                 lozengeTypes={lozengeTypes}
                 loginOnly={loginOnly}
             />
-
             {accountConfig.confirmDelete && (
                 <GenericConfirmModal
                     name={accountConfig.displayName}

@@ -20,6 +20,7 @@ interface SingleLineTextInputProps {
     ref?: React.RefObject<HTMLInputElement>
     bg?: string
     borderColor?: string
+    valueFontFamily?: string
 }
 
 export default function SingleLineTextInput({
@@ -39,6 +40,7 @@ export default function SingleLineTextInput({
     ref,
     bg = "contentBackground",
     borderColor = "transparent",
+    valueFontFamily,
 }: SingleLineTextInputProps) {
     const showClearButton = Boolean(handleClear) && Boolean(value)
 
@@ -47,6 +49,7 @@ export default function SingleLineTextInput({
             <Input
                 ref={ref}
                 value={value}
+                fontFamily={valueFontFamily || undefined}
                 onChange={onChange}
                 onKeyDown={onKeyDown}
                 onFocus={onFocus}

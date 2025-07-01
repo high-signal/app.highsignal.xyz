@@ -23,6 +23,10 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
 
     const isOwner = loggedInUser?.username === targetUser.username
 
+    const Divider = () => {
+        return <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
+    }
+
     return (
         <SettingsSectionContainer>
             {!targetUser ? (
@@ -40,7 +44,9 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                         disabled={!isOwner}
                         lozengeTypes={["notifications", "private"]}
                     />
+                    <Divider />
                     <ForumAccountsContainer targetUser={targetUser} disabled={!isOwner} />
+                    <Divider />
                     <SettingsGroupContainer icon={faBullhorn} title="Social Accounts" lozengeTypes={["score"]}>
                         <LinkPrivyAccountsContainer
                             targetUser={targetUser}
@@ -79,8 +85,9 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                             lozengeTypes={["comingSoon", "private"]}
                         />
                     </SettingsGroupContainer>
+                    <Divider />
                     <WalletAccountsContainer targetUser={targetUser} disabled={!isOwner} />
-                    <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
+                    <Divider />
                     <SettingsGroupContainer icon={faRightToBracket} title="Other log in options">
                         <VStack w={"100%"} gap={4} fontSize="sm" px={2}>
                             <Text>

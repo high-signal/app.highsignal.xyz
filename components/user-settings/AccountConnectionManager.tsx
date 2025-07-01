@@ -71,6 +71,7 @@ export interface AccountConnectionManagerProps {
     children?: React.ReactNode // For modals and other custom elements
     lozengeTypes?: LozengeType[]
     loginOnly?: boolean
+    connectionValueFontFamily?: string
 }
 
 export default function AccountConnectionManager({
@@ -90,6 +91,7 @@ export default function AccountConnectionManager({
     children,
     lozengeTypes = [],
     loginOnly = false,
+    connectionValueFontFamily,
 }: AccountConnectionManagerProps) {
     return (
         <VStack w={"100%"}>
@@ -115,6 +117,7 @@ export default function AccountConnectionManager({
                 description={getConnectionDescription()}
                 lozengeTypes={lozengeTypes}
                 value={connectionValue}
+                valueFontFamily={connectionValueFontFamily}
                 error=""
                 isEditable={!isSubmitting && !isConnected}
                 inputReplacement={

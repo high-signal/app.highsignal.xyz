@@ -18,6 +18,7 @@ interface SettingsInputFieldProps {
     inputReplacement?: ReactNode
     h?: string
     lozengeTypes?: LozengeType[]
+    valueFontFamily?: string
 }
 
 export default function SettingsInputField({
@@ -33,6 +34,7 @@ export default function SettingsInputField({
     inputReplacement,
     h = "35px",
     lozengeTypes = [],
+    valueFontFamily,
 }: SettingsInputFieldProps) {
     return (
         <VStack
@@ -58,6 +60,7 @@ export default function SettingsInputField({
                 ) : (
                     <SingleLineTextInput
                         value={value}
+                        valueFontFamily={valueFontFamily}
                         onChange={onChange}
                         onKeyDown={onKeyDown}
                         rightElement={rightElement}
