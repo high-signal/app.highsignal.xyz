@@ -7,6 +7,7 @@ import { useGetProjects } from "../../../hooks/useGetProjects"
 import ForumConnectionManager from "./ForumConnectionManager"
 import { faDiscourse } from "@fortawesome/free-brands-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import SettingsGroupContainer from "../../ui/SettingsGroupContainer"
 
 export default function ForumAccountsContainer({ targetUser, disabled }: { targetUser: UserData; disabled: boolean }) {
     const { projects, loading: projectsLoading } = useGetProjects()
@@ -73,71 +74,65 @@ export default function ForumAccountsContainer({ targetUser, disabled }: { targe
         : false
 
     return (
-        <VStack w="100%" bg="contentBackground" borderRadius="16px" px={3} py={4} gap={4} alignItems="start">
-            <HStack fontWeight="bold" fontSize="lg" pl={3} gap={2}>
-                <FontAwesomeIcon icon={faDiscourse} size="lg" />
-                <Text>Forum Accounts</Text>
-            </HStack>
-            <VStack w={"100%"} gap={4}>
-                {projectsLoading ? (
-                    <Spinner />
-                ) : (
-                    <>
-                        {/* Show connected forum accounts */}
-                        {connectedForumConfigs.length > 0 && (
-                            <VStack gap={6} w="100%">
-                                {connectedForumConfigs.map((config, index) => (
+        <SettingsGroupContainer icon={faDiscourse} title="Forum Accounts">
+            {projectsLoading ? (
+                <Spinner />
+            ) : (
+                <>
+                    {/* Show connected forum accounts */}
+                    {connectedForumConfigs.length > 0 && (
+                        <VStack gap={6} w="100%">
+                            {connectedForumConfigs.map((config, index) => (
+                                <ForumConnectionManager
+                                    key={index}
+                                    targetUser={targetUser}
+                                    config={config}
+                                    disabled={disabled}
+                                    lozengeTypes={["score", "private"]}
+                                />
+                            ))}
+                        </VStack>
+                    )}
+                    {/* Show dropdown for connecting to new projects */}
+                    {availableForumConfigs.length > 0 && (
+                        <VStack gap={4} alignItems="start" w="100%">
+                            <HStack w="100%">
+                                <ProjectPicker
+                                    onProjectSelect={handleProjectSelect}
+                                    selectorText={`Select ${selectedProjectToConnect ? "another" : "a"} forum to connect...`}
+                                    placeholder={"Search..."}
+                                />
+                                {selectedProjectToConnect && (
+                                    <Button
+                                        secondaryButton
+                                        borderRadius="full"
+                                        px={3}
+                                        py={1}
+                                        h={"35px"}
+                                        onClick={() => setSelectedProjectToConnect(null)}
+                                        display={{ base: "none", sm: "flex" }}
+                                    >
+                                        Cancel
+                                    </Button>
+                                )}
+                            </HStack>
+                            {selectedConfig &&
+                                (isSelectedProjectConnected ? (
+                                    <Text color="green.500" fontSize="sm" pl={4}>
+                                        You are already connected to {selectedConfig.projectDisplayName} forum
+                                    </Text>
+                                ) : (
                                     <ForumConnectionManager
-                                        key={index}
                                         targetUser={targetUser}
-                                        config={config}
+                                        config={selectedConfig}
                                         disabled={disabled}
-                                        lozengeTypes={["private"]}
+                                        lozengeTypes={["score", "private"]}
                                     />
                                 ))}
-                            </VStack>
-                        )}
-                        {/* Show dropdown for connecting to new projects */}
-                        {availableForumConfigs.length > 0 && (
-                            <VStack gap={4} alignItems="start" w="100%">
-                                <HStack w="100%">
-                                    <ProjectPicker
-                                        onProjectSelect={handleProjectSelect}
-                                        selectorText={`Select ${selectedProjectToConnect ? "another" : "a"} forum to connect...`}
-                                        placeholder={"Search..."}
-                                    />
-                                    {selectedProjectToConnect && (
-                                        <Button
-                                            secondaryButton
-                                            borderRadius="full"
-                                            px={3}
-                                            py={1}
-                                            h={"35px"}
-                                            onClick={() => setSelectedProjectToConnect(null)}
-                                            display={{ base: "none", sm: "flex" }}
-                                        >
-                                            Cancel
-                                        </Button>
-                                    )}
-                                </HStack>
-                                {selectedConfig &&
-                                    (isSelectedProjectConnected ? (
-                                        <Text color="green.500" fontSize="sm" pl={4}>
-                                            You are already connected to {selectedConfig.projectDisplayName} forum
-                                        </Text>
-                                    ) : (
-                                        <ForumConnectionManager
-                                            targetUser={targetUser}
-                                            config={selectedConfig}
-                                            disabled={disabled}
-                                            lozengeTypes={["score", "private"]}
-                                        />
-                                    ))}
-                            </VStack>
-                        )}
-                    </>
-                )}
-            </VStack>
-        </VStack>
+                        </VStack>
+                    )}
+                </>
+            )}
+        </SettingsGroupContainer>
     )
 }
