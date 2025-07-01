@@ -63,7 +63,7 @@ export async function PUT(request: Request) {
             .toString(16)
             .padStart(16, "0")
         const authRedirect = encodeURIComponent(
-            `${process.env.NEXT_PUBLIC_SITE_URL!}/settings/u/${username}?tab=connected-accounts&type=discourse_forum&project=${projectUrlSlug}`,
+            `${process.env.NEXT_PUBLIC_SITE_URL!}/settings/u/${username}?tab=accounts&type=discourse_forum&project=${projectUrlSlug}`,
         )
 
         return NextResponse.json({
