@@ -46,16 +46,6 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
     try {
         effectiveLogger.info("Configuration loaded successfully.")
 
-        // This engine is designed for a user-centric workflow. The platform adapter
-        // is dynamically imported to keep the engine loosely coupled.
-        if (platformName.toLowerCase() !== "discourse") {
-            throw new Error(
-                `Platform '${platformName}' is not supported. This engine is currently configured for Discourse.`,
-            )
-        }
-
-        effectiveLogger.info("Proceeding with User-Centric Workflow for Discourse.")
-
         const { userId, projectId } = options
         if (!userId || !projectId) {
             throw new Error("userId and projectId are required in the event payload for the user-centric workflow.")
@@ -65,15 +55,27 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
         await getSupabaseClient() // Ensures DB client is ready
         const aiOrchestrator = new AIOrchestrator(config, effectiveLogger)
 
-        // Dynamically import the adapter to avoid a hard dependency.
-        // This allows for other adapters to be added in the future.
-        const { DiscourseAdapter } = await import("../../discourse/src/adapter")
+        // Dynamically import the adapter based on the platformName to keep the engine decoupled.
+        const adapterPath = `@${platformName.toLowerCase()}/adapter`
+        effectiveLogger.info(`Dynamically importing adapter from: ${adapterPath}`)
+        const adapterModule = await import(adapterPath)
+
+        // Construct the adapter class name from the platform name (e.g., 'discourse' -> 'DiscourseAdapter')
+        const adapterClassName = `${platformName.charAt(0).toUpperCase() + platformName.slice(1)}Adapter`
+        const AdapterClass = adapterModule[adapterClassName]
+
+        if (!AdapterClass) {
+            throw new Error(`Adapter class '${adapterClassName}' not found in module '${adapterPath}'`)
+        }
+
+        // TODO: The config loading should also be made dynamic and not be specific to Discourse.
+        // This is a temporary measure to get the build to pass.
         const discourseConfig = await getDiscourseAdapterRuntimeConfig()
 
-        const discourseAdapter = new DiscourseAdapter(effectiveLogger, aiOrchestrator, discourseConfig)
+        const adapter = new AdapterClass(effectiveLogger, aiOrchestrator, discourseConfig)
 
         // Execute the main user processing logic within the adapter
-        await discourseAdapter.processUser(userId, projectId, discourseConfig.aiConfig)
+        await adapter.processUser(userId, projectId, discourseConfig.aiConfig)
 
         effectiveLogger.info(`Successfully completed engine run for platform '${platformName}' and user '${userId}'.`)
     } catch (error: any) {

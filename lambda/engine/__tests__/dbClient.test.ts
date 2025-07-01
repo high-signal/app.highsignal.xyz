@@ -20,12 +20,14 @@ const mockGetAppConfig = getAppConfig as Mock
 const mockSupabaseClient = {
     from: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),
-    upsert: vi.fn().mockResolvedValue({ data: null, error: null }),
+    insert: vi.fn().mockResolvedValue({ data: null, error: null }),
     eq: vi.fn().mockReturnThis(),
     gte: vi.fn().mockReturnThis(),
     not: vi.fn().mockReturnThis(),
     order: vi.fn().mockResolvedValue({ data: [], error: null }),
     single: vi.fn().mockResolvedValue({ data: {}, error: null }),
+    delete: vi.fn().mockReturnThis(),
+    match: vi.fn().mockResolvedValue({ error: null }),
 }
 
 describe("dbClient", () => {
@@ -43,7 +45,7 @@ describe("dbClient", () => {
     })
 
     describe("saveScore", () => {
-        it("should call upsert with the correct data and onConflict strategy", async () => {
+        it("should call delete and insert with the correct data", async () => {
             const scoreData: Omit<UserSignalStrength, "id" | "created_at" | "test_requesting_user"> = {
                 user_id: 1,
                 project_id: 1,
@@ -61,15 +63,35 @@ describe("dbClient", () => {
 
             await saveScore(scoreData)
 
+            // Verify delete call
             expect(mockSupabaseClient.from).toHaveBeenCalledWith("user_signal_strengths")
-            expect(mockSupabaseClient.upsert).toHaveBeenCalledWith(scoreData, {
-                onConflict: "user_id,project_id,signal_strength_id,day",
+            expect(mockSupabaseClient.delete).toHaveBeenCalled()
+            expect(mockSupabaseClient.match).toHaveBeenCalledWith({
+                user_id: scoreData.user_id,
+                project_id: scoreData.project_id,
+                signal_strength_id: scoreData.signal_strength_id,
+                day: scoreData.day,
             })
+
+            // Verify insert call
+            expect(mockSupabaseClient.from).toHaveBeenCalledWith("user_signal_strengths")
+            expect(mockSupabaseClient.insert).toHaveBeenCalledWith(scoreData)
         })
 
-        it("should throw an error if upsert fails", async () => {
-            const dbError = new Error("DB upsert failed")
-            mockSupabaseClient.upsert.mockResolvedValueOnce({ error: dbError })
+        it("should throw an error if delete fails", async () => {
+            const dbError = new Error("DB delete failed")
+            mockSupabaseClient.match.mockResolvedValueOnce({ error: dbError })
+
+            const scoreData = { user_id: 1, project_id: 1, signal_strength_id: 1, day: "2023-01-01" } as any
+            await expect(saveScore(scoreData)).rejects.toThrow(`Failed to clear previous score: ${dbError.message}`)
+        })
+
+        it("should throw an error if insert fails", async () => {
+            const dbError = new Error("DB insert failed")
+            // Mock delete to succeed
+            mockSupabaseClient.match.mockResolvedValueOnce({ error: null })
+            // Mock insert to fail
+            mockSupabaseClient.insert.mockResolvedValueOnce({ error: dbError })
 
             const scoreData = { user_id: 1, project_id: 1, signal_strength_id: 1, day: "2023-01-01" } as any
             await expect(saveScore(scoreData)).rejects.toThrow(`Failed to save score: ${dbError.message}`)

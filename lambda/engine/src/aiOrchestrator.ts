@@ -152,8 +152,13 @@ export class AIOrchestrator {
             maxValue: aiConfig.maxValue,
         })
 
-        const aiScore = await this._executeAIServiceCall(finalPrompt, aiConfig, user.user_id)
-        return aiScore ? { score: aiScore, promptId: promptConfig.id } : null
+        const rawScore = await this._executeAIServiceCall(finalPrompt, aiConfig, user.user_id, "raw")
+
+        if (rawScore) {
+            return { score: rawScore, promptId: promptConfig.id }
+        }
+
+        return null
     }
 
     /**
@@ -206,13 +211,13 @@ export class AIOrchestrator {
             maxValue: aiConfig.maxValue,
         })
 
-        const smartScore = await this._executeAIServiceCall(finalPrompt, aiConfig, user.user_id)
+        const smartScore = await this._executeAIServiceCall(finalPrompt, aiConfig, user.user_id, "smart")
 
-    if (smartScore) {
-        return { score: smartScore, promptId: promptConfig.id }
-    }
+        if (smartScore) {
+            return { score: smartScore, promptId: promptConfig.id }
+        }
 
-    return null
+        return null
     }
 
     // ==========================================================================
@@ -335,7 +340,7 @@ export class AIOrchestrator {
             maxValue: aiConfig.maxValue,
         })
 
-        return this._executeAIServiceCall(finalPrompt, aiConfig, userId)
+        return this._executeAIServiceCall(finalPrompt, aiConfig, userId, "raw")
     }
 
     /**
@@ -347,6 +352,7 @@ export class AIOrchestrator {
         prompt: string,
         aiConfig: AiConfig,
         userId: number,
+        scoreType: "raw" | "smart",
     ): Promise<AIScoreOutput | null> {
         const modelConfig: ModelConfig = {
             model: aiConfig.model,
@@ -358,6 +364,16 @@ export class AIOrchestrator {
 
         try {
             const aiScore = await aiServiceClient.getStructuredResponse(prompt, modelConfig)
+
+            // For smart scores, the value is nested. We lift it to the top level.
+            if (
+                scoreType === "smart" &&
+                typeof aiScore.explained_reasoning === "object" &&
+                aiScore.explained_reasoning !== null
+            ) {
+                this.logger.info("Lifting nested 'value' from smart score response.")
+                aiScore.value = aiScore.explained_reasoning.value
+            }
 
             if (typeof aiScore.value !== "number") {
                 this.logger.error(`AI response for user ${userId} is missing a numeric 'value'.`)
@@ -401,7 +417,10 @@ export class AIOrchestrator {
             summary: aiScore.summary,
             description: aiScore.description,
             improvements: aiScore.improvements,
-            explained_reasoning: aiScore.explained_reasoning,
+            explained_reasoning:
+                typeof aiScore.explained_reasoning === "object" && aiScore.explained_reasoning !== null
+                    ? aiScore.explained_reasoning.reason
+                    : aiScore.explained_reasoning,
             created: Math.floor(new Date().getTime() / 1000),
             day: day,
             model: aiConfig.model,
