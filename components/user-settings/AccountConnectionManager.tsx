@@ -70,6 +70,7 @@ export interface AccountConnectionManagerProps {
     disabled?: boolean
     children?: React.ReactNode // For modals and other custom elements
     lozengeTypes?: LozengeType[]
+    loginOnly?: boolean
 }
 
 export default function AccountConnectionManager({
@@ -88,6 +89,7 @@ export default function AccountConnectionManager({
     disabled = false,
     children,
     lozengeTypes = [],
+    loginOnly = false,
 }: AccountConnectionManagerProps) {
     return (
         <VStack w={"100%"}>
@@ -131,7 +133,9 @@ export default function AccountConnectionManager({
                                 {isSubmitting || isProcessingAuthRequest ? (
                                     <Spinner size="sm" color="white" />
                                 ) : (
-                                    <Text fontWeight="bold">Confirm ownership</Text>
+                                    <Text fontWeight="bold">
+                                        {loginOnly ? "Add log in option" : "Confirm ownership"}
+                                    </Text>
                                 )}
                             </Button>
                         )

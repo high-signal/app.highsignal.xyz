@@ -80,7 +80,6 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                         />
                     </SettingsGroupContainer>
                     <WalletAccountsContainer targetUser={targetUser} disabled={!isOwner} />
-
                     <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
                     <SettingsGroupContainer icon={faRightToBracket} title="Other log in options">
                         <VStack w={"100%"} gap={4} fontSize="sm" px={2}>

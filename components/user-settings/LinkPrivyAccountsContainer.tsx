@@ -279,6 +279,7 @@ export default function LinkPrivyAccountsContainer({
                 }}
                 disabled={disabled}
                 lozengeTypes={lozengeTypes}
+                loginOnly={loginOnly}
             />
 
             {accountConfig.confirmDelete && (
