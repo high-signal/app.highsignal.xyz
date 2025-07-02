@@ -203,7 +203,7 @@ export default function AccountConnectionManager({
                                         {onRefresh && (
                                             <CustomMenuItem value="refresh" onClick={onRefresh}>
                                                 <HStack overflow={"hidden"}>
-                                                    <Text fontWeight="bold">Refresh connection</Text>
+                                                    <Text fontWeight="bold">Refresh confirmation</Text>
                                                     <Box w="20px">
                                                         <FontAwesomeIcon icon={faRefresh} />
                                                     </Box>
