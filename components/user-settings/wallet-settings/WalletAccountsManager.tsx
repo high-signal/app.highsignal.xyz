@@ -39,7 +39,7 @@ export default function WalletAccountsManager({
             key={userAddressConfig.address}
             config={{
                 connectionType: "wallet",
-                displayName: userAddressConfig.addressName || `Address ${index + 1}`,
+                displayName: userAddressConfig.addressName || `Address ${userAddressConfig.address.slice(0, 5)}...`,
                 logoIcon: faWallet,
             }}
             isConnected={true}

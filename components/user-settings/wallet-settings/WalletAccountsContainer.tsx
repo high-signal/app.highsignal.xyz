@@ -25,16 +25,33 @@ export default function WalletAccountsContainer({ targetUser, disabled }: { targ
                 {targetUser && targetUser?.userAddresses && targetUser?.userAddresses?.length > 0 ? "nother" : "n"}{" "}
                 address
             </Button>
-            {targetUser.userAddresses?.map((userAddressConfig, index) => {
-                return (
-                    <WalletAccountsManager
-                        key={index}
-                        userAddressConfig={userAddressConfig}
-                        disabled={disabled}
-                        index={index}
-                    />
-                )
-            })}
+            {targetUser.userAddresses
+                ?.sort((a, b) => {
+                    // If both have addressName, sort alphabetically
+                    if (a.addressName && b.addressName) {
+                        return a.addressName.localeCompare(b.addressName)
+                    }
+                    // If only a has addressName, a comes first
+                    if (a.addressName && !b.addressName) {
+                        return -1
+                    }
+                    // If only b has addressName, b comes first
+                    if (!a.addressName && b.addressName) {
+                        return 1
+                    }
+                    // If neither has addressName, sort by address
+                    return a.address.localeCompare(b.address)
+                })
+                .map((userAddressConfig, index) => {
+                    return (
+                        <WalletAccountsManager
+                            key={index}
+                            userAddressConfig={userAddressConfig}
+                            disabled={disabled}
+                            index={index}
+                        />
+                    )
+                })}
         </SettingsGroupContainer>
     )
 }

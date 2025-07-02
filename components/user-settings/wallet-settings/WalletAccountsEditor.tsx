@@ -13,6 +13,7 @@ import ProjectPicker from "../../ui/ProjectPicker"
 
 import { validateAddressName } from "../../../utils/inputValidation"
 import { ASSETS } from "../../../config/constants"
+import { useUser } from "../../../contexts/UserContext"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy, faXmark } from "@fortawesome/free-solid-svg-icons"
@@ -40,6 +41,8 @@ export default function WalletAccountsEditor({
     const [isSaving, setIsSaving] = useState(false)
     const [addressNameValidationError, setAddressNameValidationError] = useState<string | null>(null)
     const [sharingValidationError, setSharingValidationError] = useState<string | null>(null)
+
+    const { refreshUser } = useUser()
 
     const params = useParams()
     const targetUsername = params.username as string
@@ -102,6 +105,13 @@ export default function WalletAccountsEditor({
         }
     }, [settings?.sharing.new])
 
+    // When userAddressConfig changes, set the loading state to false
+    // This is to improve the UX of the component when a user successfully saves their settings
+    useEffect(() => {
+        setIsSaving(false)
+        onClose()
+    }, [userAddressConfig])
+
     // Copy the address to the clipboard
     const handleCopyAddress = async () => {
         try {
@@ -120,15 +130,39 @@ export default function WalletAccountsEditor({
         if (!addressNameValidationError && !sharingValidationError) {
             setIsSaving(true)
             try {
+                // Create changedFields object with only modified fields
+                const changedFields: any = {}
+
+                if (settings.name.new !== null && settings.name.new !== settings.name.current) {
+                    changedFields.name = settings.name.new
+                }
+
+                if (settings.sharing.new !== null && settings.sharing.new !== settings.sharing.current) {
+                    changedFields.sharing = settings.sharing.new
+                }
+
+                if (
+                    settings.userAddressesShared.new !== null &&
+                    JSON.stringify(settings.userAddressesShared.new) !==
+                        JSON.stringify(settings.userAddressesShared.current)
+                ) {
+                    changedFields.userAddressesShared = settings.userAddressesShared.new.map(
+                        (project) => project.projectUrlSlug,
+                    )
+                }
+
                 const token = await getAccessToken()
-                const response = await fetch(`/api/settings/u/addresses?username=${targetUsername}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
+                const response = await fetch(
+                    `/api/settings/u/accounts/addresses?username=${targetUsername}&address=${userAddressConfig.address}`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ changedFields }),
                     },
-                    body: JSON.stringify({ settings }),
-                })
+                )
                 if (!response.ok) {
                     const jsonResponse = await response.json()
                     console.error("Error saving settings:", jsonResponse)
@@ -137,12 +171,13 @@ export default function WalletAccountsEditor({
                         description: jsonResponse.error,
                         type: "error",
                     })
+                    setIsSaving(false)
                 } else {
                     toaster.create({
                         title: "✅ Settings saved successfully",
                         type: "success",
                     })
-                    onClose()
+                    refreshUser()
                 }
             } catch (error) {
                 console.error("Error saving settings:", error)
@@ -151,8 +186,8 @@ export default function WalletAccountsEditor({
                     description: error instanceof Error ? error.message : "An unknown error occurred",
                     type: "error",
                 })
+                setIsSaving(false)
             }
-            setIsSaving(false)
         }
     }
 
