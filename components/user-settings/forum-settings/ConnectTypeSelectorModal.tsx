@@ -129,7 +129,7 @@ export default function ConnectTypeSelectorModal({
             })
             handleClose()
             setIsAuthPostCodeCheckSubmitted(false)
-            refreshUser()
+            await refreshUser()
         } else {
             setIsAuthPostCodeCheckSubmitted(false)
             setAuthPostCheckError(

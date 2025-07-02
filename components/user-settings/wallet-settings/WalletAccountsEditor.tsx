@@ -177,7 +177,7 @@ export default function WalletAccountsEditor({
                         title: "✅ Settings saved successfully",
                         type: "success",
                     })
-                    refreshUser()
+                    await refreshUser()
                 }
             } catch (error) {
                 console.error("Error saving settings:", error)

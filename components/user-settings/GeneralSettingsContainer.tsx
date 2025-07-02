@@ -42,13 +42,13 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
         }
     }, [error])
 
-    const handleProfileImageUpdated = (imageUrl: string) => {
+    const handleProfileImageUpdated = async (imageUrl: string) => {
         // Update form data and refresh user data so all the states are updated
         setFormData((prev) => ({
             ...prev,
             profileImageUrl: imageUrl,
         }))
-        refreshUser()
+        await refreshUser()
     }
 
     const handleFieldChange = (field: string, value: string) => {

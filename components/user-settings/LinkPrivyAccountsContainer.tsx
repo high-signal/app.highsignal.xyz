@@ -48,7 +48,7 @@ export default function LinkPrivyAccountsContainer({
                     })
 
                     // Refresh the user data to update the targetUser state
-                    refreshUser()
+                    await refreshUser()
 
                     // Reset the connection state
                     setIsSubmitting(false)
@@ -224,7 +224,7 @@ export default function LinkPrivyAccountsContainer({
             })
 
             // Refresh the user data to update the targetUser state
-            refreshUser()
+            await refreshUser()
 
             // Reset the connection state
             setIsConnected(false)

@@ -29,7 +29,7 @@ export default function WalletAccountsContainer({ targetUser, disabled }: { targ
             })
 
             // Refresh the user data to update the targetUser state
-            refreshUser()
+            await refreshUser()
 
             // Reset the submitting state
             setIsSubmitting(false)
