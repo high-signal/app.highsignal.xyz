@@ -31,7 +31,10 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
 
                 const privyUser = await privyResponse.json()
 
-                // Process each auth type mapping
+                // ******************************************************
+                // Process each auth type mapping for users table columns
+                // ******************************************************
+                // Process each auth type mapping for users table columns
                 for (const [authType, { dbColumn, privyField }] of Object.entries(AUTH_TYPE_MAPPING)) {
                     // Find the account from linked_accounts
                     const account = privyUser.linked_accounts?.find((account: any) => account.type === authType)
@@ -95,6 +98,84 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
                         if (deleteError) {
                             console.error(`Error deleting user ${dbColumn}:`, deleteError)
                         }
+                    }
+                }
+
+                // ***************************************************************************
+                // Handle wallet address even if there are no connected addresses as it needs
+                // to try to delete any that might have been removed from the Privy user
+                // ***************************************************************************
+
+                // Get the target user from the users table
+                const { data: targetUser, error: targetUserError } = await supabase
+                    .from("users")
+                    .select("id")
+                    .eq("username", targetUsername)
+                    .single()
+
+                if (targetUserError) {
+                    console.error("Error fetching target user:", targetUserError)
+                    return
+                }
+
+                // Get all the addresses from the user_addresses table for the target user
+                const { data: userAddresses, error: userAddressesError } = await supabase
+                    .from("user_addresses")
+                    .select("address")
+                    .eq("user_id", targetUser.id)
+
+                if (userAddressesError) {
+                    console.error("Error fetching user addresses:", userAddressesError)
+                    return
+                }
+
+                // If any addresses are in the DB but not in the Privy user (filtered for wallet accounts), delete them
+                const addressesToDelete = userAddresses.filter(
+                    (address) =>
+                        !privyUser.linked_accounts?.some(
+                            (account: any) =>
+                                account.type === "wallet" &&
+                                account.connector_type === "injected" &&
+                                account.address === address.address,
+                        ),
+                )
+
+                const { error: deleteError } = await supabase
+                    .from("user_addresses")
+                    .delete()
+                    .in(
+                        "address",
+                        addressesToDelete.map((address) => address.address),
+                    )
+                    .eq("user_id", targetUser.id)
+
+                if (deleteError) {
+                    console.error("Error deleting user addresses:", deleteError)
+                    return
+                }
+
+                // If any addresses are in the Privy user but not in the DB, add them
+                const addressesToAdd = privyUser.linked_accounts?.filter(
+                    (account: any) =>
+                        account.type === "wallet" &&
+                        account.connector_type === "injected" &&
+                        !userAddresses.some((address) => address.address === account.address),
+                )
+
+                if (addressesToAdd.length > 0) {
+                    const { error: addAddressesError } = await supabase
+                        .from("user_addresses")
+                        .insert(
+                            addressesToAdd.map((address: any) => ({
+                                address: address.address,
+                                user_id: targetUser.id,
+                            })),
+                        )
+                        .select()
+
+                    if (addAddressesError) {
+                        console.error("Error adding user addresses:", addAddressesError)
+                        return
                     }
                 }
             } else {

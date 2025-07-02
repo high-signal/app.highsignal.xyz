@@ -2,14 +2,54 @@
 
 import { VStack, Text, Button } from "@chakra-ui/react"
 
+import { useUser } from "../../../contexts/UserContext"
+import { toaster } from "../../ui/toaster"
+
 import { faWallet } from "@fortawesome/free-solid-svg-icons"
-import { useLinkAccount } from "@privy-io/react-auth"
+import { getAccessToken, useLinkAccount } from "@privy-io/react-auth"
 
 import SettingsGroupContainer from "../../ui/SettingsGroupContainer"
 import WalletAccountsManager from "./WalletAccountsManager"
+import { useState } from "react"
 
 export default function WalletAccountsContainer({ targetUser, disabled }: { targetUser: UserData; disabled: boolean }) {
-    const { linkWallet } = useLinkAccount()
+    const { refreshUser } = useUser()
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const { linkWallet } = useLinkAccount({
+        onSuccess: async () => {
+            // Call the API to update the Privy accounts
+            const token = await getAccessToken()
+            await fetch(`/api/settings/u/accounts/privy-accounts?username=${targetUser.username}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+
+            // Refresh the user data to update the targetUser state
+            refreshUser()
+
+            // Reset the submitting state
+            setIsSubmitting(false)
+
+            toaster.create({
+                title: `✅ Address confirmed`,
+                description: `You have successfully confirmed ownership of your address.`,
+                type: "success",
+            })
+        },
+        onError: (error) => {
+            console.error(`Failed to link address:`, error)
+            toaster.create({
+                title: `❌ Error confirming address`,
+                description: `Failed to confirm ownership of your address. Please try again.`,
+                type: "error",
+            })
+            setIsSubmitting(false)
+        },
+    })
 
     return (
         <SettingsGroupContainer icon={faWallet} title="Addresses" lozengeTypes={[]}>
@@ -20,7 +60,19 @@ export default function WalletAccountsContainer({ targetUser, disabled }: { targ
                     users.
                 </Text>
             </VStack>
-            <Button primaryButton h={"35px"} w={"100%"} borderRadius="full" onClick={linkWallet} fontWeight="bold">
+            <Button
+                primaryButton
+                h={"35px"}
+                w={"100%"}
+                borderRadius="full"
+                onClick={() => {
+                    setIsSubmitting(true)
+                    linkWallet()
+                }}
+                fontWeight="bold"
+                disabled={disabled}
+                loading={isSubmitting}
+            >
                 Confirm a
                 {targetUser && targetUser?.userAddresses && targetUser?.userAddresses?.length > 0 ? "nother" : "n"}{" "}
                 address

@@ -56,7 +56,7 @@ export default function LinkPrivyAccountsContainer({
                     setIsConnectedLoading(false)
 
                     toaster.create({
-                        title: `✅ ${accountConfig.displayName} Account ownership confirmed`,
+                        title: `✅ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account ownership confirmed`,
                         description: `You have successfully confirmed ownership of your ${accountConfig.displayName} account.`,
                         type: "success",
                     })
@@ -234,11 +234,11 @@ export default function LinkPrivyAccountsContainer({
                 description: `Your ${accountConfig.displayName} account has been successfully removed.`,
                 type: "success",
             })
-        } catch (err) {
+        } catch (err: any) {
             console.error(`Failed to remove ${accountConfig.type}:`, err)
             toaster.create({
                 title: `❌ Error removing ${accountConfig.displayName} account`,
-                description: `Failed to remove your ${accountConfig.displayName} account. Please try again.`,
+                description: `Failed to remove your ${accountConfig.displayName} account. ${err.message}.`,
                 type: "error",
             })
         } finally {
@@ -254,8 +254,8 @@ export default function LinkPrivyAccountsContainer({
         logoIcon: accountConfig.logoIcon,
         connectionType: accountConfig.type,
         successMessages: {
-            connected: `✅ ${accountConfig.displayName} account ownership confirmed`,
-            disconnected: `✅ ${accountConfig.displayName} account has been removed`,
+            connected: `✅ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account ownership confirmed`,
+            disconnected: `✅ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account has been removed`,
         },
         errorMessages: {
             authRequest: `Failed to confirm ownership of your ${accountConfig.displayName} account`,

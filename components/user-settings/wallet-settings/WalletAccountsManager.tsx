@@ -9,6 +9,8 @@ import AccountConnectionManager from "../AccountConnectionManager"
 import { ASSETS } from "../../../config/constants"
 import { useState } from "react"
 import WalletAccountsEditor from "./WalletAccountsEditor"
+import { useUser } from "../../../contexts/UserContext"
+import { toaster } from "../../ui/toaster"
 
 export default function WalletAccountsManager({
     userAddressConfig,
@@ -22,6 +24,7 @@ export default function WalletAccountsManager({
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
     const { unlinkWallet } = usePrivy()
+    const { refreshUser } = useUser()
 
     const truncatedAddress = useBreakpointValue({
         base: `${userAddressConfig.address.slice(0, 5)}...${userAddressConfig.address.slice(-5)}`,
@@ -48,8 +51,23 @@ export default function WalletAccountsManager({
             connectionValueFontFamily={"monospace"}
             isSubmitting={false}
             onConnect={() => {}}
-            onDisconnect={() => {
-                unlinkWallet(userAddressConfig.address)
+            onDisconnect={async () => {
+                try {
+                    await unlinkWallet(userAddressConfig.address)
+                    refreshUser()
+                    toaster.create({
+                        title: `✅ Address removed`,
+                        description: `Your address has been successfully removed.`,
+                        type: "success",
+                    })
+                } catch (error: any) {
+                    console.error("Error unlinking address:", error)
+                    toaster.create({
+                        title: `❌ Error removing address`,
+                        description: `Failed to unlink your address. ${error.message}.`,
+                        type: "error",
+                    })
+                }
             }}
             getConnectionDescription={() => {
                 if (userAddressConfig.userAddressesShared.length > 0) {
