@@ -22,6 +22,7 @@ export default function WalletAccountsManager({
     index: number
 }) {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const { unlinkWallet } = usePrivy()
     const { refreshUser } = useUser()
@@ -49,12 +50,13 @@ export default function WalletAccountsManager({
             isConnectedLoading={false}
             connectionValue={truncatedAddress || ""}
             connectionValueFontFamily={"monospace"}
-            isSubmitting={false}
+            isSubmitting={isSubmitting}
             onConnect={() => {}}
             onDisconnect={async () => {
                 try {
+                    setIsSubmitting(true)
                     await unlinkWallet(userAddressConfig.address)
-                    refreshUser()
+                    await refreshUser()
                     toaster.create({
                         title: `✅ Address removed`,
                         description: `Your address has been successfully removed.`,
@@ -67,6 +69,7 @@ export default function WalletAccountsManager({
                         description: `Failed to unlink your address. ${error.message}.`,
                         type: "error",
                     })
+                    setIsSubmitting(false)
                 }
             }}
             getConnectionDescription={() => {
