@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate the new address name if provided
-        if (changedFields.name) {
+        if (changedFields.name !== undefined) {
             const addressNameError = validateAddressName(changedFields.name)
             if (addressNameError) {
                 return NextResponse.json({ error: addressNameError }, { status: 400 })
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
         // SANITIZE USER INPUTS BEFORE STORING IN DATABASE
         // ************************************************
         const sanitizedFields: Record<string, any> = {}
-        if (changedFields.name) sanitizedFields.name = sanitize(changedFields.name)
+        if (changedFields.name !== undefined) sanitizedFields.name = sanitize(changedFields.name)
         if (changedFields.userAddressesShared)
             sanitizedFields.userAddressesShared = sanitize(changedFields.userAddressesShared)
 
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
             .from("user_addresses")
             .update({
                 is_public: changedFields.sharing === "public",
-                ...(sanitizedFields.name && { address_name: sanitizedFields.name }),
+                ...(sanitizedFields.name !== undefined && { address_name: sanitizedFields.name }),
             })
             .eq("user_id", targetUser.id)
             .eq("address", targetAddress)
