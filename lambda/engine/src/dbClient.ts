@@ -439,9 +439,6 @@ export async function getSmartScoreForUser(
  * Saves a score to the database by first deleting any existing score for the same
  * user, project, signal, and day, and then inserting the new score.
  *
- * This two-step process replicates the legacy system's behavior to ensure only the
- * latest score for a given context exists, without relying on database `ON CONFLICT`
- * constraints.
  *
  * @param scoreData The complete score object to be inserted.
  * @returns A promise that resolves when the operation is complete.

@@ -9,6 +9,7 @@ async function fetchUserActivity(BASE_URL, username) {
             return []
         } else {
             return response.data.map((action) => ({
+                id: action.id,
                 cooked: action.cooked,
                 updated_at: action.updated_at,
             }))

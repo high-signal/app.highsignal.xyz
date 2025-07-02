@@ -14,6 +14,7 @@ async function updateUserData(
     try {
         console.log(`Updating database for user ${username}`)
 
+        // TODO: Move this to only happen after the results are successfully stored in the database
         if (!testingData) {
             // Store the new last_updated date to be used to know when to re-run the AI analysis
             // This will run for every update, so the first time it will run X times for each day
@@ -52,9 +53,7 @@ async function updateUserData(
             prompt_tokens: analysisResults.promptTokens,
             completion_tokens: analysisResults.completionTokens,
             logs: analysisResults.logs,
-            ...(testingData?.requestingUserId && {
-                test_requesting_user: testingData.requestingUserId,
-            }),
+            ...(testingData?.requestingUserId && { test_requesting_user: testingData.requestingUserId }),
             model: analysisResults.model,
             temperature: analysisResults.temperature,
             prompt_id: analysisResults.promptId || null,
@@ -66,6 +65,26 @@ async function updateUserData(
             console.error(`Error storing signal strength for ${username}:`, signalError.message)
         } else {
             console.log(`Successfully stored signal strength response in database for ${username}`)
+        }
+
+        // Remove duplicate rows
+        // Most likely to happen during a race condition where the same analysis is run twice at the same time
+        const { error: deleteError, data } = await supabase
+            .from("user_signal_strengths")
+            .delete()
+            .eq("user_id", user.user_id)
+            .eq("project_id", PROJECT_ID)
+            .eq("signal_strength_id", SIGNAL_STRENGTH_ID)
+            .eq("day", dayDate)
+            .not("request_id", "eq", analysisResults.requestId) // Keep the one that was just inserted
+            .not(isRawScoreCalc ? "raw_value" : "value", "is", null)
+            .not(testingData?.requestingUserId ? "test_requesting_user" : "id", "is", null)
+            .select()
+
+        if (deleteError) {
+            console.error(`Error deleting duplicate rows for ${username}:`, deleteError.message)
+        } else if (data && data.length > 0) {
+            console.log(`Successfully deleted ${data.length} duplicate rows for ${username}`)
         }
     } catch (dbError) {
         console.error(`Database error for ${username}:`, dbError.message)
