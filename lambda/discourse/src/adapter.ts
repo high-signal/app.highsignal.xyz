@@ -12,9 +12,11 @@ import {
     saveScore, 
     getSignalStrengthConfig 
 } from "@engine/dbClient"
-import { AiConfig, ForumUser } from "@engine/types"
+import { AiConfig, ForumUser, RawScore } from "@engine/types"
 import { DiscourseAdapterRuntimeConfig } from "@engine/config"
 import { fetchUserActivity } from "./apiClient"
+import { stripHtml } from "@engine/utils/htmlStripper";
+import { calculateSmartScore } from "@engine/smartScoreCalculator";
 import { DiscourseUserActivity, DiscourseUserAction } from "./types"
 
 export class DiscourseAdapter {
@@ -106,32 +108,20 @@ export class DiscourseAdapter {
     }
 
     private groupAndSummarizeActivityByDay(actions: DiscourseUserAction[]): Record<string, string> {
-        const groupedByDay = actions.reduce(
-            (acc, action) => {
-                const day = action.created_at.split("T")[0]
-                if (!acc[day]) {
-                    acc[day] = { newTopics: 0, replies: 0, likes: 0 }
-                }
-                if (action.action_type === 4) acc[day].newTopics++
-                if (action.action_type === 5) acc[day].replies++
-                if (action.action_type === 1) acc[day].likes++
-                return acc
-            },
-            {} as Record<string, { newTopics: number; replies: number; likes: number }>,
-        )
-
-        const summaries: Record<string, string> = {}
-        for (const day in groupedByDay) {
-            const counts = groupedByDay[day]
-            const summaryParts = []
-            if (counts.newTopics > 0) summaryParts.push(`${counts.newTopics} new topics`)
-            if (counts.replies > 0) summaryParts.push(`${counts.replies} replies`)
-            if (counts.likes > 0) summaryParts.push(`${counts.likes} likes`)
-            if (summaryParts.length > 0) {
-                summaries[day] = summaryParts.join(", ")
+        return actions.reduce<Record<string, string>>((acc, action) => {
+            const day = action.created_at.split("T")[0]
+            if (!acc[day]) {
+                acc[day] = ""
             }
-        }
-        return summaries
+
+            // If the action has 'cooked' content, strip HTML and append it.
+            if (action.cooked) {
+                const strippedContent = stripHtml(action.cooked)
+                acc[day] = `${acc[day]} ${strippedContent}`.trim()
+            }
+
+            return acc
+        }, {})
     }
 
     private async generateRawScoresForUser(
@@ -211,81 +201,60 @@ export class DiscourseAdapter {
     }
 
     private async generateSmartScoreForUser(user: ForumUser): Promise<void> {
-        this.logger.info(`Starting smart score generation for user ${user.user_id}`)
+        this.logger.info(`Starting smart score generation for user ${user.user_id}`);
 
-        const yesterday = new Date()
-        yesterday.setDate(yesterday.getDate() - 1)
-        const yesterdayStr = yesterday.toISOString().split("T")[0]
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-        // Step 4: Check for existing smart score for YESTERDAY to ensure idempotency
         const existingSmartScore = await getSmartScoreForUser(
             user.user_id,
             this.config.PROJECT_ID,
             this.config.SIGNAL_STRENGTH_ID,
-            yesterdayStr,
-        )
+            yesterdayStr
+        );
 
         if (existingSmartScore) {
             this.logger.info(
-                `[DiscourseAdapter] Smart score for user ${user.user_id} on ${yesterdayStr} already exists. Skipping.`,
-            )
-            return
+                `[DiscourseAdapter] Smart score for user ${user.user_id} on ${yesterdayStr} already exists. Skipping.`
+            );
+            return;
         }
 
-        if (!user.forum_username) {
-            this.logger.warn(`User with ID ${user.user_id} has no forum_username. Skipping smart score generation.`)
-            return
-        }
-
-        const rawScores = await getRawScoresForUser(
+        const rawScoresFromDb = await getRawScoresForUser(
             user.user_id,
             this.config.PROJECT_ID,
             this.config.SIGNAL_STRENGTH_ID,
-        )
+        );
+
+        // Use a type guard to filter out incomplete data and ensure type safety for the calculator.
+        const rawScores: RawScore[] = rawScoresFromDb.filter(
+            (score): score is RawScore =>
+                score.raw_value != null && score.max_value != null && score.day != null,
+        );
 
         if (rawScores.length === 0) {
             this.logger.info(
-                `No raw scores found for user ${user.user_id} in the last 30 days. Skipping smart score generation.`,
-            )
-            return
+                `No valid raw scores found for user ${user.user_id} in the last 30 days. Skipping smart score generation.`,
+            );
+            return;
         }
 
-        // Map raw_value to value to match the expected input for smart score generation.
-        const mappedScores = rawScores.map((score) => ({
-            ...score,
-            value: score.raw_value,
-        }))
+        const { smartScore } = calculateSmartScore(rawScores, 30); // Using 30 days as a default lookback
 
-        const result = await this.aiOrchestrator.generateSmartScoreFromRawScores(
-            mappedScores,
-            user,
-            this.config.PROJECT_ID,
-            this.config.SIGNAL_STRENGTH_ID,
-        )
+        await saveScore({
+            user_id: user.user_id,
+            project_id: this.config.PROJECT_ID,
+            signal_strength_id: this.config.SIGNAL_STRENGTH_ID,
+            day: yesterdayStr,
+            value: smartScore,
+            max_value: 100, // Smart scores are on a scale of 0-100
+            summary: "Smart score calculated based on recent activity.",
+            created: Math.floor(new Date().getTime() / 1000),
+        });
 
-        if (result) {
-            await saveScore({
-                user_id: user.user_id,
-                project_id: this.config.PROJECT_ID,
-                signal_strength_id: this.config.SIGNAL_STRENGTH_ID,
-                day: yesterdayStr,
-                prompt_id: result.promptId,
-                value: result.score.value,
-                max_value: this.config.MAX_VALUE,
-                summary: result.score.summary ?? "",
-                description: result.score.description ?? "",
-                improvements: result.score.improvements ?? "",
-                explained_reasoning:
-                    typeof result.score.explained_reasoning === "string"
-                        ? result.score.explained_reasoning
-                        : result.score.explained_reasoning?.reason ?? "",
-                created: Math.floor(new Date().getTime() / 1000),
-            })
-            this.logger.info(
-                `Successfully generated and saved smart score for user ${user.user_id} for date ${yesterdayStr}`,
-            )
-        } else {
-            this.logger.error(`Failed to generate smart score for user ${user.user_id}. AI service returned null.`)
-        }
+        this.logger.info(
+            `Successfully generated and saved smart score of ${smartScore} for user ${user.user_id} for date ${yesterdayStr}`
+        );
     }
 }

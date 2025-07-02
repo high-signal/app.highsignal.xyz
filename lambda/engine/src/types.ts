@@ -92,3 +92,20 @@ export interface AIServiceClient {
      */
     getStructuredResponse(prompt: string, modelConfig: ModelConfig): Promise<AIScoreOutput>
 }
+
+/**
+ * Represents the data for a single raw score, used as input for the smart score calculation.
+ */
+export interface RawScore {
+    raw_value: number;
+    max_value: number;
+    day: string; // ISO date string 'YYYY-MM-DD'
+}
+
+/**
+ * Represents the output of the deterministic smart score calculation.
+ */
+export interface SmartScoreOutput {
+    smartScore: number;
+    topBandDays: string[];
+}

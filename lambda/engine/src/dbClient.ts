@@ -490,7 +490,7 @@ export async function getRawScoresForUser(
     userId: number,
     projectId: number,
     signalStrengthId: number,
-): Promise<Pick<UserSignalStrength, "day" | "raw_value" | "summary">[]> {
+): Promise<Pick<UserSignalStrength, "day" | "raw_value" | "max_value">[]> {
     const supabase = await getSupabaseClient()
     const DEFAULT_LOOKBACK_DAYS = 30
 
@@ -508,7 +508,7 @@ export async function getRawScoresForUser(
 
     const { data, error } = await supabase
         .from("user_signal_strengths")
-        .select("day, raw_value, summary")
+        .select("day, raw_value, max_value")
         .eq("user_id", userId)
         .eq("project_id", projectId)
         .eq("signal_strength_id", signalStrengthId)
