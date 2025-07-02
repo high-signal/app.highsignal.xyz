@@ -2,16 +2,20 @@
 
 import { VStack, Text, Button, HStack, Dialog, RadioGroup } from "@chakra-ui/react"
 import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
 
 import Modal from "../../ui/Modal"
 import ModalCloseButton from "../../ui/ModalCloseButton"
 import SingleLineTextInput from "../../ui/SingleLineTextInput"
 import { CustomRadioItem } from "../../ui/CustomRadioGroup"
+import { toaster } from "../../ui/toaster"
+
+import { validateAddressName } from "../../../utils/inputValidation"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { faCheckCircle } from "@fortawesome/free-regular-svg-icons"
-import { toaster } from "../../ui/toaster"
+import { getAccessToken } from "@privy-io/react-auth"
 
 type WalletAccountSettingsState = {
     name: { current: string | null; new: string | null }
@@ -30,6 +34,12 @@ export default function WalletAccountsEditor({
     const [isCopied, setIsCopied] = useState(false)
     const [settings, setSettings] = useState<WalletAccountSettingsState | null>(null)
     const [hasChanges, setHasChanges] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
+    const [addressNameValidationError, setAddressNameValidationError] = useState<string | null>(null)
+    const [sharingValidationError, setSharingValidationError] = useState<string | null>(null)
+
+    const params = useParams()
+    const targetUsername = params.username as string
 
     const resetSettingsState = () => {
         setSettings({
@@ -55,6 +65,7 @@ export default function WalletAccountsEditor({
         setHasChanges(hasChanges)
     }, [settings])
 
+    // Copy the address to the clipboard
     const handleCopyAddress = async () => {
         try {
             await navigator.clipboard.writeText(userAddressConfig.address)
@@ -66,13 +77,49 @@ export default function WalletAccountsEditor({
     }
 
     // Save the settings
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!settings || !hasChanges) return
-        // TODO: Implement save functionality
-        console.log("Saving settings:", settings)
-        onClose()
+
+        if (!addressNameValidationError && !sharingValidationError) {
+            setIsSaving(true)
+            try {
+                const token = await getAccessToken()
+                const response = await fetch(`/api/settings/u/addresses?username=${targetUsername}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ settings }),
+                })
+                if (!response.ok) {
+                    const jsonResponse = await response.json()
+                    console.error("Error saving settings:", jsonResponse)
+                    toaster.create({
+                        title: "❌ Error saving settings",
+                        description: jsonResponse.error,
+                        type: "error",
+                    })
+                } else {
+                    toaster.create({
+                        title: "✅ Settings saved successfully",
+                        type: "success",
+                    })
+                    onClose()
+                }
+            } catch (error) {
+                console.error("Error saving settings:", error)
+                toaster.create({
+                    title: "❌ Error saving settings",
+                    description: error instanceof Error ? error.message : "An unknown error occurred",
+                    type: "error",
+                })
+            }
+            setIsSaving(false)
+        }
     }
 
+    // Reset the settings to the initial state when the cancel button is clicked
     const handleClose = () => {
         resetSettingsState()
         onClose()
@@ -88,7 +135,7 @@ export default function WalletAccountsEditor({
                 p={0}
                 bg={"pageBackground"}
                 maxW={"900px"}
-                minH={"50dvh"}
+                // minH={"50dvh"}
             >
                 <Dialog.Header>
                     <Dialog.Title maxW={"100%"}>
@@ -126,35 +173,48 @@ export default function WalletAccountsEditor({
                         <ModalCloseButton onClose={handleClose} />
                     </Dialog.Title>
                 </Dialog.Header>
-                <Dialog.Body>
+                <Dialog.Body pb={6}>
                     <VStack gap={6} alignItems={"start"}>
-                        <HStack w={"100%"} gap={2} flexWrap={"wrap"}>
-                            <Text fontWeight={"bold"} fontSize={"md"}>
-                                Address name
+                        <VStack w={"100%"} gap={2} flexWrap={"wrap"} alignItems={"start"}>
+                            <Text fontWeight={"bold"} fontSize={"md"} pl={1}>
+                                Address name (optional)
                             </Text>
-                            <SingleLineTextInput
-                                value={settings.name.new ?? settings.name.current ?? ""}
-                                onChange={(e) => {
-                                    setSettings({
-                                        ...settings,
-                                        name: { ...settings.name, new: e.target.value },
-                                    })
-                                }}
-                                maxW={"200px"}
-                                minW={"100px"}
-                                h={"36px"}
-                            />
-                            <VStack alignItems={"start"} gap={0}>
-                                <Text fontSize={"sm"} color={"textColorMuted"}>
-                                    Give this address a useful name.
-                                </Text>
-                                <Text fontSize={"sm"} color={"textColorMuted"}>
-                                    This name is private and will not be shared with other users or projects.
-                                </Text>
-                            </VStack>
-                        </HStack>
+                            <HStack w={"100%"} gap={2} flexWrap={"wrap"}>
+                                <SingleLineTextInput
+                                    value={settings.name.new ?? settings.name.current ?? ""}
+                                    onChange={(e) => {
+                                        const error = validateAddressName(e.target.value)
+                                        if (error) {
+                                            setAddressNameValidationError(error)
+                                        } else {
+                                            setAddressNameValidationError(null)
+                                        }
+                                        setSettings({
+                                            ...settings,
+                                            name: { ...settings.name, new: e.target.value },
+                                        })
+                                    }}
+                                    maxW={"300px"}
+                                    minW={"100px"}
+                                    h={"36px"}
+                                />
+                                <VStack alignItems={"start"} gap={0} pl={1}>
+                                    <Text fontSize={"sm"} color={"textColorMuted"}>
+                                        Give this address a friendly name.
+                                    </Text>
+                                    <Text fontSize={"sm"} color={"textColorMuted"}>
+                                        This name is private and will not be shared with other users or projects.
+                                    </Text>
+                                </VStack>
+                                {addressNameValidationError && (
+                                    <Text fontSize={"sm"} color={"orange.500"} pl={1}>
+                                        {addressNameValidationError}
+                                    </Text>
+                                )}
+                            </HStack>
+                        </VStack>
                         <VStack w={"100%"} alignItems={"start"} gap={3}>
-                            <Text fontWeight={"bold"} fontSize={"md"}>
+                            <Text fontWeight={"bold"} fontSize={"md"} pl={1}>
                                 Sharing settings
                             </Text>
                             <VStack>
@@ -182,7 +242,7 @@ export default function WalletAccountsEditor({
                                                 borderColor: "transparent",
                                                 textColor: "blue.100",
                                                 itemBackground: "contentBackground",
-                                                tip: "Private addresses are not visible to other users.",
+                                                tip: "Private addresses are not visible to other users or projects.",
                                             },
                                             {
                                                 selected:
@@ -264,8 +324,11 @@ export default function WalletAccountsEditor({
                             borderRadius={"full"}
                             px={4}
                             py={2}
-                            disabled={!hasChanges}
+                            disabled={
+                                !hasChanges || isSaving || !!addressNameValidationError || !!sharingValidationError
+                            }
                             onClick={handleSave}
+                            loading={isSaving}
                         >
                             <Text>Save changes</Text>
                         </Button>
