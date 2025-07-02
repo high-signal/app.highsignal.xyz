@@ -5,7 +5,7 @@ import { VStack, Text, Button } from "@chakra-ui/react"
 import { useUser } from "../../../contexts/UserContext"
 import { toaster } from "../../ui/toaster"
 
-import { faWallet } from "@fortawesome/free-solid-svg-icons"
+import { faEthereum } from "@fortawesome/free-brands-svg-icons"
 import { getAccessToken, useLinkAccount } from "@privy-io/react-auth"
 
 import SettingsGroupContainer from "../../ui/SettingsGroupContainer"
@@ -52,7 +52,7 @@ export default function WalletAccountsContainer({ targetUser, disabled }: { targ
     })
 
     return (
-        <SettingsGroupContainer icon={faWallet} title="Addresses" lozengeTypes={[]}>
+        <SettingsGroupContainer icon={faEthereum} title="Ethereum Addresses" lozengeTypes={[]}>
             <VStack w={"100%"} gap={4} fontSize="sm" px={2}>
                 <Text>By default, addresses are private and are not used to calculate your Signal Score.</Text>
                 <Text>

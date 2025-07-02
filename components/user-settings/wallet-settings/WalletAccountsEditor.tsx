@@ -297,6 +297,7 @@ export default function WalletAccountsEditor({
                             <HStack w={"100%"} gap={2} flexWrap={"wrap"}>
                                 <SingleLineTextInput
                                     value={settings.name.new ?? settings.name.current ?? ""}
+                                    placeholder="e.g. Treasure Chest"
                                     onChange={(e) => {
                                         const error = validateAddressName(e.target.value)
                                         if (error) {
