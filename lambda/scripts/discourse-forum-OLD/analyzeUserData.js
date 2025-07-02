@@ -1,6 +1,7 @@
 require("dotenv").config({ path: "../.env" })
 const OpenAI = require("openai")
 const { processObjectForHtml } = require("./processObjectForHtml")
+const { calculateSmartScore } = require("./calculateSmartScores")
 
 // === CONFIG ===
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
@@ -21,6 +22,18 @@ async function analyzeUserData(
     logs = "",
 ) {
     console.log(`Day ${dayDate} analysis started...`)
+
+    let calculatedSmartScore
+    if (type === "smart") {
+        const smartScoreResult = calculateSmartScore(userData, previousDays)
+        calculatedSmartScore = smartScoreResult.smartScore
+        const topBandDays = smartScoreResult.topBandDays
+
+        // Filter userData to only include the days that were used in the smart score calculation
+        if (topBandDays.length > 0) {
+            userData = userData.filter((d) => topBandDays.includes(d.day))
+        }
+    }
 
     let promptId
 
@@ -152,6 +165,10 @@ truncatedData.length: ${truncatedData.length}
                 promptId: promptId,
                 maxChars: maxChars,
                 ...JSON.parse(cleanResponse),
+            }
+
+            if (calculatedSmartScore) {
+                responseWithDataAdded[username].value = calculatedSmartScore
             }
 
             // Return the results

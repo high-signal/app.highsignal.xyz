@@ -2,6 +2,7 @@ async function getUsernames(supabase, projectId) {
     const { data, error } = await supabase
         .from("forum_users")
         .select("user_id, project_id, forum_username, last_updated")
+        .not("forum_username", "is", null)
         .eq("project_id", projectId)
 
     if (error) {
