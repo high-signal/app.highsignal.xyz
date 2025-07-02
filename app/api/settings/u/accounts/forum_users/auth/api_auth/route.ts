@@ -201,7 +201,7 @@ export async function POST(request: Request) {
                 signalStrengthId: signalStrengthData.id,
             })
 
-            return NextResponse.json({ success: true })
+            return NextResponse.json({ success: true }, { status: 200 })
         } catch (error) {
             console.error("Error managing forum user:", error)
             return NextResponse.json(

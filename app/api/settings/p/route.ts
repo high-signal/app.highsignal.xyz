@@ -94,7 +94,7 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ error: "Error updating user" }, { status: 500 })
         }
 
-        return NextResponse.json(updatedProject)
+        return NextResponse.json({ success: true }, { status: 200 })
     } catch (error) {
         console.error("Unhandled error in project update:", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })

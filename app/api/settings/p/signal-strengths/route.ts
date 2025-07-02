@@ -152,7 +152,7 @@ export async function PATCH(request: NextRequest) {
             }
         }
 
-        return NextResponse.json({ success: true })
+        return NextResponse.json({ success: true }, { status: 200 })
     } catch (error) {
         console.error("Unhandled error in project settings signal strength update:", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })

@@ -107,7 +107,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             })
 
             if (!response.ok) {
-                console.log("User not found in database - Creating user")
+                console.log("No existing user found - Creating new user")
                 setMissingUser(true)
                 return
             }
