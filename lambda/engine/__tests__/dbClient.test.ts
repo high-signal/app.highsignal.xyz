@@ -4,7 +4,7 @@ import {
     _resetSupabaseClient_TEST_ONLY,
     saveScore,
     getRawScoresForUser,
-    getSignalStrengthConfig,
+
 } from "../src/dbClient"
 import { getAppConfig, _resetConfigCache_TEST_ONLY } from "../src/config"
 import { UserSignalStrength } from "../src/types"
@@ -98,32 +98,16 @@ describe("dbClient", () => {
         })
     })
 
-    describe("getSignalStrengthConfig", () => {
-        it("should fetch previous_days from project_signal_strengths", async () => {
-            const expectedConfig = { previous_days: 45 }
-            mockSupabaseClient.single.mockResolvedValueOnce({ data: expectedConfig, error: null })
 
-            const result = await getSignalStrengthConfig(1, 1)
-
-            expect(mockSupabaseClient.from).toHaveBeenCalledWith("project_signal_strengths")
-            expect(mockSupabaseClient.select).toHaveBeenCalledWith("previous_days")
-            expect(mockSupabaseClient.eq).toHaveBeenCalledWith("signal_strength_id", 1)
-            expect(mockSupabaseClient.eq).toHaveBeenCalledWith("project_id", 1)
-            expect(result).toEqual(expectedConfig)
-        })
-
-        it("should return null if no config is found", async () => {
-            mockSupabaseClient.single.mockResolvedValueOnce({ data: null, error: { code: "PGRST116" } })
-            const result = await getSignalStrengthConfig(1, 1)
-            expect(result).toBeNull()
-        })
-    })
 
     describe("getRawScoresForUser", () => {
-        it("should use dynamic lookback period from getSignalStrengthConfig", async () => {
+        it("should use dynamic lookback period from getLegacySignalConfig", async () => {
             const lookbackDays = 15
-            // Mock getSignalStrengthConfig's underlying DB call
-            mockSupabaseClient.single.mockResolvedValueOnce({ data: { previous_days: lookbackDays }, error: null })
+            // Mock getLegacySignalConfig's underlying DB call
+            mockSupabaseClient.single.mockResolvedValueOnce({
+                data: { project_signal_strengths: [{ previous_days: lookbackDays, enabled: true }] },
+                error: null,
+            })
             // Mock getRawScoresForUser's DB call
             mockSupabaseClient.order.mockResolvedValueOnce({ data: [], error: null })
 
@@ -138,7 +122,7 @@ describe("dbClient", () => {
 
         it("should use default 30-day lookback if config is not found", async () => {
             const defaultLookbackDays = 30
-            // Mock getSignalStrengthConfig's underlying DB call to return null
+            // Mock getLegacySignalConfig's underlying DB call to return null
             mockSupabaseClient.single.mockResolvedValueOnce({ data: null, error: { code: "PGRST116" } })
             // Mock getRawScoresForUser's DB call
             mockSupabaseClient.order.mockResolvedValueOnce({ data: [], error: null })
@@ -154,7 +138,12 @@ describe("dbClient", () => {
 
         it("should throw an error if fetching scores fails", async () => {
             const dbError = new Error("DB select failed")
-            mockSupabaseClient.single.mockResolvedValueOnce({ data: { previous_days: 30 }, error: null })
+            // Mock getLegacySignalConfig's underlying DB call
+            mockSupabaseClient.single.mockResolvedValueOnce({
+                data: { project_signal_strengths: [{ previous_days: 30, enabled: true }] },
+                error: null,
+            })
+            // Mock getRawScoresForUser's DB call to fail
             mockSupabaseClient.order.mockResolvedValueOnce({ error: dbError })
 
             await expect(getRawScoresForUser(1, 1, 1)).rejects.toThrow(dbError)
