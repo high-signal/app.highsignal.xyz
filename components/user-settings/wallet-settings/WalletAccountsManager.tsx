@@ -64,9 +64,7 @@ export default function WalletAccountsManager({
                                             <HStack
                                                 key={shared.projectUrlSlug}
                                                 bg={"contentBackground"}
-                                                pl={1}
                                                 pr={2}
-                                                py={1}
                                                 borderRadius="full"
                                                 cursor="default"
                                             >
@@ -78,8 +76,7 @@ export default function WalletAccountsManager({
                                                     }
                                                     alt={`${shared.projectDisplayName} Logo`}
                                                     fit="cover"
-                                                    transition="transform 0.2s ease-in-out"
-                                                    w="25px"
+                                                    w="35px"
                                                     borderRadius="full"
                                                 />
                                                 <Text>{shared.projectDisplayName}</Text>
