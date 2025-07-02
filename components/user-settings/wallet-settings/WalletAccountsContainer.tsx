@@ -25,8 +25,15 @@ export default function WalletAccountsContainer({ targetUser, disabled }: { targ
                 {targetUser && targetUser?.userAddresses && targetUser?.userAddresses?.length > 0 ? "nother" : "n"}{" "}
                 address
             </Button>
-            {targetUser.userAddresses?.map((userAddress, index) => {
-                return <WalletAccountsManager key={index} userAddress={userAddress} disabled={disabled} index={index} />
+            {targetUser.userAddresses?.map((userAddressConfig, index) => {
+                return (
+                    <WalletAccountsManager
+                        key={index}
+                        userAddressConfig={userAddressConfig}
+                        disabled={disabled}
+                        index={index}
+                    />
+                )
             })}
         </SettingsGroupContainer>
     )

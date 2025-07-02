@@ -11,11 +11,11 @@ import { useState } from "react"
 import WalletAccountsEditor from "./WalletAccountsEditor"
 
 export default function WalletAccountsManager({
-    userAddress,
+    userAddressConfig,
     disabled,
     index,
 }: {
-    userAddress: UserAddress
+    userAddressConfig: UserAddressConfig
     disabled: boolean
     index: number
 }) {
@@ -24,22 +24,22 @@ export default function WalletAccountsManager({
     const { unlinkWallet } = usePrivy()
 
     const truncatedAddress = useBreakpointValue({
-        base: `${userAddress.address.slice(0, 5)}...${userAddress.address.slice(-5)}`,
-        sm: `${userAddress.address.slice(0, 10)}...${userAddress.address.slice(-10)}`,
+        base: `${userAddressConfig.address.slice(0, 5)}...${userAddressConfig.address.slice(-5)}`,
+        sm: `${userAddressConfig.address.slice(0, 10)}...${userAddressConfig.address.slice(-10)}`,
     })
 
-    const lozengeTypes: LozengeType[] = userAddress.isPublic
+    const lozengeTypes: LozengeType[] = userAddressConfig.isPublic
         ? ["public"]
-        : userAddress.userAddressesShared.length > 0
+        : userAddressConfig.userAddressesShared.length > 0
           ? ["shared"]
           : ["private"]
 
     return (
         <AccountConnectionManager
-            key={userAddress.address}
+            key={userAddressConfig.address}
             config={{
                 connectionType: "wallet",
-                displayName: userAddress.addressName || `Address ${index + 1}`,
+                displayName: userAddressConfig.addressName || `Address ${index + 1}`,
                 logoIcon: faWallet,
             }}
             isConnected={true}
@@ -49,16 +49,16 @@ export default function WalletAccountsManager({
             isSubmitting={false}
             onConnect={() => {}}
             onDisconnect={() => {
-                unlinkWallet(userAddress.address)
+                unlinkWallet(userAddressConfig.address)
             }}
             getConnectionDescription={() => {
-                if (userAddress.userAddressesShared.length > 0) {
+                if (userAddressConfig.userAddressesShared.length > 0) {
                     return (
                         <VStack w={"100%"} alignItems="start">
                             <HStack fontSize="sm" pt={1} px={2} mt={2} flexWrap="wrap">
                                 <Text fontWeight="bold">You have shared this address with:</Text>
                                 <HStack flexWrap="wrap">
-                                    {userAddress.userAddressesShared
+                                    {userAddressConfig.userAddressesShared
                                         .sort((a, b) => a.projectDisplayName.localeCompare(b.projectDisplayName))
                                         .map((shared) => (
                                             <HStack
@@ -103,7 +103,7 @@ export default function WalletAccountsManager({
             <WalletAccountsEditor
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
-                userAddress={userAddress}
+                userAddressConfig={userAddressConfig}
             />
         </AccountConnectionManager>
     )

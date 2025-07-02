@@ -2,20 +2,19 @@ import { RadioGroup, Box, Text, HStack } from "@chakra-ui/react"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-interface RadioOption {
-    value: string
-    text: string
-    bgColor: string
-    borderColor: string
-    textColor: string
-    itemBackground: string
-}
-
-interface CustomRadioItemProps {
-    option: RadioOption
-}
-
-export function CustomRadioItem({ option }: CustomRadioItemProps) {
+export function CustomRadioItem({
+    option,
+}: {
+    option: {
+        selected: boolean
+        value: string
+        text: string
+        bgColor: string
+        borderColor: string
+        textColor: string
+        itemBackground: string
+    }
+}) {
     return (
         <RadioGroup.Item
             value={option.value}
@@ -27,7 +26,7 @@ export function CustomRadioItem({ option }: CustomRadioItemProps) {
         >
             <RadioGroup.ItemHiddenInput />
             <Box w={"28px"} pl={"2px"} h={"100%"} display={"flex"} alignItems={"center"} justifyContent={"center"}>
-                <FontAwesomeIcon icon={faArrowRight} />
+                {option.selected && <FontAwesomeIcon icon={faArrowRight} />}
             </Box>
             <RadioGroup.ItemText flexGrow={1}>
                 <HStack

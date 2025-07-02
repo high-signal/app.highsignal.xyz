@@ -23,10 +23,10 @@ interface UserData {
     discordUsername?: string
     xUsername?: string
     farcasterUsername?: string
-    userAddresses?: UserAddress[]
+    userAddresses?: UserAddressConfig[]
 }
 
-interface UserAddress {
+interface UserAddressConfig {
     address: string
     addressName?: string
     isPublic: boolean
