@@ -248,7 +248,7 @@ export default function LinkPrivyAccountsContainer({
 
     // Create the account connection config
     const accountConnectionConfig: AccountConnectionConfig = {
-        displayName: accountConfig.displayName,
+        displayName: accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1),
         urlSlug: accountConfig.type,
         logoIcon: accountConfig.logoIcon,
         connectionType: accountConfig.type,

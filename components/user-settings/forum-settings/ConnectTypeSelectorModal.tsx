@@ -256,7 +256,7 @@ export default function ConnectTypeSelectorModal({
                                     <HStack px={3} py={1}>
                                         <Text fontWeight="bold" whiteSpace="normal" py={0} px={0}>
                                             {authEncryptedPayload
-                                                ? "Ownership confirmed - Refresh connection"
+                                                ? "Ownership confirmed - Refresh confirmation"
                                                 : "Confirm ownership"}
                                         </Text>
                                         {config.forumAuthTypes?.includes("api_auth") && authEncryptedPayload && (

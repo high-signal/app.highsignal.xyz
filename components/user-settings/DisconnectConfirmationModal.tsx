@@ -38,7 +38,7 @@ export default function GenericConfirmModal({
                             <Text>
                                 If you want to update your or change the connection method, you can use the{" "}
                                 <Text as="span" fontWeight="bold">
-                                    Refresh connection
+                                    Refresh confirmation
                                 </Text>{" "}
                                 button instead.
                             </Text>

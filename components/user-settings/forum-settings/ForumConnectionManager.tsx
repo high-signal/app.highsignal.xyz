@@ -191,7 +191,7 @@ export default function ForumConnectionManager({
 
             if (!forumResponse.ok) {
                 const errorData = await forumResponse.json()
-                throw new Error(errorData.error || "Failed to disconnect forum username")
+                throw new Error(errorData.error || "Failed to remove forum username")
             }
 
             // Refresh the user data
@@ -199,13 +199,13 @@ export default function ForumConnectionManager({
 
             // Show success message
             toaster.create({
-                title: "✅ Forum account disconnected",
+                title: "✅ Forum account removed",
                 type: "success",
             })
         } catch (error) {
-            console.error("Error disconnecting forum username:", error)
+            console.error("Error removing forum username:", error)
             toaster.create({
-                title: "❌ Error disconnecting forum account",
+                title: "❌ Error removing forum account",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
                 type: "error",
             })
@@ -238,12 +238,12 @@ export default function ForumConnectionManager({
         },
         successMessages: {
             connected: `✅ ${config.projectDisplayName} forum ownership confirmed`,
-            disconnected: "✅ Forum account disconnected",
+            disconnected: "✅ Forum account removed",
         },
         errorMessages: {
             authRequest: "Failed to get forum user auth URL",
             authProcess: "Failed to process forum auth request",
-            disconnect: "Failed to disconnect forum username",
+            disconnect: "Failed to remove forum username",
         },
     }
 
@@ -255,7 +255,7 @@ export default function ForumConnectionManager({
         } else if (forumUser?.authPostId) {
             return "Username from public post"
         } else {
-            return "Please refresh connection"
+            return "Please refresh confirmation"
         }
     }
 
