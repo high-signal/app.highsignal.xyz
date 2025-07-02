@@ -10,9 +10,16 @@ interface ModalProps {
     open: boolean
     close: (nextOpen?: boolean) => void
     children: ReactNode
+    closeOnInteractOutside?: boolean
 }
 
-export default function Modal({ placement = { base: "center", md: "center" }, open, close, children }: ModalProps) {
+export default function Modal({
+    placement = { base: "center", md: "center" },
+    open,
+    close,
+    children,
+    closeOnInteractOutside = true,
+}: ModalProps) {
     const modalSize = useBreakpointValue({ base: "lg", md: "sm" }) as Size
 
     return (
@@ -22,6 +29,7 @@ export default function Modal({ placement = { base: "center", md: "center" }, op
             motionPreset={"slide-in-bottom"}
             open={open}
             onEscapeKeyDown={() => close()}
+            closeOnInteractOutside={closeOnInteractOutside}
             onOpenChange={(nextOpen) => {
                 if (!nextOpen.open) {
                     close()

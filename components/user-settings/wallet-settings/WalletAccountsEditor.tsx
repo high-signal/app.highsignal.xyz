@@ -1,7 +1,7 @@
 "use client"
 
 import { VStack, Text, Button, HStack, Dialog, RadioGroup } from "@chakra-ui/react"
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 
 import Modal from "../../ui/Modal"
 import ModalCloseButton from "../../ui/ModalCloseButton"
@@ -31,18 +31,20 @@ export default function WalletAccountsEditor({
     const [settings, setSettings] = useState<WalletAccountSettingsState | null>(null)
     const [hasChanges, setHasChanges] = useState(false)
 
-    // Set the settings to the initial state when the modal opens
+    const resetSettingsState = () => {
+        setSettings({
+            name: { current: userAddressConfig.addressName ?? null, new: null },
+            sharing: {
+                current: (userAddressConfig.isPublic ? "public" : "private") as "private" | "public" | "shared",
+                new: null,
+            },
+        })
+    }
+
+    // Set the settings to the initial state on first render
     useEffect(() => {
-        if (isOpen) {
-            setSettings({
-                name: { current: userAddressConfig.addressName ?? null, new: null },
-                sharing: {
-                    current: (userAddressConfig.isPublic ? "public" : "private") as "private" | "public" | "shared",
-                    new: null,
-                },
-            })
-        }
-    }, [isOpen, userAddressConfig])
+        resetSettingsState()
+    }, [])
 
     // Check for changes whenever settings change
     useEffect(() => {
@@ -71,11 +73,16 @@ export default function WalletAccountsEditor({
         onClose()
     }
 
+    const handleClose = () => {
+        resetSettingsState()
+        onClose()
+    }
+
     // If the settings are not loaded, do not render anything
     if (!settings) return null
 
     return (
-        <Modal open={isOpen} close={onClose}>
+        <Modal open={isOpen} close={handleClose} closeOnInteractOutside={!hasChanges}>
             <Dialog.Content
                 borderRadius={{ base: "0px", md: "16px" }}
                 p={0}
@@ -116,7 +123,7 @@ export default function WalletAccountsEditor({
                                 </Button>
                             </HStack>
                         </HStack>
-                        <ModalCloseButton onClose={onClose} />
+                        <ModalCloseButton onClose={handleClose} />
                     </Dialog.Title>
                 </Dialog.Header>
                 <Dialog.Body>
@@ -249,7 +256,7 @@ export default function WalletAccountsEditor({
                 </Dialog.Body>
                 <Dialog.Footer>
                     <HStack minW={"100%"} justifyContent={{ base: "center", md: "end" }} flexWrap={"wrap"} gap={5}>
-                        <Button secondaryButton borderRadius={"full"} px={4} py={2} onClick={onClose}>
+                        <Button secondaryButton borderRadius={"full"} px={4} py={2} onClick={handleClose}>
                             Cancel
                         </Button>
                         <Button
