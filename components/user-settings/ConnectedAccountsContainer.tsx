@@ -1,18 +1,30 @@
 "use client"
 
-import { Spinner, VStack, HStack, Text, Span, Box } from "@chakra-ui/react"
+import { Spinner, VStack, Text, Box } from "@chakra-ui/react"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import ForumAccountsContainer from "./forum-settings/ForumAccountsContainer"
 import LinkPrivyAccountsContainer from "./LinkPrivyAccountsContainer"
-import { faEnvelope, faMobileScreen, faRightToBracket } from "@fortawesome/free-solid-svg-icons"
-import { faDiscord, faGithub, faGoogle, faTelegram, faXTwitter } from "@fortawesome/free-brands-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+    faBullhorn,
+    faEnvelope,
+    faKey,
+    faMobileScreen,
+    faRightToBracket,
+    faWallet,
+} from "@fortawesome/free-solid-svg-icons"
+import { faDiscord, faGithub, faGoogle, faXTwitter } from "@fortawesome/free-brands-svg-icons"
 import { useUser } from "../../contexts/UserContext"
+import SettingsGroupContainer from "../ui/SettingsGroupContainer"
+import WalletAccountsContainer from "./wallet-settings/WalletAccountsContainer"
 
 export default function ConnectedAccountsContainer({ targetUser }: { targetUser: UserData }) {
     const { loggedInUser } = useUser()
 
     const isOwner = loggedInUser?.username === targetUser.username
+
+    const Divider = () => {
+        return <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
+    }
 
     return (
         <SettingsSectionContainer>
@@ -31,61 +43,51 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                         disabled={!isOwner}
                         lozengeTypes={["notifications", "private"]}
                     />
+                    <Divider />
                     <ForumAccountsContainer targetUser={targetUser} disabled={!isOwner} />
-
-                    <LinkPrivyAccountsContainer
-                        targetUser={targetUser}
-                        accountConfig={{
-                            type: "discordUsername",
-                            displayName: "Discord",
-                            logoIcon: faDiscord,
-                            confirmDelete: true,
-                            privyLinkMethod: "discord_oauth",
-                        }}
-                        disabled={!isOwner}
-                        lozengeTypes={["comingSoon", "score", "private"]}
-                    />
-                    <LinkPrivyAccountsContainer
-                        targetUser={targetUser}
-                        accountConfig={{
-                            type: "xUsername",
-                            displayName: "X",
-                            logoIcon: faXTwitter,
-                            confirmDelete: true,
-                            privyLinkMethod: "twitter_oauth",
-                        }}
-                        disabled={!isOwner}
-                        lozengeTypes={["comingSoon", "score", "private"]}
-                    />
-                    <LinkPrivyAccountsContainer
-                        targetUser={targetUser}
-                        accountConfig={{
-                            type: "farcasterUsername",
-                            displayName: "Farcaster",
-                            logoIcon: faMobileScreen,
-                            confirmDelete: true,
-                            privyLinkMethod: "farcaster",
-                        }}
-                        disabled={!isOwner}
-                        lozengeTypes={["comingSoon", "score", "private"]}
-                    />
-                    <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
-                    <VStack
-                        w="100%"
-                        bg="contentBackground"
-                        borderRadius="16px"
-                        px={3}
-                        py={4}
-                        gap={4}
-                        alignItems="start"
-                    >
-                        <HStack fontWeight="bold" fontSize="lg" pl={3} gap={2}>
-                            <FontAwesomeIcon icon={faRightToBracket} size="lg" />
-                            <Text>
-                                Other log in options{" "}
-                                <Span display={{ base: "none", sm: "inline" }}>for High Signal</Span>
-                            </Text>
-                        </HStack>
+                    <Divider />
+                    <SettingsGroupContainer icon={faBullhorn} title="Social Accounts" lozengeTypes={["score"]}>
+                        <LinkPrivyAccountsContainer
+                            targetUser={targetUser}
+                            accountConfig={{
+                                type: "discordUsername",
+                                displayName: "Discord",
+                                logoIcon: faDiscord,
+                                confirmDelete: true,
+                                privyLinkMethod: "discord_oauth",
+                            }}
+                            disabled={!isOwner}
+                            lozengeTypes={["comingSoon", "private"]}
+                        />
+                        <LinkPrivyAccountsContainer
+                            targetUser={targetUser}
+                            accountConfig={{
+                                type: "xUsername",
+                                displayName: "X",
+                                logoIcon: faXTwitter,
+                                confirmDelete: true,
+                                privyLinkMethod: "twitter_oauth",
+                            }}
+                            disabled={!isOwner}
+                            lozengeTypes={["comingSoon", "private"]}
+                        />
+                        <LinkPrivyAccountsContainer
+                            targetUser={targetUser}
+                            accountConfig={{
+                                type: "farcasterUsername",
+                                displayName: "Farcaster",
+                                logoIcon: faMobileScreen,
+                                confirmDelete: true,
+                                privyLinkMethod: "farcaster",
+                            }}
+                            disabled={!isOwner}
+                            lozengeTypes={["comingSoon", "private"]}
+                        />
+                    </SettingsGroupContainer>
+                    <Divider />
+                    <WalletAccountsContainer targetUser={targetUser} disabled={!isOwner} />
+                    <Divider />
+                    <SettingsGroupContainer icon={faRightToBracket} title="Other log in options">
                         <VStack w={"100%"} gap={4} fontSize="sm" px={2}>
                             <Text>
                                 You can add other log in methods to your High Signal account. These are private and are
@@ -119,6 +121,17 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                 <LinkPrivyAccountsContainer
                                     targetUser={targetUser}
                                     accountConfig={{
+                                        type: "passkey",
+                                        displayName: "Passkey",
+                                        logoIcon: faKey,
+                                        privyLinkMethod: "passkey",
+                                    }}
+                                    loginOnly={true}
+                                    lozengeTypes={["private"]}
+                                />
+                                {/* <LinkPrivyAccountsContainer
+                                    targetUser={targetUser}
+                                    accountConfig={{
                                         type: "telegram",
                                         displayName: "Telegram",
                                         logoIcon: faTelegram,
@@ -127,14 +140,14 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     loginOnly={true}
                                     disabled={true}
                                     lozengeTypes={["comingSoon", "private"]}
-                                />
+                                /> */}
                             </>
                         ) : (
                             <Text color={"orange.500"} textAlign="center" w={"100%"}>
                                 Only the owner of this account can edit log in methods.
                             </Text>
                         )}
-                    </VStack>
+                    </SettingsGroupContainer>
                 </VStack>
             )}
         </SettingsSectionContainer>

@@ -1,4 +1,4 @@
-import { VStack, Text } from "@chakra-ui/react"
+import { VStack } from "@chakra-ui/react"
 
 interface SettingsSectionContainerProps {
     maxWidth?: string

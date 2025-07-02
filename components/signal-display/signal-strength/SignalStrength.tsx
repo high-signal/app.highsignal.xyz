@@ -396,7 +396,7 @@ export default function SignalStrength({
                 !userContentAvailable &&
                 loggedInUser?.username === username && (
                     <HStack w={"100%"} justifyContent={"center"} cursor={"disabled"}>
-                        <Link href={`/settings/u/${username}?tab=connected-accounts`}>
+                        <Link href={`/settings/u/${username}?tab=accounts`}>
                             <Button
                                 primaryButton
                                 justifyContent={"start"}

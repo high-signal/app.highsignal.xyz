@@ -30,7 +30,7 @@ export default {
                             default-src 'self';
                             script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com ${protocol}://*.${domain} https://www.clarity.ms https://c.bing.com https://www.googletagmanager.com https://feedback.fish;
                             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-                            img-src 'self' data: blob: https://*.cloudinary.com https://c.clarity.ms https://c.bing.com;
+                            img-src 'self' data: blob: https://*.cloudinary.com https://c.clarity.ms https://c.bing.com https://explorer-api.walletconnect.com;
                             font-src 'self' https://fonts.gstatic.com;
                             object-src 'none';
                             base-uri 'self';

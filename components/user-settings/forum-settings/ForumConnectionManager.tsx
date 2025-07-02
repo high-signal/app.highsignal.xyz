@@ -26,7 +26,7 @@ export default function ForumConnectionManager({
         forumAuthParentPostUrl: string | undefined
     }
     disabled: boolean
-    lozengeTypes?: ("public" | "private" | "comingSoon" | "notifications" | "score")[]
+    lozengeTypes?: LozengeType[]
 }) {
     const { refreshUser } = useUser()
     const { getAccessToken } = usePrivy()
@@ -102,7 +102,7 @@ export default function ForumConnectionManager({
             window.history.replaceState({}, "", newUrl)
 
             // Refresh the user data
-            refreshUser()
+            await refreshUser()
 
             // Stop the loading animation
             setIsForumSubmitting(false)
@@ -195,7 +195,7 @@ export default function ForumConnectionManager({
             }
 
             // Refresh the user data
-            refreshUser()
+            await refreshUser()
 
             // Show success message
             toaster.create({

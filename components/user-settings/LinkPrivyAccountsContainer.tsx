@@ -20,7 +20,7 @@ export interface LinkPrivyAccountsContainerProps {
     }
     disabled?: boolean
     loginOnly?: boolean
-    lozengeTypes?: ("public" | "private" | "comingSoon" | "notifications" | "score")[]
+    lozengeTypes?: LozengeType[]
 }
 
 export default function LinkPrivyAccountsContainer({
@@ -33,8 +33,8 @@ export default function LinkPrivyAccountsContainer({
     // **********************************
     // ADD ADDITIONAL ACCOUNT TYPES HERE
     // **********************************
-    const { linkEmail, linkDiscord, linkTwitter, linkFarcaster, linkGithub, linkGoogle, linkTelegram } = useLinkAccount(
-        {
+    const { linkEmail, linkDiscord, linkTwitter, linkFarcaster, linkGithub, linkGoogle, linkTelegram, linkPasskey } =
+        useLinkAccount({
             onSuccess: async ({ linkMethod }) => {
                 if (linkMethod === accountConfig.privyLinkMethod) {
                     // Call the API to update the Privy accounts
@@ -48,7 +48,7 @@ export default function LinkPrivyAccountsContainer({
                     })
 
                     // Refresh the user data to update the targetUser state
-                    refreshUser()
+                    await refreshUser()
 
                     // Reset the connection state
                     setIsSubmitting(false)
@@ -56,25 +56,25 @@ export default function LinkPrivyAccountsContainer({
                     setIsConnectedLoading(false)
 
                     toaster.create({
-                        title: `✅ ${accountConfig.displayName} Account ownership confirmed`,
+                        title: `✅ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account ownership confirmed`,
                         description: `You have successfully confirmed ownership of your ${accountConfig.displayName} account.`,
                         type: "success",
                     })
                 }
             },
             onError: (error) => {
-                if (isSubmitting) {
+                // Passkey seems to throw an error even when it succeeds
+                if (isSubmitting && accountConfig.type !== "passkey") {
                     console.error(`Failed to link ${accountConfig.type}:`, error)
                     toaster.create({
                         title: `❌ Error confirming ${accountConfig.displayName} account`,
                         description: `Failed to confirm ownership of your ${accountConfig.displayName} account. Please try again.`,
                         type: "error",
                     })
-                    setIsSubmitting(false)
                 }
+                setIsSubmitting(false)
             },
-        },
-    )
+        })
 
     // **********************************
     // ADD ADDITIONAL ACCOUNT TYPES HERE
@@ -88,6 +88,7 @@ export default function LinkPrivyAccountsContainer({
         unlinkGithub,
         unlinkGoogle,
         unlinkTelegram,
+        unlinkPasskey,
     } = usePrivy()
 
     const { refreshUser } = useUser()
@@ -112,6 +113,18 @@ export default function LinkPrivyAccountsContainer({
                     setIsConnected(true)
                 }
             }
+
+            // If the account has a passkey, set the account username to the passkey
+            if (
+                accountConfig.type === "passkey" &&
+                privyUser?.linkedAccounts?.some((account) => account.type === "passkey")
+            ) {
+                setAccountUsername(
+                    privyUser.linkedAccounts.find((account) => account.type === "passkey")?.authenticatorName as string,
+                )
+                setIsConnected(true)
+            }
+
             setIsConnectedLoading(false)
         } else if (targetUser[accountConfig.type as keyof UserData]) {
             if (accountConfig.type === "discordUsername") {
@@ -154,6 +167,9 @@ export default function LinkPrivyAccountsContainer({
         if (accountConfig.type === "telegram") {
             linkTelegram()
         }
+        if (accountConfig.type === "passkey") {
+            linkPasskey()
+        }
     }
 
     const handleDisconnect = async () => {
@@ -177,7 +193,6 @@ export default function LinkPrivyAccountsContainer({
             } else if (accountConfig.type === "discordUsername" && privyUser?.discord?.subject) {
                 await unlinkDiscord(privyUser.discord.subject)
             } else if (accountConfig.type === "xUsername" && privyUser?.twitter?.subject) {
-                console.log("privyUser.twitter.subject", privyUser.twitter.subject)
                 await unlinkTwitter(privyUser.twitter.subject)
             } else if (accountConfig.type === "farcasterUsername" && privyUser?.farcaster?.fid) {
                 await unlinkFarcaster(privyUser.farcaster.fid as number)
@@ -185,6 +200,13 @@ export default function LinkPrivyAccountsContainer({
                 await unlinkGithub(privyUser.github.subject)
             } else if (accountConfig.type === "google" && privyUser?.google?.subject) {
                 await unlinkGoogle(privyUser.google.subject)
+            } else if (
+                accountConfig.type === "passkey" &&
+                privyUser?.linkedAccounts?.some((account) => account.type === "passkey")
+            ) {
+                await unlinkPasskey(
+                    privyUser.linkedAccounts.find((account) => account.type === "passkey")?.credentialId as string,
+                )
                 // } else if (accountConfig.type === "telegramUsername" && privyUser?.telegram?.subject) {
                 //     await unlinkTelegram(privyUser.telegram.subject)
             } else {
@@ -201,7 +223,7 @@ export default function LinkPrivyAccountsContainer({
             })
 
             // Refresh the user data to update the targetUser state
-            refreshUser()
+            await refreshUser()
 
             // Reset the connection state
             setIsConnected(false)
@@ -211,11 +233,11 @@ export default function LinkPrivyAccountsContainer({
                 description: `Your ${accountConfig.displayName} account has been successfully removed.`,
                 type: "success",
             })
-        } catch (err) {
+        } catch (err: any) {
             console.error(`Failed to remove ${accountConfig.type}:`, err)
             toaster.create({
                 title: `❌ Error removing ${accountConfig.displayName} account`,
-                description: `Failed to remove your ${accountConfig.displayName} account. Please try again.`,
+                description: `Failed to remove your ${accountConfig.displayName} account. ${err.message}.`,
                 type: "error",
             })
         } finally {
@@ -231,8 +253,8 @@ export default function LinkPrivyAccountsContainer({
         logoIcon: accountConfig.logoIcon,
         connectionType: accountConfig.type,
         successMessages: {
-            connected: `✅ ${accountConfig.displayName} account ownership confirmed`,
-            disconnected: `✅ ${accountConfig.displayName} account has been removed`,
+            connected: `✅ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account ownership confirmed`,
+            disconnected: `✅ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account has been removed`,
         },
         errorMessages: {
             authRequest: `Failed to confirm ownership of your ${accountConfig.displayName} account`,
@@ -256,8 +278,8 @@ export default function LinkPrivyAccountsContainer({
                 }}
                 disabled={disabled}
                 lozengeTypes={lozengeTypes}
+                loginOnly={loginOnly}
             />
-
             {accountConfig.confirmDelete && (
                 <GenericConfirmModal
                     name={accountConfig.displayName}

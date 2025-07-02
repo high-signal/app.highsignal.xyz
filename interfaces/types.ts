@@ -23,6 +23,20 @@ interface UserData {
     discordUsername?: string
     xUsername?: string
     farcasterUsername?: string
+    userAddresses?: UserAddressConfig[]
+}
+
+interface UserAddressConfig {
+    address: string
+    addressName?: string
+    isPublic: boolean
+    userAddressesShared: UserAddressShared[]
+}
+
+interface UserAddressShared {
+    projectUrlSlug: string
+    projectDisplayName: string
+    projectLogoUrl?: string
 }
 
 interface ConnectedAccount {
@@ -137,3 +151,5 @@ interface TestingInputData {
     testingTemperature?: string
     testingMaxChars?: string
 }
+
+type LozengeType = "public" | "private" | "shared" | "comingSoon" | "notifications" | "score"
