@@ -5,5 +5,9 @@ export interface DiscourseUserActivity {
 export interface DiscourseUserAction {
     action_type: number
     created_at: string
-    // Other potential fields: post_number, topic_id, etc.
+    cooked?: string
+    topic_id?: number
+    post_number?: number
+    post_id?: number
+    // Other potential fields from the Discourse API
 }
