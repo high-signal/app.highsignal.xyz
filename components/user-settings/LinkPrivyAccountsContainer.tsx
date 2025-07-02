@@ -193,7 +193,6 @@ export default function LinkPrivyAccountsContainer({
             } else if (accountConfig.type === "discordUsername" && privyUser?.discord?.subject) {
                 await unlinkDiscord(privyUser.discord.subject)
             } else if (accountConfig.type === "xUsername" && privyUser?.twitter?.subject) {
-                console.log("privyUser.twitter.subject", privyUser.twitter.subject)
                 await unlinkTwitter(privyUser.twitter.subject)
             } else if (accountConfig.type === "farcasterUsername" && privyUser?.farcaster?.fid) {
                 await unlinkFarcaster(privyUser.farcaster.fid as number)
