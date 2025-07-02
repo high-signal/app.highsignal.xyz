@@ -112,6 +112,42 @@ export type Project = Tables<"projects">
 export type ProjectSignalStrength = Tables<"project_signal_strengths">
 
 // ==========================================================================
+// 4. ENGINE & CALCULATION TYPES
+// These types are used by the engine and adapters for AI configuration and scoring.
+// ==========================================================================
+
+/**
+ * Represents the comprehensive AI configuration for a specific signal strength,
+ * combining details from both the 'signal_strengths' and 'prompts' tables.
+ */
+export interface AiConfig {
+    signalStrengthId: number
+    model: string
+    temperature: number
+    maxChars: number
+    prompts: Prompt[]
+    maxValue: number
+    previous_days: number | null
+}
+
+/**
+ * Represents the data for a single raw score, used as input for the smart score calculation.
+ */
+export interface RawScore {
+    raw_value: number
+    max_value: number
+    day: string // ISO date string 'YYYY-MM-DD'
+}
+
+/**
+ * Represents the output of the deterministic smart score calculation.
+ */
+export interface SmartScoreOutput {
+    smartScore: number
+    topBandDays: string[]
+}
+
+// ==========================================================================
 // 4. USER DATA STRUCTURES
 // ==========================================================================
 

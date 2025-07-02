@@ -7,7 +7,8 @@
 
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
 import { AppConfig, getAppConfig } from "./config"
-import { AiConfig, ForumUser, Prompt, UserSignalStrength } from "./types"
+import { ForumUser, Prompt, UserSignalStrength } from "./types"
+import { AiConfig } from "@shared/types"
 
 /**
  * A singleton instance of the Supabase client.
@@ -198,40 +199,21 @@ export async function getUsersByIds(
  * @param projectId The ID of the project.
  * @returns A promise that resolves to an object containing the `previous_days` value, or null if not found.
  */
-export async function getSignalStrengthConfig(
+/**
+ * Fetches the complete, consolidated AI and signal configuration for a given signal strength and project.
+ *
+ * This function mirrors the legacy system's approach by fetching all necessary parameters
+ * (model, temp, prompts, max_chars, max_value, and previous_days) in a single, efficient query.
+ *
+ * @param signalStrengthId The ID of the signal strength configuration to fetch.
+ * @param projectId The ID of the project.
+ * @returns A promise that resolves to a structured `AiConfig` object, or null if not found or disabled.
+ */
+export async function getLegacySignalConfig(
     signalStrengthId: number,
     projectId: number,
-): Promise<{ previous_days: number } | null> {
-    const supabase = await getSupabaseClient()
-    const { data, error } = await supabase
-        .from("project_signal_strengths")
-        .select("previous_days")
-        .eq("signal_strength_id", signalStrengthId)
-        .eq("project_id", projectId)
-        .single()
-
-    if (error) {
-        if (error.code !== "PGRST116") {
-            console.error(
-                `[DBClient] Error fetching signal strength config for signal ${signalStrengthId} in project ${projectId}`,
-                { error },
-            )
-        }
-        // Return null for not found or other errors, allowing the caller to use a default.
-        return null
-    }
-
-    // If previous_days is 0, it signifies the default behavior (no specific lookback).
-    // In this case, we return null to let the adapter process all available activity.
-    if (!data || data.previous_days === 0 || typeof data.previous_days !== 'number') {
-        return null
-    }
-
-    return data
-}
-
-export async function getAiConfig(signalStrengthId: number, projectId: number): Promise<AiConfig | null> {
-    const supabase = await getSupabaseClient()
+): Promise<AiConfig | null> {
+    const supabase = await getSupabaseClient();
 
     const { data, error } = await supabase
         .from("signal_strengths")
@@ -243,34 +225,48 @@ export async function getAiConfig(signalStrengthId: number, projectId: number): 
         prompts (*),
         project_signal_strengths!inner (
           enabled,
-          max_value
+          max_value,
+          previous_days
         )
       `,
         )
         .eq("id", signalStrengthId)
         .eq("project_signal_strengths.project_id", projectId)
-        .single()
+        .single();
 
     if (error) {
         // Inner join will error if no matching project config found, which is expected.
         // Log as info, not error.
         console.info(
-            `[DBCLIENT] Could not fetch AI config for signal ${signalStrengthId} and project ${projectId}. It might be disabled.`,
+            `[DBCLIENT] Could not fetch legacy config for signal ${signalStrengthId} and project ${projectId}. It might be disabled.`,
             error.message,
-        )
-        return null
+        );
+        return null;
     }
 
-    const prompts: Prompt[] = Array.isArray(data.prompts) ? data.prompts : data.prompts ? [data.prompts] : []
+    const projectConfig = data.project_signal_strengths[0];
+    if (!projectConfig || !projectConfig.enabled) {
+        console.info(
+            `[DBCLIENT] Signal ${signalStrengthId} is disabled for project ${projectId}.`,
+        );
+        return null;
+    }
+
+    const prompts: Prompt[] = Array.isArray(data.prompts)
+        ? data.prompts
+        : data.prompts
+        ? [data.prompts]
+        : [];
 
     return {
         signalStrengthId: signalStrengthId,
         model: data.model,
         temperature: data.temperature,
         maxChars: data.max_chars,
-        maxValue: data.project_signal_strengths[0].max_value ?? 100, // Default to 100 if null
+        maxValue: projectConfig.max_value ?? 100, // Default to 100 if null
+        previous_days: projectConfig.previous_days ?? null, // Default to null
         prompts,
-    }
+    };
 }
 
 /**
@@ -350,7 +346,11 @@ export async function getScoresForUsersOnDay(
  */
 export async function getForumUsersForProject(projectId: number, userIds?: number[]): Promise<ForumUser[]> {
     const supabase = await getSupabaseClient()
-    let query = supabase.from("forum_users").select("*").eq("project_id", projectId)
+    let query = supabase
+        .from("forum_users")
+        .select("*")
+        .eq("project_id", projectId)
+        .not("forum_username", "is", null)
 
     if (userIds && userIds.length > 0) {
         query = query.in("user_id", userIds)
@@ -446,31 +446,26 @@ export async function getSmartScoreForUser(
 export async function saveScore(
     scoreData: Omit<UserSignalStrength, "id" | "created_at" | "test_requesting_user">,
 ): Promise<void> {
-    const supabase = await getSupabaseClient();
+    const supabase = await getSupabaseClient()
 
     // Step 1: Delete any existing score for the same unique combination.
     // This replicates the legacy `clearLastChecked.js` functionality.
-    const { error: deleteError } = await supabase
-        .from("user_signal_strengths")
-        .delete()
-        .match({
-            user_id: scoreData.user_id,
-            project_id: scoreData.project_id,
-            signal_strength_id: scoreData.signal_strength_id,
-            day: scoreData.day,
-        });
+    const { error: deleteError } = await supabase.from("user_signal_strengths").delete().match({
+        user_id: scoreData.user_id,
+        project_id: scoreData.project_id,
+        signal_strength_id: scoreData.signal_strength_id,
+        day: scoreData.day,
+    })
 
     if (deleteError) {
-        throw new Error(`Failed to clear previous score: ${deleteError.message}`);
+        throw new Error(`Failed to clear previous score: ${deleteError.message}`)
     }
 
     // Step 2: Insert the new score.
-    const { error: insertError } = await supabase
-        .from("user_signal_strengths")
-        .insert(scoreData);
+    const { error: insertError } = await supabase.from("user_signal_strengths").insert(scoreData)
 
     if (insertError) {
-        throw new Error(`Failed to save score: ${insertError.message}`);
+        throw new Error(`Failed to save score: ${insertError.message}`)
     }
 }
 
@@ -494,7 +489,7 @@ export async function getRawScoresForUser(
     const supabase = await getSupabaseClient()
     const DEFAULT_LOOKBACK_DAYS = 30
 
-    const signalConfig = await getSignalStrengthConfig(signalStrengthId, projectId)
+    const signalConfig = await getLegacySignalConfig(signalStrengthId, projectId)
     const lookbackDays = signalConfig?.previous_days ?? DEFAULT_LOOKBACK_DAYS
 
     if (!signalConfig) {
@@ -523,8 +518,6 @@ export async function getRawScoresForUser(
 
     return data || []
 }
-
-
 
 /**
  * Resets the singleton Supabase client instance.

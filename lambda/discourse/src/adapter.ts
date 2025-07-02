@@ -2,21 +2,22 @@ import { Logger } from "winston"
 import { SupabaseClient } from "@supabase/supabase-js"
 import axios from "axios"
 import { AIOrchestrator } from "@engine/aiOrchestrator"
-import { 
-    getForumUsersForProject, 
-    getUserLastUpdate, 
-    updateUserLastUpdate, 
-    getRawScoreForUser, 
-    getRawScoresForUser, 
-    getSmartScoreForUser, 
-    saveScore, 
-    getSignalStrengthConfig 
+import {
+    getForumUsersForProject,
+    getUserLastUpdate,
+    updateUserLastUpdate,
+    getRawScoreForUser,
+    getRawScoresForUser,
+    getSmartScoreForUser,
+    saveScore,
+    getLegacySignalConfig,
 } from "@engine/dbClient"
-import { AiConfig, ForumUser, RawScore } from "@engine/types"
+import { ForumUser } from "@engine/types"
+import { AiConfig, RawScore } from "@shared/types"
 import { DiscourseAdapterRuntimeConfig } from "@engine/config"
 import { fetchUserActivity } from "./apiClient"
-import { stripHtml } from "@engine/utils/htmlStripper";
-import { calculateSmartScore } from "@engine/smartScoreCalculator";
+import { stripHtml } from "@engine/utils/htmlStripper"
+import { calculateSmartScore } from "@engine/smartScoreCalculator"
 import { DiscourseUserActivity, DiscourseUserAction } from "./types"
 
 export class DiscourseAdapter {
@@ -89,21 +90,25 @@ export class DiscourseAdapter {
 
         try {
             // Generate raw and smart scores
-            const signalConfig = await getSignalStrengthConfig(this.config.SIGNAL_STRENGTH_ID, projectId)
+            const signalConfig = await getLegacySignalConfig(this.config.SIGNAL_STRENGTH_ID, projectId)
+            if (!signalConfig) {
+                this.logger.error(
+                    `[DiscourseAdapter] Could not retrieve signal config for project ${projectId}. Aborting user processing.`,
+                )
+                return
+            }
             await this.generateRawScoresForUser(user, userActivity, signalConfig)
             await this.generateSmartScoreForUser(user)
 
-            // After all processing is successful, update the user's last_updated timestamp.
-            await updateUserLastUpdate(numericUserId, projectId)
-
-            this.logger.info(`[DiscourseAdapter] Completed processing for user: ${user.forum_username}.`)
+            // Step 5: Update the user's last_updated timestamp
+            await updateUserLastUpdate(user.user_id, this.config.PROJECT_ID)
+            this.logger.info(
+                `[DiscourseAdapter] Successfully processed user ${user.forum_username} and updated their last_updated timestamp.`,
+            )
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error)
-            this.logger.error(`[DiscourseAdapter] Error processing user ${user.forum_username}: ${message}`, {
+            this.logger.error(`[DiscourseAdapter] An error occurred during processing for user ${user.user_id}:`, {
                 error,
             })
-            // In single-user mode, we re-throw to let the engine know it failed.
-            throw error
         }
     }
 
@@ -127,33 +132,34 @@ export class DiscourseAdapter {
     private async generateRawScoresForUser(
         user: ForumUser,
         userActivity: DiscourseUserActivity | null,
-        signalConfig: { previous_days: number } | null,
+        signalConfig: AiConfig,
     ): Promise<void> {
         this.logger.info("In generateRawScoresForUser, processing user", {
             userId: user.user_id,
         })
 
-        if (!userActivity || userActivity.user_actions.length === 0) {
-            this.logger.info(`No activity found for user ${user.forum_username}`)
+        if (!userActivity?.user_actions || userActivity.user_actions.length === 0) {
+            this.logger.info(`No user activity found for ${user.forum_username}. Skipping raw score generation.`)
             return
         }
 
         const dailySummaries = this.groupAndSummarizeActivityByDay(userActivity.user_actions)
+        const dates = Object.keys(dailySummaries).sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
 
+        for (const date of dates) {
+            const summary = dailySummaries[date]
 
-
-        for (const [date, summary] of Object.entries(dailySummaries)) {
-            this.logger.info(`Processing activity for ${user.forum_username} on ${date}`)
-
+            // Skip if there's already a raw score for this day
             const existingScore = await getRawScoreForUser(
                 user.user_id,
                 this.config.PROJECT_ID,
                 this.config.SIGNAL_STRENGTH_ID,
                 date,
             )
-
             if (existingScore) {
-                this.logger.info(`Raw score for ${user.forum_username} on ${date} already exists. Skipping.`)
+                this.logger.info(
+                    `Raw score for user ${user.forum_username} on ${date} already exists. Skipping generation.`,
+                )
                 continue
             }
 
@@ -174,24 +180,23 @@ export class DiscourseAdapter {
                     day: date,
                     prompt_id: result.promptId,
                     raw_value: result.score.value,
-                    max_value: this.config.MAX_VALUE,
+                    max_value: signalConfig.maxValue,
                     summary: result.score.summary ?? "",
                     description: result.score.description ?? "",
                     improvements: result.score.improvements ?? "",
                     explained_reasoning:
                         typeof result.score.explained_reasoning === "string"
                             ? result.score.explained_reasoning
-                            : result.score.explained_reasoning?.reason ?? "",
+                            : (result.score.explained_reasoning?.reason ?? ""),
                     created: Math.floor(new Date().getTime() / 1000),
                 })
 
-
                 this.logger.info(`Successfully generated and saved raw score for ${user.forum_username} on ${date}`)
 
-            // If a specific lookback period is defined, we only score the most recent day of activity.
-            if (signalConfig?.previous_days) {
-                break
-            }
+                // If a specific lookback period is defined, we only score the most recent day of activity.
+                if (signalConfig?.previous_days) {
+                    break
+                }
             } else {
                 this.logger.error(
                     `Failed to generate AI score for user ${user.forum_username} on ${date}. AI service returned null.`,
@@ -201,46 +206,45 @@ export class DiscourseAdapter {
     }
 
     private async generateSmartScoreForUser(user: ForumUser): Promise<void> {
-        this.logger.info(`Starting smart score generation for user ${user.user_id}`);
+        this.logger.info(`Starting smart score generation for user ${user.user_id}`)
 
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split("T")[0];
+        const yesterday = new Date()
+        yesterday.setDate(yesterday.getDate() - 1)
+        const yesterdayStr = yesterday.toISOString().split("T")[0]
 
         const existingSmartScore = await getSmartScoreForUser(
             user.user_id,
             this.config.PROJECT_ID,
             this.config.SIGNAL_STRENGTH_ID,
-            yesterdayStr
-        );
+            yesterdayStr,
+        )
 
         if (existingSmartScore) {
             this.logger.info(
-                `[DiscourseAdapter] Smart score for user ${user.user_id} on ${yesterdayStr} already exists. Skipping.`
-            );
-            return;
+                `[DiscourseAdapter] Smart score for user ${user.user_id} on ${yesterdayStr} already exists. Skipping.`,
+            )
+            return
         }
 
         const rawScoresFromDb = await getRawScoresForUser(
             user.user_id,
             this.config.PROJECT_ID,
             this.config.SIGNAL_STRENGTH_ID,
-        );
+        )
 
         // Use a type guard to filter out incomplete data and ensure type safety for the calculator.
         const rawScores: RawScore[] = rawScoresFromDb.filter(
-            (score): score is RawScore =>
-                score.raw_value != null && score.max_value != null && score.day != null,
-        );
+            (score): score is RawScore => score.raw_value != null && score.max_value != null && score.day != null,
+        )
 
         if (rawScores.length === 0) {
             this.logger.info(
                 `No valid raw scores found for user ${user.user_id} in the last 30 days. Skipping smart score generation.`,
-            );
-            return;
+            )
+            return
         }
 
-        const { smartScore } = calculateSmartScore(rawScores, 30); // Using 30 days as a default lookback
+        const { smartScore } = calculateSmartScore(rawScores, 30) // Using 30 days as a default lookback
 
         await saveScore({
             user_id: user.user_id,
@@ -251,10 +255,10 @@ export class DiscourseAdapter {
             max_value: 100, // Smart scores are on a scale of 0-100
             summary: "Smart score calculated based on recent activity.",
             created: Math.floor(new Date().getTime() / 1000),
-        });
+        })
 
         this.logger.info(
-            `Successfully generated and saved smart score of ${smartScore} for user ${user.user_id} for date ${yesterdayStr}`
-        );
+            `Successfully generated and saved smart score of ${smartScore} for user ${user.user_id} for date ${yesterdayStr}`,
+        )
     }
 }

@@ -14,7 +14,7 @@
  */
 
 import { AppConfig } from "./config"
-import { getAiConfig, getUsersByIds } from "./dbClient"
+import { getLegacySignalConfig, getUsersByIds } from "./dbClient"
 import { Logger } from "./logger"
 import { getAIServiceClient } from "./aiService"
 import type {
@@ -63,7 +63,7 @@ export class AIOrchestrator {
             projectId,
         })
 
-        const aiConfig = aiConfigOverride ?? (await getAiConfig(signalStrengthId, projectId))
+        const aiConfig = aiConfigOverride ?? (await getLegacySignalConfig(signalStrengthId, projectId))
         const promptConfig = this._prepareAndValidatePrompts(aiConfig, "raw")
 
         if (!aiConfig || !promptConfig) {
@@ -134,7 +134,7 @@ export class AIOrchestrator {
     ): Promise<{ score: AIScoreOutput; promptId: number } | null> {
         this.logger.info(`Starting raw score generation for user ${user.user_id}.`, { signalStrengthId, projectId })
 
-        const aiConfig = aiConfigOverride ?? (await getAiConfig(signalStrengthId, projectId))
+        const aiConfig = aiConfigOverride ?? (await getLegacySignalConfig(signalStrengthId, projectId))
         const promptConfig = this._prepareAndValidatePrompts(aiConfig, "raw")
 
         if (!aiConfig || !promptConfig) {
@@ -182,7 +182,7 @@ export class AIOrchestrator {
             projectId,
         })
 
-        const aiConfig = aiConfigOverride ?? (await getAiConfig(signalStrengthId, projectId))
+        const aiConfig = aiConfigOverride ?? (await getLegacySignalConfig(signalStrengthId, projectId))
         const promptConfig = this._prepareAndValidatePrompts(aiConfig, "smart")
 
         if (!aiConfig || !promptConfig) {
