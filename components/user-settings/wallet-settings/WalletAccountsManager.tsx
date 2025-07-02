@@ -114,9 +114,13 @@ export default function WalletAccountsManager({
             disabled={disabled}
             lozengeTypes={lozengeTypes}
             loginOnly={false}
-            onEditButton={() => {
-                setIsEditModalOpen(true)
-            }}
+            onEditButton={
+                disabled
+                    ? undefined
+                    : () => {
+                          setIsEditModalOpen(true)
+                      }
+            }
         >
             <WalletAccountsEditor
                 isOpen={isEditModalOpen}
