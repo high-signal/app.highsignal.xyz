@@ -18,11 +18,11 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["./*"],
-            "@engine/*": ["./lambda/engine/src/*"],
-            "@shared/*": ["./lambda/shared/src/*"],
-            "@discourse/*": ["./lambda/discourse/src/*"],
-            "@twitter/*": ["./lambda/twitter/src/*"],
-            "@discord/*": ["./lambda/discord/src/*"]
+            "@engine/*": ["./lambda/engine/dist/*"],
+            "@shared/*": ["./lambda/shared/dist/*"],
+            "@discourse/*": ["./lambda/discourse/dist/*"],
+            "@twitter/*": ["./lambda/twitter/dist/*"],
+            "@discord/*": ["./lambda/discord/dist/*"]
         },
         "plugins": [
             {

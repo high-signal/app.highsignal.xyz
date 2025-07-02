@@ -14,17 +14,17 @@
     },
     "dependencies": {
         "@aws-sdk/client-secrets-manager": "^3.529.1",
-        "@supabase/supabase-js": "^2.39.3",
+        "@supabase/supabase-js": "^2.45.1",
         "@types/winston": "^2.4.4",
         "axios": "^1.8.4",
         "dotenv": "^16.4.5",
         "openai": "^4.95.1",
         "winston": "^3.17.0",
-        "zod": "^3.25.67"
+        "zod": "^3.23.8"
     },
     "devDependencies": {
         "@types/nock": "^11.1.0",
-        "@types/node": "^20.11.24",
+        "@types/node": "^20.14.12",
         "@typescript-eslint/eslint-plugin": "^8.34.1",
         "@typescript-eslint/parser": "^8.34.1",
         "aws-sdk-client-mock": "^4.1.0",
@@ -37,7 +37,7 @@
         "prettier": "^3.5.3",
         "ts-node": "^10.9.2",
         "tsconfig-paths": "^4.2.0",
-        "typescript": "^5.8.3",
+        "typescript": "^5.5.4",
         "typescript-eslint": "^8.34.1",
         "vite-tsconfig-paths": "^5.1.4",
         "vitest": "^3.2.3"
