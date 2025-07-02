@@ -99,7 +99,7 @@ export default function AccountConnectionManager({
         <VStack w={"100%"}>
             {children}
             <SettingsInputField
-                label={(config.displayName || "").charAt(0).toUpperCase() + (config.displayName || "").slice(1)}
+                label={config.displayName}
                 labelIcon={
                     config.logoUrl && config.logoUrl.startsWith("http") ? (
                         <Box boxSize="16px" ml={1} mr={1} mb={1}>
