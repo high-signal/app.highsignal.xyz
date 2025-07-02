@@ -1,7 +1,7 @@
 "use client"
 
 import { VStack, Text, HStack, Button, Spinner } from "@chakra-ui/react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import ProjectPicker from "../../ui/ProjectPicker"
 import { useGetProjects } from "../../../hooks/useGetProjects"
 import ForumConnectionManager from "./ForumConnectionManager"
@@ -11,6 +11,11 @@ import SettingsGroupContainer from "../../ui/SettingsGroupContainer"
 export default function ForumAccountsContainer({ targetUser, disabled }: { targetUser: UserData; disabled: boolean }) {
     const { projects, loading: projectsLoading } = useGetProjects()
     const [selectedProjectToConnect, setSelectedProjectToConnect] = useState<ProjectData | null>(null)
+
+    // When the targetUser changes, reset the selected project to connect
+    useEffect(() => {
+        setSelectedProjectToConnect(null)
+    }, [targetUser])
 
     const forumConfigs = projects
         .flatMap((project) => {
@@ -117,8 +122,9 @@ export default function ForumAccountsContainer({ targetUser, disabled }: { targe
                             </HStack>
                             {selectedConfig &&
                                 (isSelectedProjectConnected ? (
-                                    <Text color="green.500" fontSize="sm" pl={4}>
-                                        You are already connected to {selectedConfig.projectDisplayName} forum
+                                    <Text color="green.500" fontSize="sm" fontWeight="bold" pl={2}>
+                                        You have already confirmed ownership of your {selectedConfig.projectDisplayName}{" "}
+                                        forum account. Please select another forum to connect, or cancel.
                                     </Text>
                                 ) : (
                                     <ForumConnectionManager
