@@ -1,17 +1,17 @@
 {
-  "name": "twitter-adapter",
-  "version": "1.0.0",
-  "description": "Twitter Platform Adapter for Lambda Engine",
-  "main": "dist/adapter.js",
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc -w",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "typescript": "^5.0.0"
-  }
+    "name": "twitter-adapter",
+    "version": "1.0.0",
+    "description": "Twitter Platform Adapter for Lambda Engine",
+    "main": "dist/adapter.js",
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc -w",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "typescript": "^5.0.0"
+    }
 }

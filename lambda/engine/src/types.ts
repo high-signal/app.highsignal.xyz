@@ -11,27 +11,19 @@ import type {
     Prompt,
     User,
     ForumUser,
+    AiConfig,
+    RawScore,
+    SmartScoreOutput,
 } from "@shared/types"
 
 // Re-export shared types for consumers of the engine module
-export type { PlatformOutput, UserSignalStrength, Prompt, User, ForumUser, Database }
+export type { PlatformOutput, UserSignalStrength, Prompt, User, ForumUser, Database, AiConfig, RawScore, SmartScoreOutput }
 
 // ==========================================================================
 // AI & CONFIGURATION TYPES (Engine-Specific)
 // ==========================================================================
 
-/**
- * Represents the comprehensive AI configuration for a specific signal strength,
- * combining details from both the 'signal_strengths' and 'prompts' tables.
- */
-export interface AiConfig {
-    signalStrengthId: number
-    model: string
-    temperature: number
-    maxChars: number
-    prompts: Prompt[]
-    maxValue: number
-}
+
 
 /**
  * Configuration for a generic AI model call.
@@ -93,19 +85,4 @@ export interface AIServiceClient {
     getStructuredResponse(prompt: string, modelConfig: ModelConfig): Promise<AIScoreOutput>
 }
 
-/**
- * Represents the data for a single raw score, used as input for the smart score calculation.
- */
-export interface RawScore {
-    raw_value: number;
-    max_value: number;
-    day: string; // ISO date string 'YYYY-MM-DD'
-}
 
-/**
- * Represents the output of the deterministic smart score calculation.
- */
-export interface SmartScoreOutput {
-    smartScore: number;
-    topBandDays: string[];
-}

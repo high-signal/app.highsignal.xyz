@@ -1,11 +1,11 @@
 {
-  "extends": "./tsconfig.base.json",
-  "files": [],
-  "references": [
-    { "path": "./shared" },
-    { "path": "./engine" },
-    { "path": "./discourse" },
-    { "path": "./twitter" },
-    { "path": "./discord" }
-  ]
+    "extends": "./tsconfig.base.json",
+    "files": [],
+    "references": [
+        { "path": "./shared" },
+        { "path": "./engine" },
+        { "path": "./discourse" },
+        { "path": "./twitter" },
+        { "path": "./discord" }
+    ]
 }

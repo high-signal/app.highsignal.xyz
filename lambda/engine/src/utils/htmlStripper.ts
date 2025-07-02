@@ -7,8 +7,8 @@
  */
 export function stripHtml(html: string | null | undefined): string {
     if (!html) {
-        return "";
+        return ""
     }
     // The regex /<[^>]*>/g matches any character between < and > and removes it.
-    return html.replace(/<[^>]*>/g, "");
+    return html.replace(/<[^>]*>/g, "")
 }

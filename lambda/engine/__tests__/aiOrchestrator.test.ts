@@ -26,31 +26,32 @@ describe("AIOrchestrator", () => {
         temperature: 0.7,
         maxChars: 1000,
         maxValue: 10,
+        previous_days: 30,
         prompts: [
             {
                 id: 1,
-                ai_config_id: 1,
+                signal_strength_id: 1,
                 type: "raw",
                 prompt: "OLD RAW - Analyze: ${content} for ${username} (${displayName}). Max score: ${maxValue}",
                 created_at: "2023-01-01T12:00:00.000Z",
             },
             {
                 id: 2,
-                ai_config_id: 1,
+                signal_strength_id: 1,
                 type: "smart",
                 prompt: "OLD SMART - Summarize: ${content} for ${username}. Max score: ${maxValue}",
                 created_at: "2023-01-01T12:00:00.000Z",
             },
             {
                 id: 3,
-                ai_config_id: 1,
+                signal_strength_id: 1,
                 type: "raw",
                 prompt: "Analyze: ${content} for ${username} (${displayName}). Max score: ${maxValue}",
                 created_at: "2023-01-02T12:00:00.000Z", // Newer
             },
             {
                 id: 4,
-                ai_config_id: 1,
+                signal_strength_id: 1,
                 type: "smart",
                 prompt: "Summarize: ${content} for ${username}. Max score: ${maxValue}",
                 created_at: "2023-01-02T12:00:00.000Z", // Newer
@@ -111,7 +112,7 @@ describe("AIOrchestrator", () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
-        vi.mocked(dbClient.getAiConfig).mockResolvedValue(mockAiConfig)
+        vi.mocked(dbClient.getLegacySignalConfig).mockResolvedValue(mockAiConfig)
         vi.mocked(dbClient.getUsersByIds).mockResolvedValue(mockUsersData as any)
         vi.mocked(aiService.getAIServiceClient).mockReturnValue(mockAIServiceClient)
         mockAIServiceClient.getStructuredResponse.mockResolvedValue(mockAiScoreOutput)
@@ -126,14 +127,14 @@ describe("AIOrchestrator", () => {
             expect(result[0].user_id).toBe(101)
             expect(result[0].value).toBe(8)
             expect(result[0].summary).toBe("Good contributions")
-            expect(dbClient.getAiConfig).toHaveBeenCalledWith(1, 1)
+            expect(dbClient.getLegacySignalConfig).toHaveBeenCalledWith(1, 1)
             expect(dbClient.getUsersByIds).toHaveBeenCalledWith([101, 102])
             expect(aiService.getAIServiceClient).toHaveBeenCalledTimes(2)
             expect(mockAIServiceClient.getStructuredResponse).toHaveBeenCalledTimes(2)
         })
 
         it("should return an empty array if AI config is not found", async () => {
-            vi.mocked(dbClient.getAiConfig).mockResolvedValue(null)
+            vi.mocked(dbClient.getLegacySignalConfig).mockResolvedValue(null)
             const orchestrator = new AIOrchestrator(mockAppConfig, mockLogger)
             const result = await orchestrator.getAiScores(mockPlatformOutputs, "2023-01-01", 1, 1)
 
@@ -146,13 +147,23 @@ describe("AIOrchestrator", () => {
     })
 
     describe("generateRawScoreForUserActivity", () => {
-        const mockUser: ForumUser = { user_id: 101, forum_username: "user1" }
+        const mockUser: ForumUser = {
+            user_id: 101,
+            forum_username: "user1",
+            auth_encrypted_payload: null,
+            auth_post_code: null,
+            auth_post_code_created: null,
+            auth_post_id: null,
+            created_at: new Date().toISOString(),
+            last_updated: new Date().toISOString(),
+            project_id: 1,
+        }
 
         it("should generate a raw score for a user", async () => {
             const orchestrator = new AIOrchestrator(mockAppConfig, mockLogger)
             const result = await orchestrator.generateRawScoreForUserActivity("User activity summary", mockUser, 1, 1)
 
-            expect(result).toEqual({ score: mockAiScoreOutput, promptId: 3 });
+            expect(result).toEqual({ score: mockAiScoreOutput, promptId: 3 })
             expect(mockAIServiceClient.getStructuredResponse).toHaveBeenCalledWith(
                 "Analyze: User activity summary for user1 (User One). Max score: 10",
                 expect.any(Object),
@@ -161,7 +172,17 @@ describe("AIOrchestrator", () => {
     })
 
     describe("generateSmartScoreFromRawScores", () => {
-        const mockUser: ForumUser = { user_id: 101, forum_username: "user1" }
+        const mockUser: ForumUser = {
+            user_id: 101,
+            forum_username: "user1",
+            auth_encrypted_payload: null,
+            auth_post_code: null,
+            auth_post_code_created: null,
+            auth_post_id: null,
+            created_at: new Date().toISOString(),
+            last_updated: new Date().toISOString(),
+            project_id: 1,
+        }
         const rawScores: Pick<UserSignalStrength, "day" | "value" | "summary">[] = [
             { day: "2023-01-01", value: 7, summary: "First day summary" },
             { day: "2023-01-02", value: 9, summary: "Second day summary" },

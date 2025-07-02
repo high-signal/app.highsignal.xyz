@@ -5,7 +5,7 @@ import { AiConfig } from "../src/types"
 
 // Mock the dbClient entirely to control AI config fetching
 vi.mock("../src/dbClient", () => ({
-    getAiConfig: vi.fn(),
+    getLegacySignalConfig: vi.fn(),
 }))
 
 const smMock = mockClient(SecretsManagerClient)
@@ -106,13 +106,14 @@ describe("Lambda Engine Configuration", () => {
             signalStrengthId: 10,
             model: "gpt-4",
             temperature: 0.7,
-            maxChars: 4000,
+            maxChars: 5000,
             prompts: [],
-            maxValue: 100,
+            maxValue: 10,
+            previous_days: 30,
         }
 
         beforeEach(() => {
-            dbClientMocks.getAiConfig.mockResolvedValue(mockAiConfig)
+            dbClientMocks.getLegacySignalConfig.mockResolvedValue(mockAiConfig)
         })
 
         it("should load Discourse config from process.env in local dev", async () => {
@@ -143,7 +144,7 @@ describe("Lambda Engine Configuration", () => {
 
             // We need to mock the AI config fetch for the production case as well
             const prodAiConfig = { ...mockAiConfig, signalStrengthId: 20 }
-            dbClientMocks.getAiConfig.mockResolvedValue(prodAiConfig)
+            dbClientMocks.getLegacySignalConfig.mockResolvedValue(prodAiConfig)
 
             const config = await configModule.getDiscourseAdapterRuntimeConfig()
 
@@ -158,14 +159,14 @@ describe("Lambda Engine Configuration", () => {
             })
         })
 
-        it("should throw an error if getAiConfig returns null", async () => {
+        it("should throw an error if getLegacySignalConfig returns null", async () => {
             vi.stubEnv("NODE_ENV", "development")
             vi.stubEnv("DISCOURSE_API_URL", "http://discourse.local")
             vi.stubEnv("DISCOURSE_API_KEY", "discourse-key-local")
             vi.stubEnv("DISCOURSE_PROJECT_ID", "1")
             vi.stubEnv("DISCOURSE_SIGNAL_STRENGTH_ID", "10")
 
-            dbClientMocks.getAiConfig.mockResolvedValue(null)
+            dbClientMocks.getLegacySignalConfig.mockResolvedValue(null)
 
             await expect(configModule.getDiscourseAdapterRuntimeConfig()).rejects.toThrow(
                 "[CONFIG] Failed to fetch required AI configuration for signal strength ID: 10",
@@ -197,7 +198,7 @@ describe("Lambda Engine Configuration", () => {
                 }),
             })
 
-            dbClientMocks.getAiConfig.mockResolvedValue(mockAiConfig)
+            dbClientMocks.getLegacySignalConfig.mockResolvedValue(mockAiConfig)
 
             const config = await configModule.getDiscourseAdapterRuntimeConfig()
 

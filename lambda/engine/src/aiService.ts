@@ -133,10 +133,12 @@ class OpenAIAIServiceClient implements AIServiceClient {
 
         try {
             const completion = await this.openai.chat.completions.create({
-                messages: [{
-                role: "user",
-                content: `${prompt}\n\nRespond with a JSON object containing two keys: 'value' (a number between 0 and 100) and 'summary' (a string for reasoning).`,
-            }],
+                messages: [
+                    {
+                        role: "user",
+                        content: `${prompt}\n\nRespond with a JSON object containing two keys: 'value' (a number between 0 and 100) and 'summary' (a string for reasoning).`,
+                    },
+                ],
                 model: modelConfig.model,
                 temperature: modelConfig.temperature,
                 max_tokens: modelConfig.maxTokens || OPENAI_DEFAULT_MAX_TOKENS,

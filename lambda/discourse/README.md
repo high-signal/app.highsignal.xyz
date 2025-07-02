@@ -1,2 +1,1 @@
 # Discourse Adapter
-

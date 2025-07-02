@@ -99,11 +99,7 @@ describe("runEngine", () => {
         )
 
         // Verify the main logic was called
-        expect(mockProcessUser).toHaveBeenCalledWith(
-            options.userId,
-            options.projectId,
-            testDiscourseConfig.aiConfig,
-        )
+        expect(mockProcessUser).toHaveBeenCalledWith(options.userId, options.projectId, testDiscourseConfig.aiConfig)
         expect(mockLoggerInstance.info).toHaveBeenCalledWith(
             `Successfully completed engine run for platform 'discourse' and user '${options.userId}'.`,
         )

@@ -5,7 +5,7 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js"
 import nock from "nock"
 import { AIOrchestrator } from "../aiOrchestrator"
 import { DiscourseAdapter } from "@discourse/adapter"
-import { getAiConfig } from "../dbClient"
+import { getLegacySignalConfig } from "../dbClient"
 import { AppConfig, DiscourseAdapterRuntimeConfig } from "../config"
 import { ForumUser, User } from "../types"
 
@@ -83,9 +83,7 @@ const setup = async function setup(supabase: SupabaseClient, lastUpdated?: strin
         throw new Error("Failed to upsert test forum user.")
     }
 
-
-
-    logger.info(`Upserting project_signal_strengths with previous_days = ${previousDays ?? 'default'}`)
+    logger.info(`Upserting project_signal_strengths with previous_days = ${previousDays ?? "default"}`)
     const { error: configError } = await supabase.from("project_signal_strengths").upsert({
         project_id: PROJECT_ID,
         signal_strength_id: SIGNAL_STRENGTH_ID,
@@ -133,7 +131,7 @@ const initializeAdapter = async (supabaseUrl: string, supabaseServiceKey: string
 
     const aiOrchestrator = new AIOrchestrator(appConfig, logger)
 
-    const aiConfig = await getAiConfig(SIGNAL_STRENGTH_ID, PROJECT_ID)
+    const aiConfig = await getLegacySignalConfig(SIGNAL_STRENGTH_ID, PROJECT_ID)
     if (!aiConfig) {
         throw new Error("Could not fetch AI config from DB for test setup.")
     }

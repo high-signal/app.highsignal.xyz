@@ -13,7 +13,7 @@ import * as path from "path"
 import { z } from "zod"
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager"
 import { AiConfig } from "./types"
-import { getAiConfig as fetchAiConfigFromDb } from "./dbClient"
+import { getLegacySignalConfig as fetchAiConfigFromDb } from "./dbClient"
 
 // --- Zod Schemas for Configuration Validation ---
 
@@ -139,7 +139,9 @@ export const getAppConfig = async (): Promise<AppConfig> => {
                 // We use a partial schema here because we don't require all secrets to be present.
                 secrets = await getSecret(secretName, AppConfigSchema.partial())
             } catch (error) {
-                console.warn(`[CONFIG] Could not fetch app secrets from Secrets Manager. Falling back to environment variables. Error: ${error}`)
+                console.warn(
+                    `[CONFIG] Could not fetch app secrets from Secrets Manager. Falling back to environment variables. Error: ${error}`,
+                )
             }
         }
 
@@ -186,12 +188,14 @@ export const getDiscourseAdapterConfig = async (): Promise<DiscourseAdapterConfi
     try {
         let secrets = {}
         if (isProduction) {
-             try {
+            try {
                 const secretName = "highsignal/production/discourse"
                 // Fetch secrets, but don't fail if they don't exist. Env vars might be used instead.
                 secrets = await getSecret(secretName, DiscourseAdapterConfigSchema.partial())
             } catch (error) {
-                console.warn(`[CONFIG] Could not fetch Discourse secrets from Secrets Manager. Falling back to environment variables. Error: ${error}`)
+                console.warn(
+                    `[CONFIG] Could not fetch Discourse secrets from Secrets Manager. Falling back to environment variables. Error: ${error}`,
+                )
             }
         }
 
@@ -206,8 +210,8 @@ export const getDiscourseAdapterConfig = async (): Promise<DiscourseAdapterConfi
 
         // Filter out undefined values from envConfig so they don't overwrite secrets with `undefined`
         const definedEnvConfig = Object.fromEntries(
-            Object.entries(envConfig).filter(([, value]) => value !== undefined)
-        );
+            Object.entries(envConfig).filter(([, value]) => value !== undefined),
+        )
 
         // Combine sources: environment variables override secrets.
         const combinedConfig = {
