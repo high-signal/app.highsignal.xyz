@@ -108,8 +108,8 @@ export default function UserSettingsContainer() {
                         content: <GeneralSettingsContainer targetUser={targetUser} />,
                     },
                     {
-                        value: "connected-accounts",
-                        label: "Connected Accounts",
+                        value: "accounts",
+                        label: "Accounts",
                         content: <ConnectedAccountsContainer targetUser={targetUser} />,
                     },
                 ]}

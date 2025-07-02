@@ -63,7 +63,7 @@ export async function PUT(request: Request) {
             .toString(16)
             .padStart(16, "0")
         const authRedirect = encodeURIComponent(
-            `${process.env.NEXT_PUBLIC_SITE_URL!}/settings/u/${username}?tab=connected-accounts&type=discourse_forum&project=${projectUrlSlug}`,
+            `${process.env.NEXT_PUBLIC_SITE_URL!}/settings/u/${username}?tab=accounts&type=discourse_forum&project=${projectUrlSlug}`,
         )
 
         return NextResponse.json({
@@ -201,7 +201,7 @@ export async function POST(request: Request) {
                 signalStrengthId: signalStrengthData.id,
             })
 
-            return NextResponse.json({ success: true })
+            return NextResponse.json({ success: true }, { status: 200 })
         } catch (error) {
             console.error("Error managing forum user:", error)
             return NextResponse.json(

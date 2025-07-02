@@ -40,6 +40,18 @@ export async function GET(request: NextRequest) {
                     projects!inner (
                         url_slug
                     )
+                ),
+                user_addresses (
+                address,
+                address_name,
+                is_public,
+                    user_addresses_shared (
+                        projects (
+                            url_slug,
+                            display_name,
+                            project_logo_url
+                        )
+                    )
                 )
             `,
             )
@@ -67,6 +79,16 @@ export async function GET(request: NextRequest) {
                 authPostId: forumUser.auth_post_id,
                 authPostCode: forumUser.auth_post_code,
                 authPostCodeCreated: forumUser.auth_post_code_created,
+            })),
+            userAddresses: targetUser.user_addresses.map((userAddress: any) => ({
+                address: userAddress.address,
+                addressName: userAddress.address_name,
+                isPublic: userAddress.is_public,
+                userAddressesShared: userAddress.user_addresses_shared.map((userAddressShared: any) => ({
+                    projectUrlSlug: userAddressShared.projects.url_slug,
+                    projectDisplayName: userAddressShared.projects.display_name,
+                    projectLogoUrl: userAddressShared.projects.project_logo_url,
+                })),
             })),
         }
 

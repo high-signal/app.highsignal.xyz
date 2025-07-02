@@ -58,3 +58,16 @@ export function validateUrlSlug(urlSlug: string): string {
 
     return ""
 }
+
+/**
+ * Validates an address name according to the application rules
+ * @param addressName The address name to validate
+ * @returns An error message if validation fails, or an empty string if validation passes
+ */
+export function validateAddressName(addressName: string): string {
+    if (addressName.length > 25) {
+        return "Address name cannot be longer than 25 characters"
+    }
+
+    return ""
+}

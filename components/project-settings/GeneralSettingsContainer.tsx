@@ -42,13 +42,13 @@ export default function GeneralSettingsContainer({ project }: { project: Project
         }
     }, [error])
 
-    const handleImageUpdated = (imageUrl: string) => {
+    const handleImageUpdated = async (imageUrl: string) => {
         // Update form data and refresh user data so all the states are updated
         setFormData((prev) => ({
             ...prev,
             projectLogoUrl: imageUrl,
         }))
-        refreshUser()
+        await refreshUser()
     }
 
     const handleFieldChange = (field: string, value: string) => {

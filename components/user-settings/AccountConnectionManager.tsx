@@ -3,7 +3,7 @@
 import { Text, Button, Spinner, Menu, Portal, HStack, Box, Image, Skeleton, VStack } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import type { FontAwesomeIconProps } from "@fortawesome/react-fontawesome"
-import { faEllipsisVertical, faRefresh, faSignOut } from "@fortawesome/free-solid-svg-icons"
+import { faEllipsisVertical, faRefresh, faTrashCan } from "@fortawesome/free-solid-svg-icons"
 
 import SettingsInputField from "../ui/SettingsInputField"
 
@@ -66,10 +66,13 @@ export interface AccountConnectionManagerProps {
     onDisconnect: () => void
     onRefresh?: () => void
     getConnectionTypeText?: () => string
-    getConnectionDescription: () => string
+    getConnectionDescription?: () => string | React.ReactNode
     disabled?: boolean
     children?: React.ReactNode // For modals and other custom elements
-    lozengeTypes?: ("public" | "private" | "comingSoon" | "notifications" | "score")[]
+    lozengeTypes?: LozengeType[]
+    loginOnly?: boolean
+    connectionValueFontFamily?: string
+    onEditButton?: () => void
 }
 
 export default function AccountConnectionManager({
@@ -88,6 +91,9 @@ export default function AccountConnectionManager({
     disabled = false,
     children,
     lozengeTypes = [],
+    loginOnly = false,
+    connectionValueFontFamily,
+    onEditButton,
 }: AccountConnectionManagerProps) {
     return (
         <VStack w={"100%"}>
@@ -110,9 +116,11 @@ export default function AccountConnectionManager({
                         config.logoIcon && <FontAwesomeIcon icon={config.logoIcon} size="lg" />
                     )
                 }
-                description={getConnectionDescription()}
+                description={getConnectionDescription && getConnectionDescription()}
+                onEditButton={onEditButton}
                 lozengeTypes={lozengeTypes}
                 value={connectionValue}
+                valueFontFamily={connectionValueFontFamily}
                 error=""
                 isEditable={!isSubmitting && !isConnected}
                 inputReplacement={
@@ -131,7 +139,9 @@ export default function AccountConnectionManager({
                                 {isSubmitting || isProcessingAuthRequest ? (
                                     <Spinner size="sm" color="white" />
                                 ) : (
-                                    <Text fontWeight="bold">Confirm ownership</Text>
+                                    <Text fontWeight="bold">
+                                        {loginOnly ? "Add this log in option to your account" : "Confirm ownership"}
+                                    </Text>
                                 )}
                             </Button>
                         )
@@ -203,10 +213,10 @@ export default function AccountConnectionManager({
                                         <CustomMenuItem value="disconnect" onClick={onDisconnect}>
                                             <HStack overflow={"hidden"}>
                                                 <Text fontWeight="bold" color="orange.500">
-                                                    Disconnect
+                                                    Remove
                                                 </Text>
                                                 <Box w="20px">
-                                                    <FontAwesomeIcon icon={faSignOut} />
+                                                    <FontAwesomeIcon icon={faTrashCan} />
                                                 </Box>
                                             </HStack>
                                         </CustomMenuItem>

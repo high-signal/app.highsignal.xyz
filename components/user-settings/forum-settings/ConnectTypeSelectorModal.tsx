@@ -2,8 +2,9 @@
 
 import { HStack, VStack, Text, Button, Dialog, Spinner, Link } from "@chakra-ui/react"
 import Modal from "../../ui/Modal"
+import ModalCloseButton from "../../ui/ModalCloseButton"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCopy, faExternalLink, faMagnifyingGlass, faXmark, faRefresh } from "@fortawesome/free-solid-svg-icons"
+import { faCopy, faExternalLink, faMagnifyingGlass, faRefresh } from "@fortawesome/free-solid-svg-icons"
 import { useEffect, useState } from "react"
 import { faCheckCircle } from "@fortawesome/free-regular-svg-icons"
 import { usePrivy } from "@privy-io/react-auth"
@@ -128,7 +129,7 @@ export default function ConnectTypeSelectorModal({
             })
             handleClose()
             setIsAuthPostCodeCheckSubmitted(false)
-            refreshUser()
+            await refreshUser()
         } else {
             setIsAuthPostCodeCheckSubmitted(false)
             setAuthPostCheckError(
@@ -202,24 +203,7 @@ export default function ConnectTypeSelectorModal({
                         <Text fontWeight="bold" px={4}>
                             Confirm ownership of your {config.projectDisplayName} forum account
                         </Text>
-                        <Button
-                            closeButton
-                            position="absolute"
-                            right={{ base: "10px", md: "28px" }}
-                            top="28px"
-                            onClick={handleClose}
-                            borderRadius="full"
-                            color={"pageBackground"}
-                            w="20px"
-                            h="20px"
-                            minW="20px"
-                            maxW="20px"
-                            justifyContent={"center"}
-                            alignItems={"center"}
-                            display="flex"
-                        >
-                            <FontAwesomeIcon icon={faXmark} />
-                        </Button>
+                        <ModalCloseButton onClose={onClose} />
                     </Dialog.Title>
                 </Dialog.Header>
                 <Dialog.Body>
