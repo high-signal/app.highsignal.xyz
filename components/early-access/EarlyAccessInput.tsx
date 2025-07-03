@@ -137,15 +137,11 @@ export default function EarlyAccessInput() {
                                 h="35px"
                                 w="fit-content"
                                 px={3}
-                                onClick={async () => {
+                                onClick={() => {
                                     if (authenticated) {
                                         setIsButtonLoading(true)
                                         logout()
                                     } else {
-                                        // Attempt to get an access token before logging in
-                                        // to establish a connection with Privy
-                                        // so that Passkeys can be used reliably
-                                        await getAccessToken()
                                         login()
                                     }
                                 }}
