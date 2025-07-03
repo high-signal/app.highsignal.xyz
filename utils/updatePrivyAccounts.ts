@@ -135,7 +135,7 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
                         !privyUser.linked_accounts?.some(
                             (account: any) =>
                                 account.type === "wallet" &&
-                                account.connector_type === "injected" &&
+                                account.connector_type != "embedded" &&
                                 account.address === address.address,
                         ),
                 )
@@ -158,7 +158,7 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
                 const addressesToAdd = privyUser.linked_accounts?.filter(
                     (account: any) =>
                         account.type === "wallet" &&
-                        account.connector_type === "injected" &&
+                        account.connector_type != "embedded" &&
                         !userAddresses.some((address) => address.address === account.address),
                 )
 
