@@ -1,11 +1,11 @@
 "use client"
 
-import { VStack, Button, Text, HStack, Box, Spinner, Image, Flex } from "@chakra-ui/react"
+import { VStack, Button, Text, Box, Spinner, Image, Flex } from "@chakra-ui/react"
 import { useEffect, useState, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 
 import { useEarlyAccess } from "../../contexts/EarlyAccessContext"
-import { usePrivy } from "@privy-io/react-auth"
+import { getAccessToken, usePrivy } from "@privy-io/react-auth"
 import { useUser } from "../../contexts/UserContext"
 import { ASSETS } from "../../config/constants"
 
@@ -137,11 +137,15 @@ export default function EarlyAccessInput() {
                                 h="35px"
                                 w="fit-content"
                                 px={3}
-                                onClick={() => {
+                                onClick={async () => {
                                     if (authenticated) {
                                         setIsButtonLoading(true)
                                         logout()
                                     } else {
+                                        // Attempt to get an access token before logging in
+                                        // to establish a connection with Privy
+                                        // so that Passkeys can be used reliably
+                                        await getAccessToken()
                                         login()
                                     }
                                 }}

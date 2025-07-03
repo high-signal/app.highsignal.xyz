@@ -1636,10 +1636,10 @@
   resolved "https://registry.yarnpkg.com/@privy-io/ethereum/-/ethereum-0.0.2.tgz#1b6eddf48e5e0c3aa13adb8ca61f62496f744677"
   integrity sha512-FnJ1dzgg/tij4jLeKHLlZM9uNk4WN+iIOkc8CG0FZKUQxqXH60Fs/dMF6Xbndd5CQkUO8LUU7FLom/405VKXpQ==
 
-"@privy-io/js-sdk-core@0.52.2":
-  version "0.52.2"
-  resolved "https://registry.yarnpkg.com/@privy-io/js-sdk-core/-/js-sdk-core-0.52.2.tgz#8e01e85de2ba4576a53f584043ee645e53d4469e"
-  integrity sha512-MXghPqfKgh5gLPpAc3feJORWsUPt0cokCF1ZedZrN3rVs0WMcy30TIBOUJwkLmwtjsjm0y4PjfyhqmPGIqVR6Q==
+"@privy-io/js-sdk-core@0.52.4":
+  version "0.52.4"
+  resolved "https://registry.yarnpkg.com/@privy-io/js-sdk-core/-/js-sdk-core-0.52.4.tgz#3fe998ec38a54d154a9e4d43b05a0e1e51556558"
+  integrity sha512-OW14oLtZLT/oUA85ZrpnbtiC1oEMqFpXSP82XHvDe2jARM2bJo6BBd2QVGAd9CA0/Uv5Ef+2NyadMhXOoLwrJA==
   dependencies:
     "@ethersproject/abstract-signer" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -1649,7 +1649,7 @@
     "@ethersproject/units" "^5.7.0"
     "@privy-io/api-base" "1.5.2"
     "@privy-io/chains" "0.0.2"
-    "@privy-io/public-api" "2.37.0"
+    "@privy-io/public-api" "2.37.1"
     canonicalize "^2.0.0"
     eventemitter3 "^5.0.1"
     fetch-retry "^6.0.0"
@@ -1670,10 +1670,10 @@
     viem "^2"
     zod "^3.24.3"
 
-"@privy-io/public-api@2.37.0":
-  version "2.37.0"
-  resolved "https://registry.yarnpkg.com/@privy-io/public-api/-/public-api-2.37.0.tgz#de7a21288ed083e08451bb1b3a98b32cc335c134"
-  integrity sha512-gG8MV6EFbrjhFwSjRURKYqfD+VjP7P+FKnfvmpxqCIMBax1ZJbB8Kk8dvb4fWitiauSrwJFv2oxrFJuOT06D/A==
+"@privy-io/public-api@2.37.1":
+  version "2.37.1"
+  resolved "https://registry.yarnpkg.com/@privy-io/public-api/-/public-api-2.37.1.tgz#c971b307cd1e44e12ccfa2fb31c2d254505cfd39"
+  integrity sha512-B3N0q8G0XR8OHt8bLIOQs/+GEP0qXpSewfQ0xYofopsrCluOi9W60QMekjHz/6PfN6CQcnxQ/EJUS26X3KfEUQ==
   dependencies:
     "@privy-io/api-base" "1.5.2"
     bs58 "^5.0.0"
@@ -1681,10 +1681,10 @@
     viem "^2"
     zod "^3.24.3"
 
-"@privy-io/react-auth@^2.17.0":
-  version "2.17.1"
-  resolved "https://registry.yarnpkg.com/@privy-io/react-auth/-/react-auth-2.17.1.tgz#0e63ed4727f63c0a8834fcc4ea3d051b9eb52027"
-  integrity sha512-JlLnGpio4dPsAzuwNv8RHm3hl/EIm8z5WGHGHAEz0YJxWXCdGQCFv/6Kbm6bJQJ3Jpdo/doq20+M/RxuoidvTQ==
+"@privy-io/react-auth@^2.17.3":
+  version "2.17.3"
+  resolved "https://registry.yarnpkg.com/@privy-io/react-auth/-/react-auth-2.17.3.tgz#f6e0b9ee9a615f51249bccb6a3ba216b3f204b77"
+  integrity sha512-rG8wRaDo+ZGqTCqd+U70LiwGtdihr9TX/plkLEMrH8rQJuGQHtXfpgEl5cdenM4Nkgg/2mVeuWGO1TlWShGR6A==
   dependencies:
     "@coinbase/wallet-sdk" "4.3.2"
     "@floating-ui/react" "^0.26.22"
@@ -1695,14 +1695,15 @@
     "@privy-io/api-base" "1.5.2"
     "@privy-io/chains" "0.0.2"
     "@privy-io/ethereum" "0.0.2"
-    "@privy-io/js-sdk-core" "0.52.2"
-    "@privy-io/public-api" "2.37.0"
+    "@privy-io/js-sdk-core" "0.52.4"
+    "@privy-io/public-api" "2.37.1"
     "@reown/appkit" "^1.7.11"
     "@scure/base" "^1.2.5"
     "@simplewebauthn/browser" "^9.0.1"
     "@solana/wallet-adapter-base" "0.9.23"
     "@solana/wallet-standard-wallet-adapter-base" "^1.1.2"
     "@solana/wallet-standard-wallet-adapter-react" "^1.1.2"
+    "@tanstack/react-virtual" "^3.13.10"
     "@wallet-standard/app" "^1.0.1"
     "@walletconnect/ethereum-provider" "2.19.2"
     base64-js "^1.5.1"
@@ -2215,6 +2216,13 @@
   dependencies:
     tslib "^2.8.0"
 
+"@tanstack/react-virtual@^3.13.10":
+  version "3.13.12"
+  resolved "https://registry.yarnpkg.com/@tanstack/react-virtual/-/react-virtual-3.13.12.tgz#d372dc2783739cc04ec1a728ca8203937687a819"
+  integrity sha512-Gd13QdxPSukP8ZrkbgS2RwoZseTTbQPLnQEn7HY/rqtM+8Zt95f7xKC7N0EsKs7aoz0WzZ+fditZux+F8EzYxA==
+  dependencies:
+    "@tanstack/virtual-core" "3.13.12"
+
 "@tanstack/react-virtual@^3.13.9":
   version "3.13.10"
   resolved "https://registry.yarnpkg.com/@tanstack/react-virtual/-/react-virtual-3.13.10.tgz#6eec305f01769e1778af98046973b128437c53d5"
@@ -2226,6 +2234,11 @@
   version "3.13.10"
   resolved "https://registry.yarnpkg.com/@tanstack/virtual-core/-/virtual-core-3.13.10.tgz#141c4da589eda797ee25d14f6aa400dfebac606c"
   integrity sha512-sPEDhXREou5HyZYqSWIqdU580rsF6FGeN7vpzijmP3KTiOGjOMZASz4Y6+QKjiFQwhWrR58OP8izYaNGVxvViA==
+
+"@tanstack/virtual-core@3.13.12":
+  version "3.13.12"
+  resolved "https://registry.yarnpkg.com/@tanstack/virtual-core/-/virtual-core-3.13.12.tgz#1dff176df9cc8f93c78c5e46bcea11079b397578"
+  integrity sha512-1YBOJfRHV4sXUmWsFSf5rQor4Ss82G8dQWLRbnk3GA4jeP8hQt1hxXh0tmflpC0dz3VgEv/1+qwPyLeWkQuPFA==
 
 "@tybys/wasm-util@^0.9.0":
   version "0.9.0"
