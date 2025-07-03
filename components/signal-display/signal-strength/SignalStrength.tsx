@@ -337,11 +337,7 @@ export default function SignalStrength({
                                                     px={3}
                                                     py={1}
                                                     borderRadius={"full"}
-                                                    onClick={async () => {
-                                                        // Attempt to get an access token before logging in
-                                                        // to establish a connection with Privy
-                                                        // so that Passkeys can be used reliably
-                                                        await getAccessToken()
+                                                    onClick={() => {
                                                         login()
                                                     }}
                                                 >

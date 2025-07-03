@@ -195,11 +195,7 @@ export default function UserMenuButton() {
             {...userButtonStyles}
             w="70px"
             h="35px"
-            onClick={async () => {
-                // Attempt to get an access token before logging in
-                // to establish a connection with Privy
-                // so that Passkeys can be used reliably
-                await getAccessToken()
+            onClick={() => {
                 login()
             }}
         >

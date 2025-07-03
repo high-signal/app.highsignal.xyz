@@ -4,14 +4,7 @@ import { Spinner, VStack, Text, Box } from "@chakra-ui/react"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import ForumAccountsContainer from "./forum-settings/ForumAccountsContainer"
 import LinkPrivyAccountsContainer from "./LinkPrivyAccountsContainer"
-import {
-    faBullhorn,
-    faEnvelope,
-    faKey,
-    faMobileScreen,
-    faRightToBracket,
-    faWallet,
-} from "@fortawesome/free-solid-svg-icons"
+import { faBullhorn, faEnvelope, faMobileScreen, faRightToBracket } from "@fortawesome/free-solid-svg-icons"
 import { faDiscord, faGithub, faGoogle, faXTwitter } from "@fortawesome/free-brands-svg-icons"
 import { useUser } from "../../contexts/UserContext"
 import SettingsGroupContainer from "../ui/SettingsGroupContainer"
@@ -118,7 +111,8 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     loginOnly={true}
                                     lozengeTypes={["private"]}
                                 />
-                                <LinkPrivyAccountsContainer
+                                {/* TODO: This gives a 401 error when trying to log in and I have no idea why */}
+                                {/* <LinkPrivyAccountsContainer
                                     targetUser={targetUser}
                                     accountConfig={{
                                         type: "passkey",
@@ -128,7 +122,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     }}
                                     loginOnly={true}
                                     lozengeTypes={["private"]}
-                                />
+                                /> */}
                                 {/* <LinkPrivyAccountsContainer
                                     targetUser={targetUser}
                                     accountConfig={{
