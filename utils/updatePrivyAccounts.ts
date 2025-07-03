@@ -106,6 +106,8 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
                 // to try to delete any that might have been removed from the Privy user
                 // ***************************************************************************
 
+                console.log("privyUser", privyUser)
+
                 // Get the target user from the users table
                 const { data: targetUser, error: targetUserError } = await supabase
                     .from("users")
