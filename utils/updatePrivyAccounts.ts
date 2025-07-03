@@ -106,8 +106,6 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
                 // to try to delete any that might have been removed from the Privy user
                 // ***************************************************************************
 
-                console.log("privyUser", privyUser)
-
                 // Get the target user from the users table
                 const { data: targetUser, error: targetUserError } = await supabase
                     .from("users")
@@ -137,6 +135,7 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
                         !privyUser.linked_accounts?.some(
                             (account: any) =>
                                 account.type === "wallet" &&
+                                account.connector_type &&
                                 account.connector_type != "embedded" &&
                                 account.address === address.address,
                         ),
@@ -160,6 +159,7 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
                 const addressesToAdd = privyUser.linked_accounts?.filter(
                     (account: any) =>
                         account.type === "wallet" &&
+                        account.connector_type &&
                         account.connector_type != "embedded" &&
                         !userAddresses.some((address) => address.address === account.address),
                 )
