@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheckCircle, faCopy, faExternalLink, faKey, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons"
 import { useState } from "react"
 import ApiKeyConfirmationModal from "./ApiKeyConfirmationModal"
+import { usePrivy } from "@privy-io/react-auth"
 
 export default function ApiKeysSettingsContainer({
     project,
@@ -17,6 +18,8 @@ export default function ApiKeysSettingsContainer({
     const [isCopied, setIsCopied] = useState(false)
     const [showGenerateModal, setShowGenerateModal] = useState(false)
     const [showRevokeModal, setShowRevokeModal] = useState(false)
+
+    const { getAccessToken } = usePrivy()
 
     // Copy the address to the clipboard
     const handleCopyApiKey = async () => {
@@ -34,19 +37,46 @@ export default function ApiKeysSettingsContainer({
 
     const apiUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/users/?apiKey=${project.apiKey}&project=${project.urlSlug}&page=1`
 
-    const handleApiKeyGeneration = async () => {
-        console.log("Generating API key")
-        setTriggerProjectRefetch(true)
-    }
-
     const handleGenerateNewApiKey = async () => {
-        console.log("Generating new API key")
-        setTriggerProjectRefetch(true)
+        try {
+            const token = await getAccessToken()
+            const response = await fetch(`/api/settings/p/api-keys?project=${project.urlSlug}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+
+            if (!response.ok) {
+                throw new Error("Failed to generate new API key")
+            }
+
+            setTriggerProjectRefetch(true)
+        } catch (error) {
+            console.error("Failed to generate new API key:", error)
+        }
     }
 
     const handleRevokeApiKey = async () => {
-        console.log("Revoking API key")
-        setTriggerProjectRefetch(true)
+        try {
+            const token = await getAccessToken()
+            const response = await fetch(`/api/settings/p/api-keys?project=${project.urlSlug}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+
+            if (!response.ok) {
+                throw new Error("Failed to revoke API key")
+            }
+
+            setTriggerProjectRefetch(true)
+        } catch (error) {
+            console.error("Failed to revoke API key:", error)
+        }
     }
 
     return (
@@ -60,10 +90,11 @@ export default function ApiKeysSettingsContainer({
                 px={5}
                 py={4}
             >
-                <Text w={"100%"}>
-                    {project.apiKey ? "Use this" : "Generate an"} API key to access Ethereum addresses users have shared
-                    with {project.displayName}.
-                </Text>
+                {!project.apiKey && (
+                    <Text w={"100%"}>
+                        Generate an API key to access Ethereum addresses users have shared with {project.displayName}.
+                    </Text>
+                )}
 
                 {project.apiKey ? (
                     <>
@@ -142,93 +173,98 @@ export default function ApiKeysSettingsContainer({
                                 <Text>Revoke API Key</Text>
                             </Button>
                         </HStack>
-                        <VStack maxW={"100%"} gap={2} alignItems={"start"} pt={2}>
-                            <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" pb={3} />
-                            <Text w={"100%"}>Use this API with pagination to fetch all addresses</Text>
-                            <HStack>
-                                <Text>URL Path:</Text>
+                        <VStack maxW={"100%"} gap={5} alignItems={"start"} pt={2}>
+                            <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
+                            <Text w={"100%"}>
+                                Use this API with pagination to fetch historical data for all users and their Ethereum
+                                addresses that are either public or shared with {project.displayName} directly.
+                            </Text>
+                            <VStack alignItems={"start"} gap={1}>
+                                <Text fontWeight={"bold"}>URL Path</Text>
                                 <Text
                                     bg={"pageBackground"}
                                     px={3}
                                     py={1}
                                     borderRadius={"full"}
-                                >{`${process.env.NEXT_PUBLIC_SITE_URL}/api/users/?`}</Text>
-                            </HStack>
-                            <HStack>
-                                <Text>URL Params:</Text>
+                                >{`${process.env.NEXT_PUBLIC_SITE_URL}/api/users/`}</Text>
+                            </VStack>
+                            <VStack alignItems={"start"} gap={1}>
+                                <Text fontWeight={"bold"}>URL Params</Text>
                                 <Text
                                     bg={"pageBackground"}
                                     px={3}
                                     py={1}
                                     borderRadius={"full"}
                                 >{`apiKey=<YOUR_API_KEY>`}</Text>
-                            </HStack>
-                            <HStack>
-                                <Text>URL Params:</Text>
+
                                 <Text
                                     bg={"pageBackground"}
                                     px={3}
                                     py={1}
                                     borderRadius={"full"}
                                 >{`project=${project.urlSlug}`}</Text>
-                            </HStack>
-                            <HStack>
-                                <Text>URL Params:</Text>
                                 <Text bg={"pageBackground"} px={3} py={1} borderRadius={"full"}>{`page=1`}</Text>
-                            </HStack>
-                            <Link href={apiUrl} target="_blank" textDecoration={"none"} maxW={"500px"}>
-                                <Button
-                                    secondaryButton
-                                    px={3}
-                                    py={1}
-                                    borderRadius={"16px"}
-                                    maxW={"500px"}
-                                    h="auto"
-                                    whiteSpace="normal"
-                                    textAlign="center"
-                                >
-                                    <Text
-                                        lineBreak={"anywhere"}
+                            </VStack>
+                            <VStack alignItems={"start"} gap={1}>
+                                <Text fontWeight={"bold"}>Full URL</Text>
+                                <Link href={apiUrl} target="_blank" textDecoration={"none"} maxW={"500px"}>
+                                    <Button
+                                        secondaryButton
+                                        px={3}
+                                        py={1}
+                                        borderRadius={"16px"}
                                         maxW={"500px"}
-                                        wordBreak="break-all"
+                                        h="auto"
                                         whiteSpace="normal"
-                                        overflowWrap="break-word"
+                                        textAlign="center"
                                     >
-                                        {apiUrl}
-                                    </Text>
-                                    <FontAwesomeIcon icon={faExternalLink} size="lg" />
-                                </Button>
-                            </Link>
-                            <Text>Example Response:</Text>
-                            <Text
-                                bg={"pageBackground"}
-                                px={3}
-                                py={2}
-                                borderRadius={"8px"}
-                                fontFamily={"monospace"}
-                                fontSize={"sm"}
-                                whiteSpace="pre-wrap"
-                            >
-                                {`{
+                                        <Text
+                                            lineBreak={"anywhere"}
+                                            maxW={"500px"}
+                                            wordBreak="break-all"
+                                            whiteSpace="normal"
+                                            overflowWrap="break-word"
+                                        >
+                                            {apiUrl}
+                                        </Text>
+                                        <FontAwesomeIcon icon={faExternalLink} size="lg" />
+                                    </Button>
+                                </Link>
+                            </VStack>
+                            <VStack alignItems={"start"} gap={1} w={"100%"}>
+                                <Text fontWeight={"bold"}>Example Response</Text>
+                                <Text
+                                    bg={"pageBackground"}
+                                    px={3}
+                                    py={2}
+                                    borderRadius={"8px"}
+                                    fontFamily={"monospace"}
+                                    fontSize={"sm"}
+                                    whiteSpace="pre-wrap"
+                                    w={"100%"}
+                                >
+                                    {`{
   "data": [...],
   "maxPage": 1,
   "totalResults": 1,
   "currentPage": 1,
   "resultsPerPage": 100
 }`}
-                            </Text>
-                            <Text>Example data:</Text>
-                            <Text
-                                bg={"pageBackground"}
-                                px={3}
-                                py={2}
-                                borderRadius={"8px"}
-                                fontFamily={"monospace"}
-                                fontSize={"sm"}
-                                whiteSpace="pre-wrap"
-                                w={"100%"}
-                            >
-                                {`{
+                                </Text>
+                            </VStack>
+                            <VStack alignItems={"start"} gap={1} w={"100%"}>
+                                <Text fontWeight={"bold"}>Example data</Text>
+                                <Text
+                                    bg={"pageBackground"}
+                                    px={3}
+                                    py={2}
+                                    borderRadius={"8px"}
+                                    fontFamily={"monospace"}
+                                    fontSize={"sm"}
+                                    whiteSpace="pre-wrap"
+                                    w={"100%"}
+                                >
+                                    {`{
   "username": "eridian",
   "displayName": "Eridian",
   "rank": 16,
@@ -238,7 +274,8 @@ export default function ApiKeysSettingsContainer({
     "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
   ]
 }`}
-                            </Text>
+                                </Text>
+                            </VStack>
                         </VStack>
                     </>
                 ) : (
@@ -248,7 +285,7 @@ export default function ApiKeysSettingsContainer({
                         px={4}
                         py={2}
                         fontWeight={"bold"}
-                        onClick={handleApiKeyGeneration}
+                        onClick={handleGenerateNewApiKey}
                     >
                         Generate API Key
                     </Button>
