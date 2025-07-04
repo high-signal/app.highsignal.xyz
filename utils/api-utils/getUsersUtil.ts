@@ -72,6 +72,7 @@ export async function getUsersUtil(
     const fuzzy = searchParams.get("fuzzy") === "true"
     const showTestDataOnly = searchParams.get("showTestDataOnly") === "true" || false
     const showRawScoreCalcOnly = searchParams.get("showRawScoreCalcOnly") === "true" || false
+    const apiKey = searchParams.get("apiKey")
 
     // Pagination
     const page = parseInt(searchParams.get("page") || "1")
@@ -82,6 +83,36 @@ export async function getUsersUtil(
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
     try {
+        let apiKeyProjectSlug: string | null = null
+        // If an API key is provided, check if it is valid
+        if (apiKey) {
+            // If no project slug is provided, return an error
+            if (!projectSlug) {
+                return NextResponse.json({ error: "Project is required to use an API key" }, { status: 400 })
+            }
+
+            const { data: apiKeyData, error: apiKeyError } = await supabase
+                .from("projects")
+                .select("url_slug")
+                .eq("api_key", apiKey)
+                .single()
+
+            if (apiKeyError && apiKeyError.code !== "PGRST116") {
+                return NextResponse.json({ error: "Error fetching project" }, { status: 500 })
+            }
+
+            if (!apiKeyData) {
+                return NextResponse.json({ error: "Invalid API key" }, { status: 401 })
+            } else {
+                if (apiKeyData.url_slug !== projectSlug) {
+                    return NextResponse.json({ error: "That API key is for a different project" }, { status: 401 })
+                } else {
+                    // If the API key is valid, set the apiKeyProjectSlug
+                    apiKeyProjectSlug = apiKeyData.url_slug
+                }
+            }
+        }
+
         if (!projectSlug && (!username || fuzzy)) {
             return usersOnly(supabase, from, to, resultsPerPage, page, fuzzy, username || "")
         } else {
@@ -239,15 +270,15 @@ export async function getUsersUtil(
                                             .from("user_signal_strengths")
                                             .select(
                                                 `
-                                id,
-                                signal_strengths!inner (
-                                    name
-                                ),
-                                prompts (
-                                    prompt
-                                ),
-                                *
-                                `,
+                                                id,
+                                                signal_strengths!inner (
+                                                    name
+                                                ),
+                                                prompts (
+                                                    prompt
+                                                ),
+                                                *
+                                                `,
                                             )
                                             .eq("user_id", userId)
                                             .eq("project_id", projectId)
@@ -297,10 +328,79 @@ export async function getUsersUtil(
                 }
             }
 
+            let allUsersSharedAddresses: { address: string; users: { id: string }[] }[] = []
+            // Lookup all the addresses shared with the project, where the user_id is the same as the user_id in the user table
+            if (apiKeyProjectSlug) {
+                const { data: allUsersSharedAddressesData, error: allUsersSharedAddressesDataError } = await supabase
+                    .from("user_addresses")
+                    .select(
+                        `
+                        address,
+                        user_addresses_shared!inner(
+                            projects!inner(
+                                id,
+                                url_slug
+                            )
+                        ),
+                        users!inner(
+                            id,
+                            username
+                        )
+                    `,
+                    )
+                    .in(
+                        "users.username",
+                        userProjectScores.map((score) => score.username),
+                    )
+                    .eq("user_addresses_shared.projects.url_slug", projectSlug)
+
+                if (allUsersSharedAddressesDataError) {
+                    console.error("allUsersSharedAddressesDataError", allUsersSharedAddressesDataError)
+                    return NextResponse.json({ error: "Error fetching user shared addresses" }, { status: 500 })
+                }
+
+                allUsersSharedAddresses = allUsersSharedAddressesData.map((address) => ({
+                    address: address.address,
+                    users: address.users,
+                }))
+            }
+
+            // Run another query to get all public addresses
+            const { data: allPublicAddresses, error: allPublicAddressesError } = await supabase
+                .from("user_addresses")
+                .select(
+                    `
+                    address,
+                    users!inner(
+                        id
+                    )
+                    `,
+                )
+                .eq("is_public", true)
+                .in(
+                    "users.username",
+                    userProjectScores.map((score) => score.username),
+                )
+
+            if (allPublicAddressesError) {
+                console.error("allPublicAddressesError", allPublicAddressesError)
+                return NextResponse.json({ error: "Error fetching public addresses" }, { status: 500 })
+            }
+
             const formattedUsers = userProjectScores
                 .map((score) => {
                     const user = (userDetails as unknown as User[])?.find((u) => u.id === score.user_id)
                     if (!user) return null
+
+                    // Display any shared addresses for the user
+                    let userSharedAddresses: { address: string }[] = []
+                    if (allUsersSharedAddresses.length > 0 || (allPublicAddresses && allPublicAddresses.length > 0)) {
+                        userSharedAddresses = [
+                            ...(allUsersSharedAddresses?.filter((address) => (address.users as any).id === user.id) ||
+                                []),
+                            ...(allPublicAddresses?.filter((address) => (address.users as any).id === user.id) || []),
+                        ]
+                    }
 
                     // If no username or project filter is applied, return only basic user info
                     if (!username && !projectSlug) {
@@ -328,6 +428,9 @@ export async function getUsersUtil(
                             : {}),
                         ...(score.total_score > 0 ? { rank: score.rank } : {}),
                         score: score.total_score,
+                        ...(userSharedAddresses.length > 0
+                            ? { addresses: userSharedAddresses.map((address) => address.address) }
+                            : {}),
                         signal: calculateSignalFromScore(score.total_score),
                         ...(isSuperAdminRequesting
                             ? {

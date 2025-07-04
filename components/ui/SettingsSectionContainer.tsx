@@ -8,7 +8,7 @@ interface SettingsSectionContainerProps {
 
 export default function SettingsSectionContainer({
     maxWidth = "500px",
-    px = { base: 4, sm: 2 },
+    px = { base: 0, sm: 0 },
     children,
 }: SettingsSectionContainerProps) {
     return (

@@ -2,10 +2,10 @@ import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 
 type ProjectSignalStrengths = {
-    url?: string // Requires isSuperAdminRequesting or isProjectAdminRequesting is true
+    url?: string
     enabled: boolean
     max_value: number
-    previous_days: number // Requires isSuperAdminRequesting or isProjectAdminRequesting is true
+    previous_days: number
     auth_types?: string[]
     auth_parent_post_url?: string
     signal_strengths: {
@@ -20,10 +20,11 @@ type ProjectSignalStrengths = {
 }
 
 type Project = {
-    id?: number
+    id?: number // Requires isSuperAdminRequesting is true
     url_slug: string
     display_name: string
     project_logo_url: string
+    api_key?: string
     project_signal_strengths: ProjectSignalStrengths[]
 }
 
@@ -46,6 +47,7 @@ export async function getProjectsUtil(
                 url_slug,
                 display_name,
                 project_logo_url,
+                api_key,
                 project_signal_strengths (
                     url,
                     enabled,
@@ -67,6 +69,7 @@ export async function getProjectsUtil(
             )
             .order("url_slug", { ascending: true })
             .limit(10)
+        // TODO: Add pagination
 
         // If projectSlug is provided, add filter to the query
         if (projectSlug) {
@@ -95,10 +98,11 @@ export async function getProjectsUtil(
         const formattedProjects = (projects as unknown as Project[])
             .map((project) => {
                 return {
-                    ...(isSuperAdminRequesting || isProjectAdminRequesting ? { id: project.id } : {}),
+                    ...(isSuperAdminRequesting ? { id: project.id } : {}),
                     urlSlug: project.url_slug,
                     displayName: project.display_name,
                     projectLogoUrl: project.project_logo_url,
+                    ...(isSuperAdminRequesting || isProjectAdminRequesting ? { apiKey: project.api_key } : {}),
                     signalStrengths:
                         project.project_signal_strengths?.map((ps) => ({
                             url: ps.url,
@@ -110,10 +114,7 @@ export async function getProjectsUtil(
                             availableAuthTypes: ps.signal_strengths.available_auth_types,
                             authTypes: ps.auth_types,
                             authParentPostUrl: ps.auth_parent_post_url,
-                            ...(isSuperAdminRequesting || isProjectAdminRequesting
-                                ? { previousDays: ps.previous_days }
-                                : {}),
-
+                            previousDays: ps.previous_days,
                             ...(isSuperAdminRequesting ? { model: ps.signal_strengths?.model } : {}),
                             ...(isSuperAdminRequesting ? { temperature: ps.signal_strengths?.temperature } : {}),
                             ...(isSuperAdminRequesting ? { maxChars: ps.signal_strengths?.max_chars } : {}),
@@ -121,7 +122,7 @@ export async function getProjectsUtil(
                 }
             })
             .filter((project) => {
-                // Only filter out projects with all disabled signals if it is not a super admin request
+                // Only filter out projects with all disabled signals if it is not a super admin or project admin request
                 return (
                     isSuperAdminRequesting ||
                     isProjectAdminRequesting ||
