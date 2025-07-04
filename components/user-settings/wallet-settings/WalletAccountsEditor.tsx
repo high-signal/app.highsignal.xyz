@@ -251,10 +251,10 @@ export default function WalletAccountsEditor({
 
     return (
         <Modal open={isOpen} close={handleClose} closeOnInteractOutside={!hasChanges}>
-            <Dialog.Content borderRadius={{ base: "0px", md: "16px" }} p={0} bg={"pageBackground"} maxW={"900px"}>
+            <Dialog.Content borderRadius={{ base: "0px", sm: "16px" }} p={0} bg={"pageBackground"} maxW={"900px"}>
                 <Dialog.Header>
                     <Dialog.Title maxW={"100%"}>
-                        <HStack flexWrap="wrap">
+                        <HStack flexWrap="wrap" pr={5}>
                             <Text fontWeight="bold">Edit settings for address</Text>
                             <HStack bg={"contentBackground"} borderRadius={"full"} gap={0}>
                                 <Text
@@ -388,7 +388,7 @@ export default function WalletAccountsEditor({
                                             <HStack
                                                 key={option.value}
                                                 gap={4}
-                                                alignItems={{ base: "start", md: "center" }}
+                                                alignItems={{ base: "start", sm: "center" }}
                                             >
                                                 <HStack minW={"110px"}>
                                                     <CustomRadioItem option={option} />
@@ -405,7 +405,7 @@ export default function WalletAccountsEditor({
                                 (settings.sharing.new === null && settings.sharing.current === "shared")) && (
                                 <HStack
                                     bg={"contentBackground"}
-                                    borderRadius={{ base: "25px", md: "50px" }}
+                                    borderRadius={{ base: "25px", sm: "35px" }}
                                     p={4}
                                     w={"100%"}
                                     flexWrap={"wrap"}
@@ -468,7 +468,7 @@ export default function WalletAccountsEditor({
                     </VStack>
                 </Dialog.Body>
                 <Dialog.Footer>
-                    <HStack minW={"100%"} justifyContent={{ base: "center", md: "end" }} flexWrap={"wrap"} gap={5}>
+                    <HStack minW={"100%"} justifyContent={{ base: "center", sm: "end" }} flexWrap={"wrap"} gap={5}>
                         <Button secondaryButton borderRadius={"full"} px={4} py={2} onClick={handleClose}>
                             Cancel
                         </Button>

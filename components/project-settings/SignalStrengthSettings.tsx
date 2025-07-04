@@ -184,7 +184,7 @@ export default function SignalStrengthSettings({
         <VStack w="100%" gap={0}>
             <HStack
                 justify="space-between"
-                w="500px"
+                w={"500px"}
                 maxW={"100%"}
                 bg={"contentBackground"}
                 py={3}
@@ -254,7 +254,8 @@ export default function SignalStrengthSettings({
             </HStack>
             {isOpen && (
                 <VStack
-                    w={{ base: "100%", sm: "500px" }}
+                    w={"500px"}
+                    maxW={"100%"}
                     pb={2}
                     gap={5}
                     bg={"contentBackground"}
