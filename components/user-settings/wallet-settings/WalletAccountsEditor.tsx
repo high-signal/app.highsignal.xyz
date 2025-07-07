@@ -1,7 +1,7 @@
 "use client"
 
 import { VStack, Text, Button, HStack, Dialog, RadioGroup, Box, Image } from "@chakra-ui/react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useParams } from "next/navigation"
 
 import Modal from "../../ui/Modal"
@@ -53,7 +53,7 @@ export default function WalletAccountsEditor({
           ? "shared"
           : "private"
 
-    const resetSettingsState = () => {
+    const resetSettingsState = useCallback(() => {
         setSettings({
             name: { current: userAddressConfig.addressName ?? null, new: null },
             sharing: {
@@ -62,12 +62,12 @@ export default function WalletAccountsEditor({
             },
             userAddressesShared: { current: userAddressConfig.userAddressesShared ?? null, new: null },
         })
-    }
+    }, [userAddressConfig.addressName, userAddressConfig.userAddressesShared, currentSharingSetting])
 
     // Set the settings to the initial state on first render
     useEffect(() => {
         resetSettingsState()
-    }, [])
+    }, [resetSettingsState])
 
     // Check for changes whenever settings change
     useEffect(() => {
