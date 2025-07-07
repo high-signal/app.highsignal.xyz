@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
             if (changedFields.sharing === "shared" && changedFields.userAddressesShared?.length === 0) {
                 return NextResponse.json(
-                    { error: "To use the 'shared' option you must select at least one project" },
+                    { error: "To use the 'Shared' option you must select at least one project" },
                     { status: 400 },
                 )
             }
