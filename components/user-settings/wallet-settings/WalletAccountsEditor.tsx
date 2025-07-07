@@ -1,7 +1,7 @@
 "use client"
 
 import { VStack, Text, Button, HStack, Dialog, RadioGroup, Box, Image } from "@chakra-ui/react"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams } from "next/navigation"
 
 import Modal from "../../ui/Modal"
@@ -41,6 +41,8 @@ export default function WalletAccountsEditor({
     const [isSaving, setIsSaving] = useState(false)
     const [addressNameValidationError, setAddressNameValidationError] = useState<string | null>(null)
     const [sharingValidationError, setSharingValidationError] = useState<string | null>(null)
+    const [shouldCloseAfterSave, setShouldCloseAfterSave] = useState(false)
+    const previousUserAddressConfigRef = useRef(userAddressConfig)
 
     const { refreshUser } = useUser()
 
@@ -92,12 +94,17 @@ export default function WalletAccountsEditor({
         }
     }, [settings])
 
-    // When userAddressConfig changes, set the loading state to false
-    // This is to improve the UX of the component when a user successfully saves their settings
+    // When userAddressConfig changes after a successful save, close the modal
+    // This waits for the new state to be loaded before closing the modal to improve UX
+    // so the user does not see a flash of the old state before the new state is loaded
     useEffect(() => {
-        setIsSaving(false)
-        onClose()
-    }, [userAddressConfig])
+        if (shouldCloseAfterSave && userAddressConfig !== previousUserAddressConfigRef.current) {
+            setIsSaving(false)
+            setShouldCloseAfterSave(false)
+            onClose()
+        }
+        previousUserAddressConfigRef.current = userAddressConfig
+    }, [userAddressConfig, shouldCloseAfterSave, onClose])
 
     // Copy the address to the clipboard
     const handleCopyAddress = async () => {
@@ -164,6 +171,7 @@ export default function WalletAccountsEditor({
                         title: "✅ Settings saved successfully",
                         type: "success",
                     })
+                    setShouldCloseAfterSave(true)
                     await refreshUser()
                 }
             } catch (error) {
