@@ -46,7 +46,9 @@ export default function SettingsInputField({
             w="100%"
             border="2px solid"
             borderColor="contentBorder"
-            borderRadius="16px"
+            borderRadius={{ base: "0px", sm: "16px" }}
+            borderLeftWidth={{ base: "0px", sm: "2px" }}
+            borderRightWidth={{ base: "0px", sm: "2px" }}
             p={3}
             bg={"pageBackground"}
             gap={1}

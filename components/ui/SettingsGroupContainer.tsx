@@ -15,8 +15,16 @@ export default function SettingsGroupContainer({
     lozengeTypes?: LozengeType[]
 }) {
     return (
-        <VStack w="100%" bg="contentBackground" borderRadius="16px" px={3} py={4} gap={4} alignItems="start">
-            <HStack w="100%" justifyContent="space-between" px={3}>
+        <VStack
+            w="100%"
+            bg="contentBackground"
+            borderRadius={{ base: "0px", sm: "16px" }}
+            px={{ base: 0, sm: 3 }}
+            py={4}
+            gap={4}
+            alignItems="start"
+        >
+            <HStack w="100%" justifyContent="space-between" px={{ base: 5, sm: 3 }}>
                 <HStack fontWeight="bold" fontSize="lg" gap={2}>
                     <FontAwesomeIcon icon={icon} size="lg" />
                     <Text>{title}</Text>

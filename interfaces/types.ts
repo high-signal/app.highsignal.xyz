@@ -91,6 +91,7 @@ interface ProjectData {
     urlSlug: string
     displayName: string
     projectLogoUrl: string
+    apiKey?: string
     peakSignalsEnabled: boolean
     peakSignalsMaxValue: number
     signalStrengths: SignalStrengthProjectData[]
