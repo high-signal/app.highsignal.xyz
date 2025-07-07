@@ -18,6 +18,7 @@ export default function ApiKeysSettingsContainer({
     const [isCopied, setIsCopied] = useState(false)
     const [showGenerateModal, setShowGenerateModal] = useState(false)
     const [showRevokeModal, setShowRevokeModal] = useState(false)
+    const [isGenerating, setIsGenerating] = useState(false)
 
     const { getAccessToken } = usePrivy()
 
@@ -38,6 +39,7 @@ export default function ApiKeysSettingsContainer({
     const apiUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/users/?apiKey=${project.apiKey}&project=${project.urlSlug}&page=1`
 
     const handleGenerateNewApiKey = async () => {
+        setIsGenerating(true)
         try {
             const token = await getAccessToken()
             const response = await fetch(`/api/settings/p/api-keys?project=${project.urlSlug}`, {
@@ -55,10 +57,13 @@ export default function ApiKeysSettingsContainer({
             setTriggerProjectRefetch(true)
         } catch (error) {
             console.error("Failed to generate new API key:", error)
+        } finally {
+            setIsGenerating(false)
         }
     }
 
     const handleRevokeApiKey = async () => {
+        setIsGenerating(true)
         try {
             const token = await getAccessToken()
             const response = await fetch(`/api/settings/p/api-keys?project=${project.urlSlug}`, {
@@ -76,6 +81,8 @@ export default function ApiKeysSettingsContainer({
             setTriggerProjectRefetch(true)
         } catch (error) {
             console.error("Failed to revoke API key:", error)
+        } finally {
+            setIsGenerating(false)
         }
     }
 
@@ -286,6 +293,7 @@ export default function ApiKeysSettingsContainer({
                         py={2}
                         fontWeight={"bold"}
                         onClick={handleGenerateNewApiKey}
+                        loading={isGenerating}
                     >
                         Generate API Key
                     </Button>
@@ -297,11 +305,13 @@ export default function ApiKeysSettingsContainer({
                 isOpen={showGenerateModal}
                 onClose={() => setShowGenerateModal(false)}
                 title="Generate a new API key"
+                icon={faKey}
                 description={`Generating a new API key will immediately revoke your current API key. Any applications or services currently using the existing key will lose access to the ${project.displayName} API. Are you sure you want to proceed?`}
                 confirmButtonText="Yes - Generate a new API key"
                 cancelButtonText="No - Take me back"
                 onConfirm={handleGenerateNewApiKey}
-                isGenerating={true}
+                isGenerating={isGenerating}
+                confirmButtonStyle="primaryButton"
             />
 
             {/* Revoke API Key Confirmation Modal */}
@@ -309,11 +319,13 @@ export default function ApiKeysSettingsContainer({
                 isOpen={showRevokeModal}
                 onClose={() => setShowRevokeModal(false)}
                 title="Revoke API key"
+                icon={faTriangleExclamation}
                 description={`This action will permanently revoke your current API key. Any applications or services currently using this key will lose access to the ${project.displayName} API. This action cannot be undone. Are you sure you want to proceed?`}
                 confirmButtonText="Yes - Revoke the API key"
                 cancelButtonText="No - Take me back"
                 onConfirm={handleRevokeApiKey}
-                isGenerating={false}
+                isGenerating={isGenerating}
+                confirmButtonStyle="dangerButton"
             />
         </SettingsSectionContainer>
     )

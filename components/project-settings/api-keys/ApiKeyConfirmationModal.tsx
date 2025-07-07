@@ -2,7 +2,7 @@
 
 import { VStack, Text, Button, HStack, Dialog } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faTriangleExclamation, faKey } from "@fortawesome/free-solid-svg-icons"
+import { IconProp } from "@fortawesome/fontawesome-svg-core"
 
 import Modal from "../../ui/Modal"
 import ModalCloseButton from "../../ui/ModalCloseButton"
@@ -11,22 +11,26 @@ interface ApiKeyConfirmationModalProps {
     isOpen: boolean
     onClose: () => void
     title: string
+    icon: IconProp
     description: string
     confirmButtonText: string
     cancelButtonText: string
     onConfirm: () => void
     isGenerating?: boolean
+    confirmButtonStyle?: "dangerButton" | "primaryButton"
 }
 
 export default function ApiKeyConfirmationModal({
     isOpen,
     onClose,
     title,
+    icon,
     description,
     confirmButtonText,
     cancelButtonText,
     onConfirm,
     isGenerating = false,
+    confirmButtonStyle,
 }: ApiKeyConfirmationModalProps) {
     const handleConfirm = async () => {
         await onConfirm()
@@ -43,7 +47,7 @@ export default function ApiKeyConfirmationModal({
                 <Dialog.Header pt={4}>
                     <Dialog.Title maxW={"100%"}>
                         <HStack gap={3}>
-                            <FontAwesomeIcon icon={isGenerating ? faKey : faTriangleExclamation} size="lg" />
+                            <FontAwesomeIcon icon={icon} size="lg" />
                             <Text fontWeight="bold">{title}</Text>
                         </HStack>
                         <ModalCloseButton onClose={handleClose} />
@@ -60,12 +64,13 @@ export default function ApiKeyConfirmationModal({
                             {cancelButtonText}
                         </Button>
                         <Button
-                            dangerButton={!isGenerating}
-                            primaryButton={isGenerating}
+                            {...(confirmButtonStyle === "dangerButton" && { dangerButton: true })}
+                            {...(confirmButtonStyle === "primaryButton" && { primaryButton: true })}
                             borderRadius={"full"}
                             px={4}
                             py={2}
                             onClick={handleConfirm}
+                            loading={isGenerating}
                         >
                             <Text>{confirmButtonText}</Text>
                         </Button>
