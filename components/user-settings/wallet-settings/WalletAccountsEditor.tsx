@@ -92,19 +92,6 @@ export default function WalletAccountsEditor({
         }
     }, [settings])
 
-    // When the sharing setting is changed to something other than shared, clear the project list
-    useEffect(() => {
-        if (settings && settings.sharing.new && settings.sharing.new !== "shared") {
-            setSettings({
-                ...settings,
-                userAddressesShared: {
-                    current: settings.userAddressesShared.current,
-                    new: [],
-                },
-            })
-        }
-    }, [settings?.sharing.new])
-
     // When userAddressConfig changes, set the loading state to false
     // This is to improve the UX of the component when a user successfully saves their settings
     useEffect(() => {
@@ -337,12 +324,25 @@ export default function WalletAccountsEditor({
                                 <RadioGroup.Root
                                     value={settings.sharing.new ?? settings.sharing.current ?? "private"}
                                     onValueChange={(details: { value: string | null }) => {
+                                        const newSharingValue = details.value as "private" | "public" | "shared"
+
+                                        // If changing from shared to something else, clear the project list
+                                        const currentSharing = settings.sharing.new ?? settings.sharing.current
+                                        const shouldClearProjects =
+                                            currentSharing === "shared" && newSharingValue !== "shared"
+
                                         setSettings({
                                             ...settings,
                                             sharing: {
                                                 ...settings.sharing,
-                                                new: details.value as "private" | "public" | "shared",
+                                                new: newSharingValue,
                                             },
+                                            userAddressesShared: shouldClearProjects
+                                                ? {
+                                                      ...settings.userAddressesShared,
+                                                      new: [],
+                                                  }
+                                                : settings.userAddressesShared,
                                         })
                                     }}
                                 >
