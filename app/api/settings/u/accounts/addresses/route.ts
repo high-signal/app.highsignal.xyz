@@ -88,57 +88,55 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Error updating user" }, { status: 500 })
         }
 
-        if (sanitizedFields.userAddressesShared) {
-            // Get all the projectIds using the userAddressesShared array
-            const sharedProjectIds = await supabase
-                .from("projects")
-                .select("id")
-                .in("url_slug", sanitizedFields.userAddressesShared.split(","))
+        // Get all the projectIds using the userAddressesShared array
+        const sharedProjectIds = await supabase
+            .from("projects")
+            .select("id")
+            .in("url_slug", sanitizedFields?.userAddressesShared?.split(",") || [])
 
-            if (sharedProjectIds.error) {
-                console.error("Error fetching shared projects:", sharedProjectIds.error)
-                return NextResponse.json({ error: "Error fetching shared projects" }, { status: 500 })
-            }
+        if (sharedProjectIds.error) {
+            console.error("Error fetching shared projects:", sharedProjectIds.error)
+            return NextResponse.json({ error: "Error fetching shared projects" }, { status: 500 })
+        }
 
-            // Get the address_id for the target address confirming ownership by target user
-            const { data: addressData, error: addressError } = await supabase
-                .from("user_addresses")
-                .select("id")
-                .eq("user_id", targetUser.id)
-                .eq("address", targetAddress)
-                .single()
+        // Get the address_id for the target address confirming ownership by target user
+        const { data: addressData, error: addressError } = await supabase
+            .from("user_addresses")
+            .select("id")
+            .eq("user_id", targetUser.id)
+            .eq("address", targetAddress)
+            .single()
 
-            if (addressError) {
-                console.error("Error fetching address:", addressError)
-                return NextResponse.json({ error: "Error fetching address" }, { status: 500 })
-            }
+        if (addressError) {
+            console.error("Error fetching address:", addressError)
+            return NextResponse.json({ error: "Error fetching address" }, { status: 500 })
+        }
 
-            // In the user_addresses_shared table, delete any existing entries
-            // that no longer exist in the userAddressesShared array
-            const { error: deleteUserAddressesSharedError } = await supabase
-                .from("user_addresses_shared")
-                .delete()
-                .eq("address_id", addressData.id)
-                .not("project_id", "in", `(${sharedProjectIds.data.map((project) => project.id).join(",")})`)
+        // In the user_addresses_shared table, delete any existing entries
+        // that no longer exist in the userAddressesShared array
+        const { error: deleteUserAddressesSharedError } = await supabase
+            .from("user_addresses_shared")
+            .delete()
+            .eq("address_id", addressData.id)
+            .not("project_id", "in", `(${sharedProjectIds.data?.map((project) => project.id)?.join(",")})`)
 
-            if (deleteUserAddressesSharedError) {
-                console.error("Error deleting user addresses shared:", deleteUserAddressesSharedError)
-                return NextResponse.json({ error: "Error deleting user addresses shared" }, { status: 500 })
-            }
+        if (deleteUserAddressesSharedError) {
+            console.error("Error deleting user addresses shared:", deleteUserAddressesSharedError)
+            return NextResponse.json({ error: "Error deleting user addresses shared" }, { status: 500 })
+        }
 
-            // Add any new projectIds to the user_addresses_shared table
-            const { error: addUserAddressesSharedError } = await supabase.from("user_addresses_shared").upsert(
-                sharedProjectIds.data.map((project) => ({
-                    address_id: addressData.id,
-                    project_id: project.id,
-                })),
-                { onConflict: "address_id,project_id", ignoreDuplicates: true },
-            )
+        // Add any new projectIds to the user_addresses_shared table
+        const { error: addUserAddressesSharedError } = await supabase.from("user_addresses_shared").upsert(
+            sharedProjectIds.data.map((project) => ({
+                address_id: addressData.id,
+                project_id: project.id,
+            })),
+            { onConflict: "address_id,project_id", ignoreDuplicates: true },
+        )
 
-            if (addUserAddressesSharedError) {
-                console.error("Error adding user addresses shared:", addUserAddressesSharedError)
-                return NextResponse.json({ error: "Error adding user addresses shared" }, { status: 500 })
-            }
+        if (addUserAddressesSharedError) {
+            console.error("Error adding user addresses shared:", addUserAddressesSharedError)
+            return NextResponse.json({ error: "Error adding user addresses shared" }, { status: 500 })
         }
 
         return NextResponse.json({ success: true }, { status: 200 })
