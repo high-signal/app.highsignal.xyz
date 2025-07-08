@@ -160,8 +160,8 @@ class OpenAIAIServiceClient implements AIServiceClient {
 
             return {
                 ...validatedData,
-                modelUsed: completion.model,
                 requestId: completion.id,
+                modelUsed: completion.model,
                 promptTokens: completion.usage?.prompt_tokens,
                 completionTokens: completion.usage?.completion_tokens,
             }

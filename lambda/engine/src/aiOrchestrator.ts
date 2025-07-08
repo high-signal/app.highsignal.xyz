@@ -13,31 +13,38 @@
  * 6.  Handling both 'raw' scores (based on daily activity) and 'smart' scores (meta-analysis of raw scores).
  */
 
-import { AppConfig } from "./config"
-import { getLegacySignalConfig, getUsersByIds } from "./dbClient"
-import { Logger } from "./logger"
-import { getAIServiceClient } from "./aiService"
-import type {
+import { SupabaseClient } from "@supabase/supabase-js"
+import {
     AiConfig,
     AIScoreOutput,
     ForumUser,
+    IAiOrchestrator,
     ModelConfig,
     PlatformOutput,
     Prompt,
+    RawScore,
+    RawScoreGenerationResult,
+    SmartScoreOutput,
     UserSignalStrength,
-} from "./types"
+} from "@shared/types"
+import { getLegacySignalConfig, getUsersByIds } from "@shared/db"
+import { AppConfig } from "./config"
+import { Logger } from "./logger"
+import { getAIServiceClient } from "./aiService"
 
 /**
  * Orchestrates the AI scoring process by coordinating database fetches,
  * prompt engineering, and AI service calls.
  */
-export class AIOrchestrator {
+export class AIOrchestrator implements IAiOrchestrator {
     private logger: Logger
     private appConfig: AppConfig
+    private supabase: SupabaseClient
 
-    constructor(appConfig: AppConfig, logger: Logger) {
+    constructor(appConfig: AppConfig, logger: Logger, supabase: SupabaseClient) {
         this.appConfig = appConfig
         this.logger = logger
+        this.supabase = supabase
     }
 
     /**
@@ -53,8 +60,8 @@ export class AIOrchestrator {
     public async getAiScores(
         platformOutputs: PlatformOutput[],
         day: string, // YYYY-MM-DD
-        projectId: number,
-        signalStrengthId: number,
+        projectId: string,
+        signalStrengthId: string,
         aiConfigOverride?: AiConfig,
     ): Promise<UserSignalStrength[]> {
         this.logger.info(`AIOrchestrator: Starting AI processing for ${platformOutputs.length} items.`, {
@@ -63,7 +70,8 @@ export class AIOrchestrator {
             projectId,
         })
 
-        const aiConfig = aiConfigOverride ?? (await getLegacySignalConfig(signalStrengthId, projectId))
+        const aiConfig =
+            aiConfigOverride ?? (await getLegacySignalConfig(this.supabase, signalStrengthId, projectId))
         const promptConfig = this._prepareAndValidatePrompts(aiConfig, "raw")
 
         if (!aiConfig || !promptConfig) {
@@ -79,7 +87,7 @@ export class AIOrchestrator {
             .map((id) => parseInt(id, 10))
             .filter((id) => !isNaN(id))
 
-        const usersDataMap = await getUsersByIds(authorIds)
+        const usersDataMap = await getUsersByIds(this.supabase, authorIds)
         const userSignalStrengths: UserSignalStrength[] = []
 
         for (const [authorId, outputs] of Object.entries(groupedByAuthor)) {
@@ -98,16 +106,16 @@ export class AIOrchestrator {
             )
 
             if (score) {
-                const userSignal = this._transformAIScoreToUserSignalStrength(
+                const userSignalStrength = this._transformAIScoreToUserSignalStrength(
                     score,
                     userId,
                     day,
                     projectId,
                     signalStrengthId,
                     aiConfig,
-                    promptConfig.id,
+                    promptConfig.id!,
                 )
-                userSignalStrengths.push(userSignal)
+                userSignalStrengths.push(userSignalStrength)
             }
         }
 
@@ -122,161 +130,207 @@ export class AIOrchestrator {
      * @param user - The user to score.
      * @param projectId - The project ID.
      * @param signalStrengthId - The signal strength ID.
-     * @param aiConfigOverride - Optional AI config override.
-     * @returns A promise resolving to an `AIScoreOutput` or null.
+     * @param aiConfigOverride - Optional. An AI configuration to use instead of fetching from the DB.
+     * @returns A promise that resolves to an object containing the score and prompt ID, or null.
      */
     public async generateRawScoreForUserActivity(
         activitySummary: string,
         user: ForumUser,
-        projectId: number,
-        signalStrengthId: number,
+        projectId: string,
+        signalStrengthId: string,
         aiConfigOverride?: AiConfig,
-    ): Promise<{ score: AIScoreOutput; promptId: number } | null> {
-        this.logger.info(`Starting raw score generation for user ${user.user_id}.`, { signalStrengthId, projectId })
-
-        const aiConfig = aiConfigOverride ?? (await getLegacySignalConfig(signalStrengthId, projectId))
+    ): Promise<RawScoreGenerationResult | null> {
+        const aiConfig =
+            aiConfigOverride ?? (await getLegacySignalConfig(this.supabase, signalStrengthId, projectId))
         const promptConfig = this._prepareAndValidatePrompts(aiConfig, "raw")
 
         if (!aiConfig || !promptConfig) {
-            this.logger.error("Valid AI config or prompt not found for raw scoring.")
+            this.logger.error(
+                `AIOrchestrator: Could not get valid AI config or prompt for raw score generation.`,
+                {
+                    signalStrengthId,
+                    projectId,
+                    userId: user.user_id,
+                },
+            )
             return null
         }
 
-        const usersDataMap = await getUsersByIds([user.user_id])
-        const { username, displayName } = this._getUserIdentity(user, usersDataMap.get(user.user_id))
-
+        const truncatedContent = this._truncateContent(activitySummary, aiConfig.maxChars)
         const finalPrompt = this._preparePrompt(promptConfig.prompt!, {
-            content: activitySummary,
-            username,
-            displayName,
+            content: truncatedContent,
+            username: user.forum_username ?? "",
+            displayName: user.forum_username ?? "",
             maxValue: aiConfig.maxValue,
         })
 
-        const rawScore = await this._executeAIServiceCall(finalPrompt, aiConfig, user.user_id, "raw")
+        const score = await this._executeAIServiceCall(finalPrompt, aiConfig, user.user_id)
 
-        if (rawScore) {
-            return { score: rawScore, promptId: promptConfig.id }
+        if (score) {
+            return {
+                score,
+                promptId: promptConfig.id,
+                model: aiConfig.model,
+                temperature: aiConfig.temperature,
+                promptTokens: score.promptTokens ?? 0,
+                completionTokens: score.completionTokens ?? 0,
+                requestId: score.requestId ?? "",
+            }
         }
 
         return null
     }
 
-    /**
-     * Generates a 'smart' score by analyzing a series of raw scores.
-     *
-     * @param rawScores - An array of previous raw scores.
-     * @param user - The user to score.
-     * @param projectId - The project ID.
-     * @param signalStrengthId - The signal strength ID.
-     * @param aiConfigOverride - Optional AI config override.
-     * @returns A promise resolving to an `AIScoreOutput` or null.
-     */
-    public async generateSmartScoreFromRawScores(
-        rawScores: Pick<UserSignalStrength, "day" | "value" | "summary">[],
+    public async generateSmartScoreSummary(
         user: ForumUser,
-        projectId: number,
-        signalStrengthId: number,
-        aiConfigOverride?: AiConfig,
-    ): Promise<{ score: AIScoreOutput; promptId: number } | null> {
-        this.logger.info(`Generating smart score for user ${user.user_id}.`, {
-            projectId,
-        })
+        rawScores: RawScore[],
+        smartScore: number,
+        projectId: string,
+        signalStrengthId: string,
+    ): Promise<SmartScoreOutput | null> {
+        this.logger.info(`Generating smart score summary for user ${user.user_id}...`)
 
-        const aiConfig = aiConfigOverride ?? (await getLegacySignalConfig(signalStrengthId, projectId))
+        const aiConfig = await getLegacySignalConfig(this.supabase, signalStrengthId, projectId)
         const promptConfig = this._prepareAndValidatePrompts(aiConfig, "smart")
 
-        if (!aiConfig || !promptConfig) {
-            this.logger.error("Could not get valid AI config or smart prompt. Aborting.")
+        if (!aiConfig || !promptConfig || !promptConfig.prompt) {
+            this.logger.error(
+                `Could not obtain valid AI config or prompt for smart score summary.`,
+                {
+                    signalStrengthId,
+                    projectId,
+                },
+            )
             return null
         }
 
-        if (!rawScores || rawScores.length === 0) {
-            this.logger.warn("No raw scores provided; cannot generate smart score.")
-            return null
-        }
+        const rawScoresString = rawScores
+            .map((s) => `On ${s.day}, score was ${s.raw_value}/${s.max_value}.`)
+            .join("\n")
 
-        const usersDataMap = await getUsersByIds([user.user_id])
-        const { username, displayName } = this._getUserIdentity(user, usersDataMap.get(user.user_id))
+        const { username, displayName } = this._getUserIdentity(user, undefined)
 
-        const formattedContent =
-            `The following are raw scores for ${username}:\n` +
-            rawScores
-                .map((s) => `- On ${s.day}, score was ${s.value}/${aiConfig.maxValue}. Summary: ${s.summary}`)
-                .join("\n")
-
-        const finalPrompt = this._preparePrompt(promptConfig.prompt!, {
-            content: formattedContent,
+        const finalPrompt = this._prepareSmartScorePrompt(promptConfig.prompt, {
             username,
             displayName,
-            maxValue: aiConfig.maxValue,
+            rawScores: rawScoresString,
+            smartScore,
         })
 
-        const smartScore = await this._executeAIServiceCall(finalPrompt, aiConfig, user.user_id, "smart")
-
-        if (smartScore) {
-            return { score: smartScore, promptId: promptConfig.id }
+        const aiServiceClient = getAIServiceClient(this.appConfig, aiConfig, this.logger)
+        const modelConfig: ModelConfig = {
+            model: aiConfig.model,
+            temperature: aiConfig.temperature,
+            maxTokens: 1024,
         }
 
-        return null
-    }
+        try {
+            const aiScore = await aiServiceClient.getStructuredResponse(finalPrompt, modelConfig)
 
-    // ==========================================================================
-    // PRIVATE HELPER METHODS
-    // ==========================================================================
+            if (!aiScore || !aiScore.summary) {
+                this.logger.error(
+                    `Smart score summary response for user ${user.user_id} is missing a summary.`,
+                )
+                return null
+            }
+
+            return {
+                smartScore,
+                topBandDays: [], // Placeholder for now, will be populated in the adapter
+                summary: aiScore.summary,
+                description: aiScore.description,
+                improvements: aiScore.improvements,
+                explained_reasoning:
+                    typeof aiScore.explained_reasoning === "string"
+                        ? aiScore.explained_reasoning
+                        : aiScore.explained_reasoning?.reason ?? "",
+            }
+        } catch (error: any) {
+            this.logger.error(`AI service call for smart score summary failed for user ${user.user_id}.`, {
+                error: error.message,
+            })
+            return null
+        }
+    }
 
     /**
      * Fetches, validates, and selects the most recent, valid prompt of a given type.
      *
      * @param aiConfig - The AI configuration containing the prompts.
-     * @param type - The type of prompt to find ('raw' or 'smart').
      * @returns The most recent valid `Prompt` object, or `null` if none is found.
      */
-    private _prepareAndValidatePrompts(aiConfig: AiConfig | null, type: "raw" | "smart"): Prompt | null {
-        if (!aiConfig || !aiConfig.prompts || aiConfig.prompts.length === 0) {
-            this.logger.error("AI configuration or prompts are missing.")
+    private _prepareAndValidatePrompts(aiConfig: AiConfig | null, promptType: "raw" | "smart"): Prompt | null {
+        if (!aiConfig?.prompts || aiConfig.prompts.length === 0) {
+            this.logger.error("No prompts found in the provided AI configuration.")
             return null
         }
 
-        const validPrompts = aiConfig.prompts
-            .filter((p) => p.type === type && p.prompt)
+        const relevantPrompts = aiConfig.prompts
+            .filter((p) => p.type === promptType)
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
-        if (validPrompts.length === 0) {
-            this.logger.error(`No valid prompts of type '${type}' found in the configuration.`)
+        if (relevantPrompts.length === 0) {
+            this.logger.warn(`No prompts of type '${promptType}' found in the configuration.`)
             return null
         }
 
-        return validPrompts[0]
+        const latestPrompt = relevantPrompts[0]
+
+        if (!latestPrompt.prompt) {
+            this.logger.error(`The latest prompt of type '${promptType}' (ID: ${latestPrompt.id}) is empty.`)
+            return null
+        }
+
+        return latestPrompt
     }
 
     /**
      * Groups platform outputs by their author's ID.
      */
     private _groupPlatformOutputsByAuthor(platformOutputs: PlatformOutput[]): Record<string, PlatformOutput[]> {
-        return platformOutputs.reduce((acc: Record<string, PlatformOutput[]>, output) => {
-            const author = String(output.author)
-            if (!acc[author]) {
-                acc[author] = []
-            }
-            acc[author].push(output)
-            return acc
-        }, {})
+        return platformOutputs.reduce(
+            (acc, output) => {
+                const authorId = output.author
+                if (!acc[authorId]) {
+                    acc[authorId] = []
+                }
+                acc[authorId].push(output)
+                return acc
+            },
+            {} as Record<string, PlatformOutput[]>,
+        )
     }
 
     /**
      * Truncates content to a specified maximum number of characters.
      */
     private _truncateContent(content: string, maxChars: number): string {
-        if (maxChars > 0 && content.length > maxChars) {
-            this.logger.debug(`Truncating content from ${content.length} to ${maxChars} chars.`)
-            return content.substring(0, maxChars)
+        if (content.length <= maxChars) {
+            return content
         }
-        return content
+        this.logger.warn(`Truncating content from ${content.length} to ${maxChars} characters.`)
+        return content.substring(0, maxChars)
     }
 
     /**
      * Injects dynamic data into a prompt template.
      */
+    private _prepareSmartScorePrompt(
+        template: string,
+        data: {
+            username: string
+            displayName: string
+            rawScores: string
+            smartScore: number
+        },
+    ): string {
+        return template
+            .replace(/{{\s*username\s*}}/g, data.username)
+            .replace(/{{\s*displayName\s*}}/g, data.displayName)
+            .replace(/{{\s*raw_scores\s*}}/g, data.rawScores)
+            .replace(/{{\s*smart_score\s*}}/g, String(data.smartScore))
+    }
+
     private _preparePrompt(
         template: string,
         data: {
@@ -287,10 +341,10 @@ export class AIOrchestrator {
         },
     ): string {
         return template
-            .replace(/\${content}/g, data.content)
-            .replace(/\${username}/g, data.username)
-            .replace(/\${displayName}/g, data.displayName)
-            .replace(/\${maxValue}/g, String(data.maxValue))
+            .replace(/{{\s*content\s*}}/g, data.content)
+            .replace(/{{\s*username\s*}}/g, data.username)
+            .replace(/{{\s*displayName\s*}}/g, data.displayName)
+            .replace(/{{\s*maxValue\s*}}/g, String(data.maxValue))
     }
 
     /**
@@ -304,16 +358,20 @@ export class AIOrchestrator {
         forumUser: ForumUser,
         userData: { username?: string; displayName?: string } | undefined,
     ): { username: string; displayName: string } {
-        const fallbackName = forumUser.forum_username ?? String(forumUser.user_id)
         return {
-            username: userData?.username ?? fallbackName,
-            displayName: userData?.displayName ?? fallbackName,
+            username: userData?.username ?? forumUser.forum_username ?? String(forumUser.user_id),
+            displayName: userData?.displayName ?? forumUser.forum_username ?? "Unknown User",
         }
     }
 
     /**
      * Generates a score for a single user's aggregated activity.
      *
+     * @param userId - The ID of the user to score.
+     * @param outputs - The user's aggregated activity.
+     * @param userData - The user's core profile data from the 'users' table.
+     * @param aiConfig - The AI configuration to use.
+     * @param promptConfig - The prompt configuration to use.
      * @returns An `AIScoreOutput` object or `null` if an error occurs.
      */
     private async _generateScoreForUser(
@@ -340,7 +398,7 @@ export class AIOrchestrator {
             maxValue: aiConfig.maxValue,
         })
 
-        return this._executeAIServiceCall(finalPrompt, aiConfig, userId, "raw")
+        return this._executeAIServiceCall(finalPrompt, aiConfig, userId)
     }
 
     /**
@@ -352,7 +410,6 @@ export class AIOrchestrator {
         prompt: string,
         aiConfig: AiConfig,
         userId: number,
-        scoreType: "raw" | "smart",
     ): Promise<AIScoreOutput | null> {
         const modelConfig: ModelConfig = {
             model: aiConfig.model,
@@ -364,16 +421,6 @@ export class AIOrchestrator {
 
         try {
             const aiScore = await aiServiceClient.getStructuredResponse(prompt, modelConfig)
-
-            // For smart scores, the value is nested. We lift it to the top level.
-            if (
-                scoreType === "smart" &&
-                typeof aiScore.explained_reasoning === "object" &&
-                aiScore.explained_reasoning !== null
-            ) {
-                this.logger.info("Lifting nested 'value' from smart score response.")
-                aiScore.value = aiScore.explained_reasoning.value
-            }
 
             if (typeof aiScore.value !== "number") {
                 this.logger.error(`AI response for user ${userId} is missing a numeric 'value'.`)
@@ -404,8 +451,8 @@ export class AIOrchestrator {
         aiScore: AIScoreOutput,
         userId: number,
         day: string,
-        projectId: number,
-        signalStrengthId: number,
+        projectId: string,
+        signalStrengthId: string,
         aiConfig: AiConfig,
         promptId: number,
     ): UserSignalStrength {

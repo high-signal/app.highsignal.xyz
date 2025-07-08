@@ -5,23 +5,44 @@
  */
 
 import { initializeLogger, Logger } from "./logger"
-import { getAppConfig, getDiscourseAdapterRuntimeConfig } from "./config"
+import { getAppConfig, getPlatformAdapterConfig, getAdapterRuntimeConfig } from "./config"
 import { getSupabaseClient } from "./dbClient"
 import { AIOrchestrator } from "./aiOrchestrator"
+import { PlatformAdapter, PlatformAdapterConstructor } from "./types"
+import { DiscourseAdapter } from "@discourse/adapter"
+import { DiscourseAdapterSecretsSchema } from "@discourse/config"
+
+// --- Static Adapter Imports ---
+// Statically import all available platform adapters.
+// This is crucial for bundlers like Webpack (used by Next.js) to correctly resolve the modules.
+// import { TwitterAdapter } from "@twitter/adapter" // Placeholder for when Twitter adapter is implemented
+// import { DiscordAdapter } from "@discord/adapter" // Placeholder for when Discord adapter is implemented
+
+/**
+ * A map holding the constructor and configuration schema for each platform adapter.
+ * This allows the engine to dynamically select and instantiate the correct adapter at runtime
+ * without using dynamic `import()` statements.
+ */
+const ADAPTER_REGISTRY: Record<string, { constructor: PlatformAdapterConstructor<any>; schema: any }> = {
+    discourse: { constructor: DiscourseAdapter, schema: DiscourseAdapterSecretsSchema },
+    // twitter: { constructor: TwitterAdapter, schema: TwitterAdapterConfigSchema },
+    // discord: { constructor: DiscordAdapter, schema: DiscordAdapterConfigSchema },
+}
 
 /**
  * Defines the options required to run the engine for a specific user and project.
  */
 interface EngineRunOptions {
     userId?: string
-    projectId?: number
+    projectId?: string
+    signalStrengthName?: string
 }
 
 /**
  * The core orchestration function for the Lambda Engine.
  *
  * This function initializes all necessary services (config, logger, DB client),
- * dynamically imports and instantiates the specified platform adapter, and invokes
+ * selects the appropriate platform adapter from the registry, and invokes
  * the user-processing workflow.
  *
  * @param platformName - The name of the platform adapter to run (e.g., 'discourse').
@@ -31,51 +52,101 @@ interface EngineRunOptions {
  */
 export async function runEngine(platformName: string, options: EngineRunOptions, logger?: Logger): Promise<void> {
     let effectiveLogger = logger
-    const config = await getAppConfig() // Get config first
+    const appConfig = await getAppConfig() // Get app config first
 
     if (!effectiveLogger) {
         effectiveLogger = initializeLogger({
             serviceName: `lambda-engine-${platformName}`,
-            level: config.LOG_LEVEL,
-            nodeEnv: config.NODE_ENV,
+            level: appConfig.LOG_LEVEL,
+            nodeEnv: appConfig.NODE_ENV,
         })
     }
 
     effectiveLogger.info(`Lambda Engine run started for platform: ${platformName}`)
 
     try {
-        effectiveLogger.info("Configuration loaded successfully.")
-
-        const { userId, projectId } = options
+        const { userId, projectId, signalStrengthName: signalStrengthNameFromOptions } = options
         if (!userId || !projectId) {
             throw new Error("userId and projectId are required in the event payload for the user-centric workflow.")
         }
 
-        // Initialize core services
-        await getSupabaseClient() // Ensures DB client is ready
-        const aiOrchestrator = new AIOrchestrator(config, effectiveLogger)
-
-        // Dynamically import the adapter based on the platformName to keep the engine decoupled.
-        const adapterPath = `@${platformName.toLowerCase()}/adapter`
-        effectiveLogger.info(`Dynamically importing adapter from: ${adapterPath}`)
-        const adapterModule = await import(adapterPath)
-
-        // Construct the adapter class name from the platform name (e.g., 'discourse' -> 'DiscourseAdapter')
-        const adapterClassName = `${platformName.charAt(0).toUpperCase() + platformName.slice(1)}Adapter`
-        const AdapterClass = adapterModule[adapterClassName]
-
-        if (!AdapterClass) {
-            throw new Error(`Adapter class '${adapterClassName}' not found in module '${adapterPath}'`)
+        // --- Adapter Selection ---
+        const adapterInfo = ADAPTER_REGISTRY[platformName.toLowerCase()]
+        if (!adapterInfo) {
+            throw new Error(`Unsupported platform: '${platformName}'. No adapter found in registry.`)
         }
 
-        // TODO: The config loading should also be made dynamic and not be specific to Discourse.
-        // This is a temporary measure to get the build to pass.
-        const discourseConfig = await getDiscourseAdapterRuntimeConfig()
+        effectiveLogger.info(`Adapter found for platform: ${platformName}`)
 
-        const adapter = new AdapterClass(effectiveLogger, aiOrchestrator, discourseConfig)
+        // --- Initialization ---
+        const supabase = await getSupabaseClient() // Ensures DB client is ready
+        const aiOrchestrator = new AIOrchestrator(appConfig, effectiveLogger, supabase)
 
-        // Execute the main user processing logic within the adapter
-        await adapter.processUser(userId, projectId, discourseConfig.aiConfig)
+        // --- Configuration Loading ---
+        effectiveLogger.info("--- DIAGNOSTIC LOG: Incoming Run Options ---", { options });
+
+        // Determine signal strength name and fetch its ID
+        const signalStrengthName =
+            signalStrengthNameFromOptions || (platformName.toLowerCase() === "discourse" ? "discourse_forum" : undefined)
+
+        if (!signalStrengthName) {
+            throw new Error(
+                `Could not determine signalStrengthName for platform '${platformName}'. Please provide it in the event payload.`,
+            )
+        }
+        effectiveLogger.info(`Using signal strength name: ${signalStrengthName}`)
+
+        const { data: signalStrengthData, error: signalStrengthError } = await supabase
+            .from("signal_strengths")
+            .select("id")
+            .eq("name", signalStrengthName)
+            .single()
+
+        if (signalStrengthError || !signalStrengthData) {
+            const dbError = `Failed to fetch signal strength ID for name '${signalStrengthName}'.`
+            effectiveLogger.error(dbError, { error: signalStrengthError })
+            throw new Error(dbError)
+        }
+        const signalStrengthId = signalStrengthData.id
+        effectiveLogger.info(`Found signal strength ID: ${signalStrengthId}`)
+
+        // Fetch project URL from project_signal_strengths table
+        const { data: projectSignalStrengthData, error: projectSignalStrengthError } = await supabase
+            .from("project_signal_strengths")
+            .select("url")
+            .eq("project_id", projectId)
+            .eq("signal_strength_id", signalStrengthId)
+            .single()
+
+        if (projectSignalStrengthError || !projectSignalStrengthData || !projectSignalStrengthData.url) {
+            const dbError = `Failed to fetch URL for project ID '${projectId}' and signal strength ID '${signalStrengthId}'.`
+            effectiveLogger.error(dbError, { error: projectSignalStrengthError })
+            throw new Error(dbError)
+        }
+        const projectUrl = projectSignalStrengthData.url;
+        effectiveLogger.info(`Found project URL: ${projectUrl}`)
+
+        const staticConfig = await getPlatformAdapterConfig(platformName, adapterInfo.schema)
+
+
+
+        const combinedConfig: any = {
+            ...staticConfig,
+            PROJECT_ID: projectId,
+            SIGNAL_STRENGTH_ID: signalStrengthId,
+            url: projectUrl,
+        }
+
+        const runtimeConfig = await getAdapterRuntimeConfig(supabase, combinedConfig)
+        effectiveLogger.info("Configuration loaded successfully.")
+
+        // --- Adapter Instantiation & Execution ---
+        // The runtimeConfig now contains all necessary static and dynamic configuration.
+        const AdapterClass = adapterInfo.constructor;
+        const adapter = new AdapterClass(effectiveLogger, aiOrchestrator, supabase, runtimeConfig);
+
+        // The user-centric workflow is now driven by the adapter's processUser method.
+        await adapter.processUser(userId, projectId.toString(), runtimeConfig.aiConfig);
 
         effectiveLogger.info(`Successfully completed engine run for platform '${platformName}' and user '${userId}'.`)
     } catch (error: any) {
@@ -104,7 +175,6 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
  */
 export async function handler(event: any, context: any): Promise<void> {
     // Initialize a logger instance specifically for this handler invocation.
-    // The serviceName could include context information if available and useful.
     const config = await getAppConfig() // Get config first
     const logger = initializeLogger({
         serviceName: "lambda-engine-handler",
@@ -116,7 +186,7 @@ export async function handler(event: any, context: any): Promise<void> {
         awsRequestId: context?.awsRequestId,
     })
 
-    const { platformName, userId, projectId } = event
+    const { platformName, userId, projectId, signalStrengthName } = event
 
     // Validate the essential parameters from the event payload
     if (!platformName || !userId || !projectId) {
@@ -127,7 +197,7 @@ export async function handler(event: any, context: any): Promise<void> {
 
     try {
         // Pass the event properties to the engine
-        await runEngine(platformName, { userId, projectId }, logger)
+        await runEngine(platformName, { userId, projectId, signalStrengthName }, logger)
         logger.info(`Handler successfully completed processing for platform: ${platformName}`)
     } catch (error) {
         logger.error(`Handler failed processing for platform: ${platformName}.`, {

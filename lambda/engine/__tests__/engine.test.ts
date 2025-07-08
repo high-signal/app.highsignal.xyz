@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, vi, Mocked, MockedFunction } from "vitest"
 import { runEngine } from "../src/engine"
-import { getAppConfig, AppConfig, getDiscourseAdapterRuntimeConfig, DiscourseAdapterRuntimeConfig } from "../src/config"
+import { getAppConfig, AppConfig, getAdapterRuntimeConfig } from "../src/config"
 import { Logger, initializeLogger } from "../src/logger"
-import * as dbClient from "../src/dbClient"
+import { getSupabaseClient } from "@shared/dbClient"
 import { AIOrchestrator } from "../src/aiOrchestrator"
 
 // Mock full modules
 vi.mock("../src/config")
 vi.mock("../src/logger")
-vi.mock("../src/dbClient")
+vi.mock("@shared/dbClient")
 vi.mock("../src/aiOrchestrator")
 
 // Mock the dynamic import for the adapter to break the circular dependency
@@ -28,9 +28,9 @@ vi.mock("@discourse/adapter", () => {
 describe("runEngine", () => {
     // --- Mocks and Mock Data ---
     let mockGetAppConfig: MockedFunction<typeof getAppConfig>
-    let mockGetDiscourseAdapterRuntimeConfig: MockedFunction<typeof getDiscourseAdapterRuntimeConfig>
+    let mockGetAdapterRuntimeConfig: MockedFunction<typeof getAdapterRuntimeConfig>
     let mockInitializeLogger: MockedFunction<typeof initializeLogger>
-    let mockGetSupabaseClient: MockedFunction<typeof dbClient.getSupabaseClient>
+    let mockGetSupabaseClient: MockedFunction<typeof getSupabaseClient>
     let mockLoggerInstance: Mocked<Logger>
 
     const testConfig: AppConfig = {
@@ -42,9 +42,9 @@ describe("runEngine", () => {
         ENABLE_USER_CENTRIC_WORKFLOW: true,
     }
 
-    const testDiscourseConfig: DiscourseAdapterRuntimeConfig = {
-        API_URL: "discourse-url",
-        API_KEY: "discourse-key",
+    const testDiscourseConfig = {
+
+        DISCOURSE_API_KEY: "discourse-key",
         PROJECT_ID: 123,
         SIGNAL_STRENGTH_ID: 1,
         MAX_VALUE: 100,
@@ -67,10 +67,10 @@ describe("runEngine", () => {
 
         // Mock functions from modules
         mockGetAppConfig = vi.mocked(getAppConfig).mockResolvedValue(testConfig)
-        mockGetDiscourseAdapterRuntimeConfig = vi
-            .mocked(getDiscourseAdapterRuntimeConfig)
-            .mockResolvedValue(testDiscourseConfig)
-        mockGetSupabaseClient = vi.mocked(dbClient.getSupabaseClient)
+        mockGetAdapterRuntimeConfig = vi
+            .mocked(getAdapterRuntimeConfig)
+            .mockResolvedValue(testDiscourseConfig as any)
+        mockGetSupabaseClient = vi.mocked(getSupabaseClient)
 
         // Mock logger
         mockLoggerInstance = {
@@ -94,12 +94,13 @@ describe("runEngine", () => {
         expect(MockDiscourseAdapter).toHaveBeenCalledTimes(1)
         expect(MockDiscourseAdapter).toHaveBeenCalledWith(
             mockLoggerInstance,
+            mockGetSupabaseClient(),
             expect.any(AIOrchestrator),
             testDiscourseConfig,
         )
 
         // Verify the main logic was called
-        expect(mockProcessUser).toHaveBeenCalledWith(options.userId, options.projectId, testDiscourseConfig.aiConfig)
+        expect(mockProcessUser).toHaveBeenCalledWith(options.userId, options.projectId)
         expect(mockLoggerInstance.info).toHaveBeenCalledWith(
             `Successfully completed engine run for platform 'discourse' and user '${options.userId}'.`,
         )

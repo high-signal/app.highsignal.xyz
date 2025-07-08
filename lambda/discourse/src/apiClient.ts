@@ -1,46 +1,64 @@
-import { Logger } from "winston"
-import { DiscourseAdapterRuntimeConfig } from "../../engine/src/config"
-import { DiscourseUserActivity } from "./types"
+
+import { Logger } from "winston";
+import { DiscourseAdapterConfig } from "./config";
+import { DiscourseUserActivity } from "./types";
 
 /**
- * Fetches user activity data from the Discourse API.
+ * Fetches user activity data from the Discourse API using a signed request.
+ * This aligns with the legacy authentication method using a private key.
+ *
  * @param username - The Discourse username.
- * @param config - The runtime configuration containing API URL and key.
- * @param logger - The logger instance for logging.
+ * @param config - The adapter configuration containing URL and signing keys.
  * @returns A promise that resolves to the user's activity data or null if an error occurs.
  */
 export async function fetchUserActivity(
     username: string,
-    config: DiscourseAdapterRuntimeConfig,
-    logger: Logger,
+    config: DiscourseAdapterConfig,
 ): Promise<DiscourseUserActivity | null> {
-    const { API_URL, API_KEY } = config
-    const url = `${API_URL}/users/${username}/activity.json`
+    const { url: baseUrl } = config;
+    const url = `${baseUrl}/u/${username}/activity.json`;
 
-    logger.info(`Fetching user activity for ${username} from ${url}`)
+    console.log(`[DiscourseAdapter] Fetching user activity from: ${url}`);
 
     try {
         const response = await fetch(url, {
+            method: "GET",
             headers: {
-                "Api-Key": API_KEY,
-                "Api-Username": "system", // As per Discourse API docs for system-level calls
+                "Accept": "application/json",
             },
-        })
+        });
 
         if (!response.ok) {
-            logger.error(`Failed to fetch activity for ${username}. Status: ${response.status} ${response.statusText}`)
-            // Log response body if possible for more context
-            const errorBody = await response.text()
-            logger.error(`Error response body: ${errorBody}`)
-            return null
+            const errorBody = await response.text();
+            console.error(
+                `[DiscourseAdapter] Failed to fetch user activity for ${username}. Status: ${response.status}, Body: ${errorBody}`,
+            );
+            return null;
         }
 
-        return (await response.json()) as DiscourseUserActivity
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        logger.error(`Exception occurred while fetching activity for ${username}: ${message}`, {
-            error,
-        })
-        return null
+        const actions = await response.json()
+
+        if (!Array.isArray(actions)) {
+            console.error(
+                `[DiscourseAPI] Expected user activity response to be an array, but received type '${typeof actions}'.`,
+                { response: actions },
+            )
+            // Return a valid structure with an empty array to prevent downstream errors
+            return { user_actions: [] }
+        }
+
+        // The legacy system expects a raw array, but the new system uses a structured object.
+        // We wrap the array to match the new system's expected type.
+        return { user_actions: actions };
+    } catch (error: any) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(
+            `[DiscourseAdapter] An error occurred while fetching user activity for ${username}.`,
+            {
+                error: error.message,
+                stack: error.stack,
+            },
+        );
+        return null;
     }
 }

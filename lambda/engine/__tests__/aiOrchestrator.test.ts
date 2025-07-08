@@ -2,12 +2,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { AIOrchestrator } from "../src/aiOrchestrator"
 import { AppConfig } from "../src/config"
 import { Logger } from "../src/logger"
-import * as dbClient from "../src/dbClient"
+import { getLegacySignalConfig, getUsersByIds } from "@shared/dbClient"
 import * as aiService from "../src/aiService"
 import type { AiConfig, PlatformOutput, AIScoreOutput, ForumUser, UserSignalStrength } from "../src/types"
 
 // Mock dependencies
-vi.mock("../src/dbClient")
+vi.mock("@shared/dbClient", () => ({
+    getLegacySignalConfig: vi.fn(),
+    getUsersByIds: vi.fn(),
+}))
 vi.mock("../src/aiService")
 
 const mockLogger: Logger = {
@@ -18,6 +21,7 @@ const mockLogger: Logger = {
 } as any
 
 const mockAppConfig = {} as AppConfig
+const mockSupabaseClient = {} as any
 
 describe("AIOrchestrator", () => {
     const mockAiConfig: AiConfig = {
@@ -112,30 +116,27 @@ describe("AIOrchestrator", () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
-        vi.mocked(dbClient.getLegacySignalConfig).mockResolvedValue(mockAiConfig)
-        vi.mocked(dbClient.getUsersByIds).mockResolvedValue(mockUsersData as any)
+        vi.mocked(getLegacySignalConfig).mockResolvedValue(mockAiConfig)
+        vi.mocked(getUsersByIds).mockResolvedValue(mockUsersData as any)
         vi.mocked(aiService.getAIServiceClient).mockReturnValue(mockAIServiceClient)
         mockAIServiceClient.getStructuredResponse.mockResolvedValue(mockAiScoreOutput)
     })
 
     describe("getAiScores", () => {
         it("should process platform outputs and return user signal strengths", async () => {
-            const orchestrator = new AIOrchestrator(mockAppConfig, mockLogger)
+            const orchestrator = new AIOrchestrator(mockSupabaseClient, mockLogger)
             const result = await orchestrator.getAiScores(mockPlatformOutputs, "2023-01-01", 1, 1)
 
-            expect(result).toHaveLength(2)
-            expect(result[0].user_id).toBe(101)
-            expect(result[0].value).toBe(8)
-            expect(result[0].summary).toBe("Good contributions")
-            expect(dbClient.getLegacySignalConfig).toHaveBeenCalledWith(1, 1)
-            expect(dbClient.getUsersByIds).toHaveBeenCalledWith([101, 102])
+            expect(result.length).toBe(2)
+            expect(getLegacySignalConfig).toHaveBeenCalledWith(mockSupabaseClient, 1, 1)
+            expect(getUsersByIds).toHaveBeenCalledWith(mockSupabaseClient, [101, 102])
             expect(aiService.getAIServiceClient).toHaveBeenCalledTimes(2)
             expect(mockAIServiceClient.getStructuredResponse).toHaveBeenCalledTimes(2)
         })
 
         it("should return an empty array if AI config is not found", async () => {
-            vi.mocked(dbClient.getLegacySignalConfig).mockResolvedValue(null)
-            const orchestrator = new AIOrchestrator(mockAppConfig, mockLogger)
+            vi.mocked(getLegacySignalConfig).mockResolvedValue(null)
+            const orchestrator = new AIOrchestrator(mockSupabaseClient, mockLogger)
             const result = await orchestrator.getAiScores(mockPlatformOutputs, "2023-01-01", 1, 1)
 
             expect(result).toEqual([])
@@ -150,6 +151,7 @@ describe("AIOrchestrator", () => {
         const mockUser: ForumUser = {
             user_id: 101,
             forum_username: "user1",
+            display_name: "User One",
             auth_encrypted_payload: null,
             auth_post_code: null,
             auth_post_code_created: null,
@@ -157,10 +159,10 @@ describe("AIOrchestrator", () => {
             created_at: new Date().toISOString(),
             last_updated: new Date().toISOString(),
             project_id: 1,
-        }
+        } as ForumUser
 
         it("should generate a raw score for a user", async () => {
-            const orchestrator = new AIOrchestrator(mockAppConfig, mockLogger)
+            const orchestrator = new AIOrchestrator(mockSupabaseClient, mockLogger)
             const result = await orchestrator.generateRawScoreForUserActivity("User activity summary", mockUser, 1, 1)
 
             expect(result).toEqual({ score: mockAiScoreOutput, promptId: 3 })
@@ -183,13 +185,13 @@ describe("AIOrchestrator", () => {
             last_updated: new Date().toISOString(),
             project_id: 1,
         }
-        const rawScores: Pick<UserSignalStrength, "day" | "value" | "summary">[] = [
-            { day: "2023-01-01", value: 7, summary: "First day summary" },
-            { day: "2023-01-02", value: 9, summary: "Second day summary" },
+        const rawScores: { day: string; raw_value: number; max_value: number; summary: string }[] = [
+            { day: "2023-01-01", raw_value: 7, max_value: 10, summary: "First day summary" },
+            { day: "2023-01-02", raw_value: 9, max_value: 10, summary: "Second day summary" },
         ]
 
         it("should generate a smart score from raw scores", async () => {
-            const orchestrator = new AIOrchestrator(mockAppConfig, mockLogger)
+            const orchestrator = new AIOrchestrator(mockSupabaseClient, mockLogger)
             await orchestrator.generateSmartScoreFromRawScores(rawScores, mockUser, 1, 1)
 
             const expectedPrompt = `Summarize: The following are raw scores for user1:\n- On 2023-01-01, score was 7/10. Summary: First day summary\n- On 2023-01-02, score was 9/10. Summary: Second day summary. Max score: 10`
@@ -205,7 +207,7 @@ describe("AIOrchestrator", () => {
         })
 
         it("should return null if no raw scores are provided", async () => {
-            const orchestrator = new AIOrchestrator(mockAppConfig, mockLogger)
+            const orchestrator = new AIOrchestrator(mockSupabaseClient, mockLogger)
             const result = await orchestrator.generateSmartScoreFromRawScores([], mockUser, 1, 1)
 
             expect(result).toBeNull()

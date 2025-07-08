@@ -101,7 +101,7 @@ describe("Lambda Engine Configuration", () => {
         })
     })
 
-    describe("getDiscourseAdapterRuntimeConfig", () => {
+    describe("getAdapterRuntimeConfig", () => {
         const mockAiConfig: AiConfig = {
             signalStrengthId: 10,
             model: "gpt-4",
@@ -125,7 +125,7 @@ describe("Lambda Engine Configuration", () => {
 
             const config = await configModule.getDiscourseAdapterRuntimeConfig()
 
-            expect(config.API_URL).toBe("http://discourse.local")
+
             expect(config.PROJECT_ID).toBe(1)
             expect(config.aiConfig).toEqual(mockAiConfig)
         })
@@ -135,7 +135,7 @@ describe("Lambda Engine Configuration", () => {
 
             smMock.on(GetSecretValueCommand).resolves({
                 SecretString: JSON.stringify({
-                    API_URL: "https://discourse.prod",
+
                     API_KEY: "prod-discourse-key",
                     PROJECT_ID: 2,
                     SIGNAL_STRENGTH_ID: 20,
@@ -146,9 +146,9 @@ describe("Lambda Engine Configuration", () => {
             const prodAiConfig = { ...mockAiConfig, signalStrengthId: 20 }
             dbClientMocks.getLegacySignalConfig.mockResolvedValue(prodAiConfig)
 
-            const config = await configModule.getDiscourseAdapterRuntimeConfig()
+            const config = await configModule.getAdapterRuntimeConfig("discourse")
 
-            expect(config.API_URL).toBe("https://discourse.prod")
+
             expect(config.PROJECT_ID).toBe(2)
             expect(config.aiConfig.signalStrengthId).toBe(20)
 
@@ -168,7 +168,7 @@ describe("Lambda Engine Configuration", () => {
 
             dbClientMocks.getLegacySignalConfig.mockResolvedValue(null)
 
-            await expect(configModule.getDiscourseAdapterRuntimeConfig()).rejects.toThrow(
+            await expect(configModule.getAdapterRuntimeConfig("discourse")).rejects.toThrow(
                 "[CONFIG] Failed to fetch required AI configuration for signal strength ID: 10",
             )
         })
@@ -180,18 +180,18 @@ describe("Lambda Engine Configuration", () => {
             vi.stubEnv("DISCOURSE_PROJECT_ID", "not-a-number") // Invalid
             vi.stubEnv("DISCOURSE_SIGNAL_STRENGTH_ID", "10")
 
-            await expect(configModule.getDiscourseAdapterRuntimeConfig()).rejects.toThrow(
+            await expect(configModule.getAdapterRuntimeConfig("discourse")).rejects.toThrow(
                 "[CONFIG] Invalid Discourse adapter configuration: PROJECT_ID - Expected number, received nan",
             )
         })
 
         it("should prioritize Discourse env vars over Secrets Manager in production", async () => {
             vi.stubEnv("NODE_ENV", "production")
-            vi.stubEnv("DISCOURSE_API_URL", "env-var-discourse-url") // This should be used
+
 
             smMock.on(GetSecretValueCommand).resolves({
                 SecretString: JSON.stringify({
-                    API_URL: "sm-discourse-url", // This should be ignored
+
                     API_KEY: "sm-discourse-key",
                     PROJECT_ID: 99,
                     SIGNAL_STRENGTH_ID: 99,
@@ -202,8 +202,8 @@ describe("Lambda Engine Configuration", () => {
 
             const config = await configModule.getDiscourseAdapterRuntimeConfig()
 
-            expect(config.API_URL).toBe("env-var-discourse-url")
-            expect(config.API_KEY).toBe("sm-discourse-key")
+
+            expect(config.DISCOURSE_API_KEY).toBe("sm-discourse-key")
             expect(smMock.commandCalls(GetSecretValueCommand).length).toBe(1)
         })
     })

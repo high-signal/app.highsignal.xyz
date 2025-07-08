@@ -8,12 +8,12 @@
  * - It **caches** configurations to improve performance by avoiding redundant fetches.
  */
 
-import * as dotenv from "dotenv"
-import * as path from "path"
+
 import { z } from "zod"
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager"
-import { AiConfig } from "./types"
-import { getLegacySignalConfig as fetchAiConfigFromDb } from "./dbClient"
+import { SupabaseClient } from "@supabase/supabase-js"
+import { AdapterConfig, AdapterRuntimeConfig, AiConfig } from "./types"
+import { getLegacySignalConfig as fetchAiConfigFromDb } from "@shared/db"
 
 // --- Zod Schemas for Configuration Validation ---
 
@@ -35,36 +35,12 @@ export const AppConfigSchema = z.object({
 })
 export type AppConfig = z.infer<typeof AppConfigSchema>
 
-/**
- * Defines the schema for the Discourse platform adapter's static configuration.
- * These are settings specific to connecting to a Discourse instance.
- */
-
-export const DiscourseAdapterConfigSchema = z.object({
-    API_URL: z.string(),
-    API_KEY: z.string(),
-    PROJECT_ID: z.coerce.number(),
-    SIGNAL_STRENGTH_ID: z.coerce.number(),
-    MAX_VALUE: z.coerce.number().optional(),
-})
-export type DiscourseAdapterConfig = z.infer<typeof DiscourseAdapterConfigSchema>
-
-/**
- * Represents the complete runtime configuration for the Discourse adapter.
- * It combines the static adapter configuration with the dynamic AI configuration
- * fetched from the database at runtime.
- */
-
-export type DiscourseAdapterRuntimeConfig = DiscourseAdapterConfig & {
-    aiConfig: AiConfig
-}
-
 // --- Caching ---
 // Caches are used to store fetched configurations and secrets, preventing redundant
 // calls to AWS Secrets Manager or the database within a single Lambda invocation.
 
 let appConfigCache: AppConfig | null = null
-let discourseAdapterConfigCache: DiscourseAdapterConfig | null = null
+const platformAdapterConfigCache: Record<string, AdapterConfig | null> = {}
 const secretsCache: Record<string, any> = {}
 
 // --- Helper Functions ---
@@ -111,32 +87,27 @@ async function getSecret<T>(secretName: string, schema: z.ZodType<T>): Promise<T
  *
  * It follows a specific loading priority:
  * 1. Cached configuration (if available).
- * 2. Environment variables (`process.env`).
- * 3. AWS Secrets Manager (for production environment only).
+ * 2. AWS Secrets Manager (for production environment only).
+ * 3. Environment variables (`process.env`).
  *
  * In production, any environment variable will override a value fetched from Secrets Manager.
  * In local development, it loads from a `.env` file.
  *
  * @returns A promise that resolves to the validated application configuration.
  */
-export const getAppConfig = async (): Promise<AppConfig> => {
+export async function getAppConfig(): Promise<AppConfig> {
     if (appConfigCache) {
         return appConfigCache
     }
 
-    const isProduction = process.env.NODE_ENV === "production"
-    if (!isProduction) {
-        // For local development, load variables from .env file in the project root.
-        dotenv.config({ path: path.resolve(__dirname, "../../..", ".env") })
-    }
+
 
     try {
         let secrets = {}
-        if (isProduction) {
+        if (process.env.NODE_ENV === "production") {
             try {
                 const secretName = "highsignal/production/app"
                 // Fetch secrets, but don't fail if they don't exist. Env vars might be used instead.
-                // We use a partial schema here because we don't require all secrets to be present.
                 secrets = await getSecret(secretName, AppConfigSchema.partial())
             } catch (error) {
                 console.warn(
@@ -148,7 +119,7 @@ export const getAppConfig = async (): Promise<AppConfig> => {
         // Combine sources: environment variables override secrets.
         const combinedConfig = {
             ...secrets,
-            ...process.env, // process.env values will overwrite any from secrets
+            ...process.env,
         }
 
         appConfigCache = AppConfigSchema.parse(combinedConfig)
@@ -163,85 +134,96 @@ export const getAppConfig = async (): Promise<AppConfig> => {
 }
 
 /**
- * Retrieves the static configuration for the Discourse platform adapter.
+ * Retrieves the static configuration for a specific platform adapter.
  *
  * It follows a specific loading priority:
  * 1. Cached configuration (if available).
- * 2. Environment variables (`DISCOURSE_*` prefixed).
- * 3. AWS Secrets Manager (for production environment only).
+ * 2. AWS Secrets Manager (for production environment only).
+ * 3. Environment variables (prefixed with the platform name, e.g., `DISCOURSE_API_URL`).
  *
  * In production, any environment variable will override a value fetched from Secrets Manager.
  * In local development, it loads from a `.env` file.
  *
- * @returns A promise that resolves to the validated Discourse adapter configuration.
+ * @param platformName The name of the platform (e.g., 'discourse').
+ * @param schema The Zod schema for the adapter's configuration.
+ * @returns A promise that resolves to the validated adapter configuration.
  */
-export const getDiscourseAdapterConfig = async (): Promise<DiscourseAdapterConfig> => {
-    if (discourseAdapterConfigCache) {
-        return discourseAdapterConfigCache
+export async function getPlatformAdapterConfig<T extends z.AnyZodObject>(
+    platformName: string,
+    schema: T,
+): Promise<z.infer<T>> {
+    const cacheKey = platformName.toLowerCase()
+    if (platformAdapterConfigCache[cacheKey]) {
+        // We cast to `unknown` first because the cached `AdapterConfig` and the specific
+        // inferred type `z.infer<T>` are not directly related in the type system,
+        // even though we know logically they are compatible.
+        return platformAdapterConfigCache[cacheKey] as unknown as z.infer<T>
     }
 
-    const isProduction = process.env.NODE_ENV === "production"
-    if (!isProduction) {
-        dotenv.config({ path: path.resolve(__dirname, "../../..", ".env") })
-    }
+
 
     try {
         let secrets = {}
-        if (isProduction) {
+        if (process.env.NODE_ENV === "production") {
             try {
-                const secretName = "highsignal/production/discourse"
-                // Fetch secrets, but don't fail if they don't exist. Env vars might be used instead.
-                secrets = await getSecret(secretName, DiscourseAdapterConfigSchema.partial())
+                const secretName = `highsignal/production/${cacheKey}`
+                secrets = await getSecret(secretName, schema.partial())
             } catch (error) {
                 console.warn(
-                    `[CONFIG] Could not fetch Discourse secrets from Secrets Manager. Falling back to environment variables. Error: ${error}`,
+                    `[CONFIG] Could not fetch ${platformName} secrets from Secrets Manager. Falling back to environment variables. Error: ${error}`,
                 )
             }
         }
 
-        // Remap from DISCOURSE_ prefixed env vars for local dev and overrides
-        const envConfig = {
-            API_URL: process.env.DISCOURSE_API_URL,
-            API_KEY: process.env.DISCOURSE_API_KEY,
-            PROJECT_ID: process.env.DISCOURSE_PROJECT_ID,
-            SIGNAL_STRENGTH_ID: process.env.DISCOURSE_SIGNAL_STRENGTH_ID,
-            MAX_VALUE: process.env.DISCOURSE_MAX_VALUE,
+        // Dynamically create a mapping from the environment variables.
+        // The keys in the Zod schema are the names of the environment variables.
+        const envConfig: Record<string, string | undefined> = {}
+        for (const key in (schema as any).shape) {
+            // Check for existence, not truthiness, to allow for empty strings.
+            if (process.env[key] !== undefined) {
+                envConfig[key] = process.env[key]
+            }
         }
-
-        // Filter out undefined values from envConfig so they don't overwrite secrets with `undefined`
-        const definedEnvConfig = Object.fromEntries(
-            Object.entries(envConfig).filter(([, value]) => value !== undefined),
-        )
 
         // Combine sources: environment variables override secrets.
         const combinedConfig = {
             ...secrets,
-            ...definedEnvConfig,
+            ...envConfig,
         }
 
-        discourseAdapterConfigCache = DiscourseAdapterConfigSchema.parse(combinedConfig)
-        return discourseAdapterConfigCache
+        const parsedConfig = schema.parse(combinedConfig)
+        // We assert that the parsed config is compatible with the base `AdapterConfig`
+        // for caching, as the generic constraint isn't enough for the compiler.
+        platformAdapterConfigCache[cacheKey] = parsedConfig as AdapterConfig
+        return parsedConfig
     } catch (error) {
         if (error instanceof z.ZodError) {
             const errorMessage = error.errors.map((e) => `${e.path.join(".")} - ${e.message}`).join(", ")
-            throw new Error(`[CONFIG] Invalid Discourse adapter configuration: ${errorMessage}`)
+            throw new Error(`[CONFIG] Invalid ${platformName} adapter configuration: ${errorMessage}`)
         }
         throw error
     }
 }
 
 /**
- * Retrieves the full runtime configuration for the Discourse adapter.
+ * Retrieves the full runtime configuration for a platform adapter.
  *
- * This function orchestrates fetching both the static adapter configuration (env vars/secrets)
- * and the dynamic AI configuration (prompts, models) from the database.
+ * This function orchestrates fetching both the static adapter configuration
+ * and the dynamic AI configuration from the database.
  *
+ * @param config The static configuration object for the adapter.
  * @returns A promise that resolves to the complete runtime configuration for the adapter.
  */
-export const getDiscourseAdapterRuntimeConfig = async (): Promise<DiscourseAdapterRuntimeConfig> => {
-    const config = await getDiscourseAdapterConfig()
-
-    const aiConfig = await fetchAiConfigFromDb(config.SIGNAL_STRENGTH_ID, config.PROJECT_ID)
+export const getAdapterRuntimeConfig = async <T extends AdapterConfig>(
+    supabase: SupabaseClient,
+    config: T,
+): Promise<AdapterRuntimeConfig<T>> => {
+    const aiConfig = await fetchAiConfigFromDb(
+        supabase,
+        config.SIGNAL_STRENGTH_ID,
+        // Project ID is now a string UUID and is passed directly, as the DB function expects a string.
+        config.PROJECT_ID,
+    )
 
     if (!aiConfig) {
         throw new Error(
@@ -270,7 +252,9 @@ export function _resetConfigCache_TEST_ONLY(): void {
     }
 
     appConfigCache = null
-    discourseAdapterConfigCache = null
+    for (const key in platformAdapterConfigCache) {
+        delete platformAdapterConfigCache[key]
+    }
     for (const key in secretsCache) {
         delete secretsCache[key]
     }

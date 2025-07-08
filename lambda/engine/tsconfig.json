@@ -6,6 +6,11 @@
         "composite": true
     },
     "include": ["src/**/*"],
-    "references": [{ "path": "../shared" }],
-    "exclude": ["node_modules", "dist", "**/*.test.ts", "src/scripts"]
+    "references": [
+        { "path": "../shared" },
+        { "path": "../discourse" },
+        { "path": "../twitter" },
+        { "path": "../discord" }
+    ],
+    "exclude": ["node_modules", "dist", "src/scripts"]
 }

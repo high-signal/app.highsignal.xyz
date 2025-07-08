@@ -80,13 +80,25 @@ export interface PlatformOutput {
  * Represents the structure for inserting a new entry into the 'user_signal_strengths' table.
  * This is the primary data structure for storing AI-generated scores.
  */
-export type UserSignalStrength = Database["public"]["Tables"]["user_signal_strengths"]["Insert"]
+export type UserSignalStrength = Omit<
+    Database["public"]["Tables"]["user_signal_strengths"]["Insert"],
+    "project_id" | "signal_strength_id"
+> & {
+    project_id: string
+    signal_strength_id: string
+}
 
 /**
  * Represents a row from the 'prompts' table.
  * Contains a specific prompt template and its metadata.
  */
-export type Prompt = Tables<"prompts">
+export interface Prompt {
+    id: number
+    created_at: string
+    signal_strength_id: string | null
+    type: string | null
+    prompt: string | null
+}
 
 /**
  * Represents a row from the 'users' table.
@@ -98,7 +110,9 @@ export type User = Tables<"users">
  * Represents a row from the 'forum_users' table.
  * This table links a user from the 'users' table to their platform-specific identity.
  */
-export type ForumUser = Tables<"forum_users">
+export type ForumUser = Omit<Tables<"forum_users">, "project_id"> & {
+    project_id: string
+}
 
 /**
  * Represents a row from the 'projects' table.
@@ -109,7 +123,13 @@ export type Project = Tables<"projects">
  * Represents a row from the 'project_signal_strengths' table,
  * which configures a signal for a specific project.
  */
-export type ProjectSignalStrength = Tables<"project_signal_strengths">
+export type ProjectSignalStrength = Omit<
+    Tables<"project_signal_strengths">,
+    "project_id" | "signal_strength_id"
+> & {
+    project_id: string
+    signal_strength_id: string
+}
 
 // ==========================================================================
 // 4. ENGINE & CALCULATION TYPES
@@ -117,11 +137,24 @@ export type ProjectSignalStrength = Tables<"project_signal_strengths">
 // ==========================================================================
 
 /**
+ * Configuration for a generic AI model call.
+ * This is distinct from AiConfig, which includes database-specific details and prompts.
+ */
+export interface ModelConfig {
+    /** The identifier of the AI model to be used (e.g., "gpt-3.5-turbo"). */
+    model: string
+    /** The temperature setting for the AI model, controlling randomness. */
+    temperature: number
+    /** Optional: Maximum number of tokens to generate in the completion. */
+    maxTokens?: number
+}
+
+/**
  * Represents the comprehensive AI configuration for a specific signal strength,
  * combining details from both the 'signal_strengths' and 'prompts' tables.
  */
 export interface AiConfig {
-    signalStrengthId: number
+    signalStrengthId: string
     model: string
     temperature: number
     maxChars: number
@@ -240,4 +273,130 @@ interface SignalStrengthProjectData {
     url?: string
     availableAuthTypes?: string[]
     authTypes?: string[]
+}
+
+// ==========================================================================
+// AI & SCORING TYPES
+// ==========================================================================
+
+/**
+ * Represents the structured output expected from the AI service after scoring.
+ */
+export interface AIScoreOutput {
+    value: number
+    summary: string
+    description: string
+    improvements: string
+    explained_reasoning: string | { reason: string; value?: number }
+    requestId?: string
+    modelUsed?: string
+    promptTokens?: number
+    completionTokens?: number
+}
+
+/**
+ * Represents the structured output for a smart score summary.
+ */
+export interface SmartScoreOutput {
+    smartScore: number
+    topBandDays: string[]
+    summary: string
+    description: string
+    improvements: string
+    explained_reasoning: string
+}
+
+// ==========================================================================
+// SERVICE INTERFACES
+// ==========================================================================
+
+/**
+ * Defines the contract for the AI Orchestrator.
+ * This allows adapters to use the orchestrator's functionality without a direct
+ * dependency on the engine's implementation.
+ */
+/**
+ * Represents the complete result from a raw score generation call,
+ * including the AI score and all relevant run metadata.
+ */
+export interface RawScoreGenerationResult {
+    score: AIScoreOutput
+    promptId: number
+    model: string
+    temperature: number
+    promptTokens: number
+    completionTokens: number
+    requestId: string
+}
+
+export interface IAiOrchestrator {
+    generateRawScoreForUserActivity(
+        activitySummary: string,
+        user: ForumUser,
+        projectId: string,
+        signalStrengthId: string,
+        aiConfigOverride?: AiConfig,
+    ): Promise<RawScoreGenerationResult | null>
+
+    generateSmartScoreSummary(
+        user: ForumUser,
+        rawScores: RawScore[],
+        smartScore: number,
+        projectId: string,
+        signalStrengthId: string,
+    ): Promise<SmartScoreOutput | null>
+}
+
+// ==========================================================================
+// PLATFORM ADAPTER INTERFACE
+// ==========================================================================
+
+/**
+ * Represents the basic configuration required by any platform adapter.
+ * Each adapter will extend this with its own specific settings.
+ */
+export interface AdapterConfig {
+    PROJECT_ID: string
+    SIGNAL_STRENGTH_ID: string
+}
+
+/**
+ * Represents the full runtime configuration for a platform adapter,
+ * including the dynamic AI configuration.
+ */
+export type AdapterRuntimeConfig<T extends AdapterConfig> = T & {
+    aiConfig: AiConfig
+    aiOrchestrator?: IAiOrchestrator
+}
+
+/**
+ * Defines the contract for all platform adapters.
+ *
+ * An adapter is a class that encapsulates the logic for interacting with a
+ * specific platform (e.g., Discourse, Twitter) to fetch data and process users.
+ */
+export interface PlatformAdapter<T extends AdapterConfig> {
+    /**
+     * The main entry point for an adapter's logic.
+     * It orchestrates the process of fetching data for a specific user,
+     * analyzing it, and generating the required scores.
+     *
+     * @param userId The unique identifier of the user to process.
+     * @param projectId The ID of the project this user belongs to.
+     * @param aiConfig The AI configuration to use for scoring.
+     */
+    processUser(userId: string, projectId: string, aiConfig: AiConfig): Promise<void>
+}
+
+/**
+ * Defines the constructor signature for a PlatformAdapter class.
+ * This allows the engine to instantiate adapters in a generic way.
+ */
+export interface PlatformAdapterConstructor<T extends AdapterConfig> {
+    new (
+        logger: any, // Using `any` to avoid circular dependency issues with Logger type
+        supabase: any, // Using `any` to avoid circular dependency issues with SupabaseClient
+        aiOrchestrator: any, // Using `any` to avoid circular dependency issues
+        config: AdapterRuntimeConfig<T>,
+    ): PlatformAdapter<T>
 }

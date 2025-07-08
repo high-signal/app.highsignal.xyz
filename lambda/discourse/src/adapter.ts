@@ -1,264 +1,327 @@
 import { Logger } from "winston"
 import { SupabaseClient } from "@supabase/supabase-js"
 import axios from "axios"
-import { AIOrchestrator } from "@engine/aiOrchestrator"
+
+import {
+    AdapterConfig,
+    AdapterRuntimeConfig,
+    PlatformAdapter,
+    PlatformOutput,
+    UserSignalStrength,
+    ForumUser,
+    RawScore,
+    SmartScoreOutput,
+    IAiOrchestrator,
+    AiConfig,
+} from "@shared/types"
 import {
     getForumUsersForProject,
     getUserLastUpdate,
-    updateUserLastUpdate,
-    getRawScoreForUser,
-    getRawScoresForUser,
-    getSmartScoreForUser,
-    saveScore,
     getLegacySignalConfig,
-} from "@engine/dbClient"
-import { ForumUser } from "@engine/types"
-import { AiConfig, RawScore } from "@shared/types"
-import { DiscourseAdapterRuntimeConfig } from "@engine/config"
+    getRawScoreForUser,
+    saveScore,
+    getSmartScoreForUser,
+    getRawScoresForUser,
+} from "@shared/db"
+import { DiscourseAdapterConfig, DiscourseAdapterRuntimeConfig } from "./config"
 import { fetchUserActivity } from "./apiClient"
-import { stripHtml } from "@engine/utils/htmlStripper"
-import { calculateSmartScore } from "@engine/smartScoreCalculator"
+import { stripHtml } from "@shared/utils/htmlStripper"
+import { calculateSmartScore } from "@shared/utils/smartScoreCalculator"
 import { DiscourseUserActivity, DiscourseUserAction } from "./types"
 
-export class DiscourseAdapter {
-    private logger: Logger
-    private aiOrchestrator: AIOrchestrator
+export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig> {
+    private supabase: SupabaseClient
+    private aiOrchestrator: IAiOrchestrator
     private config: DiscourseAdapterRuntimeConfig
+    private logger: Logger
 
-    constructor(logger: Logger, aiOrchestrator: AIOrchestrator, config: DiscourseAdapterRuntimeConfig) {
-        this.logger = logger
+    constructor(
+        logger: Logger,
+        aiOrchestrator: IAiOrchestrator,
+        supabase: SupabaseClient,
+        config: DiscourseAdapterRuntimeConfig,
+    ) {
+        this.supabase = supabase
         this.aiOrchestrator = aiOrchestrator
         this.config = config
+        this.logger = logger
         this.logger.info("[DiscourseAdapter] Initialized.")
     }
 
     public async processUser(
         userId: string,
-        projectId: number,
-        // This parameter is passed from the engine to satisfy the test mock,
-        // but the adapter's logic currently relies on its own config.
-        // This could be refactored to use this injected config directly.
+        projectId: string,
         aiConfig: AiConfig,
     ): Promise<void> {
-        this.logger.info(
-            `[DiscourseAdapter] Starting user processing for user ID: ${userId} in project ID: ${projectId}`,
-        )
         const numericUserId = parseInt(userId, 10)
         if (isNaN(numericUserId)) {
-            this.logger.error(`[DiscourseAdapter] Invalid user ID provided: ${userId}`)
+            this.logger.error(`[DiscourseAdapter] Invalid user ID: ${userId}. Must be a numeric string.`)
             return
         }
-
-        // Step 1: Validate user and check for forum username
-        const forumUsers = await getForumUsersForProject(projectId, [numericUserId])
+        const forumUsers = await getForumUsersForProject(this.supabase, projectId, [numericUserId])
         if (forumUsers.length === 0) {
-            this.logger.warn(`[DiscourseAdapter] User with ID ${userId} not found for project ${projectId}.`)
+            console.log(`[DiscourseAdapter] User with ID ${userId} not found for project ${projectId}.`)
             return
         }
 
         const user = forumUsers[0]
         if (!user.forum_username) {
-            this.logger.warn(
+            console.log(
                 `[DiscourseAdapter] User with ID ${user.user_id} has no forum_username. Skipping processing.`,
             )
             return
         }
 
-        // Step 2: Check if an update is required by comparing last update time with latest activity
-        const userActivity = await fetchUserActivity(user.forum_username, this.config, this.logger)
-        const lastUpdateTimestamp = await getUserLastUpdate(numericUserId, projectId)
-        const latestActivityDate =
-            userActivity?.user_actions?.reduce((latest, action) => {
-                const actionDate = new Date(action.created_at)
-                return actionDate > latest ? actionDate : latest
-            }, new Date(0)) || null
+        // Set the last_checked value so that the user profile page shows the loading animation
+        await this.setLastChecked(user.user_id, projectId)
 
-        if (lastUpdateTimestamp && latestActivityDate) {
-            const lastUpdateDate = new Date(lastUpdateTimestamp)
-            if (latestActivityDate <= lastUpdateDate) {
-                this.logger.info(
-                    `[DiscourseAdapter] No new activity for user ${user.forum_username} since last update on ${lastUpdateTimestamp}. Skipping.`,
-                )
-                return
-            }
-        } else if (lastUpdateTimestamp && !latestActivityDate) {
-            this.logger.info(
-                `[DiscourseAdapter] No new activity found for user ${user.forum_username}, and user has been processed before. Skipping.`,
-            )
-            return
-        }
+        console.log("\n**************************************************")
+        console.log(
+            `Analyzing forum user activity for user ${user.user_id} and project ${projectId} and forum username ${user.forum_username}`,
+        )
+
+        const userActivity = await fetchUserActivity(user.forum_username, this.config)
+
+        console.log(
+            `Fetching forum activity data for ${user.forum_username} (forum username: ${user.forum_username})`,
+        )
 
         try {
-            // Generate raw and smart scores
-            const signalConfig = await getLegacySignalConfig(this.config.SIGNAL_STRENGTH_ID, projectId)
+            const signalConfig = await getLegacySignalConfig(
+                this.supabase,
+                this.config.SIGNAL_STRENGTH_ID,
+                projectId,
+            )
             if (!signalConfig) {
-                this.logger.error(
-                    `[DiscourseAdapter] Could not retrieve signal config for project ${projectId}. Aborting user processing.`,
+                console.error(
+                    `[DiscourseAdapter] Could not find signal config for signal strength ID ${this.config.SIGNAL_STRENGTH_ID} and project ID ${projectId}.`,
                 )
                 return
             }
-            await this.generateRawScoresForUser(user, userActivity, signalConfig)
-            await this.generateSmartScoreForUser(user)
 
-            // Step 5: Update the user's last_updated timestamp
-            await updateUserLastUpdate(user.user_id, this.config.PROJECT_ID)
-            this.logger.info(
-                `[DiscourseAdapter] Successfully processed user ${user.forum_username} and updated their last_updated timestamp.`,
-            )
+            await this.generateRawScoresForUser(user, userActivity, signalConfig, projectId)
+            await this.generateSmartScoreForUser(user, projectId)
+
+            console.log(`Analysis complete.`)
         } catch (error) {
-            this.logger.error(`[DiscourseAdapter] An error occurred during processing for user ${user.user_id}:`, {
-                error,
-            })
+            const message = error instanceof Error ? error.message : String(error)
+            console.error(
+                `[DiscourseAdapter] An unexpected error occurred while processing user ${user.forum_username}: ${message}`,
+                {
+                    stack: error instanceof Error ? error.stack : undefined,
+                },
+            )
         }
     }
 
-    private groupAndSummarizeActivityByDay(actions: DiscourseUserAction[]): Record<string, string> {
-        return actions.reduce<Record<string, string>>((acc, action) => {
-            const day = action.created_at.split("T")[0]
-            if (!acc[day]) {
-                acc[day] = ""
+    private groupActivityContentByDay(actions: DiscourseUserAction[]): Record<string, string> {
+        const dailyContent: Record<string, string[]> = {}
+
+        for (const action of actions) {
+            // Guard against actions with no content, which don't contribute to scoring.
+            if (!action.cooked) {
+                continue
             }
 
-            // If the action has 'cooked' content, strip HTML and append it.
-            if (action.cooked) {
-                const strippedContent = stripHtml(action.cooked)
-                acc[day] = `${acc[day]} ${strippedContent}`.trim()
+            const date = action.created_at.split("T")[0]
+            if (!dailyContent[date]) {
+                dailyContent[date] = []
             }
+            const strippedContent = stripHtml(action.cooked)
+            if (strippedContent) {
+                dailyContent[date].push(strippedContent)
+            }
+        }
 
-            return acc
-        }, {})
+        const aggregatedDailyContent: Record<string, string> = {}
+        for (const [date, contents] of Object.entries(dailyContent)) {
+            // Join with newlines to replicate the legacy script's aggregation.
+            aggregatedDailyContent[date] = contents.join("\n\n")
+        }
+
+        return aggregatedDailyContent
     }
 
     private async generateRawScoresForUser(
         user: ForumUser,
         userActivity: DiscourseUserActivity | null,
         signalConfig: AiConfig,
+        projectId: string,
     ): Promise<void> {
-        this.logger.info("In generateRawScoresForUser, processing user", {
-            userId: user.user_id,
-        })
-
-        if (!userActivity?.user_actions || userActivity.user_actions.length === 0) {
-            this.logger.info(`No user activity found for ${user.forum_username}. Skipping raw score generation.`)
+        if (!userActivity || userActivity.user_actions.length === 0) {
+            console.log(`No activity for user ${user.forum_username}. Skipping raw score generation.`)
             return
         }
 
-        const dailySummaries = this.groupAndSummarizeActivityByDay(userActivity.user_actions)
-        const dates = Object.keys(dailySummaries).sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+        console.log(
+            `Processed ${userActivity.user_actions.length} activities for ${user.forum_username} (forum username: ${user.forum_username})`,
+        )
 
-        for (const date of dates) {
-            const summary = dailySummaries[date]
+        const lookbackDays = signalConfig.previous_days ?? 180
+        const dateCutoff = new Date()
+        dateCutoff.setDate(dateCutoff.getDate() - lookbackDays)
 
-            // Skip if there's already a raw score for this day
+        const recentActions = userActivity.user_actions.filter(
+            (action) => new Date(action.created_at) >= dateCutoff,
+        )
+        console.log(`Filtered activity data to the past ${lookbackDays} days: ${recentActions.length}`)
+
+        const dailyContent = this.groupActivityContentByDay(recentActions)
+        console.log(`Number of days to analyze for raw score calculation: ${Object.keys(dailyContent).length}`)
+
+        for (const date in dailyContent) {
+            const content = dailyContent[date]
+
             const existingScore = await getRawScoreForUser(
+                this.supabase,
                 user.user_id,
-                this.config.PROJECT_ID,
+                projectId,
                 this.config.SIGNAL_STRENGTH_ID,
                 date,
             )
             if (existingScore) {
-                this.logger.info(
-                    `Raw score for user ${user.forum_username} on ${date} already exists. Skipping generation.`,
-                )
+                console.log(`Raw score for ${user.forum_username} on ${date} already exists. Skipping.`)
                 continue
             }
 
-            this.logger.info(`Generating raw score for ${user.forum_username} on ${date} with summary: ${summary}`)
+            console.log(`Day ${date} analysis started...`)
 
             const result = await this.aiOrchestrator.generateRawScoreForUserActivity(
-                summary,
+                content,
                 user,
-                this.config.PROJECT_ID,
+                projectId,
                 this.config.SIGNAL_STRENGTH_ID,
+                this.config.aiConfig,
             )
 
             if (result) {
-                await saveScore({
+                console.log(`model ${result.model}`)
+                console.log(`Making OpenAI API call...`)
+                const logs = `forum_username: ${user.forum_username}\nTotal API activities:  ${userActivity?.user_actions.length}\nActivity past 180 days: ${recentActions.length}\nUnique activity days: ${Object.keys(dailyContent).length}\nDay ${date} activity: ${content.length}\n\nuserDataString.length: ${content.length}\ntruncatedData.length: ${content.length}`
+
+                await saveScore(this.supabase, {
                     user_id: user.user_id,
-                    project_id: this.config.PROJECT_ID,
+                    project_id: projectId,
                     signal_strength_id: this.config.SIGNAL_STRENGTH_ID,
                     day: date,
                     prompt_id: result.promptId,
                     raw_value: result.score.value,
                     max_value: signalConfig.maxValue,
-                    summary: result.score.summary ?? "",
-                    description: result.score.description ?? "",
-                    improvements: result.score.improvements ?? "",
-                    explained_reasoning:
-                        typeof result.score.explained_reasoning === "string"
-                            ? result.score.explained_reasoning
-                            : (result.score.explained_reasoning?.reason ?? ""),
+                    summary: result.score.summary,
+                    description: result.score.description,
+                    improvements: result.score.improvements,
+                    explained_reasoning: typeof result.score.explained_reasoning === 'string' ? result.score.explained_reasoning : result.score.explained_reasoning.reason,
                     created: Math.floor(new Date().getTime() / 1000),
+                    model: result.model,
+                    temperature: result.temperature,
+                    prompt_tokens: result.promptTokens,
+                    completion_tokens: result.completionTokens,
+                    request_id: result.requestId,
+                    logs: logs,
                 })
 
-                this.logger.info(`Successfully generated and saved raw score for ${user.forum_username} on ${date}`)
-
-                // If a specific lookback period is defined, we only score the most recent day of activity.
-                if (signalConfig?.previous_days) {
-                    break
-                }
+                console.log(`Analysis complete for user: ${user.forum_username}`)
+                console.log(`Updating database for user ${user.forum_username}`)
+                console.log(`Successfully stored signal strength response in database for ${user.forum_username}`)
+                console.log(`User data successfully updated for day ${date}\n`)
             } else {
-                this.logger.error(
+                console.error(
                     `Failed to generate AI score for user ${user.forum_username} on ${date}. AI service returned null.`,
                 )
             }
         }
     }
 
-    private async generateSmartScoreForUser(user: ForumUser): Promise<void> {
-        this.logger.info(`Starting smart score generation for user ${user.user_id}`)
+    private async generateSmartScoreForUser(user: ForumUser, projectId: string): Promise<void> {
+        const today = new Date()
+        const todayStr = today.toISOString().split("T")[0]
 
-        const yesterday = new Date()
-        yesterday.setDate(yesterday.getDate() - 1)
-        const yesterdayStr = yesterday.toISOString().split("T")[0]
+        console.log(`Day ${todayStr} analysis started...`)
 
         const existingSmartScore = await getSmartScoreForUser(
+            this.supabase,
             user.user_id,
-            this.config.PROJECT_ID,
+            projectId,
             this.config.SIGNAL_STRENGTH_ID,
-            yesterdayStr,
+            todayStr,
         )
 
         if (existingSmartScore) {
-            this.logger.info(
-                `[DiscourseAdapter] Smart score for user ${user.user_id} on ${yesterdayStr} already exists. Skipping.`,
+            console.log(
+                `[DiscourseAdapter] Smart score for user ${user.user_id} on ${todayStr} already exists. Skipping.`,
             )
             return
         }
 
         const rawScoresFromDb = await getRawScoresForUser(
+            this.supabase,
             user.user_id,
-            this.config.PROJECT_ID,
+            projectId,
             this.config.SIGNAL_STRENGTH_ID,
         )
 
-        // Use a type guard to filter out incomplete data and ensure type safety for the calculator.
         const rawScores: RawScore[] = rawScoresFromDb.filter(
             (score): score is RawScore => score.raw_value != null && score.max_value != null && score.day != null,
         )
 
         if (rawScores.length === 0) {
-            this.logger.info(
+            console.log(
                 `No valid raw scores found for user ${user.user_id} in the last 30 days. Skipping smart score generation.`,
             )
             return
         }
 
-        const { smartScore } = calculateSmartScore(rawScores, 30) // Using 30 days as a default lookback
+        const { smartScore } = calculateSmartScore(rawScores, 30)
 
-        await saveScore({
+        const result = await this.aiOrchestrator.generateSmartScoreSummary(
+            user,
+            rawScores,
+            smartScore,
+            projectId,
+            this.config.SIGNAL_STRENGTH_ID,
+        )
+
+        await saveScore(this.supabase, {
             user_id: user.user_id,
-            project_id: this.config.PROJECT_ID,
+            project_id: projectId,
             signal_strength_id: this.config.SIGNAL_STRENGTH_ID,
-            day: yesterdayStr,
+            day: todayStr,
             value: smartScore,
-            max_value: 100, // Smart scores are on a scale of 0-100
-            summary: "Smart score calculated based on recent activity.",
+            max_value: 100,
+            summary: result?.summary ?? "Smart score calculated based on recent activity.",
+            description: result?.description ?? "",
+            improvements: result?.improvements ?? "",
+            explained_reasoning: result?.explained_reasoning ?? "",
             created: Math.floor(new Date().getTime() / 1000),
+            prompt_id: 10, // Hardcoded from legacy data to ensure parity for now
         })
 
-        this.logger.info(
-            `Successfully generated and saved smart score of ${smartScore} for user ${user.user_id} for date ${yesterdayStr}`,
+        console.log(`Analysis complete for user: ${user.forum_username}`)
+        console.log(`Updating database for user ${user.forum_username}`)
+        console.log(`Successfully stored signal strength response in database for ${user.forum_username}`)
+        console.log(
+            `Smart score successfully updated for ${user.forum_username} (forum username: ${user.forum_username})`,
         )
+    }
+
+    private async setLastChecked(userId: number, projectId: string): Promise<void> {
+        this.logger.info(`Setting last_checked for user ${userId} and project ${projectId}`)
+        try {
+            await saveScore(this.supabase, {
+                user_id: userId,
+                project_id: projectId,
+                signal_strength_id: this.config.SIGNAL_STRENGTH_ID,
+                last_checked: Math.floor(Date.now() / 1000),
+                request_id: `last_checked_${userId}_${projectId}_${this.config.SIGNAL_STRENGTH_ID}`,
+                // These fields are required by the table schema but are not relevant for this marker.
+                day: new Date().toISOString().split("T")[0],
+                created: Math.floor(Date.now() / 1000),
+            })
+            this.logger.info(`Successfully set last_checked for user ${userId}`)
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            this.logger.error(`Error setting last_checked for user ${userId}: ${message}`)
+            // Do not re-throw; allow main processing to continue.
+        }
     }
 }
