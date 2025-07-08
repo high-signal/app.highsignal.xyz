@@ -1,17 +1,3 @@
-// Look at the discord_queue
-// If more than x items are running, and none have past their timeout, then exit
-
-// If any have passed their timeouts, set them back to pending (and move to end of the queue?)
-
-// If there is space in the queue
-
-// Get a list of all projects that have discord enabled and have a url in their project_signal_strengths url field
-
-// For each project,
-
-// The queue is a record of everything that has been attempted to be fetched.
-// So add items to the queue with start message IDs and then when it completes, add the end message ID.
-
 require("dotenv").config({ path: "../../../.env" })
 const { Client, GatewayIntentBits, Partials } = require("discord.js")
 
@@ -28,8 +14,6 @@ const client = new Client({
 
 client.once("ready", () => {
     console.log(`✅ Logged in as bot user: ${client.user.tag}`)
-
-    // Fetch messages after bot is ready
     runGovernor()
 })
 
@@ -146,29 +130,29 @@ async function runGovernor() {
             console.log(`Found ${channels.size} text channels in guild: ${guild.name}`)
             // For each channel, check queue and trigger if needed
             for (const [channelId, channel] of channels) {
-                // Look in the queue for the most recent item for this channel
-                const { data: latestQueueItem, error: latestQueueItemError } = await supabase
+                // Look in the queue for any current items for this channel that are not completed
+                const { data: currentQueueItem, error: currentQueueItemError } = await supabase
                     .from("discord_request_queue")
                     .select("*")
                     .eq("guild_id", guildId)
                     .eq("channel_id", channelId)
-                    .order("created_at", { ascending: false })
+                    .not("status", "is", "completed")
                     .limit(1)
 
-                if (latestQueueItemError) {
+                if (currentQueueItemError) {
                     // TODO: Handle this better
-                    console.error("Error fetching latest queue item:", latestQueueItemError)
+                    console.error("Error fetching current queue item:", currentQueueItemError)
                     continue
                 }
 
-                // If the latestQueueItem is currently running, skip it
-                if (latestQueueItem?.length > 0 && latestQueueItem[0]?.status === "running") {
+                // If the currentQueueItem is currently running, skip it
+                if (currentQueueItem?.length > 0 && currentQueueItem[0]?.status === "running") {
                     console.log(`Skipping channel: ${channel.name} (ID: ${channelId}) because it is currently running`)
                     continue
                 }
 
-                // If the latestQueueItem status is "error",
-                if (latestQueueItem?.length > 0 && latestQueueItem[0]?.status === "error") {
+                // If the currentQueueItem status is "error",
+                if (currentQueueItem?.length > 0 && currentQueueItem[0]?.status === "error") {
                     // If the number of attempts is less than 3,
                     // set it back to pending and try to trigger it again
                     if (latestQueueItem[0]?.attempts < 3) {
@@ -189,25 +173,18 @@ async function runGovernor() {
                     }
                 }
 
-                // If the latestQueueItem status is "pending", try to trigger it again now there is space in the queue
-                if (latestQueueItem?.length > 0 && latestQueueItem[0]?.status === "pending") {
-                    console.log(`Triggering latest queue item. Guild: ${guild.name}. Channel: ${channel.name}.`)
+                // If the currentQueueItem status is "pending", try to trigger it again now there is space in the queue
+                if (currentQueueItem?.length > 0 && currentQueueItem[0]?.status === "pending") {
+                    console.log(`Triggering current queue item. Guild: ${guild.name}. Channel: ${channel.name}.`)
                     // triggerQueueItem(queueItemId)
                     continue
                 }
 
-                // If it finds an item, check the status of the item and if it has an end_message_id
-                let latestQueueItemEndMessageId = null
-
-                if (
-                    latestQueueItem.length > 0 &&
-                    latestQueueItem[0]?.status === "completed" &&
-                    latestQueueItem[0]?.end_message_id
-                ) {
-                    latestQueueItemEndMessageId = latestQueueItem[0]?.end_message_id
-                }
-
+                // If there is no currentQueueItem, then we need to add one
                 console.log(`Processing channel: ${channel.name} (ID: ${channelId})`)
+
+                // TODO: Here is where you need to calculate the time periods to see what messages to fetch
+
                 // Add an item to the queue then trigger that item
                 const { data: queueItem, error: queueItemError } = await supabase
                     .from("discord_request_queue")
@@ -215,7 +192,7 @@ async function runGovernor() {
                         guild_id: guildId,
                         channel_id: channelId,
                         status: "pending",
-                        start_message_id: latestQueueItemEndMessageId,
+                        // TODO: ADD the start_message_id and start_message_timestamp here
                     })
                     .select()
 
