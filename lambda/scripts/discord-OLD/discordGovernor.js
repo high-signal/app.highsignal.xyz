@@ -11,14 +11,6 @@ const client = new Client({
 client.once("ready", async () => {
     console.log(`✅ Logged in as bot user: ${client.user.tag}`)
     await runGovernor()
-
-    // // Wait 5 seconds
-    // await new Promise((resolve) => setTimeout(resolve, 5000))
-    // await runGovernor()
-
-    // // Wait 10 seconds
-    // await new Promise((resolve) => setTimeout(resolve, 10000))
-    // await runGovernor()
 })
 
 // *************************************************************
