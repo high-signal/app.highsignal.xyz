@@ -1,3 +1,5 @@
+const { updateTotalScoreHistory } = require("./updateTotalScoreHistory")
+
 async function updateUserData(
     supabase,
     PROJECT_ID,
@@ -85,6 +87,11 @@ async function updateUserData(
             console.error(`Error deleting duplicate rows for ${username}:`, deleteError.message)
         } else if (data && data.length > 0) {
             console.log(`Successfully deleted ${data.length} duplicate rows for ${username}`)
+        }
+
+        // Update the user_project_scores_history table if it was a smart score calculation
+        if (!isRawScoreCalc && !testingData?.requestingUserId) {
+            updateTotalScoreHistory(supabase, user.user_id, PROJECT_ID, dayDate)
         }
     } catch (dbError) {
         console.error(`Database error for ${username}:`, dbError.message)

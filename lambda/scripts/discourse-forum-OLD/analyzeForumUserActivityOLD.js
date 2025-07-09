@@ -222,6 +222,7 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
                     .eq("project_id", project_id)
                     .eq("signal_strength_id", signal_strength_id)
                     .not("raw_value", "is", null)
+                    .is("test_requesting_user", null)
 
                 if (existingDataError) {
                     console.error("Error fetching existing data:", existingDataError)
