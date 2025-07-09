@@ -283,6 +283,7 @@ interface SignalStrengthProjectData {
  * Represents the structured output expected from the AI service after scoring.
  */
 export interface AIScoreOutput {
+    [key: string]: any // Allow for flexible, nested AI responses
     value: number
     summary: string
     description: string
@@ -304,6 +305,10 @@ export interface SmartScoreOutput {
     description: string
     improvements: string
     explained_reasoning: string
+    promptId: number | null
+    requestId?: string
+    promptTokens?: number
+    completionTokens?: number
 }
 
 // ==========================================================================
@@ -330,21 +335,21 @@ export interface RawScoreGenerationResult {
 }
 
 export interface IAiOrchestrator {
-    generateRawScoreForUserActivity(
-        activitySummary: string,
+    generateRawScores(
         user: ForumUser,
+        day: string,
+        content: string,
+        logs: string,
+        signalConfig: AiConfig,
         projectId: string,
-        signalStrengthId: string,
-        aiConfigOverride?: AiConfig,
-    ): Promise<RawScoreGenerationResult | null>
+    ): Promise<UserSignalStrength | null>
 
     generateSmartScoreSummary(
         user: ForumUser,
-        rawScores: RawScore[],
-        smartScore: number,
+        rawScores: Pick<UserSignalStrength, "day" | "raw_value" | "max_value">[],
+        signalConfig: AiConfig,
         projectId: string,
-        signalStrengthId: string,
-    ): Promise<SmartScoreOutput | null>
+    ): Promise<UserSignalStrength | null>
 }
 
 // ==========================================================================

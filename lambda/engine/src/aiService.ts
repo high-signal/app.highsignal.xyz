@@ -136,7 +136,7 @@ class OpenAIAIServiceClient implements AIServiceClient {
                 messages: [
                     {
                         role: "user",
-                        content: `${prompt}\n\nRespond with a JSON object containing two keys: 'value' (a number between 0 and 100) and 'summary' (a string for reasoning).`,
+                        content: prompt,
                     },
                 ],
                 model: modelConfig.model,
