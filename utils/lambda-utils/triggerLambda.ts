@@ -1,5 +1,5 @@
 // @ts-ignore
-import { handler as engineHandler } from "../../lambda/engine/dist/engine"
+import { analyzeForumUserActivityOLD } from "../../lambda/scripts/discourse-forum-OLD/analyzeForumUserActivityOLD"
 
 export async function triggerLambda(
     signalStrengthName: string,
@@ -67,15 +67,7 @@ export async function triggerLambda(
         // Execute locally
         console.log("Executing locally")
         if (signalStrengthName === "discourse_forum") {
-            const event = {
-                platformName: "discourse",
-                userId,
-                projectId,
-                signalStrengthUsername,
-                testingData,
-            }
-            // We don't need to pass a context object for local execution
-            await engineHandler(event, {})
+            analyzeForumUserActivityOLD(userId, projectId, signalStrengthUsername, testingData)
             return {
                 success: true,
                 message: "Analysis initiated successfully",

@@ -1,4 +1,4 @@
-const { handler: engineHandler } = require("./engine/dist/engine")
+const { analyzeForumUserActivityOLD } = require("./scripts/discourse-forum-OLD/analyzeForumUserActivityOLD")
 
 exports.handler = async (event) => {
     try {
@@ -33,15 +33,8 @@ exports.handler = async (event) => {
 
         // Process the request based on the signal strength name
         if (signalStrengthName === "discourse_forum") {
-            const engineEvent = {
-                platformName: "discourse",
-                userId,
-                projectId,
-                signalStrengthUsername,
-                testingData,
-            }
-            // We don't need to pass a context object for local execution
-            await engineHandler(engineEvent, {})
+            // TODO: Update to new engine when ready
+            await analyzeForumUserActivityOLD(userId, projectId, signalStrengthUsername, testingData)
             return {
                 statusCode: 200,
                 body: JSON.stringify({ message: "Analysis completed successfully" }),
@@ -50,9 +43,7 @@ exports.handler = async (event) => {
             console.log(`Signal strength (${signalStrengthName}) not configured for updates`)
             return {
                 statusCode: 400,
-                body: JSON.stringify({
-                    error: `Signal strength (${signalStrengthName}) not configured for updates`,
-                }),
+                body: JSON.stringify({ error: `Signal strength (${signalStrengthName}) not configured for updates` }),
             }
         }
     } catch (error) {

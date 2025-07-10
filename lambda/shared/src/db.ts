@@ -194,10 +194,41 @@ export async function getForumUsersForProject(
     const { data, error } = await query
 
     if (error) {
+        console.error(`[DBShared] Error fetching forum users for project ${projectId}:`, { details: error })
         throw new Error(`Failed to fetch forum users: ${error.message}`)
     }
 
     return data || []
+}
+
+/**
+ * Updates the last_updated timestamp for a specific forum user.
+ * This is used to track when a user's activity was last processed, preserving a key piece of legacy functionality.
+ * @param supabase An initialized Supabase client.
+ * @param projectId The ID of the project.
+ * @param userId The ID of the user.
+ * @param lastUpdated The new timestamp to set.
+ */
+export async function updateForumUserLastUpdated(
+    supabase: SupabaseClient,
+    projectId: string,
+    userId: number,
+    lastUpdated: string,
+): Promise<void> {
+    const { error } = await supabase
+        .from("forum_users")
+        .update({
+            last_updated: lastUpdated,
+        })
+        .eq("project_id", projectId)
+        .eq("user_id", userId)
+
+    if (error) {
+        console.error(`[DBShared] Error updating last_updated for user ${userId} in project ${projectId}:`, {
+            details: error,
+        })
+        throw new Error(`Failed to update user's last_updated timestamp: ${error.message}`)
+    }
 }
 
 /**
