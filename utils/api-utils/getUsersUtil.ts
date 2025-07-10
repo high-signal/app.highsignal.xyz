@@ -200,6 +200,18 @@ export async function getUsersUtil(
                 return NextResponse.json({ error: "Error fetching users" }, { status: 500 })
             }
 
+            // Get all historical total scores for the users
+            const { data: historicalTotalScores, error: historicalTotalScoresError } = await supabase
+                .from("user_project_scores_history")
+                .select("user_id, project_id, total_score, day")
+                .in("user_id", userIds)
+                .order("day", { ascending: false })
+
+            if (historicalTotalScoresError) {
+                console.error("historicalTotalScoresError", historicalTotalScoresError)
+                return NextResponse.json({ error: "Error fetching historical total scores" }, { status: 500 })
+            }
+
             // If superadmin is requesting, get all connected accounts for the user
             let connectedAccounts = []
             if (isSuperAdminRequesting) {
@@ -418,6 +430,17 @@ export async function getUsersUtil(
                             (ss) => ss?.data[0]?.user_id === user.id && ss?.data[0]?.project_id === score.project_id,
                         ) || []
 
+                    const historicalScores = historicalTotalScores
+                        .filter(
+                            (historicalScore) =>
+                                historicalScore.user_id === score.user_id &&
+                                historicalScore.project_id === score.project_id,
+                        )
+                        .map((historicalScore) => ({
+                            day: historicalScore.day,
+                            totalScore: historicalScore.total_score,
+                        }))
+
                     return {
                         ...(isSuperAdminRequesting ? { id: user.id } : {}),
                         username: user.username,
@@ -428,6 +451,7 @@ export async function getUsersUtil(
                             : {}),
                         ...(score.total_score > 0 ? { rank: score.rank } : {}),
                         score: score.total_score,
+                        ...(historicalScores.length > 0 ? { historicalScores: historicalScores } : {}),
                         ...(userSharedAddresses.length > 0
                             ? { addresses: userSharedAddresses.map((address) => address.address) }
                             : {}),
