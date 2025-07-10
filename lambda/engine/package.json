@@ -1,0 +1,23 @@
+{
+    "name": "engine",
+    "version": "1.0.0",
+    "description": "Core Lambda Engine",
+    "main": "dist/engine.js",
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc -w",
+        "test": "vitest run --passWithNoTests"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "ts-node": "^10.9.2",
+        "typescript": "^5.0.0",
+        "vitest": "^3.2.3"
+    },
+    "dependencies": {
+        "winston": "^3.17.0",
+        "zod": "^3.25.67"
+    }
+}
