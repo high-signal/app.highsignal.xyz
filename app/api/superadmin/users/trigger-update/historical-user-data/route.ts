@@ -61,7 +61,3 @@ async function updateTotalScoreHistory(supabase: SupabaseClient, userId: string,
         console.error(`Error updating user_project_scores_history for userId ${userId}:`, historyError.message)
     }
 }
-
-module.exports = {
-    updateTotalScoreHistory,
-}
