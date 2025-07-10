@@ -1,18 +1,25 @@
 import { NextResponse } from "next/server"
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
+import { NextRequest } from "next/server"
 
 // This function is used to backfill historical user total scores
-export async function POST() {
+export async function POST(req: NextRequest) {
+    const { searchParams } = new URL(req.url)
+    const page = parseInt(searchParams.get("page") || "1", 10)
+    const limit = parseInt(searchParams.get("limit") || "10", 10)
+    const offset = (page - 1) * limit
+
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
     console.log("Updating historical user data")
 
-    // Get every row in the user_signal_strengths table that has a value in value and is not a test_requesting_user
+    // Get a subset of rows in the user_signal_strengths table based on pagination
     const { data, error } = await supabase
         .from("user_signal_strengths")
         .select("*")
         .not("value", "is", null)
         .is("test_requesting_user", null)
+        .range(offset, offset + limit - 1)
 
     if (error) {
         console.error("Error fetching user signal strengths:", error.message)
@@ -24,7 +31,16 @@ export async function POST() {
         await updateTotalScoreHistory(supabase, row.user_id, row.project_id, row.day)
     }
 
-    return NextResponse.json({ message: "Historical user data updated" }, { status: 200 })
+    // Return response with pagination info
+    return NextResponse.json(
+        {
+            message: "Historical user data updated",
+            page: page,
+            limit: limit,
+            total: data.length,
+        },
+        { status: 200 },
+    )
 }
 
 async function updateTotalScoreHistory(supabase: SupabaseClient, userId: string, projectId: string, day: string) {
