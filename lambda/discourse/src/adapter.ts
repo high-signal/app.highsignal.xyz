@@ -10,6 +10,7 @@ import {
     getRawScoresForUser,
     deleteSmartScoresForUser,
     deleteRawScore,
+    updateForumUserLastUpdated,
 } from "@shared/db"
 import { DiscourseAdapterConfig, DiscourseAdapterRuntimeConfig } from "./config"
 import { fetchUserActivity } from "./apiClient"
@@ -89,34 +90,63 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
                 this.logger.info(
                     `[DiscourseAdapter] No raw scores found for user ${user.user_id}. Skipping smart score generation.`,
                 )
-                return
+                // Even if we skip smart score, we should update the last_updated timestamp
+            } else {
+                const smartScoreOutput = await this.aiOrchestrator.generateSmartScoreSummary(
+                    user,
+                    recentRawScores,
+                    signalConfig,
+                    projectId,
+                )
+
+                if (smartScoreOutput) {
+                    this.logger.info(
+                        `[DiscourseAdapter] Deleting existing smart score for user ${user.user_id} before saving new one.`,
+                    )
+                    await deleteSmartScoresForUser(
+                        this.supabase,
+                        user.user_id,
+                        projectId,
+                        this.config.SIGNAL_STRENGTH_ID,
+                    )
+
+                    await saveScore(this.supabase, {
+                        ...smartScoreOutput,
+                        user_id: user.user_id,
+                        project_id: projectId,
+                        signal_strength_id: this.config.SIGNAL_STRENGTH_ID,
+                    })
+                    this.logger.info(`[DiscourseAdapter] Saved smart score for user ${user.user_id}.`)
+                }
             }
 
-            const smartScoreOutput = await this.aiOrchestrator.generateSmartScoreSummary(
-                user,
-                recentRawScores,
-                signalConfig,
-                projectId,
-            )
-
-            if (smartScoreOutput) {
-                this.logger.info(
-                    `[DiscourseAdapter] Deleting existing smart score for user ${user.user_id} before saving new one.`,
+            // Re-implement legacy functionality: update forum_users.last_updated
+            if (userActivity && userActivity.user_actions.length > 0) {
+                const latestActivityDate = userActivity.user_actions.reduce(
+                    (latest: Date, action: DiscourseUserAction) => {
+                        const actionDate = new Date(action.updated_at)
+                        return actionDate > latest ? actionDate : latest
+                    },
+                    new Date(0),
                 )
-                await deleteSmartScoresForUser(this.supabase, user.user_id, projectId, this.config.SIGNAL_STRENGTH_ID)
 
-                await saveScore(this.supabase, {
-                    ...smartScoreOutput,
-                    user_id: user.user_id,
-                    project_id: projectId,
-                    signal_strength_id: this.config.SIGNAL_STRENGTH_ID,
-                })
-                this.logger.info(`[DiscourseAdapter] Saved smart score for user ${user.user_id}`)
+                if (latestActivityDate.getTime() > 0) {
+                    this.logger.info(
+                        `[DiscourseAdapter] Updating last_updated for user ${user.user_id} to ${latestActivityDate.toISOString()}`,
+                    )
+                    await updateForumUserLastUpdated(
+                        this.supabase,
+                        projectId,
+                        user.user_id,
+                        latestActivityDate.toISOString(),
+                    )
+                }
             }
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error)
             this.logger.error(
-                `[DiscourseAdapter] An unexpected error occurred while processing user ${user.user_id}: ${message}`,
+                `[DiscourseAdapter] An error occurred during the analysis of user ${user.user_id}: ${message}`,
+                { error },
             )
         } finally {
             await this.clearLastChecked(user.user_id, projectId)
