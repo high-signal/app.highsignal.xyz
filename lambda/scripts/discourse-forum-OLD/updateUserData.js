@@ -91,7 +91,7 @@ async function updateUserData(
 
         // Update the user_project_scores_history table if it was a smart score calculation
         if (!isRawScoreCalc && !testingData?.requestingUserId) {
-            updateTotalScoreHistory(supabase, user.user_id, PROJECT_ID, dayDate)
+            await updateTotalScoreHistory(supabase, user.user_id, PROJECT_ID, dayDate)
         }
     } catch (dbError) {
         console.error(`Database error for ${username}:`, dbError.message)
