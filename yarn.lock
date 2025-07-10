@@ -1656,6 +1656,28 @@
     set-cookie-parser "^2.6.0"
     uuid ">=8 <10"
 
+"@privy-io/public-api@2.35.0":
+  version "2.35.0"
+  resolved "https://registry.yarnpkg.com/@privy-io/public-api/-/public-api-2.35.0.tgz#c38667aa8fca4e0a3036b2ba45ec949c0cb36ac5"
+  integrity sha512-w/tVeBqrhPdcO4Z2+XrvXUT/bBQDpcjUIauQvUS6O23TToTkG44ouagbNOqkOZ5QqU0QsC0QIIyL5BXB3tdMLA==
+  dependencies:
+    "@privy-io/api-base" "1.5.1"
+    bs58 "^5.0.0"
+    libphonenumber-js "^1.10.31"
+    viem "^2"
+    zod "^3.24.3"
+
+"@privy-io/public-api@2.37.1":
+  version "2.37.1"
+  resolved "https://registry.yarnpkg.com/@privy-io/public-api/-/public-api-2.37.1.tgz#c971b307cd1e44e12ccfa2fb31c2d254505cfd39"
+  integrity sha512-B3N0q8G0XR8OHt8bLIOQs/+GEP0qXpSewfQ0xYofopsrCluOi9W60QMekjHz/6PfN6CQcnxQ/EJUS26X3KfEUQ==
+  dependencies:
+    "@privy-io/api-base" "1.5.2"
+    bs58 "^5.0.0"
+    libphonenumber-js "^1.10.31"
+    viem "^2"
+    zod "^3.24.3"
+
 "@privy-io/react-auth@^2.17.3":
   version "2.17.3"
   resolved "https://registry.yarnpkg.com/@privy-io/react-auth/-/react-auth-2.17.3.tgz#f6e0b9ee9a615f51249bccb6a3ba216b3f204b77"
