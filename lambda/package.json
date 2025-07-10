@@ -1,16 +1,24 @@
 {
     "name": "lambda",
+    "private": true,
     "version": "1.0.0",
     "description": "Lambda function",
     "type": "commonjs",
     "main": "index.js",
+    "workspaces": [
+        "engine",
+        "discourse",
+        "discord",
+        "twitter",
+        "shared"
+    ],
     "scripts": {
         "prepare": "husky",
         "clean": "find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '*.tsbuildinfo' -type f -delete",
-        "build": "yarn clean && tsc --build",
+        "build": "yarn clean && tsc",
         "test": "vitest --config ./vitest.config.ts",
         "coverage": "vitest run --coverage",
-        "package": "mkdir -p bundle && rsync -a . bundle/ --exclude bundle --exclude lambda-code.zip --exclude .git --exclude node_modules && rsync -a node_modules/ bundle/node_modules/ && cd bundle && zip -r ../lambda-code.zip . && cd .. && rm -rf bundle"
+        "package": "yarn build && rm -rf bundle lambda-code.zip && mkdir -p bundle/node_modules && yarn install --production --modules-folder bundle/node_modules && cp -r dist/ bundle/dist && cp index.js bundle/ && cd bundle && zip -r ../lambda-code.zip . && cd .. && rm -rf bundle"
     },
     "dependencies": {
         "@aws-sdk/client-secrets-manager": "^3.529.1",
@@ -20,7 +28,7 @@
         "dotenv": "^16.4.5",
         "openai": "^5.6.0",
         "winston": "^3.17.0",
-        "zod": "^3.23.8"
+        "zod": "^3.25.67"
     },
     "devDependencies": {
         "@types/nock": "^11.1.0",

@@ -18,11 +18,11 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["./*"],
-            "@engine/*": ["./lambda/engine/dist/*"],
-            "@shared/*": ["./lambda/shared/dist/*"],
-            "@discourse/*": ["./lambda/discourse/dist/*"],
-            "@twitter/*": ["./lambda/twitter/dist/*"],
-            "@discord/*": ["./lambda/discord/dist/*"]
+            "@engine/*": ["./lambda/dist/engine/src/*"],
+            "@shared/*": ["./lambda/dist/shared/src/*"],
+            "@discourse/*": ["./lambda/dist/discourse/src/*"],
+            "@twitter/*": ["./lambda/dist/twitter/src/*"],
+            "@discord/*": ["./lambda/dist/discord/src/*"]
         },
         "plugins": [
             {
@@ -32,9 +32,10 @@
     },
     "include": ["app", "next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
     "exclude": [
-    "node_modules",
-    "**/*.test.ts",
-    "**/*.spec.ts",
-    "lambda/vitest.config.ts"
-  ]
+      "node_modules",
+      "lambda",
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      "lambda/vitest.config.ts"
+    ]
 }
