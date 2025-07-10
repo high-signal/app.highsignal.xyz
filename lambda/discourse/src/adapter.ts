@@ -14,10 +14,11 @@ import {
     getRawScoreForUser,
     saveScore,
     getRawScoresForUser,
+    deleteSmartScoresForUser,
+    deleteRawScore,
 } from "@shared/db";
 import { DiscourseAdapterConfig, DiscourseAdapterRuntimeConfig } from "./config";
 import { fetchUserActivity } from "./apiClient";
-import { stripHtml } from "@shared/utils/htmlStripper";
 import { DiscourseUserActivity, DiscourseUserAction } from "./types";
 
 export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig> {
@@ -102,11 +103,10 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
                 this.logger.info(
                     `[DiscourseAdapter] No raw scores found for user ${user.user_id}. Skipping smart score generation.`,
                 );
-                await this.clearLastChecked(user.user_id, projectId);
                 return;
             }
 
-                        const smartScoreOutput = await this.aiOrchestrator.generateSmartScoreSummary(
+            const smartScoreOutput = await this.aiOrchestrator.generateSmartScoreSummary(
                 user,
                 recentRawScores,
                 signalConfig,
@@ -114,13 +114,16 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
             );
 
             if (smartScoreOutput) {
+                this.logger.info(`[DiscourseAdapter] Deleting existing smart score for user ${user.user_id} before saving new one.`);
+                await deleteSmartScoresForUser(this.supabase, user.user_id, projectId, this.config.SIGNAL_STRENGTH_ID);
+
                 await saveScore(this.supabase, {
                     ...smartScoreOutput,
                     user_id: user.user_id,
                     project_id: projectId,
                     signal_strength_id: this.config.SIGNAL_STRENGTH_ID,
                 });
-                this.logger.info(`[DiscourseAdapter] Successfully saved smart score for user ${user.user_id}.`);
+                this.logger.info(`[DiscourseAdapter] Saved smart score for user ${user.user_id}`);
             }
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
@@ -134,17 +137,16 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
     }
 
     private groupActivityByDay(actions: DiscourseUserAction[]): Record<string, DiscourseUserAction[]> {
-        const dailyActions: Record<string, DiscourseUserAction[]> = {};
+        const groupedActions: Record<string, DiscourseUserAction[]> = {};
         for (const action of actions) {
-            const originalTimestamp = action.created_at;
-            const date = originalTimestamp.split("T")[0];
-            this.logger.info(`[DIAGNOSTIC] Grouping action: timestamp=${originalTimestamp}, date=${date}`);
-            if (!dailyActions[date]) {
-                dailyActions[date] = [];
+            // Group by a formatted date string from 'updated_at'.
+            const day = new Date(action.updated_at || action.created_at).toISOString().split("T")[0];
+            if (!groupedActions[day]) {
+                groupedActions[day] = [];
             }
-            dailyActions[date].push(action);
+            groupedActions[day].push(action);
         }
-        return dailyActions;
+        return groupedActions;
     }
 
     private async generateRawScoresForUser(
@@ -153,34 +155,40 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
         signalConfig: AiConfig,
         projectId: string,
     ): Promise<void> {
-        let logs = `Analyzing user: ${user.forum_username || user.user_id}\n`;
-        if (!userActivity || userActivity.user_actions.length === 0) {
-            this.logger.info(`No activity for user ${user.forum_username}. Skipping raw score generation.`);
+        if (!userActivity || !userActivity.user_actions || userActivity.user_actions.length === 0) {
+            this.logger.warn(`[DiscourseAdapter] No actions found for user ${user.user_id}. Skipping raw score generation.`);
             return;
         }
-        logs += `Fetched ${userActivity.user_actions.length} total actions from API.\n`;
 
-        const lookbackDays = signalConfig.previous_days || 30;
-        const dateCutoff = new Date();
-        dateCutoff.setDate(dateCutoff.getDate() - lookbackDays);
+        const lookbackDays = signalConfig.previous_days ?? 0;
+        const authPostId = user.auth_post_id;
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - lookbackDays);
 
-        const recentActions = userActivity.user_actions.filter(
-            (action) => new Date(action.created_at) >= dateCutoff,
-        );
+        this.logger.info(`[DIAGNOSTIC] Filtering actions for user ${user.user_id}: lookback_days=${lookbackDays}, auth_post_id=${authPostId || 'N/A'}, cutoff_date=${cutoffDate.toISOString()}`);
+        this.logger.info(`[DIAGNOSTIC] Total actions before filtering: ${userActivity.user_actions.length}`);
 
-        if (recentActions.length === 0) {
-            this.logger.info(`No recent activity for user ${user.forum_username} in the last ${lookbackDays} days.`);
+        const filteredActions = userActivity.user_actions.filter(action => {
+            const activityDate = new Date(action.updated_at || action.created_at);
+            const isAfterCutoff = activityDate > cutoffDate;
+            const isNotAuthPost = authPostId && action.post_id ? action.post_id !== Number(authPostId) : true;
+            return isAfterCutoff && isNotAuthPost;
+        });
+
+        this.logger.info(`[DIAGNOSTIC] Actions after filtering: ${filteredActions.length}`);
+
+        if (filteredActions.length === 0) {
+            this.logger.info(`[DiscourseAdapter] No recent activity for user ${user.forum_username} in the last ${lookbackDays} days.`);
             return;
         }
-        logs += `Found ${recentActions.length} actions in the last ${lookbackDays} days.\n`;
 
-        const dailyActions = this.groupActivityByDay(recentActions);
-        logs += `Grouped actions into ${Object.keys(dailyActions).length} unique days.\n`;
+        const dailyActions = this.groupActivityByDay(filteredActions);
+        this.logger.info(`[DIAGNOSTIC] Grouped actions into ${Object.keys(dailyActions).length} unique days.`);
 
         for (const [dayStr, actions] of Object.entries(dailyActions)) {
-            if (actions.length === 0) {
-                continue;
-            }
+            if (actions.length === 0) continue;
+
+            this.logger.info(`[DIAGNOSTIC] Checking for existing raw score for user ${user.user_id} on day ${dayStr}`);
             const existingRawScore = await getRawScoreForUser(
                 this.supabase,
                 user.user_id,
@@ -191,19 +199,18 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
 
             if (existingRawScore) {
                 this.logger.info(
-                    `[DiscourseAdapter] Raw score for user ${user.user_id} on ${dayStr} already exists. Skipping.`,
+                    `[DiscourseAdapter] Raw score for user ${user.user_id} on ${dayStr} already exists. Deleting it before regeneration.`,
                 );
-                continue;
+                await deleteRawScore(this.supabase, user.user_id, projectId, this.config.SIGNAL_STRENGTH_ID, dayStr);
             }
 
-            this.logger.info(`Generating raw score for user ${user.user_id} on ${dayStr}`);
-            this.logger.info(`[DIAGNOSTIC] Passing ${actions.length} actions to orchestrator for day ${dayStr}. Actions: ${JSON.stringify(actions.map(a => ({ post_id: a.post_id, created_at: a.created_at })), null, 2)}`);
-            const dailyLog = logs + `Analyzing ${actions.length} actions for day ${dayStr}.\n`;
+            this.logger.info(`[DiscourseAdapter] Generating raw score for user ${user.user_id} on ${dayStr} with ${actions.length} actions.`);
+            const dailyLog = `Analyzing ${actions.length} actions for day ${dayStr}.\n`;
 
             const score = await this.aiOrchestrator.generateRawScores(
                 user,
                 dayStr,
-                JSON.stringify(JSON.parse(JSON.stringify(actions)), null, 2),
+                JSON.stringify(actions, null, 2),
                 dailyLog,
                 signalConfig,
                 projectId
@@ -216,15 +223,15 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
                     project_id: projectId,
                     signal_strength_id: this.config.SIGNAL_STRENGTH_ID,
                 });
-                this.logger.info(`Saved raw score for user ${user.user_id} on ${dayStr}`);
+                this.logger.info(`[DiscourseAdapter] Saved raw score for user ${user.user_id} on ${dayStr}`);
             } else {
-                this.logger.warn(`AI Orchestrator returned no score for user ${user.user_id} on ${dayStr}`);
+                this.logger.warn(`[DiscourseAdapter] AI Orchestrator returned no score for user ${user.user_id} on ${dayStr}`);
             }
         }
     }
 
     private async clearLastChecked(userId: number, projectId: string): Promise<void> {
-        this.logger.info(`Clearing last_checked for user ${userId} and project ${projectId}`);
+        this.logger.info(`[DiscourseAdapter] Clearing last_checked for user ${userId} and project ${projectId}`);
         try {
             const { error } = await this.supabase
                 .from("user_signal_strengths")
@@ -234,16 +241,14 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
             if (error) {
                 throw error;
             }
-
-            this.logger.info(`Successfully cleared last_checked for user ${userId}`);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
-            this.logger.error(`Error clearing last_checked for user ${userId}: ${message}`);
+            this.logger.error(`[DiscourseAdapter] Error clearing last_checked for user ${userId}: ${message}`);
         }
     }
 
     private async setLastChecked(userId: number, projectId: string): Promise<void> {
-        this.logger.info(`Setting last_checked for user ${userId} and project ${projectId}`);
+        this.logger.info(`[DiscourseAdapter] Setting last_checked for user ${userId} and project ${projectId}`);
         try {
             await saveScore(this.supabase, {
                 user_id: userId,
@@ -254,10 +259,9 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
                 day: new Date().toISOString().split("T")[0],
                 created: Math.floor(Date.now() / 1000),
             });
-            this.logger.info(`Successfully set last_checked for user ${userId}`);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
-            this.logger.error(`Error setting last_checked for user ${userId}: ${message}`);
+            this.logger.error(`[DiscourseAdapter] Error setting last_checked for user ${userId}: ${message}`);
         }
     }
 }

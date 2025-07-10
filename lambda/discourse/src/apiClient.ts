@@ -5,7 +5,6 @@ import { DiscourseUserActivity } from "./types";
 
 /**
  * Fetches user activity data from the Discourse API using a signed request.
- * This aligns with the legacy authentication method using a private key.
  *
  * @param username - The Discourse username.
  * @param config - The adapter configuration containing URL and signing keys.

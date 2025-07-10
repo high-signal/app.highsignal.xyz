@@ -25,7 +25,6 @@ export type { Database, Json }
 /**
  * The standardized data structure that all platform adapters must produce.
  * This schema is critical for ensuring zero disruption to downstream systems.
- * It is based on the original output of the legacy Discourse scripts.
  */
 export interface PlatformOutput {
     /**

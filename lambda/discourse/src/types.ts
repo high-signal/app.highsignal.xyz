@@ -3,11 +3,13 @@ export interface DiscourseUserActivity {
 }
 
 export interface DiscourseUserAction {
-    action_type: number
-    created_at: string
-    cooked?: string
-    topic_id?: number
-    post_number?: number
-    post_id?: number
-    // Other potential fields from the Discourse API
+    action_type: number;
+    action_code: number; 
+    created_at: string;
+    updated_at: string; 
+    post_id: number;
+    post_number: number;
+    topic_id?: number;
+    raw: string | null;
+    cooked?: string;
 }

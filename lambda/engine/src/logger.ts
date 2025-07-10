@@ -87,7 +87,7 @@ export function initializeLogger({ level, nodeEnv, serviceName = "lambda-engine"
         defaultMeta: { service: serviceName },
         transports: [
             new transports.Console(),
-            // In a real production setup, you might add a transport for CloudWatch Logs
+            // In a real production setup, we might add a transport for CloudWatch Logs
             // here, e.g., using a library like 'winston-cloudwatch'.
         ],
         exitOnError: false, // Prevents the application from crashing on logger errors.

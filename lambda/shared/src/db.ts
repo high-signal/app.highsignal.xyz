@@ -285,21 +285,57 @@ export async function saveScore(
     supabase: SupabaseClient,
     scoreData: Omit<UserSignalStrength, "id" | "created_at" | "test_requesting_user">,
 ): Promise<void> {
-    const { error: deleteError } = await supabase.from("user_signal_strengths").delete().match({
-        user_id: scoreData.user_id,
-        project_id: scoreData.project_id,
-        signal_strength_id: scoreData.signal_strength_id,
-        day: scoreData.day,
-    })
+    const { error } = await supabase.from("user_signal_strengths").insert(scoreData);
 
-    if (deleteError) {
-        throw new Error(`Failed to clear previous score: ${deleteError.message}`)
+    if (error) {
+        throw new Error(`Failed to save score: ${error.message}`);
     }
+}
 
-    const { error: insertError } = await supabase.from("user_signal_strengths").insert(scoreData)
+/**
+ * Deletes all smart scores for a given user, project, and signal strength.
+ * Smart scores are identified by having a `null` raw_value.
+ */
+export async function deleteSmartScoresForUser(
+    supabase: SupabaseClient,
+    userId: number,
+    projectId: string,
+    signalStrengthId: string,
+): Promise<void> {
+    const { error } = await supabase
+        .from("user_signal_strengths")
+        .delete()
+        .eq("user_id", userId)
+        .eq("project_id", projectId)
+        .eq("signal_strength_id", signalStrengthId)
+        .is("raw_value", null);
 
-    if (insertError) {
-        throw new Error(`Failed to save score: ${insertError.message}`)
+    if (error) {
+        throw new Error(`Failed to delete smart scores for user ${userId}: ${error.message}`);
+    }
+}
+
+/**
+ * Deletes a raw score for a specific user, project, signal, and day.
+ */
+export async function deleteRawScore(
+    supabase: SupabaseClient,
+    userId: number,
+    projectId: string,
+    signalStrengthId: string,
+    day: string,
+): Promise<void> {
+    const { error } = await supabase
+        .from("user_signal_strengths")
+        .delete()
+        .eq("user_id", userId)
+        .eq("project_id", projectId)
+        .eq("signal_strength_id", signalStrengthId)
+        .eq("day", day)
+        .not("raw_value", "is", null);
+
+    if (error) {
+        throw new Error(`Failed to delete raw score for user ${userId} on day ${day}: ${error.message}`);
     }
 }
 

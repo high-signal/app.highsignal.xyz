@@ -6,7 +6,7 @@ import { AdapterConfig, AdapterRuntimeConfig } from "@shared/types"
  * This validates environment variables and secrets specific to Discourse.
  */
 /**
- * Zod schema for the Discourse adapter's static secrets, aligning with the legacy environment variables.
+ * Zod schema for the Discourse adapter's static secrets.
  */
 export const DiscourseAdapterSecretsSchema = z.object({
     DISCOURSE_FORUM_CLIENT_ID: z.string().min(1),

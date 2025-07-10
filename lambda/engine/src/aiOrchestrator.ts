@@ -51,13 +51,12 @@ export class AIOrchestrator implements IAiOrchestrator {
 
     /**
      * PHASE 1: Generates 'raw' scores for each day of user activity.
-     * This replicates the first part of the legacy `analyzeForumUserActivityOLD.js` script.
      */
     public async generateRawScores(
         user: ForumUser,
         day: string,
         content: string,
-        logs: string, // This is now passed in from the adapter
+        logs: string,
         signalConfig: AiConfig,
         projectId: string,
     ): Promise<UserSignalStrength | null> {
@@ -67,17 +66,25 @@ export class AIOrchestrator implements IAiOrchestrator {
             return null
         }
 
-
         const { username, displayName } = this._getUserIdentity(user, undefined)
-        // Replicate legacy logic: parse actions, strip HTML, then extract ONLY the text content for the AI.
-        const dailyActions = JSON.parse(content) as { cooked?: string }[]
-        const contentString = dailyActions
-            .map(action => action.cooked)
-            .filter((cooked): cooked is string => !!cooked) // Ensure we only have strings
-            .map(cooked => cooked.replace(/<\/?[^>]+(>|$)/g, '')) // Strip HTML
-            .join('\n\n---\n\n');
-
-        const truncatedContent = this._truncateContent(contentString, signalConfig.maxChars)
+        
+        this.logger.info(`[DIAGNOSTIC] Raw content before processing for user ${user.user_id} on day ${day}: ${content.substring(0, 200)}...`);
+        
+        const dailyActions = JSON.parse(content);
+        
+        // Process object for HTML 
+        this.logger.info(`[DIAGNOSTIC] Processing ${dailyActions.length} actions through HTML stripper`);
+        const processedActions = processObjectForHtml(dailyActions);
+        
+        // Convert processed actions to a string representation
+        const userDataString = JSON.stringify(processedActions, null, 2);
+        this.logger.info(`[DIAGNOSTIC] Content length before truncation: ${userDataString.length} characters`);
+        
+        // Truncate content
+        const truncatedContent = this._truncateContent(userDataString, signalConfig.maxChars);
+        this.logger.info(`[DIAGNOSTIC] Truncated content length: ${truncatedContent.length} characters`);
+        this.logger.info(`[DIAGNOSTIC] Was content truncated: ${userDataString.length !== truncatedContent.length}`);
+        this.logger.info(`[DIAGNOSTIC] Truncation - max chars allowed: ${signalConfig.maxChars}`);
 
         if (truncatedContent.length === 0) {
             this.logger.warn(`No content for user ${user.user_id} on day ${day}, skipping.`)
@@ -85,35 +92,52 @@ export class AIOrchestrator implements IAiOrchestrator {
         }
 
         this.logger.info(`[DIAGNOSTIC] Using raw prompt template: ${promptConfig.prompt!}`);
-        const finalPrompt = this._preparePrompt(promptConfig.prompt!, {
+        // Construct prompt
+        const prompt = this._preparePrompt(promptConfig.prompt || "", {
             content: truncatedContent,
             username,
             displayName,
             maxValue: signalConfig.maxValue,
-            logs: logs,
-        });
+            logs,
+        })
 
-        const aiScore = await this._executeAIServiceCall(finalPrompt, signalConfig, user.user_id);
+        this.logger.info(`[DIAGNOSTIC] AI input - base prompt prepared with template from DB`);
+        
+        // Create messages array
+        const messages = [
+            {
+                role: "system",
+                content: "You are a helpful assistant that evaluates user activity data. You must respond with only valid JSON.",
+            },
+            {
+                role: "user",
+                content: prompt,
+            },
+        ];
+        
+        this.logger.info(`[DIAGNOSTIC] AI input - system and user messages prepared`);
 
-        if (aiScore) {
-            this.logger.info(`Successfully generated raw score for user ${user.user_id} on day ${day}.`);
-            return this._transformRawScoreOutput(
-                aiScore,
-                user.user_id,
-                day,
-                projectId,
-                signalConfig,
-                promptConfig.id,
-                logs, // Pass the logs from the adapter
-            );
+        const aiScore = await this._executeAIServiceCall(prompt, signalConfig, user.user_id)
+        if (!aiScore) {
+            this.logger.error("AI service call failed for raw score generation.", { userId: user.user_id, day })
+            return null
         }
+        
+        this.logger.info(`Analysis complete for user: ${username}`);
 
-        return null
+        return this._transformRawScoreOutput(
+            aiScore,
+            user.user_id,
+            day,
+            projectId,
+            signalConfig,
+            promptConfig.id,
+            logs,
+        )
     }
 
     /**
      * PHASE 2: Generates a single 'smart' score based on all of a user's raw scores.
-     * This replicates the second part of the legacy `analyzeForumUserActivityOLD.js` script.
      */
     public async generateSmartScoreSummary(
         user: ForumUser,
@@ -121,40 +145,41 @@ export class AIOrchestrator implements IAiOrchestrator {
         signalConfig: AiConfig,
         projectId: string,
     ): Promise<UserSignalStrength | null> {
-        // 1. Calculate the smart score deterministically, exactly like the legacy script.
-        const { smartScore, topBandDays } = calculateSmartScore(rawScores, 30) // 30 days is legacy default
-        this.logger.info(`Calculated deterministic smart score of ${smartScore} for user ${user.user_id}.`)
+        // Use the deterministic calculation.
+        const { smartScore, topBandDays } = calculateSmartScore(rawScores, signalConfig.previous_days ?? 30);
 
-        // 2. Prepare for the AI call to get a QUALITATIVE summary.
-        const promptConfig = this._prepareAndValidatePrompts(signalConfig, "smart")
-        if (!promptConfig) {
-            this.logger.error("Could not get valid prompt for smart score. Aborting.", { signalStrengthId: signalConfig.signalStrengthId, projectId })
-            return null
-        }
+        this.logger.info(
+            `[DIAGNOSTIC] Smart score calculated for user ${user.user_id}. Score: ${smartScore}, Top Band Days: ${topBandDays.length}`,
+        );
 
-        // Use only the raw scores from the top band as context for the AI, as per legacy logic.
-        const topBandScores = rawScores.filter(rs => topBandDays.includes(rs.day));
-        const rawScoresForPrompt = JSON.stringify(topBandScores, null, 2);
-
-        const { username, displayName } = this._getUserIdentity(user, undefined)
-        this.logger.info(`[DIAGNOSTIC] Using smart score prompt template: ${promptConfig.prompt!}`);
-        const finalPrompt = this._prepareSmartScorePrompt(promptConfig.prompt!, {
-            username,
-            displayName,
-            rawScores: rawScoresForPrompt,
-            smartScore: smartScore, // Provide the calculated score to the AI for context.
-        })
-
-        // 3. Execute the AI call for the qualitative summary.
-        // Note: We expect the AI to provide text, not a score. The 'value' field in the response will be ignored.
-        const aiSummary = await this._executeAIServiceCall(finalPrompt, signalConfig, user.user_id)
-        if (!aiSummary) {
-            this.logger.error(`AI call for smart score summary failed for user ${user.user_id}.`)
-            return null
-        }
-
-        // 4. Transform and combine the deterministic score and the AI summary.
-        return this._transformSmartScoreOutput(aiSummary, smartScore, user.user_id, projectId, signalConfig, promptConfig.id!)
+        // Construct the output directly without an AI call.
+        return {
+            user_id: user.user_id,
+            signal_strength_id: signalConfig.signalStrengthId,
+            project_id: projectId,
+            value: smartScore, // The deterministic score.
+            raw_value: null, // Smart scores do not have a raw_value.
+            summary: `Top band days: ${JSON.stringify(topBandDays)}`, // Store top band days for diagnostics
+            description: "Smart score calculated based on raw score performance.",
+            improvements: null,
+            explained_reasoning: null,
+            created: Math.floor(new Date().getTime() / 1000),
+            day: (() => {
+                const d = new Date();
+                d.setDate(d.getDate() - 1);
+                return d.toISOString().split('T')[0];
+            })(), 
+            model: null, 
+            temperature: null,
+            max_chars: null,
+            logs: `Calculated smart score from ${rawScores.length} raw scores. Found ${topBandDays.length} days in top band.`,
+            request_id: null,
+            prompt_tokens: 0,
+            completion_tokens: 0,
+            test_requesting_user: null,
+            prompt_id: null, // No prompt used
+            max_value: signalConfig.maxValue,
+        };
     }
 
     /**
@@ -214,12 +239,18 @@ export class AIOrchestrator implements IAiOrchestrator {
             logs: string
         },
     ): string {
-        return template
-            .replace(/{{\s*content\s*}}/g, data.content)
-            .replace(/{{\s*username\s*}}/g, data.username)
-            .replace(/{{\s*displayName\s*}}/g, data.displayName)
-            .replace(/{{\s*maxValue\s*}}/g, data.maxValue.toString())
-            .replace(/{{\s*logs\s*}}/g, data.logs)
+        let populatedTemplate = template;
+
+        // A simple and safe replacement loop for our placeholders.
+        // This avoids the use of `new Function()` which can be brittle.
+        Object.entries(data).forEach(([key, value]) => {
+            // The regex looks for placeholders like ${key} and replaces them with the provided value.
+            const placeholder = new RegExp(`\\$\\{${key}\\}`, 'g');
+            populatedTemplate = populatedTemplate.replace(placeholder, String(value));
+        });
+
+        this.logger.info(`[DIAGNOSTIC] AI input - base prompt prepared successfully.`);
+        return populatedTemplate;
     }
 
     /**
@@ -237,18 +268,23 @@ export class AIOrchestrator implements IAiOrchestrator {
     }
 
     /**
-     * Truncates content to a specified number of characters, matching legacy behavior.
-     * The legacy system adds "..." if the content is truncated.
+     * Truncates content to a specified number of characters.
      */
     private _truncateContent(content: string, maxChars: number | null | undefined): string {
         if (!maxChars) {
-            return content
+            this.logger.warn("No maxChars provided for content truncation. Using default of 8000.")
+            maxChars = 8000
         }
+
         if (content.length <= maxChars) {
+            this.logger.info(`[DIAGNOSTIC] Content truncation - using full content: ${content.length} characters`);
             return content
         }
-        // Legacy behavior: truncate and add ellipsis if needed.
-        return content.substring(0, maxChars - 3) + "..."
+
+        // Truncate and add "..." if needed
+        const truncated = content.substring(0, maxChars - 3) + "...";
+        this.logger.info(`[DIAGNOSTIC] Content truncation - truncated to ${truncated.length} characters`);
+        return truncated
     }
 
     /**
@@ -267,10 +303,15 @@ export class AIOrchestrator implements IAiOrchestrator {
             maxTokens: 4096, // A reasonable default
         }
 
+        this.logger.info(`[DIAGNOSTIC] AI input - model: ${aiConfig.model}, temperature: ${aiConfig.temperature}`);
+        
         const aiServiceClient = getAIServiceClient(this.appConfig, aiConfig, this.logger)
 
         try {
+            this.logger.info(`Making OpenAI API call...`);
             const aiScore = await aiServiceClient.getStructuredResponse(prompt, modelConfig)
+            
+            this.logger.info(`[DIAGNOSTIC] AI output - completion tokens: ${aiScore.completionTokens || 0}, total tokens: ${(aiScore.promptTokens || 0) + (aiScore.completionTokens || 0)}`);
 
             // For raw scores, a numeric value is required. For smart scores, it's optional.
             if (typeof aiScore.value !== "number") {
@@ -284,11 +325,16 @@ export class AIOrchestrator implements IAiOrchestrator {
                 )
                 aiScore.value = aiConfig.maxValue
             }
+            
+            // Clean response if it has markdown backticks
+            if (aiScore.rawResponse) {
+                const cleanResponse = aiScore.rawResponse.replace(/^```json\n?|\n?```$/g, "").trim();
+                this.logger.info(`[DIAGNOSTIC] AI output - cleaned response from markdown if present`);
+            }
+            
             return aiScore
         } catch (error: any) {
-            this.logger.error(`AI service call failed for user ${userId}.`, {
-                error: error.message,
-            })
+            this.logger.error(`Error analyzing user data: ${error.message}`);
             return null
         }
     }
@@ -305,6 +351,10 @@ export class AIOrchestrator implements IAiOrchestrator {
         promptId: number,
         logs: string,
     ): UserSignalStrength {
+        const analysisLogs = `${logs ? logs + "\n" : ""}userDataString.length: ${logs.length}\ntruncatedContent.length: ${(aiScore.promptTokens || 0) * 4}`;
+        
+        this.logger.info(`[DIAGNOSTIC] Raw score output - creating UserSignalStrength with raw_value: ${aiScore.value}`);
+        
         return {
             user_id: userId,
             signal_strength_id: aiConfig.signalStrengthId,
@@ -315,12 +365,12 @@ export class AIOrchestrator implements IAiOrchestrator {
             description: aiScore.description,
             improvements: aiScore.improvements,
             explained_reasoning: JSON.stringify(aiScore.explained_reasoning),
-            created: Math.floor(new Date().getTime() / 1000),
+            created: Math.floor(Date.now() / 1000),
             day: day,
             model: aiConfig.model,
             temperature: aiConfig.temperature,
             max_chars: aiConfig.maxChars,
-            logs: logs,
+            logs: analysisLogs,
             request_id: aiScore.requestId,
             prompt_tokens: aiScore.promptTokens,
             completion_tokens: aiScore.completionTokens,
