@@ -1,11 +1,11 @@
 "use client"
 
-import { VStack, Button, Text, HStack, Box, Spinner, Image, Flex } from "@chakra-ui/react"
+import { VStack, Button, Text, Box, Spinner, Image, Flex } from "@chakra-ui/react"
 import { useEffect, useState, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 
 import { useEarlyAccess } from "../../contexts/EarlyAccessContext"
-import { usePrivy } from "@privy-io/react-auth"
+import { getAccessToken, usePrivy } from "@privy-io/react-auth"
 import { useUser } from "../../contexts/UserContext"
 import { ASSETS } from "../../config/constants"
 

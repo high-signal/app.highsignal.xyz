@@ -10,6 +10,7 @@ import { usePrivy } from "@privy-io/react-auth"
 import ContentContainer from "../layout/ContentContainer"
 import GeneralSettingsContainer from "./GeneralSettingsContainer"
 import SignalStrengthSettingsContainer from "./SignalStrengthSettingsContainer"
+import ApiKeysSettingsContainer from "./api-keys/ApiKeysSettingsContainer"
 import SettingsTabbedContent from "../ui/SettingsTabbedContent"
 
 export default function ProjectSettingsContainer() {
@@ -115,6 +116,16 @@ export default function ProjectSettingsContainer() {
                         label: "Signal Strengths",
                         content: (
                             <SignalStrengthSettingsContainer
+                                project={project}
+                                setTriggerProjectRefetch={setTriggerProjectRefetch}
+                            />
+                        ),
+                    },
+                    {
+                        value: "api-keys",
+                        label: "API Keys",
+                        content: (
+                            <ApiKeysSettingsContainer
                                 project={project}
                                 setTriggerProjectRefetch={setTriggerProjectRefetch}
                             />

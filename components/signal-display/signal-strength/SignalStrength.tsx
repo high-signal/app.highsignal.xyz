@@ -6,7 +6,7 @@ import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
 import { useState, useEffect } from "react"
 
 import { useUser } from "../../../contexts/UserContext"
-import { usePrivy } from "@privy-io/react-auth"
+import { getAccessToken, usePrivy } from "@privy-io/react-auth"
 
 import { APP_CONFIG } from "../../../config/constants"
 import { useRouter } from "next/navigation"
@@ -337,7 +337,9 @@ export default function SignalStrength({
                                                     px={3}
                                                     py={1}
                                                     borderRadius={"full"}
-                                                    onClick={login}
+                                                    onClick={() => {
+                                                        login()
+                                                    }}
                                                 >
                                                     <Text fontWeight={"bold"}>Logging in</Text>
                                                 </Button>

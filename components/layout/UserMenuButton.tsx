@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGear, faSignOut, faBars, faScrewdriverWrench } from "@fortawesome/free-solid-svg-icons"
-import { usePrivy } from "@privy-io/react-auth"
+import { getAccessToken, usePrivy } from "@privy-io/react-auth"
 import { useUser } from "../../contexts/UserContext"
 import { ASSETS } from "../../config/constants"
 
@@ -190,7 +190,15 @@ export default function UserMenuButton() {
     }
 
     return (
-        <Button primaryButton {...userButtonStyles} w="70px" h="35px" onClick={login}>
+        <Button
+            primaryButton
+            {...userButtonStyles}
+            w="70px"
+            h="35px"
+            onClick={() => {
+                login()
+            }}
+        >
             <Text fontWeight={"bold"}>Log in</Text>
         </Button>
     )

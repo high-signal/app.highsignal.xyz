@@ -60,6 +60,11 @@ export async function middleware(request: NextRequest) {
                 return NextResponse.json({ error: "Failed to fetch user data" }, { status: 500 })
             }
 
+            const isLoggedInUserSuperAdmin = loggedInUserData.isSuperAdmin
+            if (isLoggedInUserSuperAdmin) {
+                requestHeaders.set("x-is-super-admin", "true")
+            }
+
             // ******************
             // TARGET USER CHECK
             // ******************

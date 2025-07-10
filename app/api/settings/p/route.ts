@@ -5,7 +5,10 @@ import { sanitize } from "../../../../utils/sanitize"
 import { getProjectsUtil } from "../../../../utils/api-utils/getProjectsUtil"
 
 export async function GET(request: NextRequest) {
-    return getProjectsUtil(request, true, false)
+    // Check if the requesting user is a super admin to provide more data
+    const isSuperAdmin = request.headers.get("x-is-super-admin") === "true"
+
+    return getProjectsUtil(request, true, isSuperAdmin)
 }
 
 // Authenticated PATCH request

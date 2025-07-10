@@ -14,7 +14,7 @@ export default function PrivyProvider({ children }: PrivyProviderProps) {
         <PrivyAuthProvider
             appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
             config={{
-                loginMethods: ["email", "wallet", "twitter", "discord", "google", "github", "farcaster", "passkey"],
+                loginMethods: ["email", "wallet", "twitter", "discord", "google", "github", "farcaster"],
                 appearance: {
                     logo: `${ASSETS.LOGO_BASE_URL}/w_300,h_300,c_fill,q_auto,f_webp/${ASSETS.LOGO_ID}`,
                     landingHeader: "High Signal",

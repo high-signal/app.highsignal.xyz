@@ -1,7 +1,7 @@
 "use client"
 
 import { VStack, Text, Button, HStack, Dialog, RadioGroup, Box, Image } from "@chakra-ui/react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams } from "next/navigation"
 
 import Modal from "../../ui/Modal"
@@ -41,6 +41,8 @@ export default function WalletAccountsEditor({
     const [isSaving, setIsSaving] = useState(false)
     const [addressNameValidationError, setAddressNameValidationError] = useState<string | null>(null)
     const [sharingValidationError, setSharingValidationError] = useState<string | null>(null)
+    const [shouldCloseAfterSave, setShouldCloseAfterSave] = useState(false)
+    const previousUserAddressConfigRef = useRef(userAddressConfig)
 
     const { refreshUser } = useUser()
 
@@ -53,7 +55,7 @@ export default function WalletAccountsEditor({
           ? "shared"
           : "private"
 
-    const resetSettingsState = () => {
+    const resetSettingsState = useCallback(() => {
         setSettings({
             name: { current: userAddressConfig.addressName ?? null, new: null },
             sharing: {
@@ -62,12 +64,12 @@ export default function WalletAccountsEditor({
             },
             userAddressesShared: { current: userAddressConfig.userAddressesShared ?? null, new: null },
         })
-    }
+    }, [userAddressConfig.addressName, userAddressConfig.userAddressesShared, currentSharingSetting])
 
     // Set the settings to the initial state on first render
     useEffect(() => {
         resetSettingsState()
-    }, [])
+    }, [resetSettingsState])
 
     // Check for changes whenever settings change
     useEffect(() => {
@@ -92,25 +94,17 @@ export default function WalletAccountsEditor({
         }
     }, [settings])
 
-    // When the sharing setting is changed to something other than shared, clear the project list
+    // When userAddressConfig changes after a successful save, close the modal
+    // This waits for the new state to be loaded before closing the modal to improve UX
+    // so the user does not see a flash of the old state before the new state is loaded
     useEffect(() => {
-        if (settings && settings.sharing.new && settings.sharing.new !== "shared") {
-            setSettings({
-                ...settings,
-                userAddressesShared: {
-                    current: settings.userAddressesShared.current,
-                    new: [],
-                },
-            })
+        if (shouldCloseAfterSave && userAddressConfig !== previousUserAddressConfigRef.current) {
+            setIsSaving(false)
+            setShouldCloseAfterSave(false)
+            onClose()
         }
-    }, [settings?.sharing.new])
-
-    // When userAddressConfig changes, set the loading state to false
-    // This is to improve the UX of the component when a user successfully saves their settings
-    useEffect(() => {
-        setIsSaving(false)
-        onClose()
-    }, [userAddressConfig])
+        previousUserAddressConfigRef.current = userAddressConfig
+    }, [userAddressConfig, shouldCloseAfterSave, onClose])
 
     // Copy the address to the clipboard
     const handleCopyAddress = async () => {
@@ -177,6 +171,7 @@ export default function WalletAccountsEditor({
                         title: "✅ Settings saved successfully",
                         type: "success",
                     })
+                    setShouldCloseAfterSave(true)
                     await refreshUser()
                 }
             } catch (error) {
@@ -251,10 +246,10 @@ export default function WalletAccountsEditor({
 
     return (
         <Modal open={isOpen} close={handleClose} closeOnInteractOutside={!hasChanges}>
-            <Dialog.Content borderRadius={{ base: "0px", md: "16px" }} p={0} bg={"pageBackground"} maxW={"900px"}>
+            <Dialog.Content borderRadius={{ base: "0px", sm: "16px" }} p={0} bg={"pageBackground"} maxW={"900px"}>
                 <Dialog.Header>
                     <Dialog.Title maxW={"100%"}>
-                        <HStack flexWrap="wrap">
+                        <HStack flexWrap="wrap" pr={5}>
                             <Text fontWeight="bold">Edit settings for address</Text>
                             <HStack bg={"contentBackground"} borderRadius={"full"} gap={0}>
                                 <Text
@@ -337,12 +332,25 @@ export default function WalletAccountsEditor({
                                 <RadioGroup.Root
                                     value={settings.sharing.new ?? settings.sharing.current ?? "private"}
                                     onValueChange={(details: { value: string | null }) => {
+                                        const newSharingValue = details.value as "private" | "public" | "shared"
+
+                                        // If changing from shared to something else, clear the project list
+                                        const currentSharing = settings.sharing.new ?? settings.sharing.current
+                                        const shouldClearProjects =
+                                            currentSharing === "shared" && newSharingValue !== "shared"
+
                                         setSettings({
                                             ...settings,
                                             sharing: {
                                                 ...settings.sharing,
-                                                new: details.value as "private" | "public" | "shared",
+                                                new: newSharingValue,
                                             },
+                                            userAddressesShared: shouldClearProjects
+                                                ? {
+                                                      ...settings.userAddressesShared,
+                                                      new: [],
+                                                  }
+                                                : settings.userAddressesShared,
                                         })
                                     }}
                                 >
@@ -388,7 +396,7 @@ export default function WalletAccountsEditor({
                                             <HStack
                                                 key={option.value}
                                                 gap={4}
-                                                alignItems={{ base: "start", md: "center" }}
+                                                alignItems={{ base: "start", sm: "center" }}
                                             >
                                                 <HStack minW={"110px"}>
                                                     <CustomRadioItem option={option} />
@@ -405,7 +413,7 @@ export default function WalletAccountsEditor({
                                 (settings.sharing.new === null && settings.sharing.current === "shared")) && (
                                 <HStack
                                     bg={"contentBackground"}
-                                    borderRadius={{ base: "25px", md: "50px" }}
+                                    borderRadius={{ base: "25px", sm: "35px" }}
                                     p={4}
                                     w={"100%"}
                                     flexWrap={"wrap"}
@@ -468,7 +476,7 @@ export default function WalletAccountsEditor({
                     </VStack>
                 </Dialog.Body>
                 <Dialog.Footer>
-                    <HStack minW={"100%"} justifyContent={{ base: "center", md: "end" }} flexWrap={"wrap"} gap={5}>
+                    <HStack minW={"100%"} justifyContent={{ base: "center", sm: "end" }} flexWrap={"wrap"} gap={5}>
                         <Button secondaryButton borderRadius={"full"} px={4} py={2} onClick={handleClose}>
                             Cancel
                         </Button>

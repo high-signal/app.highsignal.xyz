@@ -184,22 +184,24 @@ export default function SignalStrengthSettings({
         <VStack w="100%" gap={0}>
             <HStack
                 justify="space-between"
-                w="500px"
+                w={"500px"}
                 maxW={"100%"}
                 bg={"contentBackground"}
                 py={3}
-                px={{ base: 2, md: 4 }}
-                borderRadius={{ base: "0px", md: "16px" }}
-                borderBottomRadius={{ base: "0px", md: isOpen ? "0px" : "16px" }}
+                px={4}
+                borderRadius={{ base: "0px", sm: "16px" }}
+                borderBottomRadius={{ base: "0px", sm: isOpen ? "0px" : "16px" }}
                 flexWrap={"wrap"}
                 cursor={signalStrength.status !== "dev" ? "pointer" : "default"}
                 onClick={() => signalStrength.status !== "dev" && setIsOpen(!isOpen)}
                 _hover={signalStrength.status !== "dev" ? { bg: "contentBackgroundHover" } : undefined}
             >
                 <HStack py={2} px={1} borderRadius={"8px"} gap={3}>
-                    <Box w={"10px"} transition="transform 0.2s" transform={`rotate(${isOpen ? 90 : 0}deg)`}>
-                        {signalStrength.status !== "dev" && <FontAwesomeIcon icon={faChevronRight} />}
-                    </Box>
+                    {signalStrength.status !== "dev" && (
+                        <Box w={"10px"} transition="transform 0.2s" transform={`rotate(${isOpen ? 90 : 0}deg)`}>
+                            <FontAwesomeIcon icon={faChevronRight} />
+                        </Box>
+                    )}
                     <Text
                         w="fit-content"
                         fontWeight="bold"
@@ -252,12 +254,13 @@ export default function SignalStrengthSettings({
             </HStack>
             {isOpen && (
                 <VStack
-                    w={{ base: "100%", md: "500px" }}
+                    w={"500px"}
+                    maxW={"100%"}
                     pb={2}
                     gap={5}
                     bg={"contentBackground"}
                     p={4}
-                    borderBottomRadius={{ base: "0px", md: "16px" }}
+                    borderBottomRadius={{ base: "0px", sm: "16px" }}
                     alignItems={"start"}
                     borderTopWidth={3}
                     borderTopColor={"contentBorder"}
