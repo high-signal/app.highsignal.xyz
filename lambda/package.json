@@ -18,7 +18,10 @@
         "build": "yarn clean && tsc",
         "test": "vitest --config ./vitest.config.ts",
         "coverage": "vitest run --coverage",
-        "package": "yarn build && rm -rf bundle lambda-code.zip && mkdir -p bundle/node_modules && yarn install --production --modules-folder bundle/node_modules && cp -r dist/ bundle/dist && cp index.js bundle/ && cd bundle && zip -r ../lambda-code.zip . && cd .. && rm -rf bundle"
+        "package": "yarn build && rm -rf bundle lambda-code.zip && mkdir -p bundle/node_modules && yarn install --production --modules-folder bundle/node_modules && cp -r dist/ bundle/dist && cp index.js bundle/ && cd bundle && zip -r ../lambda-code.zip . && cd .. && rm -rf bundle",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write \"**/*.ts\""
     },
     "dependencies": {
         "@aws-sdk/client-secrets-manager": "^3.529.1",
