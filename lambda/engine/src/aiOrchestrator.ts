@@ -62,36 +62,41 @@ export class AIOrchestrator implements IAiOrchestrator {
     ): Promise<UserSignalStrength | null> {
         const promptConfig = this._prepareAndValidatePrompts(signalConfig, "raw")
         if (!promptConfig) {
-            this.logger.error("Could not get valid prompt for raw score. Aborting.", { signalStrengthId: signalConfig.signalStrengthId, projectId })
+            this.logger.error("Could not get valid prompt for raw score. Aborting.", {
+                signalStrengthId: signalConfig.signalStrengthId,
+                projectId,
+            })
             return null
         }
 
         const { username, displayName } = this._getUserIdentity(user, undefined)
-        
-        this.logger.info(`[DIAGNOSTIC] Raw content before processing for user ${user.user_id} on day ${day}: ${content.substring(0, 200)}...`);
-        
-        const dailyActions = JSON.parse(content);
-        
-        // Process object for HTML 
-        this.logger.info(`[DIAGNOSTIC] Processing ${dailyActions.length} actions through HTML stripper`);
-        const processedActions = processObjectForHtml(dailyActions);
-        
+
+        this.logger.info(
+            `[DIAGNOSTIC] Raw content before processing for user ${user.user_id} on day ${day}: ${content.substring(0, 200)}...`,
+        )
+
+        const dailyActions = JSON.parse(content)
+
+        // Process object for HTML
+        this.logger.info(`[DIAGNOSTIC] Processing ${dailyActions.length} actions through HTML stripper`)
+        const processedActions = processObjectForHtml(dailyActions)
+
         // Convert processed actions to a string representation
-        const userDataString = JSON.stringify(processedActions, null, 2);
-        this.logger.info(`[DIAGNOSTIC] Content length before truncation: ${userDataString.length} characters`);
-        
+        const userDataString = JSON.stringify(processedActions, null, 2)
+        this.logger.info(`[DIAGNOSTIC] Content length before truncation: ${userDataString.length} characters`)
+
         // Truncate content
-        const truncatedContent = this._truncateContent(userDataString, signalConfig.maxChars);
-        this.logger.info(`[DIAGNOSTIC] Truncated content length: ${truncatedContent.length} characters`);
-        this.logger.info(`[DIAGNOSTIC] Was content truncated: ${userDataString.length !== truncatedContent.length}`);
-        this.logger.info(`[DIAGNOSTIC] Truncation - max chars allowed: ${signalConfig.maxChars}`);
+        const truncatedContent = this._truncateContent(userDataString, signalConfig.maxChars)
+        this.logger.info(`[DIAGNOSTIC] Truncated content length: ${truncatedContent.length} characters`)
+        this.logger.info(`[DIAGNOSTIC] Was content truncated: ${userDataString.length !== truncatedContent.length}`)
+        this.logger.info(`[DIAGNOSTIC] Truncation - max chars allowed: ${signalConfig.maxChars}`)
 
         if (truncatedContent.length === 0) {
             this.logger.warn(`No content for user ${user.user_id} on day ${day}, skipping.`)
             return null
         }
 
-        this.logger.info(`[DIAGNOSTIC] Using raw prompt template: ${promptConfig.prompt!}`);
+        this.logger.info(`[DIAGNOSTIC] Using raw prompt template: ${promptConfig.prompt!}`)
         // Construct prompt
         const prompt = this._preparePrompt(promptConfig.prompt || "", {
             content: truncatedContent,
@@ -101,39 +106,32 @@ export class AIOrchestrator implements IAiOrchestrator {
             logs,
         })
 
-        this.logger.info(`[DIAGNOSTIC] AI input - base prompt prepared with template from DB`);
-        
+        this.logger.info(`[DIAGNOSTIC] AI input - base prompt prepared with template from DB`)
+
         // Create messages array
         const messages = [
             {
                 role: "system",
-                content: "You are a helpful assistant that evaluates user activity data. You must respond with only valid JSON.",
+                content:
+                    "You are a helpful assistant that evaluates user activity data. You must respond with only valid JSON.",
             },
             {
                 role: "user",
                 content: prompt,
             },
-        ];
-        
-        this.logger.info(`[DIAGNOSTIC] AI input - system and user messages prepared`);
+        ]
+
+        this.logger.info(`[DIAGNOSTIC] AI input - system and user messages prepared`)
 
         const aiScore = await this._executeAIServiceCall(prompt, signalConfig, user.user_id)
         if (!aiScore) {
             this.logger.error("AI service call failed for raw score generation.", { userId: user.user_id, day })
             return null
         }
-        
-        this.logger.info(`Analysis complete for user: ${username}`);
 
-        return this._transformRawScoreOutput(
-            aiScore,
-            user.user_id,
-            day,
-            projectId,
-            signalConfig,
-            promptConfig.id,
-            logs,
-        )
+        this.logger.info(`Analysis complete for user: ${username}`)
+
+        return this._transformRawScoreOutput(aiScore, user.user_id, day, projectId, signalConfig, promptConfig.id, logs)
     }
 
     /**
@@ -146,11 +144,11 @@ export class AIOrchestrator implements IAiOrchestrator {
         projectId: string,
     ): Promise<UserSignalStrength | null> {
         // Use the deterministic calculation.
-        const { smartScore, topBandDays } = calculateSmartScore(rawScores, signalConfig.previous_days ?? 30);
+        const { smartScore, topBandDays } = calculateSmartScore(rawScores, signalConfig.previous_days ?? 30)
 
         this.logger.info(
             `[DIAGNOSTIC] Smart score calculated for user ${user.user_id}. Score: ${smartScore}, Top Band Days: ${topBandDays.length}`,
-        );
+        )
 
         // Construct the output directly without an AI call.
         return {
@@ -165,11 +163,11 @@ export class AIOrchestrator implements IAiOrchestrator {
             explained_reasoning: null,
             created: Math.floor(new Date().getTime() / 1000),
             day: (() => {
-                const d = new Date();
-                d.setDate(d.getDate() - 1);
-                return d.toISOString().split('T')[0];
-            })(), 
-            model: null, 
+                const d = new Date()
+                d.setDate(d.getDate() - 1)
+                return d.toISOString().split("T")[0]
+            })(),
+            model: null,
             temperature: null,
             max_chars: null,
             logs: `Calculated smart score from ${rawScores.length} raw scores. Found ${topBandDays.length} days in top band.`,
@@ -179,7 +177,7 @@ export class AIOrchestrator implements IAiOrchestrator {
             test_requesting_user: null,
             prompt_id: null, // No prompt used
             max_value: signalConfig.maxValue,
-        };
+        }
     }
 
     /**
@@ -194,9 +192,7 @@ export class AIOrchestrator implements IAiOrchestrator {
             return null
         }
 
-        const filteredPrompts = aiConfig.prompts.filter(
-            (p) => p.type === promptType && p.prompt,
-        )
+        const filteredPrompts = aiConfig.prompts.filter((p) => p.type === promptType && p.prompt)
 
         if (filteredPrompts.length === 0) {
             this.logger.error(`No active, valid prompts found for type: ${promptType}.`)
@@ -239,18 +235,18 @@ export class AIOrchestrator implements IAiOrchestrator {
             logs: string
         },
     ): string {
-        let populatedTemplate = template;
+        let populatedTemplate = template
 
         // A simple and safe replacement loop for our placeholders.
         // This avoids the use of `new Function()` which can be brittle.
         Object.entries(data).forEach(([key, value]) => {
             // The regex looks for placeholders like ${key} and replaces them with the provided value.
-            const placeholder = new RegExp(`\\$\\{${key}\\}`, 'g');
-            populatedTemplate = populatedTemplate.replace(placeholder, String(value));
-        });
+            const placeholder = new RegExp(`\\$\\{${key}\\}`, "g")
+            populatedTemplate = populatedTemplate.replace(placeholder, String(value))
+        })
 
-        this.logger.info(`[DIAGNOSTIC] AI input - base prompt prepared successfully.`);
-        return populatedTemplate;
+        this.logger.info(`[DIAGNOSTIC] AI input - base prompt prepared successfully.`)
+        return populatedTemplate
     }
 
     /**
@@ -277,13 +273,13 @@ export class AIOrchestrator implements IAiOrchestrator {
         }
 
         if (content.length <= maxChars) {
-            this.logger.info(`[DIAGNOSTIC] Content truncation - using full content: ${content.length} characters`);
+            this.logger.info(`[DIAGNOSTIC] Content truncation - using full content: ${content.length} characters`)
             return content
         }
 
         // Truncate and add "..." if needed
-        const truncated = content.substring(0, maxChars - 3) + "...";
-        this.logger.info(`[DIAGNOSTIC] Content truncation - truncated to ${truncated.length} characters`);
+        const truncated = content.substring(0, maxChars - 3) + "..."
+        this.logger.info(`[DIAGNOSTIC] Content truncation - truncated to ${truncated.length} characters`)
         return truncated
     }
 
@@ -303,19 +299,23 @@ export class AIOrchestrator implements IAiOrchestrator {
             maxTokens: 4096, // A reasonable default
         }
 
-        this.logger.info(`[DIAGNOSTIC] AI input - model: ${aiConfig.model}, temperature: ${aiConfig.temperature}`);
-        
+        this.logger.info(`[DIAGNOSTIC] AI input - model: ${aiConfig.model}, temperature: ${aiConfig.temperature}`)
+
         const aiServiceClient = getAIServiceClient(this.appConfig, aiConfig, this.logger)
 
         try {
-            this.logger.info(`Making OpenAI API call...`);
+            this.logger.info(`Making OpenAI API call...`)
             const aiScore = await aiServiceClient.getStructuredResponse(prompt, modelConfig)
-            
-            this.logger.info(`[DIAGNOSTIC] AI output - completion tokens: ${aiScore.completionTokens || 0}, total tokens: ${(aiScore.promptTokens || 0) + (aiScore.completionTokens || 0)}`);
+
+            this.logger.info(
+                `[DIAGNOSTIC] AI output - completion tokens: ${aiScore.completionTokens || 0}, total tokens: ${(aiScore.promptTokens || 0) + (aiScore.completionTokens || 0)}`,
+            )
 
             // For raw scores, a numeric value is required. For smart scores, it's optional.
             if (typeof aiScore.value !== "number") {
-                this.logger.warn(`AI response for user ${userId} is missing a numeric 'value'. This is acceptable for smart score summaries.`)
+                this.logger.warn(
+                    `AI response for user ${userId} is missing a numeric 'value'. This is acceptable for smart score summaries.`,
+                )
             }
 
             // Cap the score at the configured maximum value if it exists
@@ -325,16 +325,16 @@ export class AIOrchestrator implements IAiOrchestrator {
                 )
                 aiScore.value = aiConfig.maxValue
             }
-            
+
             // Clean response if it has markdown backticks
             if (aiScore.rawResponse) {
-                const cleanResponse = aiScore.rawResponse.replace(/^```json\n?|\n?```$/g, "").trim();
-                this.logger.info(`[DIAGNOSTIC] AI output - cleaned response from markdown if present`);
+                const cleanResponse = aiScore.rawResponse.replace(/^```json\n?|\n?```$/g, "").trim()
+                this.logger.info(`[DIAGNOSTIC] AI output - cleaned response from markdown if present`)
             }
-            
+
             return aiScore
         } catch (error: any) {
-            this.logger.error(`Error analyzing user data: ${error.message}`);
+            this.logger.error(`Error analyzing user data: ${error.message}`)
             return null
         }
     }
@@ -351,10 +351,10 @@ export class AIOrchestrator implements IAiOrchestrator {
         promptId: number,
         logs: string,
     ): UserSignalStrength {
-        const analysisLogs = `${logs ? logs + "\n" : ""}userDataString.length: ${logs.length}\ntruncatedContent.length: ${(aiScore.promptTokens || 0) * 4}`;
-        
-        this.logger.info(`[DIAGNOSTIC] Raw score output - creating UserSignalStrength with raw_value: ${aiScore.value}`);
-        
+        const analysisLogs = `${logs ? logs + "\n" : ""}userDataString.length: ${logs.length}\ntruncatedContent.length: ${(aiScore.promptTokens || 0) * 4}`
+
+        this.logger.info(`[DIAGNOSTIC] Raw score output - creating UserSignalStrength with raw_value: ${aiScore.value}`)
+
         return {
             user_id: userId,
             signal_strength_id: aiConfig.signalStrengthId,

@@ -122,10 +122,7 @@ export type Project = Tables<"projects">
  * Represents a row from the 'project_signal_strengths' table,
  * which configures a signal for a specific project.
  */
-export type ProjectSignalStrength = Omit<
-    Tables<"project_signal_strengths">,
-    "project_id" | "signal_strength_id"
-> & {
+export type ProjectSignalStrength = Omit<Tables<"project_signal_strengths">, "project_id" | "signal_strength_id"> & {
     project_id: string
     signal_strength_id: string
 }

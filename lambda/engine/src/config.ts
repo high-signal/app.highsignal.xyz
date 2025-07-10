@@ -8,7 +8,6 @@
  * - It **caches** configurations to improve performance by avoiding redundant fetches.
  */
 
-
 import { z } from "zod"
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager"
 import { SupabaseClient } from "@supabase/supabase-js"
@@ -100,8 +99,6 @@ export async function getAppConfig(): Promise<AppConfig> {
         return appConfigCache
     }
 
-
-
     try {
         let secrets = {}
         if (process.env.NODE_ENV === "production") {
@@ -159,8 +156,6 @@ export async function getPlatformAdapterConfig<T extends z.AnyZodObject>(
         // even though we know logically they are compatible.
         return platformAdapterConfigCache[cacheKey] as unknown as z.infer<T>
     }
-
-
 
     try {
         let secrets = {}

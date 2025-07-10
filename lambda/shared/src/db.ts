@@ -82,10 +82,7 @@ export async function getUsersByIds(
     supabase: SupabaseClient,
     userIds: number[],
 ): Promise<Map<number, { username: string; displayName: string }>> {
-    const { data, error } = await supabase
-        .from("users")
-        .select("id, username, display_name")
-        .in("id", userIds)
+    const { data, error } = await supabase.from("users").select("id, username, display_name").in("id", userIds)
 
     if (error) {
         throw new Error(`Failed to fetch users by IDs: ${error.message}`)
@@ -138,36 +135,32 @@ export async function getLegacySignalConfig(
         )
         .eq("id", signalStrengthId)
         .eq("project_signal_strengths.project_id", projectId)
-        .single();
+        .single()
 
     if (error) {
         // An inner join will correctly error if no matching project config is found.
         // This is an expected case if the signal is not configured for the project.
         console.info(
             `[DBShared] Could not fetch legacy config for signal ${signalStrengthId} and project ${projectId}. It might be disabled or not configured. Message: ${error.message}`,
-        );
-        return null;
+        )
+        return null
     }
 
     if (!data) {
         console.info(
             `[DBShared] No data returned for legacy config for signal ${signalStrengthId} and project ${projectId}.`,
-        );
-        return null;
-    }
-    
-    // The inner join ensures project_signal_strengths has at least one item.
-    const projectConfig = data.project_signal_strengths[0];
-    if (!projectConfig || !projectConfig.enabled) {
-        console.info(`[DBShared] Signal ${signalStrengthId} is disabled for project ${projectId}.`);
-        return null;
+        )
+        return null
     }
 
-    const prompts: Prompt[] = Array.isArray(data.prompts)
-        ? data.prompts
-        : data.prompts
-        ? [data.prompts]
-        : [];
+    // The inner join ensures project_signal_strengths has at least one item.
+    const projectConfig = data.project_signal_strengths[0]
+    if (!projectConfig || !projectConfig.enabled) {
+        console.info(`[DBShared] Signal ${signalStrengthId} is disabled for project ${projectId}.`)
+        return null
+    }
+
+    const prompts: Prompt[] = Array.isArray(data.prompts) ? data.prompts : data.prompts ? [data.prompts] : []
 
     return {
         signalStrengthId: data.id,
@@ -177,7 +170,7 @@ export async function getLegacySignalConfig(
         maxValue: projectConfig.max_value ?? 100, // Default to 100 if null, as per legacy behavior
         previous_days: projectConfig.previous_days ?? null,
         prompts,
-    };
+    }
 }
 
 /**
@@ -285,10 +278,10 @@ export async function saveScore(
     supabase: SupabaseClient,
     scoreData: Omit<UserSignalStrength, "id" | "created_at" | "test_requesting_user">,
 ): Promise<void> {
-    const { error } = await supabase.from("user_signal_strengths").insert(scoreData);
+    const { error } = await supabase.from("user_signal_strengths").insert(scoreData)
 
     if (error) {
-        throw new Error(`Failed to save score: ${error.message}`);
+        throw new Error(`Failed to save score: ${error.message}`)
     }
 }
 
@@ -308,10 +301,10 @@ export async function deleteSmartScoresForUser(
         .eq("user_id", userId)
         .eq("project_id", projectId)
         .eq("signal_strength_id", signalStrengthId)
-        .is("raw_value", null);
+        .is("raw_value", null)
 
     if (error) {
-        throw new Error(`Failed to delete smart scores for user ${userId}: ${error.message}`);
+        throw new Error(`Failed to delete smart scores for user ${userId}: ${error.message}`)
     }
 }
 
@@ -332,10 +325,10 @@ export async function deleteRawScore(
         .eq("project_id", projectId)
         .eq("signal_strength_id", signalStrengthId)
         .eq("day", day)
-        .not("raw_value", "is", null);
+        .not("raw_value", "is", null)
 
     if (error) {
-        throw new Error(`Failed to delete raw score for user ${userId} on day ${day}: ${error.message}`);
+        throw new Error(`Failed to delete raw score for user ${userId} on day ${day}: ${error.message}`)
     }
 }
 

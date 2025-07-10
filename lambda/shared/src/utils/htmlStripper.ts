@@ -16,40 +16,40 @@ export function stripHtml(html: string | null | undefined): string {
 /**
  * Recursively processes an object to strip HTML from all string values.
  * This function replicates the behavior of the legacy processObjectForHtml function.
- * 
+ *
  * @param obj - The object to process
  * @returns The processed object with HTML stripped from all string values
  */
 export function processObjectForHtml<T>(obj: T): T {
     // Create a deep copy of the object to ensure the original is not mutated.
-    const newObj = JSON.parse(JSON.stringify(obj));
+    const newObj = JSON.parse(JSON.stringify(obj))
 
     // Inner function to perform the recursive stripping on the new object.
     const stripRecursively = (currentObj: any): any => {
         if (currentObj === null || currentObj === undefined) {
-            return currentObj;
+            return currentObj
         }
 
-        if (typeof currentObj === 'string') {
-            return stripHtml(currentObj);
+        if (typeof currentObj === "string") {
+            return stripHtml(currentObj)
         }
 
         if (Array.isArray(currentObj)) {
-            return currentObj.map(stripRecursively);
+            return currentObj.map(stripRecursively)
         }
 
-        if (typeof currentObj === 'object') {
-            const result: Record<string, any> = {};
+        if (typeof currentObj === "object") {
+            const result: Record<string, any> = {}
             for (const key in currentObj) {
                 if (Object.prototype.hasOwnProperty.call(currentObj, key)) {
-                    result[key] = stripRecursively(currentObj[key]);
+                    result[key] = stripRecursively(currentObj[key])
                 }
             }
-            return result;
+            return result
         }
 
-        return currentObj;
-    };
+        return currentObj
+    }
 
-    return stripRecursively(newObj);
+    return stripRecursively(newObj)
 }

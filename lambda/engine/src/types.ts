@@ -66,4 +66,3 @@ export interface AIServiceClient {
      */
     getStructuredResponse(prompt: string, modelConfig: ModelConfig): Promise<AIScoreOutput>
 }
-

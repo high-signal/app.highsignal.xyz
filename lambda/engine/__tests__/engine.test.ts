@@ -43,7 +43,6 @@ describe("runEngine", () => {
     }
 
     const testDiscourseConfig = {
-
         DISCOURSE_API_KEY: "discourse-key",
         PROJECT_ID: 123,
         SIGNAL_STRENGTH_ID: 1,
@@ -67,9 +66,7 @@ describe("runEngine", () => {
 
         // Mock functions from modules
         mockGetAppConfig = vi.mocked(getAppConfig).mockResolvedValue(testConfig)
-        mockGetAdapterRuntimeConfig = vi
-            .mocked(getAdapterRuntimeConfig)
-            .mockResolvedValue(testDiscourseConfig as any)
+        mockGetAdapterRuntimeConfig = vi.mocked(getAdapterRuntimeConfig).mockResolvedValue(testDiscourseConfig as any)
         mockGetSupabaseClient = vi.mocked(getSupabaseClient)
 
         // Mock logger

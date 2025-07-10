@@ -83,11 +83,12 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
         const aiOrchestrator = new AIOrchestrator(appConfig, effectiveLogger, supabase)
 
         // --- Configuration Loading ---
-        effectiveLogger.info("--- DIAGNOSTIC LOG: Incoming Run Options ---", { options });
+        effectiveLogger.info("--- DIAGNOSTIC LOG: Incoming Run Options ---", { options })
 
         // Determine signal strength name and fetch its ID
         const signalStrengthName =
-            signalStrengthNameFromOptions || (platformName.toLowerCase() === "discourse" ? "discourse_forum" : undefined)
+            signalStrengthNameFromOptions ||
+            (platformName.toLowerCase() === "discourse" ? "discourse_forum" : undefined)
 
         if (!signalStrengthName) {
             throw new Error(
@@ -123,12 +124,10 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
             effectiveLogger.error(dbError, { error: projectSignalStrengthError })
             throw new Error(dbError)
         }
-        const projectUrl = projectSignalStrengthData.url;
+        const projectUrl = projectSignalStrengthData.url
         effectiveLogger.info(`Found project URL: ${projectUrl}`)
 
         const staticConfig = await getPlatformAdapterConfig(platformName, adapterInfo.schema)
-
-
 
         const combinedConfig: any = {
             ...staticConfig,
@@ -142,11 +141,11 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
 
         // --- Adapter Instantiation & Execution ---
         // The runtimeConfig now contains all necessary static and dynamic configuration.
-        const AdapterClass = adapterInfo.constructor;
-        const adapter = new AdapterClass(effectiveLogger, aiOrchestrator, supabase, runtimeConfig);
+        const AdapterClass = adapterInfo.constructor
+        const adapter = new AdapterClass(effectiveLogger, aiOrchestrator, supabase, runtimeConfig)
 
         // The user-centric workflow is now driven by the adapter's processUser method.
-        await adapter.processUser(userId, projectId.toString(), runtimeConfig.aiConfig);
+        await adapter.processUser(userId, projectId.toString(), runtimeConfig.aiConfig)
 
         effectiveLogger.info(`Successfully completed engine run for platform '${platformName}' and user '${userId}'.`)
     } catch (error: any) {

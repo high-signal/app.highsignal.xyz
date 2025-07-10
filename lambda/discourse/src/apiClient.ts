@@ -1,7 +1,6 @@
-
-import { Logger } from "winston";
-import { DiscourseAdapterConfig } from "./config";
-import { DiscourseUserActivity } from "./types";
+import { Logger } from "winston"
+import { DiscourseAdapterConfig } from "./config"
+import { DiscourseUserActivity } from "./types"
 
 /**
  * Fetches user activity data from the Discourse API using a signed request.
@@ -14,25 +13,25 @@ export async function fetchUserActivity(
     username: string,
     config: DiscourseAdapterConfig,
 ): Promise<DiscourseUserActivity | null> {
-    const { url: baseUrl } = config;
-    const url = `${baseUrl}/u/${username}/activity.json`;
+    const { url: baseUrl } = config
+    const url = `${baseUrl}/u/${username}/activity.json`
 
-    console.log(`[DiscourseAdapter] Fetching user activity from: ${url}`);
+    console.log(`[DiscourseAdapter] Fetching user activity from: ${url}`)
 
     try {
         const response = await fetch(url, {
             method: "GET",
             headers: {
-                "Accept": "application/json",
+                Accept: "application/json",
             },
-        });
+        })
 
         if (!response.ok) {
-            const errorBody = await response.text();
+            const errorBody = await response.text()
             console.error(
                 `[DiscourseAdapter] Failed to fetch user activity for ${username}. Status: ${response.status}, Body: ${errorBody}`,
-            );
-            return null;
+            )
+            return null
         }
 
         const actions = await response.json()
@@ -48,16 +47,13 @@ export async function fetchUserActivity(
 
         // The legacy system expects a raw array, but the new system uses a structured object.
         // We wrap the array to match the new system's expected type.
-        return { user_actions: actions };
+        return { user_actions: actions }
     } catch (error: any) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error(
-            `[DiscourseAdapter] An error occurred while fetching user activity for ${username}.`,
-            {
-                error: error.message,
-                stack: error.stack,
-            },
-        );
-        return null;
+        const message = error instanceof Error ? error.message : String(error)
+        console.error(`[DiscourseAdapter] An error occurred while fetching user activity for ${username}.`, {
+            error: error.message,
+            stack: error.stack,
+        })
+        return null
     }
 }

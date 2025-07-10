@@ -125,7 +125,6 @@ describe("Lambda Engine Configuration", () => {
 
             const config = await configModule.getDiscourseAdapterRuntimeConfig()
 
-
             expect(config.PROJECT_ID).toBe(1)
             expect(config.aiConfig).toEqual(mockAiConfig)
         })
@@ -135,7 +134,6 @@ describe("Lambda Engine Configuration", () => {
 
             smMock.on(GetSecretValueCommand).resolves({
                 SecretString: JSON.stringify({
-
                     API_KEY: "prod-discourse-key",
                     PROJECT_ID: 2,
                     SIGNAL_STRENGTH_ID: 20,
@@ -147,7 +145,6 @@ describe("Lambda Engine Configuration", () => {
             dbClientMocks.getLegacySignalConfig.mockResolvedValue(prodAiConfig)
 
             const config = await configModule.getAdapterRuntimeConfig("discourse")
-
 
             expect(config.PROJECT_ID).toBe(2)
             expect(config.aiConfig.signalStrengthId).toBe(20)
@@ -188,10 +185,8 @@ describe("Lambda Engine Configuration", () => {
         it("should prioritize Discourse env vars over Secrets Manager in production", async () => {
             vi.stubEnv("NODE_ENV", "production")
 
-
             smMock.on(GetSecretValueCommand).resolves({
                 SecretString: JSON.stringify({
-
                     API_KEY: "sm-discourse-key",
                     PROJECT_ID: 99,
                     SIGNAL_STRENGTH_ID: 99,
@@ -201,7 +196,6 @@ describe("Lambda Engine Configuration", () => {
             dbClientMocks.getLegacySignalConfig.mockResolvedValue(mockAiConfig)
 
             const config = await configModule.getDiscourseAdapterRuntimeConfig()
-
 
             expect(config.DISCOURSE_API_KEY).toBe("sm-discourse-key")
             expect(smMock.commandCalls(GetSecretValueCommand).length).toBe(1)
