@@ -5,20 +5,13 @@
     "description": "Lambda function",
     "type": "commonjs",
     "main": "index.js",
-    "workspaces": [
-        "engine",
-        "discourse",
-        "discord",
-        "twitter",
-        "shared"
-    ],
     "scripts": {
         "prepare": "husky",
         "clean": "find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '*.tsbuildinfo' -type f -delete",
         "build": "yarn clean && tsc",
         "test": "vitest --config ./vitest.config.ts",
         "coverage": "vitest run --coverage",
-        "package": "yarn build && mkdir -p bundle && cp package.json yarn.lock index.js bundle/ && yarn workspaces list --json | jq -r .location | xargs -I {} rsync -aR {}/dist bundle/ && rsync -a scripts/ bundle/scripts/ && cd bundle && yarn install --production --frozen-lockfile && zip -r ../lambda-code.zip . && cd .. && rm -rf bundle",
+        "package": "yarn build && mkdir -p bundle && rsync -a . bundle/ --exclude bundle --exclude lambda-code.zip --exclude .git --exclude node_modules && cd bundle && yarn install --production --frozen-lockfile && zip -r ../lambda-code.zip . && cd .. && rm -rf bundle",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write \"**/*.ts\""
