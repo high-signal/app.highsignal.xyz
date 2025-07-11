@@ -44,6 +44,11 @@ jobs:
                   cd lambda
                   yarn install --frozen-lockfile
 
+            - name: Build TypeScript
+              run: |
+                  cd lambda
+                  yarn build
+
             - name: Build and package Lambda function
               run: |
                   cd lambda

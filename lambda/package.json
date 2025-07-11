@@ -11,7 +11,7 @@
         "build": "yarn clean && tsc",
         "test": "vitest --config ./vitest.config.ts",
         "coverage": "vitest run --coverage",
-        "package": "yarn build && mkdir -p bundle && rsync -a . bundle/ --exclude bundle --exclude lambda-code.zip --exclude .git --exclude node_modules && cd bundle && yarn install --production --frozen-lockfile && zip -r ../lambda-code.zip . && cd .. && rm -rf bundle",
+        "package": "mkdir -p bundle && rsync -a . bundle/ --exclude bundle --exclude lambda-code.zip --exclude .git --exclude node_modules && cd bundle && yarn install --production --frozen-lockfile && zip -r ../lambda-code.zip . && cd .. && rm -rf bundle",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write \"**/*.ts\""
