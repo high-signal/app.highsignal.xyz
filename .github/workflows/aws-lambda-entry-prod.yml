@@ -5,6 +5,7 @@ on:
         branches: [main]
         paths:
             - "lambda/**"
+            - ".github/workflows/aws-lambda-deploy.yml"
             - ".github/workflows/aws-lambda-entry-prod.yml"
 
 jobs:
