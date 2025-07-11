@@ -299,10 +299,63 @@ export async function getSmartScoreForUser(
 }
 
 /**
- * Saves a score to the database by first deleting any existing score for the same
- * user, project, signal, and day, and then inserting the new score.
+ * Deletes duplicate scores for a user on a specific day, keeping only one.
+ * This is used to handle race conditions where multiple analyses might run simultaneously.
+ * It deletes all `user_signal_strengths` rows that match the provided criteria,
+ * except for the one with the `keepRequestId`.
  * @param supabase An initialized Supabase client.
- * @param scoreData The complete score object to be inserted.
+ * @param params The parameters for the delete operation.
+ * @param params.userId The user's ID.
+ * @param params.projectId The project's ID.
+ * @param params.signalStrengthId The signal strength ID.
+ * @param params.day The day for which to delete duplicates.
+ * @param params.keepRequestId The `request_id` of the score to keep.
+ * @param params.isRawScore A boolean to determine which value column to check (`raw_value` or `value`).
+ * @returns A promise that resolves with the number of deleted rows.
+ */
+export async function deleteDuplicateScores(
+    supabase: SupabaseClient,
+    {
+        userId,
+        projectId,
+        signalStrengthId,
+        day,
+        keepRequestId,
+        isRawScore,
+    }: {
+        userId: string
+        projectId: string
+        signalStrengthId: string
+        day: string
+        keepRequestId: string
+        isRawScore: boolean
+    },
+): Promise<number> {
+    const valueColumn = isRawScore ? "raw_value" : "value"
+
+    const { error, data } = await supabase
+        .from("user_signal_strengths")
+        .delete()
+        .eq("user_id", userId)
+        .eq("project_id", projectId)
+        .eq("signal_strength_id", signalStrengthId)
+        .eq("day", day)
+        .not("request_id", "eq", keepRequestId)
+        .not(valueColumn, "is", null)
+        .select()
+
+    if (error) {
+        throw new Error(`Failed to delete duplicate scores: ${error.message}`)
+    }
+
+    return data?.length || 0
+}
+
+/**
+ * Upserts a score into the database, creating a new record or updating an existing
+ * one based on a conflict with the `request_id`.
+ * @param supabase An initialized Supabase client.
+ * @param scoreData The complete score object to be upserted.
  * @returns A promise that resolves when the operation is complete.
  */
 export async function saveScore(

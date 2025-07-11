@@ -11,6 +11,7 @@ import {
     deleteSmartScoresForUser,
     deleteRawScore,
     updateForumUserLastUpdated,
+    deleteDuplicateScores,
 } from "@shared/db"
 import { DiscourseAdapterConfig, DiscourseAdapterRuntimeConfig } from "./config"
 import { fetchUserActivity } from "./apiClient"
@@ -100,23 +101,46 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
                 )
 
                 if (smartScoreOutput) {
-                    this.logger.info(
-                        `[DiscourseAdapter] Deleting existing smart score for user ${user.user_id} before saving new one.`,
-                    )
-                    await deleteSmartScoresForUser(
-                        this.supabase,
-                        user.user_id,
-                        projectId,
-                        this.config.SIGNAL_STRENGTH_ID,
-                    )
-
-                    await saveScore(this.supabase, {
+                    const day = new Date().toISOString().split("T")[0]
+                    const scoreToSave = {
                         ...smartScoreOutput,
                         user_id: user.user_id,
-                        project_id: projectId,
+                        project_id: projectId.toString(),
                         signal_strength_id: this.config.SIGNAL_STRENGTH_ID,
-                    })
+                        day,
+                        request_id: `discourse_smart_score_${user.user_id}_${projectId}_${day}`,
+                    }
+
+                    // Save the new score first. The `saveScore` function uses an upsert on
+                    // `request_id` to prevent exact duplicates.
+                    await saveScore(this.supabase, scoreToSave)
                     this.logger.info(`[DiscourseAdapter] Saved smart score for user ${user.user_id}.`)
+
+                    // To handle race conditions where the same analysis might run twice,
+                    // we immediately delete any other scores for the same user, project, and day
+                    // that do not match the `request_id` of the one we just saved.
+                    // This ensures that only the result of the latest analysis run is kept.
+
+                    if (scoreToSave.day && scoreToSave.request_id) {
+                        const deletedCount = await deleteDuplicateScores(this.supabase, {
+                            userId: user.user_id.toString(),
+                            projectId: projectId.toString(),
+                            signalStrengthId: this.config.SIGNAL_STRENGTH_ID,
+                            day: scoreToSave.day,
+                            keepRequestId: scoreToSave.request_id,
+                            isRawScore: false,
+                        })
+
+                        if (deletedCount > 0) {
+                            this.logger.info(
+                                `[DiscourseAdapter] Deleted ${deletedCount} duplicate smart scores for user ${user.user_id}.`,
+                            )
+                        }
+                    } else {
+                        this.logger.warn(
+                            `[DiscourseAdapter] Could not delete duplicate scores for user ${user.user_id} due to missing day or request_id.`,
+                        )
+                    }
                 }
             }
 
