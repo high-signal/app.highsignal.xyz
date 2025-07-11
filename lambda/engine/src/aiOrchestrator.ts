@@ -43,6 +43,11 @@ export class AIOrchestrator implements IAiOrchestrator {
     private appConfig: AppConfig
     private supabase: SupabaseClient
 
+    /**
+     * @param appConfig The application configuration.
+     * @param logger The shared logger instance.
+     * @param supabase The Supabase client for database interactions.
+     */
     constructor(appConfig: AppConfig, logger: Logger, supabase: SupabaseClient) {
         this.appConfig = appConfig
         this.logger = logger
@@ -50,7 +55,17 @@ export class AIOrchestrator implements IAiOrchestrator {
     }
 
     /**
-     * PHASE 1: Generates 'raw' scores for each day of user activity.
+     * Generates a 'raw' score for a specific day of user activity.
+     * This involves fetching the correct prompt, preparing the user content (stripping HTML, truncating),
+     * calling the AI service, and transforming the output into the required format.
+     *
+     * @param user The user being scored.
+     * @param day The specific day (YYYY-MM-DD) of the activity.
+     * @param content A stringified representation of the user's actions for that day.
+     * @param logs Any pre-existing logs to be included in the final record.
+     * @param signalConfig The AI configuration for this scoring task.
+     * @param projectId The project context.
+     * @returns A `UserSignalStrength` object or `null` if scoring fails.
      */
     public async generateRawScores(
         user: ForumUser,
@@ -60,6 +75,7 @@ export class AIOrchestrator implements IAiOrchestrator {
         signalConfig: AiConfig,
         projectId: string,
     ): Promise<UserSignalStrength | null> {
+        // Step 1: Validate and retrieve the appropriate prompt configuration.
         const promptConfig = this._prepareAndValidatePrompts(signalConfig, "raw")
         if (!promptConfig) {
             this.logger.error("Could not get valid prompt for raw score. Aborting.", {
@@ -69,6 +85,7 @@ export class AIOrchestrator implements IAiOrchestrator {
             return null
         }
 
+        // Step 2: Prepare user content by stripping HTML and truncating it.
         const { username, displayName } = this._getUserIdentity(user, undefined)
 
         this.logger.info(
@@ -96,9 +113,8 @@ export class AIOrchestrator implements IAiOrchestrator {
             return null
         }
 
-        this.logger.info(`[DIAGNOSTIC] Using raw prompt template: ${promptConfig.prompt!}`)
-        // Construct prompt
-        const prompt = this._preparePrompt(promptConfig.prompt || "", {
+        // Step 3: Construct the final prompt for the AI service.
+        const finalPrompt = this._preparePrompt(promptConfig.prompt || "", {
             content: truncatedContent,
             username,
             displayName,
@@ -117,13 +133,14 @@ export class AIOrchestrator implements IAiOrchestrator {
             },
             {
                 role: "user",
-                content: prompt,
+                content: finalPrompt,
             },
         ]
 
         this.logger.info(`[DIAGNOSTIC] AI input - system and user messages prepared`)
 
-        const aiScore = await this._executeAIServiceCall(prompt, signalConfig, user.user_id)
+        // Step 4: Execute the AI service call.
+        const aiScore = await this._executeAIServiceCall(finalPrompt, signalConfig, user.user_id)
         if (!aiScore) {
             this.logger.error("AI service call failed for raw score generation.", { userId: user.user_id, day })
             return null
@@ -131,11 +148,20 @@ export class AIOrchestrator implements IAiOrchestrator {
 
         this.logger.info(`Analysis complete for user: ${username}`)
 
+        // Step 5: Transform the AI output into the final UserSignalStrength object.
         return this._transformRawScoreOutput(aiScore, user.user_id, day, projectId, signalConfig, promptConfig.id, logs)
     }
 
     /**
-     * PHASE 2: Generates a single 'smart' score based on all of a user's raw scores.
+     * Generates a single 'smart' score based on a user's recent raw scores.
+     * This method uses a deterministic algorithm (`calculateSmartScore`) to calculate a score
+     * and then constructs the final `UserSignalStrength` object directly, without an AI call.
+     *
+     * @param user The user being scored.
+     * @param rawScores An array of the user's recent raw scores.
+     * @param signalConfig The AI configuration for this scoring task.
+     * @param projectId The project context.
+     * @returns A `UserSignalStrength` object.
      */
     public async generateSmartScoreSummary(
         user: ForumUser,
@@ -143,14 +169,13 @@ export class AIOrchestrator implements IAiOrchestrator {
         signalConfig: AiConfig,
         projectId: string,
     ): Promise<UserSignalStrength | null> {
-        // Use the deterministic calculation.
+        // Step 1: Calculate the deterministic smart score and prepare a summary.
         const { smartScore, topBandDays } = calculateSmartScore(rawScores, signalConfig.previous_days ?? 30)
+        const summary = `Smart score of ${smartScore} calculated based on ${rawScores.length} raw scores. Top band days: ${topBandDays}.`
 
-        this.logger.info(
-            `[DIAGNOSTIC] Smart score calculated for user ${user.user_id}. Score: ${smartScore}, Top Band Days: ${topBandDays.length}`,
-        )
+        this.logger.info(`Calculated smart score for user ${user.user_id}: ${smartScore}`)
 
-        // Construct the output directly without an AI call.
+        // Step 2: Construct the final UserSignalStrength object directly.
         return {
             user_id: user.user_id,
             signal_strength_id: signalConfig.signalStrengthId,
@@ -203,9 +228,7 @@ export class AIOrchestrator implements IAiOrchestrator {
         return filteredPrompts.sort((a, b) => b.id! - a.id!)[0]
     }
 
-    /**
-     * Prepares the final prompt for a smart score summary.
-     */
+    // Prepares the final prompt for a smart score summary.
     private _prepareSmartScorePrompt(
         template: string,
         data: {
@@ -222,9 +245,7 @@ export class AIOrchestrator implements IAiOrchestrator {
             .replace(/{{\s*smartScore\s*}}/g, data.smartScore.toString())
     }
 
-    /**
-     * Prepares the final prompt for a raw score.
-     */
+    // Prepares the final prompt for a raw score.
     private _preparePrompt(
         template: string,
         data: {
@@ -263,9 +284,7 @@ export class AIOrchestrator implements IAiOrchestrator {
         return { username, displayName }
     }
 
-    /**
-     * Truncates content to a specified number of characters.
-     */
+    // Truncates content to a specified number of characters.
     private _truncateContent(content: string, maxChars: number | null | undefined): string {
         if (!maxChars) {
             this.logger.warn("No maxChars provided for content truncation. Using default of 8000.")
@@ -339,9 +358,7 @@ export class AIOrchestrator implements IAiOrchestrator {
         }
     }
 
-    /**
-     * Transforms a validated `AIScoreOutput` into a `UserSignalStrength` object for raw scores.
-     */
+    // Transforms a validated `AIScoreOutput` into a `UserSignalStrength` object for raw scores.
     private _transformRawScoreOutput(
         aiScore: AIScoreOutput,
         userId: number,
@@ -380,9 +397,7 @@ export class AIOrchestrator implements IAiOrchestrator {
         }
     }
 
-    /**
-     * Transforms a validated `AIScoreOutput` into a `UserSignalStrength` object for smart scores.
-     */
+    // Transforms a validated `AIScoreOutput` into a `UserSignalStrength` object for smart scores.
     private _transformSmartScoreOutput(
         aiSummary: AIScoreOutput,
         smartScore: number,

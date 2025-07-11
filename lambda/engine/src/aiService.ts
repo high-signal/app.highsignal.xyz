@@ -53,12 +53,18 @@ const AIScoreOutputSchema = z
 type AIScoreData = z.infer<typeof AIScoreOutputSchema>
 
 /**
- * An implementation of `AIServiceClient` that communicates with the OpenAI API.
+ * Implements the `AIServiceClient` interface to communicate with the OpenAI API.
+ * This class handles the construction of API requests, making the HTTP calls,
+ * and parsing/validating the JSON response to ensure it conforms to the expected schema.
  */
 class OpenAIAIServiceClient implements AIServiceClient {
     private openai: OpenAI
     private logger: Logger
 
+    /**
+     * @param apiKey The OpenAI API key.
+     * @param logger The shared logger instance.
+     */
     constructor(apiKey: string, logger: Logger) {
         if (!apiKey) {
             logger.error("[AISERVICE] OpenAI API key is missing.")
@@ -70,12 +76,15 @@ class OpenAIAIServiceClient implements AIServiceClient {
 
     /**
      * Parses and validates the JSON response from the OpenAI API.
+     * It first tries to parse the content as a flat JSON object. If that fails, it checks for a
+     * common nested structure that the AI sometimes returns.
      *
      * @param content The raw JSON string from the API response.
-     * @returns The validated AI score data.
-     * @throws An error if parsing or validation fails.
+     * @returns The validated `AIScoreData`.
+     * @throws An error if JSON parsing or Zod validation fails.
      */
     private _parseAndValidateResponse(content: string): AIScoreData {
+        // Step 1: Attempt to parse the raw string into a JSON object.
         let parsedJson
         try {
             parsedJson = JSON.parse(content)
@@ -87,14 +96,13 @@ class OpenAIAIServiceClient implements AIServiceClient {
             throw new Error(`Failed to parse OpenAI JSON response: ${(error as Error).message}`)
         }
 
-        // Attempt to validate the flat structure first.
+        // Step 2: Attempt to validate the JSON against the schema (flat structure).
         const flatValidation = AIScoreOutputSchema.safeParse(parsedJson)
         if (flatValidation.success) {
             return flatValidation.data
         }
 
-        // If flat validation fails, check for a nested structure.
-        // This is common for smart scores where the AI wraps the output in a dynamic key.
+        // Step 3: If flat validation fails, check for a common nested structure.
         const keys = Object.keys(parsedJson)
         if (keys.length === 1 && typeof parsedJson[keys[0]] === "object" && parsedJson[keys[0]] !== null) {
             this.logger.info(`Found a nested object under key '${keys[0]}', attempting to validate it.`)
@@ -117,7 +125,7 @@ class OpenAIAIServiceClient implements AIServiceClient {
             }
         }
 
-        // If both attempts fail, log the initial error and throw.
+        // Step 4: If all validation attempts fail, log the error and throw.
         this.logger.error("[AISERVICE] OpenAI response failed Zod validation.", {
             error: flatValidation.error.issues, // Log issues from the more likely flat structure attempt
             receivedData: content,
@@ -125,7 +133,16 @@ class OpenAIAIServiceClient implements AIServiceClient {
         throw new Error("OpenAI response validation failed.")
     }
 
+    /**
+     * Sends a prompt to the OpenAI Chat Completions API and returns a validated, structured response.
+     *
+     * @param prompt The complete prompt to send to the AI.
+     * @param modelConfig The configuration for the AI model (e.g., model name, temperature).
+     * @returns A promise that resolves to the validated `AIScoreOutput`.
+     * @throws An error if the API call fails or the response is invalid.
+     */
     async getStructuredResponse(prompt: string, modelConfig: ModelConfig): Promise<AIScoreOutput> {
+        // Step 1: Send the request to the OpenAI Chat Completions API.
         this.logger.info("[AISERVICE] Sending request to OpenAI.", {
             model: modelConfig.model,
             promptExcerpt: prompt.substring(0, 100) + "...",
@@ -150,14 +167,17 @@ class OpenAIAIServiceClient implements AIServiceClient {
                 modelUsed: completion.model,
             })
 
+            // Step 2: Extract and validate the response content.
             const content = completion.choices[0]?.message?.content
             if (!content) {
                 this.logger.error("[AISERVICE] OpenAI response content is empty.")
                 throw new Error("OpenAI response content is empty.")
             }
 
+            // Step 3: Parse and validate the JSON content to match the schema.
             const validatedData = this._parseAndValidateResponse(content)
 
+            // Step 4: Combine validated data with metadata to form the final output.
             return {
                 ...validatedData,
                 requestId: completion.id,

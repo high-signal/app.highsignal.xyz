@@ -74,13 +74,25 @@ let loggerInstance: WinstonLogger | undefined
  * @param {LoggerOptions} options - Configuration options for the logger.
  * @returns {WinstonLogger} The configured Winston logger instance.
  */
+/**
+ * Initializes and returns a singleton Winston logger instance.
+ *
+ * This function ensures the logger is created only once per invocation. It selects a
+ * log format based on the environment and applies the provided configuration.
+ *
+ * @param {LoggerOptions} options - Configuration options for the logger.
+ * @returns {WinstonLogger} The configured Winston logger instance.
+ */
 export function initializeLogger({ level, nodeEnv, serviceName = "lambda-engine" }: LoggerOptions): WinstonLogger {
+    // Step 1: Return the cached instance if it already exists.
     if (loggerInstance) {
         return loggerInstance
     }
 
+    // Step 2: Select the appropriate log format based on the environment.
     const selectedFormat = nodeEnv === "production" ? prodFormat : devFormat
 
+    // Step 3: Create, cache, and return the new logger instance.
     loggerInstance = winston.createLogger({
         level: level || "info",
         format: selectedFormat,

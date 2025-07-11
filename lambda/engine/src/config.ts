@@ -35,8 +35,8 @@ export const AppConfigSchema = z.object({
 export type AppConfig = z.infer<typeof AppConfigSchema>
 
 // --- Caching ---
-// Caches are used to store fetched configurations and secrets, preventing redundant
-// calls to AWS Secrets Manager or the database within a single Lambda invocation.
+// Caches store fetched configurations and secrets to prevent redundant API calls
+// within a single Lambda invocation, improving performance and reducing costs.
 
 let appConfigCache: AppConfig | null = null
 const platformAdapterConfigCache: Record<string, AdapterConfig | null> = {}
@@ -53,15 +53,19 @@ const secretsCache: Record<string, any> = {}
  * @throws An error if the secret cannot be fetched, is empty, or fails validation.
  */
 async function getSecret<T>(secretName: string, schema: z.ZodType<T>): Promise<T> {
+    // Step 1: Check the cache first to avoid redundant API calls.
     if (secretsCache[secretName]) {
         return secretsCache[secretName]
     }
 
+    // Step 2: If not cached, fetch the secret from AWS Secrets Manager.
     const client = new SecretsManagerClient({})
     const command = new GetSecretValueCommand({ SecretId: secretName })
 
     try {
         const data = await client.send(command)
+
+        // Step 3: Parse, validate, and cache the secret before returning.
         if (data.SecretString) {
             const parsedSecrets = JSON.parse(data.SecretString)
             const validatedSecrets = schema.parse(parsedSecrets)
@@ -70,12 +74,13 @@ async function getSecret<T>(secretName: string, schema: z.ZodType<T>): Promise<T
         } else {
             throw new Error(`[CONFIG] Secret string is empty for secret: ${secretName}`)
         }
-    } catch (error) {
+    } catch (error: any) {
+        // Step 4: Handle validation or fetching errors.
         if (error instanceof z.ZodError) {
             const errorMessage = error.errors.map((e) => `${e.path.join(".")} - ${e.message}`).join(", ")
             throw new Error(`[CONFIG] Invalid configuration for ${secretName}: ${errorMessage}`)
         }
-        throw new Error(`[CONFIG] Failed to fetch secret ${secretName}: ${error}`)
+        throw new Error(`[CONFIG] Failed to fetch secret ${secretName}: ${error.message}`)
     }
 }
 
@@ -95,11 +100,13 @@ async function getSecret<T>(secretName: string, schema: z.ZodType<T>): Promise<T
  * @returns A promise that resolves to the validated application configuration.
  */
 export async function getAppConfig(): Promise<AppConfig> {
+    // Step 1: Check the cache first.
     if (appConfigCache) {
         return appConfigCache
     }
 
     try {
+        // Step 2: In production, attempt to fetch secrets from AWS Secrets Manager.
         let secrets = {}
         if (process.env.NODE_ENV === "production") {
             try {
@@ -139,16 +146,17 @@ export async function getAppConfig(): Promise<AppConfig> {
  * 3. Environment variables (prefixed with the platform name, e.g., `DISCOURSE_API_URL`).
  *
  * In production, any environment variable will override a value fetched from Secrets Manager.
- * In local development, it loads from a `.env` file.
  *
  * @param platformName The name of the platform (e.g., 'discourse').
- * @param schema The Zod schema for the adapter's configuration.
+ * @param schema The Zod schema used to validate the adapter's configuration.
  * @returns A promise that resolves to the validated adapter configuration.
+ * @throws An error if the configuration fails validation.
  */
 export async function getPlatformAdapterConfig<T extends z.AnyZodObject>(
     platformName: string,
     schema: T,
 ): Promise<z.infer<T>> {
+    // Step 1: Check the cache first.
     const cacheKey = platformName.toLowerCase()
     if (platformAdapterConfigCache[cacheKey]) {
         // We cast to `unknown` first because the cached `AdapterConfig` and the specific
@@ -170,8 +178,7 @@ export async function getPlatformAdapterConfig<T extends z.AnyZodObject>(
             }
         }
 
-        // Dynamically create a mapping from the environment variables.
-        // The keys in the Zod schema are the names of the environment variables.
+        // Step 3: Load configuration from environment variables.
         const envConfig: Record<string, string | undefined> = {}
         for (const key in (schema as any).shape) {
             // Check for existence, not truthiness, to allow for empty strings.
@@ -186,9 +193,8 @@ export async function getPlatformAdapterConfig<T extends z.AnyZodObject>(
             ...envConfig,
         }
 
+        // Step 4: Validate the combined configuration and cache it.
         const parsedConfig = schema.parse(combinedConfig)
-        // We assert that the parsed config is compatible with the base `AdapterConfig`
-        // for caching, as the generic constraint isn't enough for the compiler.
         platformAdapterConfigCache[cacheKey] = parsedConfig as AdapterConfig
         return parsedConfig
     } catch (error) {
@@ -201,18 +207,19 @@ export async function getPlatformAdapterConfig<T extends z.AnyZodObject>(
 }
 
 /**
- * Retrieves the full runtime configuration for a platform adapter.
+ * Retrieves the full runtime configuration for an adapter by combining its static config
+ * with dynamic AI configuration fetched from the database.
  *
- * This function orchestrates fetching both the static adapter configuration
- * and the dynamic AI configuration from the database.
- *
+ * @param supabase The Supabase client for database interactions.
  * @param config The static configuration object for the adapter.
- * @returns A promise that resolves to the complete runtime configuration for the adapter.
+ * @returns A promise that resolves to the complete `AdapterRuntimeConfig`.
+ * @throws An error if the AI configuration cannot be fetched.
  */
 export const getAdapterRuntimeConfig = async <T extends AdapterConfig>(
     supabase: SupabaseClient,
     config: T,
 ): Promise<AdapterRuntimeConfig<T>> => {
+    // Step 1: Fetch the dynamic AI configuration from the database.
     const aiConfig = await fetchAiConfigFromDb(
         supabase,
         config.SIGNAL_STRENGTH_ID,
@@ -220,12 +227,14 @@ export const getAdapterRuntimeConfig = async <T extends AdapterConfig>(
         config.PROJECT_ID,
     )
 
+    // Step 2: Validate that the AI configuration was successfully fetched.
     if (!aiConfig) {
         throw new Error(
             `[CONFIG] Failed to fetch required AI configuration for signal strength ID: ${config.SIGNAL_STRENGTH_ID}`,
         )
     }
 
+    // Step 3: Combine static and dynamic configs into the final runtime config.
     return {
         ...config,
         aiConfig,

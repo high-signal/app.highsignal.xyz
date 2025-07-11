@@ -26,18 +26,32 @@ let supabaseClient: SupabaseClient | null = null
  * @returns A promise that resolves to the initialized Supabase client.
  * @throws An error if the Supabase URL or service role key is not configured.
  */
+/**
+ * Initializes and returns a singleton Supabase client instance.
+ *
+ * This function ensures that the Supabase client is created only once per Lambda
+ * invocation by caching the client. It fetches the necessary credentials from the
+ * application configuration on the first call.
+ *
+ * @returns A promise that resolves to the initialized Supabase client.
+ * @throws An error if the Supabase URL or service role key is not configured.
+ */
 export const getSupabaseClient = async (): Promise<SupabaseClient> => {
+    // Step 1: Return the cached client if it already exists.
     if (supabaseClient) {
         return supabaseClient
     }
 
+    // Step 2: If no client exists, fetch the application configuration.
     const config: AppConfig = await getAppConfig()
 
+    // Step 3: Validate that the required credentials are present.
     if (!config.SUPABASE_URL || !config.SUPABASE_SERVICE_ROLE_KEY) {
         // The logger might not be initialized yet, so we throw a clear error.
         throw new Error("Supabase URL or service role key is not configured.")
     }
 
+    // Step 4: Create, cache, and return the new Supabase client.
     supabaseClient = createClient(config.SUPABASE_URL, config.SUPABASE_SERVICE_ROLE_KEY, {
         auth: {
             persistSession: false,
@@ -58,11 +72,10 @@ export const getSupabaseClient = async (): Promise<SupabaseClient> => {
  * @throws An error if called outside of a `test` environment.
  */
 export function _resetSupabaseClient_TEST_ONLY(): void {
-    if (process.env.NODE_ENV === "test") {
-        supabaseClient = null
-    } else {
-        console.warn(
-            "[DBCLIENT] _resetSupabaseClient_TEST_ONLY was called outside of a test environment. This is not allowed.",
+    if (process.env.NODE_ENV !== "test") {
+        throw new Error(
+            "[DBCLIENT] _resetSupabaseClient_TEST_ONLY() was called outside of a test environment. This is strictly forbidden.",
         )
     }
+    supabaseClient = null
 }

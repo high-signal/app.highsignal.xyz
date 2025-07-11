@@ -17,6 +17,12 @@ import { DiscourseAdapterConfig, DiscourseAdapterRuntimeConfig } from "./config"
 import { fetchUserActivity } from "./apiClient"
 import { DiscourseUserActivity, DiscourseUserAction } from "./types"
 
+/**
+ * The DiscourseAdapter is responsible for fetching user data from the Discourse API,
+ * processing it, generating AI-driven scores, and saving the results to the database.
+ * It implements the PlatformAdapter interface, providing a standardized way for the
+ * engine to interact with the Discourse platform.
+ */
 export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig> {
     private supabase: SupabaseClient
     private aiOrchestrator: IAiOrchestrator
@@ -36,7 +42,24 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
         this.logger.info("[DiscourseAdapter] Initialized.")
     }
 
+    /**
+     * Processes a single user, orchestrating the entire workflow from data fetching to scoring.
+     * This is the main entry point for the adapter's logic.
+     *
+     * The process is divided into three main phases:
+     * 1. **Data Fetching & Pre-computation**: Fetches the user's activity from the Discourse API
+     *    and retrieves the necessary AI configuration from the database.
+     * 2. **Raw Score Generation**: Analyzes the user's daily activity to generate 'raw' scores,
+     *    which evaluate contributions for each specific day.
+     * 3. **Smart Score Generation**: Aggregates the recent raw scores to produce a single 'smart' score,
+     *    providing a holistic view of the user's recent engagement.
+     *
+     * @param userId - The unique identifier of the user to process.
+     * @param projectId - The project context in which the processing is happening.
+     * @param aiConfig - The AI configuration to be used for scoring.
+     */
     public async processUser(userId: string, projectId: string, aiConfig: AiConfig): Promise<void> {
+        // Phase 1: Validate user and fetch activity data from Discourse.
         const numericUserId = parseInt(userId, 10)
         if (isNaN(numericUserId)) {
             this.logger.error(`[DiscourseAdapter] Invalid user ID: ${userId}. Must be a numeric string.`)
@@ -77,8 +100,10 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
                 return
             }
 
+            // Phase 2: Generate daily raw scores based on user activity.
             await this.generateRawScoresForUser(user, userActivity, signalConfig, projectId)
 
+            // Phase 3: Generate a single smart score from the recent raw scores.
             this.logger.info(`[DiscourseAdapter] Phase 3: Generating smart score for user ${user.user_id}.`)
             const recentRawScores = await getRawScoresForUser(
                 this.supabase,
@@ -144,7 +169,7 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
                 }
             }
 
-            // Re-implement legacy functionality: update forum_users.last_updated
+            // Update forum_users.last_updated
             if (userActivity && userActivity.user_actions.length > 0) {
                 const latestActivityDate = userActivity.user_actions.reduce(
                     (latest: Date, action: DiscourseUserAction) => {
@@ -178,6 +203,13 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
         }
     }
 
+    /**
+     * Groups a flat list of user actions into a dictionary keyed by day (YYYY-MM-DD).
+     * This is a crucial step for processing user activity on a daily basis when generating raw scores.
+     *
+     * @param actions - An array of user actions, each with a `created_at` timestamp.
+     * @returns A record where keys are date strings and values are arrays of actions for that day.
+     */
     private groupActivityByDay(actions: DiscourseUserAction[]): Record<string, DiscourseUserAction[]> {
         const groupedActions: Record<string, DiscourseUserAction[]> = {}
         for (const action of actions) {
@@ -191,6 +223,19 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
         return groupedActions
     }
 
+    /**
+     * Generates and saves 'raw' scores for a user based on their daily activity.
+     * This method iterates through the user's actions, groups them by day, and then invokes
+     * the AI orchestrator to score the activity for each day individually.
+     *
+     * It includes a lookback mechanism to only process recent activity and handles idempotency
+     * by deleting any existing raw score for a given day before creating a new one.
+     *
+     * @param user - The user for whom to generate scores.
+     * @param userActivity - The fetched activity data for the user from the Discourse API.
+     * @param signalConfig - The AI configuration for generating the scores.
+     * @param projectId - The project context.
+     */
     private async generateRawScoresForUser(
         user: ForumUser,
         userActivity: DiscourseUserActivity | null,
@@ -204,6 +249,7 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
             return
         }
 
+        // Filter out old or irrelevant activity based on lookback days and auth post ID.
         const lookbackDays = signalConfig.previous_days ?? 0
         const authPostId = user.auth_post_id
         const cutoffDate = new Date()
@@ -230,9 +276,11 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
             return
         }
 
+        // Group the filtered actions by the day they occurred.
         const dailyActions = this.groupActivityByDay(filteredActions)
         this.logger.info(`[DIAGNOSTIC] Grouped actions into ${Object.keys(dailyActions).length} unique days.`)
 
+        // Iterate over each day's activity to generate and save a raw score.
         for (const [dayStr, actions] of Object.entries(dailyActions)) {
             if (actions.length === 0) continue
 
@@ -282,6 +330,14 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
         }
     }
 
+    /**
+     * Clears the 'last_checked' marker for a user.
+     * This is used to reset the processing state, typically at the beginning of a run,
+     * to ensure that the user is picked up for processing.
+     *
+     * @param userId - The ID of the user.
+     * @param projectId - The project context.
+     */
     private async clearLastChecked(userId: number, projectId: string): Promise<void> {
         this.logger.info(`[DiscourseAdapter] Clearing last_checked for user ${userId} and project ${projectId}`)
         try {
@@ -299,6 +355,14 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
         }
     }
 
+    /**
+     * Sets a 'last_checked' marker for a user by saving a special record.
+     * This marker indicates that the user has been processed in the current run,
+     * which can be used for logging, debugging, or idempotency checks.
+     *
+     * @param userId - The ID of the user.
+     * @param projectId - The project context.
+     */
     private async setLastChecked(userId: number, projectId: string): Promise<void> {
         this.logger.info(`[DiscourseAdapter] Setting last_checked for user ${userId} and project ${projectId}`)
         try {

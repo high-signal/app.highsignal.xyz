@@ -51,6 +51,7 @@ interface EngineRunOptions {
  * @throws An error if the platform is unsupported or if any step in the process fails.
  */
 export async function runEngine(platformName: string, options: EngineRunOptions, logger?: Logger): Promise<void> {
+    // --- Phase 1: Initialization ---
     let effectiveLogger = logger
     const appConfig = await getAppConfig() // Get app config first
 
@@ -65,12 +66,13 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
     effectiveLogger.info(`Lambda Engine run started for platform: ${platformName}`)
 
     try {
+        // --- Phase 2: Input Validation ---
         const { userId, projectId, signalStrengthName: signalStrengthNameFromOptions } = options
         if (!userId || !projectId) {
             throw new Error("userId and projectId are required in the event payload for the user-centric workflow.")
         }
 
-        // --- Adapter Selection ---
+        // --- Phase 3: Adapter Selection ---
         const adapterInfo = ADAPTER_REGISTRY[platformName.toLowerCase()]
         if (!adapterInfo) {
             throw new Error(`Unsupported platform: '${platformName}'. No adapter found in registry.`)
@@ -78,12 +80,11 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
 
         effectiveLogger.info(`Adapter found for platform: ${platformName}`)
 
-        // --- Initialization ---
+        // --- Phase 4: Core Service Initialization ---
         const supabase = await getSupabaseClient() // Ensures DB client is ready
         const aiOrchestrator = new AIOrchestrator(appConfig, effectiveLogger, supabase)
 
-        // --- Configuration Loading ---
-        effectiveLogger.info("--- DIAGNOSTIC LOG: Incoming Run Options ---", { options })
+        // --- Phase 5: Dynamic Configuration Loading ---
 
         // Determine signal strength name and fetch its ID
         const signalStrengthName =
@@ -139,16 +140,15 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
         const runtimeConfig = await getAdapterRuntimeConfig(supabase, combinedConfig)
         effectiveLogger.info("Configuration loaded successfully.")
 
-        // --- Adapter Instantiation & Execution ---
-        // The runtimeConfig now contains all necessary static and dynamic configuration.
+        // --- Phase 6: Adapter Instantiation & Execution ---
         const AdapterClass = adapterInfo.constructor
         const adapter = new AdapterClass(effectiveLogger, aiOrchestrator, supabase, runtimeConfig)
 
-        // The user-centric workflow is now driven by the adapter's processUser method.
         await adapter.processUser(userId, projectId.toString(), runtimeConfig.aiConfig)
 
         effectiveLogger.info(`Successfully completed engine run for platform '${platformName}' and user '${userId}'.`)
     } catch (error: any) {
+        // --- Error Handling ---
         effectiveLogger.error(`Critical error during Lambda Engine run for platform '${platformName}'.`, {
             errorMessage: error.message,
             stack: error.stack,
@@ -173,6 +173,8 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
  * @throws An error if the event payload is invalid or if the engine fails.
  */
 export async function handler(event: any, context: any): Promise<void> {
+    // Step 1: Initialize logger and configuration.
+    // Initialize a logger instance specifically for this handler invocation.
     // Initialize a logger instance specifically for this handler invocation.
     const config = await getAppConfig() // Get config first
     const logger = initializeLogger({
@@ -185,20 +187,21 @@ export async function handler(event: any, context: any): Promise<void> {
         awsRequestId: context?.awsRequestId,
     })
 
+    // Step 2: Parse and validate the incoming event payload.
     const { platformName, userId, projectId, signalStrengthName } = event
 
-    // Validate the essential parameters from the event payload
     if (!platformName || !userId || !projectId) {
         const errorMessage = "Invalid event payload. `platformName`, `userId`, and `projectId` are required."
         logger.error(errorMessage, { event })
         throw new Error(errorMessage)
     }
 
+    // Step 3: Execute the core engine logic.
     try {
-        // Pass the event properties to the engine
         await runEngine(platformName, { userId, projectId, signalStrengthName }, logger)
         logger.info(`Handler successfully completed processing for platform: ${platformName}`)
     } catch (error) {
+        // Step 4: Log any critical errors from the engine run.
         logger.error(`Handler failed processing for platform: ${platformName}.`, {
             error,
         })
