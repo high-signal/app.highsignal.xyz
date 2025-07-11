@@ -51,7 +51,7 @@ interface EngineRunOptions {
  * @throws An error if the platform is unsupported or if any step in the process fails.
  */
 export async function runEngine(platformName: string, options: EngineRunOptions, logger?: Logger): Promise<void> {
-    // --- Phase 1: Initialization ---
+    // Phase 1: Initialization
     let effectiveLogger = logger
     const appConfig = await getAppConfig() // Get app config first
 
@@ -66,13 +66,13 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
     effectiveLogger.info(`Lambda Engine run started for platform: ${platformName}`)
 
     try {
-        // --- Phase 2: Input Validation ---
+        // Phase 2: Input Validation
         const { userId, projectId, signalStrengthName: signalStrengthNameFromOptions } = options
         if (!userId || !projectId) {
             throw new Error("userId and projectId are required in the event payload for the user-centric workflow.")
         }
 
-        // --- Phase 3: Adapter Selection ---
+        // Phase 3: Adapter Selection
         const adapterInfo = ADAPTER_REGISTRY[platformName.toLowerCase()]
         if (!adapterInfo) {
             throw new Error(`Unsupported platform: '${platformName}'. No adapter found in registry.`)
@@ -80,11 +80,11 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
 
         effectiveLogger.info(`Adapter found for platform: ${platformName}`)
 
-        // --- Phase 4: Core Service Initialization ---
+        // Phase 4: Core Service Initialization
         const supabase = await getSupabaseClient() // Ensures DB client is ready
         const aiOrchestrator = new AIOrchestrator(appConfig, effectiveLogger, supabase)
 
-        // --- Phase 5: Dynamic Configuration Loading ---
+        // Phase 5: Dynamic Configuration Loading
 
         // Determine signal strength name and fetch its ID
         const signalStrengthName =
@@ -140,7 +140,7 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
         const runtimeConfig = await getAdapterRuntimeConfig(supabase, combinedConfig)
         effectiveLogger.info("Configuration loaded successfully.")
 
-        // --- Phase 6: Adapter Instantiation & Execution ---
+        // Phase 6: Adapter Instantiation & Execution
         const AdapterClass = adapterInfo.constructor
         const adapter = new AdapterClass(effectiveLogger, aiOrchestrator, supabase, runtimeConfig)
 
@@ -148,7 +148,7 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
 
         effectiveLogger.info(`Successfully completed engine run for platform '${platformName}' and user '${userId}'.`)
     } catch (error: any) {
-        // --- Error Handling ---
+        // Error Handling
         effectiveLogger.error(`Critical error during Lambda Engine run for platform '${platformName}'.`, {
             errorMessage: error.message,
             stack: error.stack,
@@ -174,7 +174,6 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
  */
 export async function handler(event: any, context: any): Promise<void> {
     // Step 1: Initialize logger and configuration.
-    // Initialize a logger instance specifically for this handler invocation.
     // Initialize a logger instance specifically for this handler invocation.
     const config = await getAppConfig() // Get config first
     const logger = initializeLogger({

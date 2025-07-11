@@ -26,16 +26,6 @@ let supabaseClient: SupabaseClient | null = null
  * @returns A promise that resolves to the initialized Supabase client.
  * @throws An error if the Supabase URL or service role key is not configured.
  */
-/**
- * Initializes and returns a singleton Supabase client instance.
- *
- * This function ensures that the Supabase client is created only once per Lambda
- * invocation by caching the client. It fetches the necessary credentials from the
- * application configuration on the first call.
- *
- * @returns A promise that resolves to the initialized Supabase client.
- * @throws An error if the Supabase URL or service role key is not configured.
- */
 export const getSupabaseClient = async (): Promise<SupabaseClient> => {
     // Step 1: Return the cached client if it already exists.
     if (supabaseClient) {
