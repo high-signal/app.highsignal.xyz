@@ -87,11 +87,6 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
         try {
             await this.setLastChecked(user.user_id, projectId)
 
-            const userActivity = await fetchUserActivity(user.forum_username, this.config)
-            this.logger.info(
-                `[DiscourseAdapter] Fetched ${userActivity?.user_actions.length ?? 0} actions for user ${user.forum_username}.`,
-            )
-
             const signalConfig = await getLegacySignalConfig(this.supabase, this.config.SIGNAL_STRENGTH_ID, projectId)
             if (!signalConfig) {
                 this.logger.error(
@@ -99,6 +94,11 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
                 )
                 return
             }
+
+            const userActivity = await fetchUserActivity(user.forum_username, signalConfig, this.config)
+            this.logger.info(
+                `[DiscourseAdapter] Fetched ${userActivity?.user_actions.length ?? 0} actions for user ${user.forum_username}.`,
+            )
 
             // Phase 2: Generate daily raw scores based on user activity.
             await this.generateRawScoresForUser(user, userActivity, signalConfig, projectId)

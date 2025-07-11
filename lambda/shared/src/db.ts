@@ -129,7 +129,8 @@ export async function getLegacySignalConfig(
             project_signal_strengths!inner(
               enabled,
               max_value,
-              previous_days
+              previous_days,
+              url
             )
           `,
         )
@@ -155,10 +156,6 @@ export async function getLegacySignalConfig(
 
     // The inner join ensures project_signal_strengths has at least one item.
     const projectConfig = data.project_signal_strengths[0]
-    if (!projectConfig || !projectConfig.enabled) {
-        console.info(`[DBShared] Signal ${signalStrengthId} is disabled for project ${projectId}.`)
-        return null
-    }
 
     const prompts: Prompt[] = Array.isArray(data.prompts) ? data.prompts : data.prompts ? [data.prompts] : []
 
@@ -167,8 +164,9 @@ export async function getLegacySignalConfig(
         model: data.model,
         temperature: data.temperature,
         maxChars: data.max_chars,
-        maxValue: projectConfig.max_value ?? 100, // Default to 100 if null, as per legacy behavior
+        maxValue: projectConfig.max_value ?? 100,
         previous_days: projectConfig.previous_days ?? null,
+        url: projectConfig.url,
         prompts,
     }
 }

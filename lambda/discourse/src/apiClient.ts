@@ -1,4 +1,5 @@
 import { Logger } from "winston"
+import { AiConfig } from "@shared/types"
 import { DiscourseAdapterConfig } from "./config"
 import { DiscourseUserActivity } from "./types"
 
@@ -6,15 +7,16 @@ import { DiscourseUserActivity } from "./types"
  * Fetches user activity data from the Discourse API using a signed request.
  *
  * @param username - The Discourse username.
- * @param config - The adapter configuration containing URL and signing keys.
+ * @param signalConfig - The signal configuration containing the URL.
+ * @param config - The adapter configuration containing signing keys.
  * @returns A promise that resolves to the user's activity data or null if an error occurs.
  */
 export async function fetchUserActivity(
     username: string,
+    signalConfig: AiConfig,
     config: DiscourseAdapterConfig,
 ): Promise<DiscourseUserActivity | null> {
-    const { url: baseUrl } = config
-    const url = `${baseUrl}/u/${username}/activity.json`
+    const url = `${signalConfig.url}/users/${username}/activity.json`
 
     console.log(`[DiscourseAdapter] Fetching user activity from: ${url}`)
 

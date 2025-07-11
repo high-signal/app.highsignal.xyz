@@ -112,37 +112,40 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
         const signalStrengthId = signalStrengthData.id
         effectiveLogger.info(`Found signal strength ID: ${signalStrengthId}`)
 
-        // Fetch project URL from project_signal_strengths table
-        const { data: projectSignalStrengthData, error: projectSignalStrengthError } = await supabase
+        // Fetch project enabled state from project_signal_strengths table
+        const { data: isProjectEnabled, error: isProjectEnabledError } = await supabase
             .from("project_signal_strengths")
-            .select("url")
+            .select("enabled")
             .eq("project_id", projectId)
             .eq("signal_strength_id", signalStrengthId)
             .single()
 
-        if (projectSignalStrengthError || !projectSignalStrengthData || !projectSignalStrengthData.url) {
-            const dbError = `Failed to fetch URL for project ID '${projectId}' and signal strength ID '${signalStrengthId}'.`
-            effectiveLogger.error(dbError, { error: projectSignalStrengthError })
+        if (isProjectEnabledError) {
+            const dbError = `Failed to fetch enabled state for project ID '${projectId}' and signal strength ID '${signalStrengthId}'.`
+            effectiveLogger.error(dbError, { error: isProjectEnabledError })
             throw new Error(dbError)
         }
-        const projectUrl = projectSignalStrengthData.url
-        effectiveLogger.info(`Found project URL: ${projectUrl}`)
+
+        if (!isProjectEnabled.enabled) {
+            effectiveLogger.info(`[DBShared] Signal ${signalStrengthId} is disabled for project ${projectId}.`)
+            return // or however the engine exits
+        }
 
         const staticConfig = await getPlatformAdapterConfig(platformName, adapterInfo.schema)
 
-        const combinedConfig: any = {
+        const combinedConfig = {
             ...staticConfig,
             PROJECT_ID: projectId,
             SIGNAL_STRENGTH_ID: signalStrengthId,
-            url: projectUrl,
         }
+        delete combinedConfig.url // Remove the 'url' property from the adapter's configuration object
 
         const runtimeConfig = await getAdapterRuntimeConfig(supabase, combinedConfig)
-        effectiveLogger.info("Configuration loaded successfully.")
+        const effectiveConfig = { ...combinedConfig, ...runtimeConfig }
 
         // Phase 6: Adapter Instantiation & Execution
         const AdapterClass = adapterInfo.constructor
-        const adapter = new AdapterClass(effectiveLogger, aiOrchestrator, supabase, runtimeConfig)
+        const adapter = new AdapterClass(effectiveLogger, aiOrchestrator, supabase, effectiveConfig)
 
         await adapter.processUser(userId, projectId.toString(), runtimeConfig.aiConfig)
 

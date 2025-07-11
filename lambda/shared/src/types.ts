@@ -157,6 +157,7 @@ export interface AiConfig {
     prompts: Prompt[]
     maxValue: number
     previous_days: number | null
+    url: string
 }
 
 /**
