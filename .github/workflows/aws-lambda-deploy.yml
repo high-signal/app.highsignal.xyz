@@ -44,7 +44,7 @@ jobs:
                   cd lambda
                   yarn install --frozen-lockfile
 
-            - name: Build TypeScript
+            - name: Compile TypeScript sources
               run: |
                   cd lambda
                   yarn tsc
