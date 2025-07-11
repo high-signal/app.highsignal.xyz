@@ -15,8 +15,14 @@
         "isolatedModules": true,
         "jsx": "preserve",
         "incremental": true,
+        "baseUrl": ".",
         "paths": {
-            "@/*": ["./"]
+            "@/*": ["./*"],
+            "@engine/*": ["./lambda/dist/engine/src/*"],
+            "@shared/*": ["./lambda/dist/shared/src/*"],
+            "@discourse/*": ["./lambda/dist/discourse/src/*"],
+            "@twitter/*": ["./lambda/dist/twitter/src/*"],
+            "@discord/*": ["./lambda/dist/discord/src/*"]
         },
         "plugins": [
             {
@@ -25,5 +31,11 @@
         ]
     },
     "include": ["app", "next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
-    "exclude": ["node_modules"]
+    "exclude": [
+      "node_modules",
+      "lambda",
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      "lambda/vitest.config.ts"
+    ]
 }

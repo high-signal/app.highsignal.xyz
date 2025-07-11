@@ -1,0 +1,217 @@
+import { describe, it, expect, vi, beforeEach } from "vitest"
+import { AIOrchestrator } from "../src/aiOrchestrator"
+import { AppConfig } from "../src/config"
+import { Logger } from "../src/logger"
+import { getLegacySignalConfig, getUsersByIds } from "@shared/dbClient"
+import * as aiService from "../src/aiService"
+import type { AiConfig, PlatformOutput, AIScoreOutput, ForumUser, UserSignalStrength } from "../src/types"
+
+// Mock dependencies
+vi.mock("@shared/dbClient", () => ({
+    getLegacySignalConfig: vi.fn(),
+    getUsersByIds: vi.fn(),
+}))
+vi.mock("../src/aiService")
+
+const mockLogger: Logger = {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+} as any
+
+const mockAppConfig = {} as AppConfig
+const mockSupabaseClient = {} as any
+
+describe("AIOrchestrator", () => {
+    const mockAiConfig: AiConfig = {
+        signalStrengthId: 1,
+        model: "gpt-4-test",
+        temperature: 0.7,
+        maxChars: 1000,
+        maxValue: 10,
+        previous_days: 30,
+        prompts: [
+            {
+                id: 1,
+                signal_strength_id: 1,
+                type: "raw",
+                prompt: "OLD RAW - Analyze: ${content} for ${username} (${displayName}). Max score: ${maxValue}",
+                created_at: "2023-01-01T12:00:00.000Z",
+            },
+            {
+                id: 2,
+                signal_strength_id: 1,
+                type: "smart",
+                prompt: "OLD SMART - Summarize: ${content} for ${username}. Max score: ${maxValue}",
+                created_at: "2023-01-01T12:00:00.000Z",
+            },
+            {
+                id: 3,
+                signal_strength_id: 1,
+                type: "raw",
+                prompt: "Analyze: ${content} for ${username} (${displayName}). Max score: ${maxValue}",
+                created_at: "2023-01-02T12:00:00.000Z", // Newer
+            },
+            {
+                id: 4,
+                signal_strength_id: 1,
+                type: "smart",
+                prompt: "Summarize: ${content} for ${username}. Max score: ${maxValue}",
+                created_at: "2023-01-02T12:00:00.000Z", // Newer
+            },
+        ],
+    }
+
+    const mockPlatformOutputs: PlatformOutput[] = [
+        {
+            topic_id: 1,
+            author: "101",
+            content: "Post 1",
+            timestamp: new Date().toISOString(),
+            reply_count: 0,
+            like_count: 2,
+            tags: [],
+        },
+        {
+            topic_id: 2,
+            author: "102",
+            content: "Post 2",
+            timestamp: new Date().toISOString(),
+            reply_count: 1,
+            like_count: 3,
+            tags: [],
+        },
+        {
+            topic_id: 3,
+            author: "101",
+            content: "Post 3",
+            timestamp: new Date().toISOString(),
+            reply_count: 2,
+            like_count: 5,
+            tags: [],
+        },
+    ]
+
+    const mockUsersData = new Map([
+        [101, { user_id: 101, username: "user1", displayName: "User One" }],
+        [102, { user_id: 102, username: "user2", displayName: "User Two" }],
+    ])
+
+    const mockAiScoreOutput: AIScoreOutput = {
+        value: 8,
+        summary: "Good contributions",
+        description: "Detailed analysis",
+        improvements: "Could be more concise",
+        explained_reasoning: "Based on content analysis",
+        modelUsed: "gpt-4-test",
+        requestId: "req-123",
+        promptTokens: 100,
+        completionTokens: 50,
+    }
+
+    const mockAIServiceClient = {
+        getStructuredResponse: vi.fn(),
+    }
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+        vi.mocked(getLegacySignalConfig).mockResolvedValue(mockAiConfig)
+        vi.mocked(getUsersByIds).mockResolvedValue(mockUsersData as any)
+        vi.mocked(aiService.getAIServiceClient).mockReturnValue(mockAIServiceClient)
+        mockAIServiceClient.getStructuredResponse.mockResolvedValue(mockAiScoreOutput)
+    })
+
+    describe("getAiScores", () => {
+        it("should process platform outputs and return user signal strengths", async () => {
+            const orchestrator = new AIOrchestrator(mockSupabaseClient, mockLogger)
+            const result = await orchestrator.getAiScores(mockPlatformOutputs, "2023-01-01", 1, 1)
+
+            expect(result.length).toBe(2)
+            expect(getLegacySignalConfig).toHaveBeenCalledWith(mockSupabaseClient, 1, 1)
+            expect(getUsersByIds).toHaveBeenCalledWith(mockSupabaseClient, [101, 102])
+            expect(aiService.getAIServiceClient).toHaveBeenCalledTimes(2)
+            expect(mockAIServiceClient.getStructuredResponse).toHaveBeenCalledTimes(2)
+        })
+
+        it("should return an empty array if AI config is not found", async () => {
+            vi.mocked(getLegacySignalConfig).mockResolvedValue(null)
+            const orchestrator = new AIOrchestrator(mockSupabaseClient, mockLogger)
+            const result = await orchestrator.getAiScores(mockPlatformOutputs, "2023-01-01", 1, 1)
+
+            expect(result).toEqual([])
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                "AIOrchestrator: Could not obtain valid AI config or prompt. Aborting.",
+                expect.any(Object),
+            )
+        })
+    })
+
+    describe("generateRawScoreForUserActivity", () => {
+        const mockUser: ForumUser = {
+            user_id: 101,
+            forum_username: "user1",
+            display_name: "User One",
+            auth_encrypted_payload: null,
+            auth_post_code: null,
+            auth_post_code_created: null,
+            auth_post_id: null,
+            created_at: new Date().toISOString(),
+            last_updated: new Date().toISOString(),
+            project_id: 1,
+        } as ForumUser
+
+        it("should generate a raw score for a user", async () => {
+            const orchestrator = new AIOrchestrator(mockSupabaseClient, mockLogger)
+            const result = await orchestrator.generateRawScoreForUserActivity("User activity summary", mockUser, 1, 1)
+
+            expect(result).toEqual({ score: mockAiScoreOutput, promptId: 3 })
+            expect(mockAIServiceClient.getStructuredResponse).toHaveBeenCalledWith(
+                "Analyze: User activity summary for user1 (User One). Max score: 10",
+                expect.any(Object),
+            )
+        })
+    })
+
+    describe("generateSmartScoreFromRawScores", () => {
+        const mockUser: ForumUser = {
+            user_id: 101,
+            forum_username: "user1",
+            auth_encrypted_payload: null,
+            auth_post_code: null,
+            auth_post_code_created: null,
+            auth_post_id: null,
+            created_at: new Date().toISOString(),
+            last_updated: new Date().toISOString(),
+            project_id: 1,
+        }
+        const rawScores: { day: string; raw_value: number; max_value: number; summary: string }[] = [
+            { day: "2023-01-01", raw_value: 7, max_value: 10, summary: "First day summary" },
+            { day: "2023-01-02", raw_value: 9, max_value: 10, summary: "Second day summary" },
+        ]
+
+        it("should generate a smart score from raw scores", async () => {
+            const orchestrator = new AIOrchestrator(mockSupabaseClient, mockLogger)
+            await orchestrator.generateSmartScoreFromRawScores(rawScores, mockUser, 1, 1)
+
+            const expectedPrompt = `Summarize: The following are raw scores for user1:\n- On 2023-01-01, score was 7/10. Summary: First day summary\n- On 2023-01-02, score was 9/10. Summary: Second day summary. Max score: 10`
+            // We use stringContaining because the exact whitespace might vary slightly.
+            expect(mockAIServiceClient.getStructuredResponse).toHaveBeenCalledWith(
+                expect.stringContaining("Summarize: The following are raw scores for user1:"),
+                expect.any(Object),
+            )
+            expect(mockAIServiceClient.getStructuredResponse).toHaveBeenCalledWith(
+                expect.stringContaining("- On 2023-01-01, score was 7/10. Summary: First day summary"),
+                expect.any(Object),
+            )
+        })
+
+        it("should return null if no raw scores are provided", async () => {
+            const orchestrator = new AIOrchestrator(mockSupabaseClient, mockLogger)
+            const result = await orchestrator.generateSmartScoreFromRawScores([], mockUser, 1, 1)
+
+            expect(result).toBeNull()
+            expect(mockLogger.warn).toHaveBeenCalledWith("No raw scores provided; cannot generate smart score.")
+        })
+    })
+})
