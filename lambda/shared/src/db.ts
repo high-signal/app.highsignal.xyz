@@ -309,7 +309,9 @@ export async function saveScore(
     supabase: SupabaseClient,
     scoreData: Omit<UserSignalStrength, "id" | "created_at" | "test_requesting_user">,
 ): Promise<void> {
-    const { error } = await supabase.from("user_signal_strengths").insert(scoreData)
+    const { error } = await supabase.from("user_signal_strengths").upsert(scoreData, {
+        onConflict: "request_id",
+    })
 
     if (error) {
         throw new Error(`Failed to save score: ${error.message}`)
