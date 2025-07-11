@@ -1,4 +1,4 @@
-const { handler: engineHandler } = require("./engine/dist/engine")
+const { handler: engineHandler } = require("./dist/engine/src/engine")
 
 exports.handler = async (event) => {
     try {
