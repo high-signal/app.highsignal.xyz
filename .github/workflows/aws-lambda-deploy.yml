@@ -47,9 +47,9 @@ jobs:
             - name: Build TypeScript
               run: |
                   cd lambda
-                  yarn build
+                  yarn tsc
 
-            - name: Build and package Lambda function
+            - name: Package Lambda function
               run: |
                   cd lambda
                   yarn package
