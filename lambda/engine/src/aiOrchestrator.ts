@@ -87,34 +87,12 @@ export class AIOrchestrator implements IAiOrchestrator {
 
         // Step 2: Prepare user content by stripping HTML and truncating it.
         const { username, displayName } = this._getUserIdentity(user, undefined)
-
-        this.logger.info(
-            `[DIAGNOSTIC] Raw content before processing for user ${user.user_id} on day ${day}: ${content.substring(0, 200)}...`,
-        )
-
         const dailyActions = JSON.parse(content)
+        const strippedContent = processObjectForHtml(dailyActions)
+        const truncatedContent = this._truncateContent(strippedContent, signalConfig.maxChars)
 
-        // Process object for HTML
-        this.logger.info(`[DIAGNOSTIC] Processing ${dailyActions.length} actions through HTML stripper`)
-        const processedActions = processObjectForHtml(dailyActions)
-
-        // Convert processed actions to a string representation
-        const userDataString = JSON.stringify(processedActions, null, 2)
-        this.logger.info(`[DIAGNOSTIC] Content length before truncation: ${userDataString.length} characters`)
-
-        // Truncate content
-        const truncatedContent = this._truncateContent(userDataString, signalConfig.maxChars)
-        this.logger.info(`[DIAGNOSTIC] Truncated content length: ${truncatedContent.length} characters`)
-        this.logger.info(`[DIAGNOSTIC] Was content truncated: ${userDataString.length !== truncatedContent.length}`)
-        this.logger.info(`[DIAGNOSTIC] Truncation - max chars allowed: ${signalConfig.maxChars}`)
-
-        if (truncatedContent.length === 0) {
-            this.logger.warn(`No content for user ${user.user_id} on day ${day}, skipping.`)
-            return null
-        }
-
-        // Step 3: Construct the final prompt for the AI service.
-        const finalPrompt = this._preparePrompt(promptConfig.prompt || "", {
+        // Step 3: Construct the final prompt.
+        const prompt = this._preparePrompt(promptConfig.prompt!, {
             content: truncatedContent,
             username,
             displayName,
@@ -122,46 +100,28 @@ export class AIOrchestrator implements IAiOrchestrator {
             logs,
         })
 
-        this.logger.info(`[DIAGNOSTIC] AI input - base prompt prepared with template from DB`)
-
-        // Create messages array
-        const messages = [
-            {
-                role: "system",
-                content:
-                    "You are a helpful assistant that evaluates user activity data. You must respond with only valid JSON.",
-            },
-            {
-                role: "user",
-                content: finalPrompt,
-            },
-        ]
-
-        this.logger.info(`[DIAGNOSTIC] AI input - system and user messages prepared`)
-
         // Step 4: Execute the AI service call.
-        const aiScore = await this._executeAIServiceCall(finalPrompt, signalConfig, user.user_id)
+        const aiScore = await this._executeAIServiceCall(prompt, signalConfig, user.user_id)
         if (!aiScore) {
-            this.logger.error("AI service call failed for raw score generation.", { userId: user.user_id, day })
             return null
         }
 
-        this.logger.info(`Analysis complete for user: ${username}`)
-
-        // Step 5: Transform the AI output into the final UserSignalStrength object.
-        return this._transformRawScoreOutput(aiScore, user.user_id, day, projectId, signalConfig, promptConfig.id, logs)
+        // Step 5: Transform the AI output into the final UserSignalStrength format.
+        return this._transformScoreOutput(aiScore, user.user_id, projectId, signalConfig, promptConfig.id, "raw", {
+            day,
+            logs,
+        })
     }
 
     /**
      * Generates a single 'smart' score based on a user's recent raw scores.
-     * This method uses a deterministic algorithm (`calculateSmartScore`) to calculate a score
-     * and then constructs the final `UserSignalStrength` object directly, without an AI call.
+     * This method first calculates a numeric score deterministically, then calls the AI for a qualitative summary.
      *
      * @param user The user being scored.
      * @param rawScores An array of the user's recent raw scores.
      * @param signalConfig The AI configuration for this scoring task.
      * @param projectId The project context.
-     * @returns A `UserSignalStrength` object.
+     * @returns A `UserSignalStrength` object or null on failure.
      */
     public async generateSmartScoreSummary(
         user: ForumUser,
@@ -169,40 +129,47 @@ export class AIOrchestrator implements IAiOrchestrator {
         signalConfig: AiConfig,
         projectId: string,
     ): Promise<UserSignalStrength | null> {
-        // Step 1: Calculate the deterministic smart score and prepare a summary.
-        const { smartScore, topBandDays } = calculateSmartScore(rawScores, signalConfig.previous_days ?? 30)
-        const summary = `Smart score of ${smartScore} calculated based on ${rawScores.length} raw scores. Top band days: ${topBandDays}.`
-
-        this.logger.info(`Calculated smart score for user ${user.user_id}: ${smartScore}`)
-
-        // Step 2: Construct the final UserSignalStrength object directly.
-        return {
-            user_id: user.user_id,
-            signal_strength_id: signalConfig.signalStrengthId,
-            project_id: projectId,
-            value: smartScore, // The deterministic score.
-            raw_value: null, // Smart scores do not have a raw_value.
-            summary: `Top band days: ${JSON.stringify(topBandDays)}`, // Store top band days for diagnostics
-            description: "Smart score calculated based on raw score performance.",
-            improvements: null,
-            explained_reasoning: null,
-            created: Math.floor(new Date().getTime() / 1000),
-            day: (() => {
-                const d = new Date()
-                d.setDate(d.getDate() - 1)
-                return d.toISOString().split("T")[0]
-            })(),
-            model: null,
-            temperature: null,
-            max_chars: null,
-            logs: `Calculated smart score from ${rawScores.length} raw scores. Found ${topBandDays.length} days in top band.`,
-            request_id: null,
-            prompt_tokens: 0,
-            completion_tokens: 0,
-            test_requesting_user: null,
-            prompt_id: null, // No prompt used
-            max_value: signalConfig.maxValue,
+        // Step 1: Validate and retrieve the appropriate prompt configuration.
+        const promptConfig = this._prepareAndValidatePrompts(signalConfig, "smart")
+        if (!promptConfig) {
+            this.logger.error("Could not get valid prompt for smart score. Aborting.", {
+                signalStrengthId: signalConfig.signalStrengthId,
+                projectId,
+            })
+            return null
         }
+
+        // Step 2: Calculate the deterministic smart score.
+        const { smartScore, topBandDays } = calculateSmartScore(rawScores, signalConfig.previous_days ?? 30)
+
+        // Step 3: Filter raw scores to only include those in the top band for the AI summary.
+        const relevantRawScores = rawScores.filter((score) => topBandDays.includes(score.day))
+
+        // Step 4: Prepare the prompt for the AI summary.
+        const { username, displayName } = this._getUserIdentity(user, undefined)
+        const prompt = this._prepareSmartScorePrompt(promptConfig.prompt!, {
+            username,
+            displayName,
+            rawScores: JSON.stringify(relevantRawScores, null, 2),
+            smartScore,
+        })
+
+        // Step 5: Execute the AI service call for the summary.
+        const aiSummary = await this._executeAIServiceCall(prompt, signalConfig, user.user_id)
+        if (!aiSummary) {
+            return null
+        }
+
+        // Step 6: Transform the output into the final UserSignalStrength format.
+        return this._transformScoreOutput(
+            aiSummary,
+            user.user_id,
+            projectId,
+            signalConfig,
+            promptConfig.id,
+            "smart",
+            { numericScore: smartScore },
+        )
     }
 
     /**
@@ -358,73 +325,59 @@ export class AIOrchestrator implements IAiOrchestrator {
         }
     }
 
-    // Transforms a validated `AIScoreOutput` into a `UserSignalStrength` object for raw scores.
-    private _transformRawScoreOutput(
-        aiScore: AIScoreOutput,
+    // Transforms a validated AIScoreOutput into a UserSignalStrength object.
+    private _transformScoreOutput(
+        aiOutput: AIScoreOutput,
         userId: number,
-        day: string,
         projectId: string,
         aiConfig: AiConfig,
         promptId: number,
-        logs: string,
+        scoreType: "raw" | "smart",
+        options: {
+            day?: string
+            logs?: string
+            numericScore?: number
+        },
     ): UserSignalStrength {
-        const analysisLogs = `${logs ? logs + "\n" : ""}userDataString.length: ${logs.length}\ntruncatedContent.length: ${(aiScore.promptTokens || 0) * 4}`
+        let value: number | null = null
+        let raw_value: number | null = null
+        let day: string
+        let logs: string | null = null
 
-        this.logger.info(`[DIAGNOSTIC] Raw score output - creating UserSignalStrength with raw_value: ${aiScore.value}`)
-
-        return {
-            user_id: userId,
-            signal_strength_id: aiConfig.signalStrengthId,
-            project_id: projectId,
-            value: null, // Raw scores use raw_value, not value.
-            raw_value: aiScore.value, // The direct score from the AI.
-            summary: aiScore.summary,
-            description: aiScore.description,
-            improvements: aiScore.improvements,
-            explained_reasoning: JSON.stringify(aiScore.explained_reasoning),
-            created: Math.floor(Date.now() / 1000),
-            day: day,
-            model: aiConfig.model,
-            temperature: aiConfig.temperature,
-            max_chars: aiConfig.maxChars,
-            logs: analysisLogs,
-            request_id: aiScore.requestId,
-            prompt_tokens: aiScore.promptTokens,
-            completion_tokens: aiScore.completionTokens,
-            test_requesting_user: null,
-            prompt_id: promptId,
-            max_value: aiConfig.maxValue,
+        if (scoreType === "raw") {
+            raw_value = aiOutput.value // The direct score from the AI.
+            day = options.day! // Raw scores are for a specific day.
+            const analysisLogs = `${options.logs ? options.logs + "\n" : ""}userDataString.length: ${
+                options.logs?.length ?? 0
+            }\ntruncatedContent.length: ${(aiOutput.promptTokens || 0) * 4}`
+            logs = analysisLogs
+            this.logger.info(`[DIAGNOSTIC] Raw score output - creating UserSignalStrength with raw_value: ${raw_value}`)
+        } else {
+            // smart score
+            value = options.numericScore! // The deterministic score.
+            day = new Date().toISOString().split("T")[0] // Smart scores are for 'today'.
+            this.logger.info(`[DIAGNOSTIC] Smart score output - creating UserSignalStrength with value: ${value}`)
         }
-    }
 
-    // Transforms a validated `AIScoreOutput` into a `UserSignalStrength` object for smart scores.
-    private _transformSmartScoreOutput(
-        aiSummary: AIScoreOutput,
-        smartScore: number,
-        userId: number,
-        projectId: string,
-        aiConfig: AiConfig,
-        promptId: number,
-    ): UserSignalStrength {
         return {
             user_id: userId,
             signal_strength_id: aiConfig.signalStrengthId,
             project_id: projectId,
-            value: smartScore, // The deterministic score.
-            raw_value: null, // Smart scores do not have a raw_value.
-            summary: aiSummary.summary,
-            description: aiSummary.description,
-            improvements: aiSummary.improvements,
-            explained_reasoning: JSON.stringify(aiSummary.explained_reasoning),
-            created: Math.floor(new Date().getTime() / 1000),
-            day: new Date().toISOString().split("T")[0], // Smart scores are for 'today'.
+            value,
+            raw_value,
+            summary: aiOutput.summary,
+            description: aiOutput.description,
+            improvements: aiOutput.improvements,
+            explained_reasoning: JSON.stringify(aiOutput.explained_reasoning),
+            created: Math.floor(Date.now() / 1000),
+            day,
             model: aiConfig.model,
             temperature: aiConfig.temperature,
             max_chars: aiConfig.maxChars,
-            logs: null,
-            request_id: aiSummary.requestId,
-            prompt_tokens: aiSummary.promptTokens,
-            completion_tokens: aiSummary.completionTokens,
+            logs,
+            request_id: aiOutput.requestId,
+            prompt_tokens: aiOutput.promptTokens,
+            completion_tokens: aiOutput.completionTokens,
             test_requesting_user: null,
             prompt_id: promptId,
             max_value: aiConfig.maxValue,
