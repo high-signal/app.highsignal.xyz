@@ -7,6 +7,7 @@
 import { initializeLogger, Logger } from "./logger"
 import { getAppConfig, getPlatformAdapterConfig, getAdapterRuntimeConfig } from "./config"
 import { getSupabaseClient } from "./dbClient"
+import { saveScore } from "@shared/db"
 import { AIOrchestrator } from "./aiOrchestrator"
 import { PlatformAdapter, PlatformAdapterConstructor } from "./types"
 import { DiscourseAdapter } from "@discourse/adapter"
@@ -36,6 +37,77 @@ interface EngineRunOptions {
     userId?: string
     projectId?: string
     signalStrengthName?: string
+}
+
+// --- Engine Helper Functions ---
+
+/**
+ * Sets a 'last_checked' marker for a user by saving a special record in the database.
+ * This marker serves as a lock to indicate that a user's analysis is in progress,
+ * which is useful for debugging and preventing duplicate processing.
+ *
+ * @param supabase - The Supabase client instance.
+ * @param logger - The logger instance for logging.
+ * @param userId - The ID of the user being processed.
+ * @param projectId - The project context.
+ * @param signalStrengthId - The specific signal being processed.
+ */
+async function setLastChecked(
+    supabase: any,
+    logger: Logger,
+    userId: string,
+    projectId: string,
+    signalStrengthId: string,
+): Promise<void> {
+    logger.info(`[Engine] Setting last_checked for user ${userId}`)
+    try {
+        await saveScore(supabase, {
+            user_id: parseInt(userId, 10),
+            project_id: projectId,
+            signal_strength_id: signalStrengthId,
+            last_checked: Math.floor(Date.now() / 1000),
+            request_id: `last_checked_${userId}_${projectId}_${signalStrengthId}`,
+            day: new Date().toISOString().split("T")[0],
+            created: Math.floor(Date.now() / 1000),
+        })
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        logger.error(`[Engine] Error setting last_checked for user ${userId}: ${message}`)
+    }
+}
+
+/**
+ * Clears the 'last_checked' marker for a user from the database.
+ * This is typically called in a `finally` block to ensure the lock is released
+ * after processing is complete, whether it succeeded or failed.
+ *
+ * @param supabase - The Supabase client instance.
+ * @param logger - The logger instance for logging.
+ * @param userId - The ID of the user being processed.
+ * @param projectId - The project context.
+ * @param signalStrengthId - The specific signal being processed.
+ */
+async function clearLastChecked(
+    supabase: any,
+    logger: Logger,
+    userId: string,
+    projectId: string,
+    signalStrengthId: string,
+): Promise<void> {
+    logger.info(`[Engine] Clearing last_checked for user ${userId}`)
+    try {
+        const { error } = await supabase
+            .from("user_signal_strengths")
+            .delete()
+            .eq("request_id", `last_checked_${userId}_${projectId}_${signalStrengthId}`)
+
+        if (error) {
+            throw error
+        }
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        logger.error(`[Engine] Error clearing last_checked for user ${userId}: ${message}`)
+    }
 }
 
 /**
@@ -131,6 +203,8 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
             return // or however the engine exits
         }
 
+        await setLastChecked(supabase, effectiveLogger, userId, projectId, signalStrengthId) // Set last checked marker
+
         const staticConfig = await getPlatformAdapterConfig(platformName, adapterInfo.schema)
 
         const combinedConfig = {
@@ -147,7 +221,11 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
         const AdapterClass = adapterInfo.constructor
         const adapter = new AdapterClass(effectiveLogger, aiOrchestrator, supabase, effectiveConfig)
 
-        await adapter.processUser(userId, projectId.toString(), runtimeConfig.aiConfig)
+        try {
+            await adapter.processUser(userId, projectId.toString(), runtimeConfig.aiConfig)
+        } finally {
+            await clearLastChecked(supabase, effectiveLogger, userId, projectId, signalStrengthId) // Clear last checked marker
+        }
 
         effectiveLogger.info(`Successfully completed engine run for platform '${platformName}' and user '${userId}'.`)
     } catch (error: any) {

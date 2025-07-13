@@ -85,8 +85,6 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
         )
 
         try {
-            await this.setLastChecked(user.user_id, projectId)
-
             const signalConfig = await getLegacySignalConfig(this.supabase, this.config.SIGNAL_STRENGTH_ID, projectId)
             if (!signalConfig) {
                 this.logger.error(
@@ -198,7 +196,6 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
                 { error },
             )
         } finally {
-            await this.clearLastChecked(user.user_id, projectId)
             this.logger.info(`[DiscourseAdapter] Finished analysis for user ${user.user_id}.`)
         }
     }
@@ -327,57 +324,6 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
                     `[DiscourseAdapter] AI Orchestrator returned no score for user ${user.user_id} on ${dayStr}`,
                 )
             }
-        }
-    }
-
-    /**
-     * Clears the 'last_checked' marker for a user.
-     * This is used to reset the processing state, typically at the beginning of a run,
-     * to ensure that the user is picked up for processing.
-     *
-     * @param userId - The ID of the user.
-     * @param projectId - The project context.
-     */
-    private async clearLastChecked(userId: number, projectId: string): Promise<void> {
-        this.logger.info(`[DiscourseAdapter] Clearing last_checked for user ${userId} and project ${projectId}`)
-        try {
-            const { error } = await this.supabase
-                .from("user_signal_strengths")
-                .delete()
-                .eq("request_id", `last_checked_${userId}_${projectId}_${this.config.SIGNAL_STRENGTH_ID}`)
-
-            if (error) {
-                throw error
-            }
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error)
-            this.logger.error(`[DiscourseAdapter] Error clearing last_checked for user ${userId}: ${message}`)
-        }
-    }
-
-    /**
-     * Sets a 'last_checked' marker for a user by saving a special record.
-     * This marker indicates that the user has been processed in the current run,
-     * which can be used for logging, debugging, or idempotency checks.
-     *
-     * @param userId - The ID of the user.
-     * @param projectId - The project context.
-     */
-    private async setLastChecked(userId: number, projectId: string): Promise<void> {
-        this.logger.info(`[DiscourseAdapter] Setting last_checked for user ${userId} and project ${projectId}`)
-        try {
-            await saveScore(this.supabase, {
-                user_id: userId,
-                project_id: projectId,
-                signal_strength_id: this.config.SIGNAL_STRENGTH_ID,
-                last_checked: Math.floor(Date.now() / 1000),
-                request_id: `last_checked_${userId}_${projectId}_${this.config.SIGNAL_STRENGTH_ID}`,
-                day: new Date().toISOString().split("T")[0],
-                created: Math.floor(Date.now() / 1000),
-            })
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error)
-            this.logger.error(`[DiscourseAdapter] Error setting last_checked for user ${userId}: ${message}`)
         }
     }
 }
