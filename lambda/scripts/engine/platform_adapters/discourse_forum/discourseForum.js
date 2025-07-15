@@ -31,7 +31,7 @@ async function getDailyActivityData({
 
     // === Fetch activity data from forum API ===
     console.log(`Fetching forum activity data for ${userDisplayName} (forum username: ${forum_username})`)
-    const activityData = await fetchUserActivity(url, forum_username)
+    const activityData = await fetchUserActivity({ BASE_URL: url, username: forum_username })
     console.log(
         `Processed ${activityData?.length || 0} activities for ${userDisplayName} (forum username: ${forum_username})`,
     )

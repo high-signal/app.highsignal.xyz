@@ -42,13 +42,13 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
         // =================================
         // This includes everything in the signal_strengths table
         // and all the prompts for the signal strength.
-        const signalStrengthData = await getSignalStrengthData(supabase, signalStrengthName)
+        const signalStrengthData = await getSignalStrengthData({ supabase, signalStrengthName })
         signalStrengthId = signalStrengthData.id
 
         // ====================================================
         // Check if signal strength is enabled for the project
         // ====================================================
-        const isEnabled = await checkProjectSignalStrengthEnabled(supabase, projectId, signalStrengthId)
+        const isEnabled = await checkProjectSignalStrengthEnabled({ supabase, projectId, signalStrengthId })
         if (!isEnabled) {
             console.warn(`Signal strength ${signalStrengthName} is not enabled for project ID: ${projectId}`)
             return
@@ -59,14 +59,14 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
         // =================
         // Set last checked as soon as it is known that
         // the signal strength is enabled for the project.
-        setLastChecked(supabase, userId, projectId, signalStrengthId)
+        setLastChecked({ supabase, userId, projectId, signalStrengthId })
 
         // ====================================
         // Fetch signal strength config from DB
         // ====================================
         // This includes everything in the project_signal_strengths table
         // for the signal strength and project.
-        const signalStrengthConfig = await getSignalStrengthConfig(supabase, projectId, signalStrengthId)
+        const signalStrengthConfig = await getSignalStrengthConfig({ supabase, projectId, signalStrengthId })
         const maxValue = signalStrengthConfig.max_value
         const previousDays = signalStrengthConfig.previous_days
 
@@ -77,7 +77,7 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
         // ================================
         // Fetch user display name from DB
         // ================================
-        const userDisplayName = await getUserDisplayName(supabase, userId)
+        const userDisplayName = await getUserDisplayName({ supabase, userId })
 
         // ================================================
         // Fetch daily activity data from platform adapter
@@ -99,13 +99,13 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
         // ==================================================
         // Fetch existing user_signal_strengths data from DB
         // ==================================================
-        const existingUserRawData = await getExistingUserRawData(
+        const existingUserRawData = await getExistingUserRawData({
             supabase,
             userId,
             projectId,
             signalStrengthId,
             dailyActivityData,
-        )
+        })
 
         // ===================
         // Process raw scores
@@ -243,14 +243,14 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
                 dateYesterday,
             )
             console.log(`Smart score successfully updated for ${userDisplayName} (forum username: ${forum_username})`)
-            console.log("Analysis complete.")
+            console.log("Analysis complete .")
         } else {
             console.error(`Analysis failed for ${forum_username}:`, analysisResults?.error || "Unknown error")
         }
     } catch (error) {
         console.error("Error in analyzeForumUserActivity:", error)
     } finally {
-        clearLastChecked(supabase, userId, projectId, signalStrengthId)
+        clearLastChecked({ supabase, userId, projectId, signalStrengthId })
     }
 }
 

@@ -1,6 +1,6 @@
 const axios = require("axios")
 
-async function fetchUserActivity(BASE_URL, username) {
+async function fetchUserActivity({ BASE_URL, username }) {
     try {
         const url = `${BASE_URL}/u/${username}/activity.json`
         const response = await axios.get(url)

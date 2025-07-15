@@ -1,4 +1,4 @@
-async function getSignalStrengthData(supabase, signalStrengthName) {
+async function getSignalStrengthData({ supabase, signalStrengthName }) {
     // Returns all prompts for the signal strength
     // Prompt filtering for each type and date is carried out for each analysis
     const { data: signalStrengthData, error: signalStrengthDataError } = await supabase

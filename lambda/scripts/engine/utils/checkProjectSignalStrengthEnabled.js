@@ -1,4 +1,4 @@
-async function checkProjectSignalStrengthEnabled(supabase, projectId, signalStrengthId) {
+async function checkProjectSignalStrengthEnabled({ supabase, projectId, signalStrengthId }) {
     const { data: projectSignalData, error: projectSignalError } = await supabase
         .from("project_signal_strengths")
         .select(

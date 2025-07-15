@@ -1,4 +1,4 @@
-async function getExistingUserRawData(supabase, userId, projectId, signalStrengthId, dailyActivityData) {
+async function getExistingUserRawData({ supabase, userId, projectId, signalStrengthId, dailyActivityData }) {
     // Create an array of all the days that have data in dailyActivityData
     const daysWithRawData = dailyActivityData.map((day) => day.date)
 

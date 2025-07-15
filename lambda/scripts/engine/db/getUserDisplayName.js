@@ -1,4 +1,4 @@
-async function getUserDisplayName(supabase, userId) {
+async function getUserDisplayName({ supabase, userId }) {
     const { data, error } = await supabase.from("users").select("display_name").eq("id", userId).single()
     if (error) {
         console.error("Error fetching user display name from Supabase:", error.message)

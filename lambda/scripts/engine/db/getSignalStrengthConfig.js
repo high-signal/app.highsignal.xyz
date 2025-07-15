@@ -1,14 +1,14 @@
-async function getSignalStrengthConfig(supabase, PROJECT_ID, SIGNAL_STRENGTH_ID) {
+async function getSignalStrengthConfig({ supabase, projectId, signalStrengthId }) {
     const { data, error } = await supabase
         .from("project_signal_strengths")
         .select("*")
-        .eq("project_id", PROJECT_ID)
-        .eq("signal_strength_id", SIGNAL_STRENGTH_ID)
+        .eq("project_id", projectId)
+        .eq("signal_strength_id", signalStrengthId)
         .single()
     if (error) {
         console.error("Error fetching signal strength config from Supabase:", error.message)
         throw new Error(
-            `Failed to fetch signal strength config for project ${PROJECT_ID}, signal strength ${SIGNAL_STRENGTH_ID}: ${error.message}`,
+            `Failed to fetch signal strength config for project ${projectId}, signal strength ${signalStrengthId}: ${error.message}`,
         )
     }
 

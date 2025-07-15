@@ -1,4 +1,4 @@
-async function setLastChecked(supabase, userId, projectId, signalStrengthId) {
+async function setLastChecked({ supabase, userId, projectId, signalStrengthId }) {
     // Set the last_checked value so that the user profile page shows the loading animation
     // even when this update is triggered automatically each day
 
@@ -27,7 +27,7 @@ async function setLastChecked(supabase, userId, projectId, signalStrengthId) {
     }
 }
 
-async function clearLastChecked(supabase, userId, projectId, signalStrengthId) {
+async function clearLastChecked({ supabase, userId, projectId, signalStrengthId }) {
     // Delete any last_checked values for this user and project
     if (supabase && userId && projectId && signalStrengthId) {
         const { error: deleteError } = await supabase
