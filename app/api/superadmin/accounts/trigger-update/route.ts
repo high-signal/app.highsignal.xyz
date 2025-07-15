@@ -39,22 +39,6 @@ export async function PATCH(request: NextRequest) {
             }))
         }
 
-        const userIds = usersToUpdate.map((u) => u.userId)
-        // if (process.env.NODE_ENV === "development") {
-        //     // Clear last_updated for all users in usersToUpdate
-        //     if (userIds.length > 0) {
-        //         const { error: clearError } = await supabase
-        //             .from("forum_users")
-        //             .update({ last_updated: null })
-        //             .in("user_id", userIds)
-        //             .eq("project_id", projectId)
-        //         if (clearError) {
-        //             console.error("Error clearing last_updated:", clearError)
-        //             return NextResponse.json({ error: "Error clearing last_updated" }, { status: 500 })
-        //         }
-        //     }
-        // }
-
         // Lookup the signal_strength_id for the given signalStrengthName
         const { data: signalStrengthData, error: signalStrengthDataError } = await supabase
             .from("signal_strengths")

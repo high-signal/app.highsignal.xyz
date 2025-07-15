@@ -5,8 +5,7 @@ async function updateUserData(
     PROJECT_ID,
     SIGNAL_STRENGTH_ID,
     username,
-    user,
-    latestActivityDate,
+    userId,
     analysisResults,
     maxValue,
     testingData,
@@ -15,28 +14,6 @@ async function updateUserData(
 ) {
     try {
         console.log(`Updating database for user ${username}`)
-
-        // TODO: Move this to only happen after the results are successfully stored in the database
-        if (!testingData) {
-            // Store the new last_updated date to be used to know when to re-run the AI analysis
-            // This will run for every update, so the first time it will run X times for each day
-            // but after that it will only run once per day as there will only be at most one raw score
-            // calculation per day
-            const { error } = await supabase
-                .from("forum_users")
-                .update({
-                    last_updated: latestActivityDate,
-                })
-                .eq("forum_username", username)
-                .eq("user_id", user.user_id)
-                .eq("project_id", PROJECT_ID)
-
-            if (error) {
-                console.error(`Error updating database for ${username}:`, error.message)
-            } else {
-                console.log(`Successfully updated latestActivityDate in database for ${username}`)
-            }
-        }
 
         // Store the analysis results in the user_signal_strengths table
         const { error: signalError } = await supabase.from("user_signal_strengths").insert({
@@ -48,7 +25,7 @@ async function updateUserData(
             improvements: analysisResults[username].improvements,
             request_id: analysisResults.requestId,
             created: analysisResults.created,
-            user_id: user.user_id,
+            user_id: userId,
             project_id: PROJECT_ID,
             signal_strength_id: SIGNAL_STRENGTH_ID,
             explained_reasoning: analysisResults[username].explainedReasoning,
@@ -74,7 +51,7 @@ async function updateUserData(
         const { error: deleteError, data } = await supabase
             .from("user_signal_strengths")
             .delete()
-            .eq("user_id", user.user_id)
+            .eq("user_id", userId)
             .eq("project_id", PROJECT_ID)
             .eq("signal_strength_id", SIGNAL_STRENGTH_ID)
             .eq("day", dayDate)
@@ -91,7 +68,7 @@ async function updateUserData(
 
         // Update the user_project_scores_history table if it was a smart score calculation
         if (!isRawScoreCalc && !testingData?.requestingUserId) {
-            await updateTotalScoreHistory(supabase, user.user_id, PROJECT_ID, dayDate)
+            await updateTotalScoreHistory(supabase, userId, PROJECT_ID, dayDate)
         }
     } catch (dbError) {
         console.error(`Database error for ${username}:`, dbError.message)
