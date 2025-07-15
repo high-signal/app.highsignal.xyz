@@ -377,17 +377,25 @@ export type AdapterRuntimeConfig<T extends AdapterConfig> = T & {
  * An adapter is a class that encapsulates the logic for interacting with a
  * specific platform (e.g., Discourse, Twitter) to fetch data and process users.
  */
+export type DailyActivityLog = Record<string, any[]>
+
 export interface PlatformAdapter<T extends AdapterConfig> {
     /**
      * The main entry point for an adapter's logic.
      * It orchestrates the process of fetching data for a specific user,
      * analyzing it, and generating the required scores.
      *
-     * @param userId The unique identifier of the user to process.
+     * @param user The user to process.
      * @param projectId The ID of the project this user belongs to.
-     * @param aiConfig The AI configuration to use for scoring.
      */
-    processUser(userId: string, projectId: string, aiConfig: AiConfig): Promise<void>
+    processUser(user: ForumUser, projectId: string): Promise<void>
+    /**
+     * Fetches activity data for a user.
+     *
+     * @param user The user to fetch activity for.
+     * @param signalConfig The configuration containing lookback days and the API URL.
+     */
+    fetchActivity(user: ForumUser, signalConfig: AiConfig): Promise<DailyActivityLog>
 }
 
 /**

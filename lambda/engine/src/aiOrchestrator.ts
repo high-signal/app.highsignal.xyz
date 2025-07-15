@@ -161,15 +161,9 @@ export class AIOrchestrator implements IAiOrchestrator {
         }
 
         // Step 6: Transform the output into the final UserSignalStrength format.
-        return this._transformScoreOutput(
-            aiSummary,
-            user.user_id,
-            projectId,
-            signalConfig,
-            promptConfig.id,
-            "smart",
-            { numericScore: smartScore },
-        )
+        return this._transformScoreOutput(aiSummary, user.user_id, projectId, signalConfig, promptConfig.id, "smart", {
+            numericScore: smartScore,
+        })
     }
 
     /**

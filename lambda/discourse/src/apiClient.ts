@@ -14,11 +14,11 @@ import { DiscourseUserActivity } from "./types"
 export async function fetchUserActivity(
     username: string,
     signalConfig: AiConfig,
-    config: DiscourseAdapterConfig,
+    logger: Logger,
 ): Promise<DiscourseUserActivity | null> {
     const url = `${signalConfig.url}/users/${username}/activity.json`
 
-    console.log(`[DiscourseAdapter] Fetching user activity from: ${url}`)
+    logger.info(`[DiscourseAdapter] Fetching user activity from: ${url}`)
 
     try {
         const response = await fetch(url, {
@@ -30,7 +30,7 @@ export async function fetchUserActivity(
 
         if (!response.ok) {
             const errorBody = await response.text()
-            console.error(
+            logger.error(
                 `[DiscourseAdapter] Failed to fetch user activity for ${username}. Status: ${response.status}, Body: ${errorBody}`,
             )
             return null
@@ -39,7 +39,7 @@ export async function fetchUserActivity(
         const actions = await response.json()
 
         if (!Array.isArray(actions)) {
-            console.error(
+            logger.error(
                 `[DiscourseAPI] Expected user activity response to be an array, but received type '${typeof actions}'.`,
                 { response: actions },
             )
@@ -51,8 +51,7 @@ export async function fetchUserActivity(
         // We wrap the array to match the new system's expected type.
         return { user_actions: actions }
     } catch (error: any) {
-        const message = error instanceof Error ? error.message : String(error)
-        console.error(`[DiscourseAdapter] An error occurred while fetching user activity for ${username}.`, {
+        logger.error(`[DiscourseAdapter] An error occurred while fetching user activity for ${username}.`, {
             error: error.message,
             stack: error.stack,
         })

@@ -1,21 +1,19 @@
 import { Logger } from "winston"
 import { SupabaseClient } from "@supabase/supabase-js"
 
-import { AdapterRuntimeConfig, PlatformAdapter, ForumUser, IAiOrchestrator, AiConfig } from "@shared/types"
 import {
-    getForumUsersForProject,
-    getLegacySignalConfig,
-    getRawScoreForUser,
-    saveScore,
-    getRawScoresForUser,
-    deleteSmartScoresForUser,
-    deleteRawScore,
-    updateForumUserLastUpdated,
-    deleteDuplicateScores,
-} from "@shared/db"
+    AdapterRuntimeConfig,
+    PlatformAdapter,
+    ForumUser,
+    IAiOrchestrator,
+    AiConfig,
+    DailyActivityLog,
+} from "@shared/types"
+import { saveScore, getRawScoresForUser, deleteDuplicateScores } from "@shared/db"
 import { DiscourseAdapterConfig, DiscourseAdapterRuntimeConfig } from "./config"
 import { fetchUserActivity } from "./apiClient"
-import { DiscourseUserActivity, DiscourseUserAction } from "./types"
+import { DiscourseUserAction } from "./types"
+import { ScoreManager } from "../../engine/src/scoreManager"
 
 /**
  * The DiscourseAdapter is responsible for fetching user data from the Discourse API,
@@ -42,37 +40,38 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
         this.logger.info("[DiscourseAdapter] Initialized.")
     }
 
-    /**
-     * Processes a single user, orchestrating the entire workflow from data fetching to scoring.
-     * This is the main entry point for the adapter's logic.
-     *
-     * The process is divided into three main phases:
-     * 1. **Data Fetching & Pre-computation**: Fetches the user's activity from the Discourse API
-     *    and retrieves the necessary AI configuration from the database.
-     * 2. **Raw Score Generation**: Analyzes the user's daily activity to generate 'raw' scores,
-     *    which evaluate contributions for each specific day.
-     * 3. **Smart Score Generation**: Aggregates the recent raw scores to produce a single 'smart' score,
-     *    providing a holistic view of the user's recent engagement.
-     *
-     * @param userId - The unique identifier of the user to process.
-     * @param projectId - The project context in which the processing is happening.
-     * @param aiConfig - The AI configuration to be used for scoring.
-     */
-    public async processUser(userId: string, projectId: string, aiConfig: AiConfig): Promise<void> {
-        // Phase 1: Validate user and fetch activity data from Discourse.
-        const numericUserId = parseInt(userId, 10)
-        if (isNaN(numericUserId)) {
-            this.logger.error(`[DiscourseAdapter] Invalid user ID: ${userId}. Must be a numeric string.`)
-            return
+    public async fetchActivity(user: ForumUser, signalConfig: AiConfig): Promise<DailyActivityLog> {
+        this.logger.info(`[DiscourseAdapter] Fetching activity for user ${user.forum_username}`)
+
+        const userActivity = await fetchUserActivity(user.forum_username!, signalConfig, this.logger)
+        if (!userActivity || userActivity.user_actions.length === 0) {
+            this.logger.warn(`[DiscourseAdapter] No actions found for user ${user.user_id}.`)
+            return {}
         }
 
-        const forumUsers = await getForumUsersForProject(this.supabase, projectId, [numericUserId])
-        if (forumUsers.length === 0) {
-            this.logger.warn(`[DiscourseAdapter] User with ID ${userId} not found for project ${projectId}.`)
-            return
+        const lookbackDays = signalConfig.previous_days ?? 30
+        const authPostId = user.auth_post_id
+        const cutoffDate = new Date()
+        cutoffDate.setDate(cutoffDate.getDate() - lookbackDays)
+
+        const filteredActions = userActivity.user_actions.filter((action) => {
+            const activityDate = new Date(action.updated_at || action.created_at)
+            const isAfterCutoff = activityDate > cutoffDate
+            const isNotAuthPost = authPostId && action.post_id ? action.post_id !== Number(authPostId) : true
+            return isAfterCutoff && isNotAuthPost
+        })
+
+        if (filteredActions.length === 0) {
+            this.logger.info(
+                `[DiscourseAdapter] No recent activity for user ${user.forum_username} in the last ${lookbackDays} days.`,
+            )
+            return {}
         }
 
-        const user = forumUsers[0]
+        return this.groupActivityByDay(filteredActions)
+    }
+
+    public async processUser(user: ForumUser, projectId: string): Promise<void> {
         if (!user.forum_username) {
             this.logger.warn(
                 `[DiscourseAdapter] User with ID ${user.user_id} has no forum_username. Skipping processing.`,
@@ -85,245 +84,40 @@ export class DiscourseAdapter implements PlatformAdapter<DiscourseAdapterConfig>
         )
 
         try {
-            const signalConfig = await getLegacySignalConfig(this.supabase, this.config.SIGNAL_STRENGTH_ID, projectId)
-            if (!signalConfig) {
-                this.logger.error(
-                    `[DiscourseAdapter] Could not find signal config for signal strength ID ${this.config.SIGNAL_STRENGTH_ID} and project ID ${projectId}.`,
-                )
-                return
-            }
-
-            const userActivity = await fetchUserActivity(user.forum_username, signalConfig, this.config)
-            this.logger.info(
-                `[DiscourseAdapter] Fetched ${userActivity?.user_actions.length ?? 0} actions for user ${user.forum_username}.`,
-            )
-
-            // Phase 2: Generate daily raw scores based on user activity.
-            await this.generateRawScoresForUser(user, userActivity, signalConfig, projectId)
-
-            // Phase 3: Generate a single smart score from the recent raw scores.
-            this.logger.info(`[DiscourseAdapter] Phase 3: Generating smart score for user ${user.user_id}.`)
-            const recentRawScores = await getRawScoresForUser(
+            const scoreManager = new ScoreManager(
                 this.supabase,
-                user.user_id,
-                projectId,
+                this.logger,
+                this.aiOrchestrator,
                 this.config.SIGNAL_STRENGTH_ID,
             )
-
-            if (recentRawScores.length === 0) {
-                this.logger.info(
-                    `[DiscourseAdapter] No raw scores found for user ${user.user_id}. Skipping smart score generation.`,
-                )
-                // Even if we skip smart score, we should update the last_updated timestamp
-            } else {
-                const smartScoreOutput = await this.aiOrchestrator.generateSmartScoreSummary(
-                    user,
-                    recentRawScores,
-                    signalConfig,
-                    projectId,
-                )
-
-                if (smartScoreOutput) {
-                    const day = new Date().toISOString().split("T")[0]
-                    const scoreToSave = {
-                        ...smartScoreOutput,
-                        user_id: user.user_id,
-                        project_id: projectId.toString(),
-                        signal_strength_id: this.config.SIGNAL_STRENGTH_ID,
-                        day,
-                        request_id: `discourse_smart_score_${user.user_id}_${projectId}_${day}`,
-                    }
-
-                    // Save the new score first. The `saveScore` function uses an upsert on
-                    // `request_id` to prevent exact duplicates.
-                    await saveScore(this.supabase, scoreToSave)
-                    this.logger.info(`[DiscourseAdapter] Saved smart score for user ${user.user_id}.`)
-
-                    // To handle race conditions where the same analysis might run twice,
-                    // we immediately delete any other scores for the same user, project, and day
-                    // that do not match the `request_id` of the one we just saved.
-                    // This ensures that only the result of the latest analysis run is kept.
-
-                    if (scoreToSave.day && scoreToSave.request_id) {
-                        const deletedCount = await deleteDuplicateScores(this.supabase, {
-                            userId: user.user_id.toString(),
-                            projectId: projectId.toString(),
-                            signalStrengthId: this.config.SIGNAL_STRENGTH_ID,
-                            day: scoreToSave.day,
-                            keepRequestId: scoreToSave.request_id,
-                            isRawScore: false,
-                        })
-
-                        if (deletedCount > 0) {
-                            this.logger.info(
-                                `[DiscourseAdapter] Deleted ${deletedCount} duplicate smart scores for user ${user.user_id}.`,
-                            )
-                        }
-                    } else {
-                        this.logger.warn(
-                            `[DiscourseAdapter] Could not delete duplicate scores for user ${user.user_id} due to missing day or request_id.`,
-                        )
-                    }
-                }
-            }
-
-            // Update forum_users.last_updated
-            if (userActivity && userActivity.user_actions.length > 0) {
-                const latestActivityDate = userActivity.user_actions.reduce(
-                    (latest: Date, action: DiscourseUserAction) => {
-                        const actionDate = new Date(action.updated_at)
-                        return actionDate > latest ? actionDate : latest
-                    },
-                    new Date(0),
-                )
-
-                if (latestActivityDate.getTime() > 0) {
-                    this.logger.info(
-                        `[DiscourseAdapter] Updating last_updated for user ${user.user_id} to ${latestActivityDate.toISOString()}`,
-                    )
-                    await updateForumUserLastUpdated(
-                        this.supabase,
-                        projectId,
-                        user.user_id,
-                        latestActivityDate.toISOString(),
-                    )
-                }
-            }
+            await scoreManager.generateScoresForUser(this, user, projectId)
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error)
             this.logger.error(
                 `[DiscourseAdapter] An error occurred during the analysis of user ${user.user_id}: ${message}`,
                 { error },
             )
-        } finally {
-            this.logger.info(`[DiscourseAdapter] Finished analysis for user ${user.user_id}.`)
         }
+
+        this.logger.info(
+            `[DiscourseAdapter] Finished analysis for user ${user.user_id} (forum: ${user.forum_username}) on project ${projectId}`,
+        )
     }
 
-    /**
-     * Groups a flat list of user actions into a dictionary keyed by day (YYYY-MM-DD).
-     * This is a crucial step for processing user activity on a daily basis when generating raw scores.
-     *
-     * @param actions - An array of user actions, each with a `created_at` timestamp.
-     * @returns A record where keys are date strings and values are arrays of actions for that day.
-     */
     private groupActivityByDay(actions: DiscourseUserAction[]): Record<string, DiscourseUserAction[]> {
         const groupedActions: Record<string, DiscourseUserAction[]> = {}
+
         for (const action of actions) {
-            // Group by a formatted date string from 'updated_at'.
-            const day = new Date(action.updated_at || action.created_at).toISOString().split("T")[0]
+            // Use updated_at as the primary timestamp, fallback to created_at.
+            const timestamp = action.updated_at || action.created_at
+            const day = timestamp.split("T")[0] // Extract YYYY-MM-DD
+
             if (!groupedActions[day]) {
                 groupedActions[day] = []
             }
             groupedActions[day].push(action)
         }
+
         return groupedActions
-    }
-
-    /**
-     * Generates and saves 'raw' scores for a user based on their daily activity.
-     * This method iterates through the user's actions, groups them by day, and then invokes
-     * the AI orchestrator to score the activity for each day individually.
-     *
-     * It includes a lookback mechanism to only process recent activity and handles idempotency
-     * by deleting any existing raw score for a given day before creating a new one.
-     *
-     * @param user - The user for whom to generate scores.
-     * @param userActivity - The fetched activity data for the user from the Discourse API.
-     * @param signalConfig - The AI configuration for generating the scores.
-     * @param projectId - The project context.
-     */
-    private async generateRawScoresForUser(
-        user: ForumUser,
-        userActivity: DiscourseUserActivity | null,
-        signalConfig: AiConfig,
-        projectId: string,
-    ): Promise<void> {
-        if (!userActivity || !userActivity.user_actions || userActivity.user_actions.length === 0) {
-            this.logger.warn(
-                `[DiscourseAdapter] No actions found for user ${user.user_id}. Skipping raw score generation.`,
-            )
-            return
-        }
-
-        // Filter out old or irrelevant activity based on lookback days and auth post ID.
-        const lookbackDays = signalConfig.previous_days ?? 0
-        const authPostId = user.auth_post_id
-        const cutoffDate = new Date()
-        cutoffDate.setDate(cutoffDate.getDate() - lookbackDays)
-
-        this.logger.info(
-            `[DIAGNOSTIC] Filtering actions for user ${user.user_id}: lookback_days=${lookbackDays}, auth_post_id=${authPostId || "N/A"}, cutoff_date=${cutoffDate.toISOString()}`,
-        )
-        this.logger.info(`[DIAGNOSTIC] Total actions before filtering: ${userActivity.user_actions.length}`)
-
-        const filteredActions = userActivity.user_actions.filter((action) => {
-            const activityDate = new Date(action.updated_at || action.created_at)
-            const isAfterCutoff = activityDate > cutoffDate
-            const isNotAuthPost = authPostId && action.post_id ? action.post_id !== Number(authPostId) : true
-            return isAfterCutoff && isNotAuthPost
-        })
-
-        this.logger.info(`[DIAGNOSTIC] Actions after filtering: ${filteredActions.length}`)
-
-        if (filteredActions.length === 0) {
-            this.logger.info(
-                `[DiscourseAdapter] No recent activity for user ${user.forum_username} in the last ${lookbackDays} days.`,
-            )
-            return
-        }
-
-        // Group the filtered actions by the day they occurred.
-        const dailyActions = this.groupActivityByDay(filteredActions)
-        this.logger.info(`[DIAGNOSTIC] Grouped actions into ${Object.keys(dailyActions).length} unique days.`)
-
-        // Iterate over each day's activity to generate and save a raw score.
-        for (const [dayStr, actions] of Object.entries(dailyActions)) {
-            if (actions.length === 0) continue
-
-            this.logger.info(`[DIAGNOSTIC] Checking for existing raw score for user ${user.user_id} on day ${dayStr}`)
-            const existingRawScore = await getRawScoreForUser(
-                this.supabase,
-                user.user_id,
-                projectId,
-                this.config.SIGNAL_STRENGTH_ID,
-                dayStr,
-            )
-
-            if (existingRawScore) {
-                this.logger.info(
-                    `[DiscourseAdapter] Raw score for user ${user.user_id} on ${dayStr} already exists. Deleting it before regeneration.`,
-                )
-                await deleteRawScore(this.supabase, user.user_id, projectId, this.config.SIGNAL_STRENGTH_ID, dayStr)
-            }
-
-            this.logger.info(
-                `[DiscourseAdapter] Generating raw score for user ${user.user_id} on ${dayStr} with ${actions.length} actions.`,
-            )
-            const dailyLog = `Analyzing ${actions.length} actions for day ${dayStr}.\n`
-
-            const score = await this.aiOrchestrator.generateRawScores(
-                user,
-                dayStr,
-                JSON.stringify(actions, null, 2),
-                dailyLog,
-                signalConfig,
-                projectId,
-            )
-
-            if (score) {
-                await saveScore(this.supabase, {
-                    ...score,
-                    user_id: user.user_id,
-                    project_id: projectId,
-                    signal_strength_id: this.config.SIGNAL_STRENGTH_ID,
-                })
-                this.logger.info(`[DiscourseAdapter] Saved raw score for user ${user.user_id} on ${dayStr}`)
-            } else {
-                this.logger.warn(
-                    `[DiscourseAdapter] AI Orchestrator returned no score for user ${user.user_id} on ${dayStr}`,
-                )
-            }
-        }
     }
 }

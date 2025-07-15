@@ -24,8 +24,11 @@ import { DiscourseAdapterSecretsSchema } from "@discourse/config"
  * This allows the engine to dynamically select and instantiate the correct adapter at runtime
  * without using dynamic `import()` statements.
  */
-const ADAPTER_REGISTRY: Record<string, { constructor: PlatformAdapterConstructor<any>; schema: any }> = {
-    discourse: { constructor: DiscourseAdapter, schema: DiscourseAdapterSecretsSchema },
+const ADAPTER_REGISTRY: Record<
+    string,
+    { constructor: PlatformAdapterConstructor<any>; schema: any; tableName: string }
+> = {
+    discourse: { constructor: DiscourseAdapter, schema: DiscourseAdapterSecretsSchema, tableName: "forum_users" },
     // twitter: { constructor: TwitterAdapter, schema: TwitterAdapterConfigSchema },
     // discord: { constructor: DiscordAdapter, schema: DiscordAdapterConfigSchema },
 }
@@ -221,10 +224,39 @@ export async function runEngine(platformName: string, options: EngineRunOptions,
         const AdapterClass = adapterInfo.constructor
         const adapter = new AdapterClass(effectiveLogger, aiOrchestrator, supabase, effectiveConfig)
 
+        const { data: user, error: userError } = await supabase
+            .from("forum_users")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("project_id", projectId)
+            .single()
+
+        if (userError || !user) {
+            const dbError = `[DBShared] Could not find user with ID ${userId}.`
+            effectiveLogger.error(dbError, { error: userError })
+            throw new Error(dbError)
+        }
+
         try {
-            await adapter.processUser(userId, projectId.toString(), runtimeConfig.aiConfig)
+            await adapter.processUser(user, projectId)
         } finally {
             await clearLastChecked(supabase, effectiveLogger, userId, projectId, signalStrengthId) // Clear last checked marker
+
+            // Update the last_updated timestamp for the user on this platform
+            const { error: updateError } = await supabase
+                .from(adapterInfo.tableName)
+                .update({ last_updated: new Date().toISOString() })
+                .eq("user_id", userId)
+                .eq("project_id", projectId)
+
+            if (updateError) {
+                effectiveLogger.error(
+                    `[Engine] Failed to update last_updated for user ${userId} on platform ${platformName}.`,
+                    {
+                        error: updateError,
+                    },
+                )
+            }
         }
 
         effectiveLogger.info(`Successfully completed engine run for platform '${platformName}' and user '${userId}'.`)
