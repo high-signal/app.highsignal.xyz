@@ -1,8 +1,8 @@
-const { getSignalStrengthConfig } = require("../discourse_forum/getSignalStrengthConfig")
-const { fetchUserActivity } = require("../discourse_forum/fetchUserActivity")
-const { updateUserData } = require("../discourse_forum/updateUserData")
-const { updateRequired } = require("../discourse_forum/updateRequired")
-const { analyzeUserData } = require("../discourse_forum/analyzeUserData")
+const { getSignalStrengthConfig } = require("../discourse_forum_OLD/getSignalStrengthConfig")
+const { fetchUserActivity } = require("../discourse_forum_OLD/fetchUserActivity")
+const { updateUserData } = require("../discourse_forum_OLD/updateUserData")
+const { updateRequired } = require("../discourse_forum_OLD/updateRequired")
+const { analyzeUserData } = require("../discourse_forum_OLD/analyzeUserData")
 const { setLastChecked, clearLastChecked } = require("./utils/lastCheckedUtils")
 
 const { createClient } = require("@supabase/supabase-js")
