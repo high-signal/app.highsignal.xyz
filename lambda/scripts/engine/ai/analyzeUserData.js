@@ -12,17 +12,17 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 // === SETUP OPENAI ===
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 
-async function analyzeUserData(
+async function analyzeUserData({
     signalStrengthData,
     userData,
-    username,
+    signalStrengthUsername,
     maxValue,
     previousDays,
     testingData,
     dayDate,
     type,
     logs = "",
-) {
+}) {
     console.log(`Day ${dayDate} analysis started...`)
 
     let calculatedSmartScore
@@ -87,7 +87,7 @@ async function analyzeUserData(
     }
 
     const evaluatedBasePrompt = _evaluatePrompt(basePrompt, {
-        username,
+        signalStrengthUsername,
         maxValue,
         dayDate,
         floor: Math.floor, // Expose math floor function
@@ -108,7 +108,7 @@ async function analyzeUserData(
     if (userData.length === 0) {
         console.log(`** No activity in the past ${previousDays} days **`)
         return {
-            [username]: {
+            [signalStrengthUsername]: {
                 summary: `No activity in the past ${previousDays} days`,
                 description: null,
                 improvements: null,
@@ -137,7 +137,7 @@ async function analyzeUserData(
         },
         {
             role: "user",
-            content: `${evaluatedBasePrompt}\n\nUser Data for ${username}:\n${truncatedData}`,
+            content: `${evaluatedBasePrompt}\n\nUser Data for ${signalStrengthUsername}:\n${truncatedData}`,
         },
     ]
 
@@ -156,7 +156,6 @@ truncatedData.length: ${truncatedData.length}
 `
 
         const response = res.choices[0].message.content.trim()
-        // console.log("Raw response:", response)
 
         // Try to clean the response if it has markdown backticks
         const cleanResponse = response.replace(/^```json\n?|\n?```$/g, "").trim()
@@ -177,11 +176,11 @@ truncatedData.length: ${truncatedData.length}
             }
 
             if (calculatedSmartScore) {
-                responseWithDataAdded[username].value = calculatedSmartScore
+                responseWithDataAdded[signalStrengthUsername].value = calculatedSmartScore
             }
 
             // Return the results
-            console.log("Analysis complete for user:", username)
+            console.log("Analysis complete for user:", signalStrengthUsername)
             return responseWithDataAdded
         } catch (parseError) {
             console.error("Failed to parse JSON response:", parseError.message)

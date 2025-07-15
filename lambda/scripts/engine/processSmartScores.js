@@ -45,17 +45,17 @@ async function processSmartScores({
         return
     }
 
-    const analysisResults = await analyzeUserData(
+    const analysisResults = await analyzeUserData({
         signalStrengthData,
-        rawActivityCombinedData,
+        userData: rawActivityCombinedData,
         signalStrengthUsername,
         maxValue,
         previousDays,
         testingData,
-        dateYesterday,
-        "smart", // type
+        dayDate: dateYesterday,
+        type: "smart",
         logs,
-    )
+    })
 
     // === Validity check on maxValue ===
     if (analysisResults && !analysisResults.error) {
