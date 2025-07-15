@@ -1,10 +1,11 @@
-const { getSignalStrengthConfig } = require("../discourse_forum_OLD/getSignalStrengthConfig")
 const { fetchUserActivity } = require("../discourse_forum_OLD/fetchUserActivity")
 const { updateUserData } = require("../discourse_forum_OLD/updateUserData")
 const { updateRequired } = require("../discourse_forum_OLD/updateRequired")
 const { analyzeUserData } = require("../discourse_forum_OLD/analyzeUserData")
 
 const { getSignalStrengthData } = require("./db/getSignalStrengthData")
+const { getSignalStrengthConfig } = require("./db/getSignalStrengthConfig")
+
 const { setLastChecked, clearLastChecked } = require("./utils/lastCheckedUtils")
 const { checkProjectSignalStrengthEnabled } = require("./utils/checkProjectSignalStrengthEnabled")
 
@@ -12,55 +13,67 @@ const { createClient } = require("@supabase/supabase-js")
 
 // Function to run the engine
 async function runEngine({ signalStrengthName, userId, projectId, signalStrengthUsername, testingData }) {
+    console.log("\n**************************************************")
+    console.log("Running engine for signal strength:", signalStrengthName)
+
+    // TODO: Change this
     const forum_username = signalStrengthUsername
 
     let supabase
     let signalStrengthId
 
     try {
+        // ================
+        // Initialize logs
+        // ================
         let logs = `signalStrengthUsername: ${signalStrengthUsername}`
 
+        // ===========================
+        // Initialize Supabase client
+        // ===========================
         supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
-        // === Get signal strength data from Supabase ===
+        // =================================
+        // Get signal strength data from DB
+        // =================================
         // This includes everything in the signal_strengths table
         // and all the prompts for the signal strength
         const signalStrengthData = await getSignalStrengthData(supabase, signalStrengthName)
         signalStrengthId = signalStrengthData.id
 
-        // Check if this signal strength is enabled for the project
+        // ====================================================
+        // Check if signal strength is enabled for the project
+        // ====================================================
         const isEnabled = await checkProjectSignalStrengthEnabled(supabase, projectId, signalStrengthId)
         if (!isEnabled) {
             console.warn(`Signal strength ${signalStrengthName} is not enabled for project ID: ${projectId}`)
             return
         }
 
-        // Set last checked as soon as it is known that the signal strength is enabled for the project
+        // =================
+        // Set last checked
+        // =================
+        // Set last checked as soon as it is known that
+        // the signal strength is enabled for the project
         setLastChecked(supabase, userId, projectId, signalStrengthId)
 
-        // === Fetch signal strength config from Supabase ===
+        // ====================================
+        // Fetch signal strength config from DB
+        // ====================================
+        // This includes everything in the project_signal_strengths table
+        // for the signal strength and project
         const signalStrengthConfig = await getSignalStrengthConfig(supabase, projectId, signalStrengthId)
-        console.log("")
-        console.log("**************************************************")
+        const maxValue = signalStrengthConfig.max_value
+        const url = signalStrengthConfig.url
+        const previousDays = signalStrengthConfig.previous_days
+
         console.log(
-            "Analyzing activity for user",
-            userId,
-            "and project",
-            projectId,
-            "and signal strength username",
-            signalStrengthUsername,
+            `Analyzing activity for userId ${userId}, project ${projectId}, signal strength username ${signalStrengthUsername}`,
         )
 
-        if (!signalStrengthConfig || signalStrengthConfig.length === 0) {
-            console.error("Signal strength config not found")
-            return
-        }
-
-        const maxValue = signalStrengthConfig[0].max_value
-        const url = signalStrengthConfig[0].url
-        const previousDays = signalStrengthConfig[0].previous_days
-
-        // === Get user data from Supabase ===
+        // ======================
+        // Get user data from DB
+        // ======================
         const { data: userData, error: userError } = await supabase
             .from("forum_users")
             .select(
@@ -80,8 +93,6 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
             console.error("Error fetching user data:", userError)
             return
         }
-
-        // console.log(`forum_users data for ${userData.users.display_name}`, userData)
 
         const lastUpdated = userData.last_updated
         const displayName = userData.users.display_name
