@@ -10,7 +10,7 @@ async function setLastChecked(supabase, userId, projectId, signalStrengthId) {
                 signal_strength_id: signalStrengthId,
                 last_checked: Math.floor(Date.now() / 1000),
                 request_id: `last_checked_${userId}_${projectId}_${signalStrengthId}`,
-                created: Math.floor(Date.now() / 1000),
+                created: 99999999999999,
             },
             {
                 onConflict: "request_id",
