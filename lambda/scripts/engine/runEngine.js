@@ -3,6 +3,8 @@ const { fetchUserActivity } = require("../discourse_forum_OLD/fetchUserActivity"
 const { updateUserData } = require("../discourse_forum_OLD/updateUserData")
 const { updateRequired } = require("../discourse_forum_OLD/updateRequired")
 const { analyzeUserData } = require("../discourse_forum_OLD/analyzeUserData")
+
+const { getSignalStrengthData } = require("./db/getSignalStrengthData")
 const { setLastChecked, clearLastChecked } = require("./utils/lastCheckedUtils")
 
 const { createClient } = require("@supabase/supabase-js")
@@ -19,33 +21,10 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
 
         supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
-        // Returns all prompts for the signal strength
-        // Prompt filtering for each type and date is carried out for each analysis
-        const { data: signalStrengthData, error: signalError } = await supabase
-            .from("signal_strengths")
-            .select(
-                `
-                *,
-                prompts (
-                    *
-                )
-            `,
-            )
-            .eq("name", signalStrengthName)
-            .single()
-
-        if (signalError) {
-            console.error("Error fetching signal strength ID:", signalError)
-            // Continue without triggering analysis
-            return //NextResponse.json(signalError)
-        }
-
-        if (!signalStrengthData) {
-            console.log(`No signal strength found with name: ${signalStrengthName}`)
-            // Continue without triggering analysis
-            return //NextResponse.json("No signal strength found with name: " + signalStrengthName)
-        }
-
+        // === Get signal strength data from Supabase ===
+        // This includes everything in the signal_strengths table
+        // and all the prompts for the signal strength
+        const signalStrengthData = await getSignalStrengthData(supabase, signalStrengthName)
         signalStrengthId = signalStrengthData.id
 
         // Check if this signal strength is enabled for the project
