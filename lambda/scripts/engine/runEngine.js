@@ -3,9 +3,10 @@ const { analyzeUserData } = require("../discourse_forum_OLD/analyzeUserData")
 
 const adapterHandler = require("./platform_adapters/adapterHandler")
 
+const { getUserDisplayName } = require("./db/getUserDisplayName")
 const { getSignalStrengthData } = require("./db/getSignalStrengthData")
 const { getSignalStrengthConfig } = require("./db/getSignalStrengthConfig")
-const { getUserDisplayName } = require("./db/getUserDisplayName")
+const { getExistingUserRawData } = require("./db/getExistingUserRawData")
 
 const { setLastChecked, clearLastChecked } = require("./utils/lastCheckedUtils")
 const { checkProjectSignalStrengthEnabled } = require("./utils/checkProjectSignalStrengthEnabled")
@@ -93,31 +94,27 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
         // Add adapter logs to existing logs string
         logs += adapterLogs
 
+        // ==================================================
+        // Fetch existing user_signal_strengths data from DB
+        // ==================================================
+        const existingUserRawData = await getExistingUserRawData(
+            supabase,
+            userId,
+            projectId,
+            signalStrengthId,
+            dailyActivityData,
+        )
+
         // ============================
         // Analyze daily activity data
         // ============================
         // For each day with data in dailyActivityData, run the analyzeUserData function
         const analysisPromises = dailyActivityData.map(async (day) => {
             if (day.data.length > 0) {
-                // Check if the day is already in the database for the raw score calculation
-                // TODO: This should get all the data for the range for the user in one call
-                const { data: existingData, error: existingDataError } = await supabase
-                    .from("user_signal_strengths")
-                    .select("*")
-                    .eq("day", day.date)
-                    .eq("user_id", userId)
-                    .eq("project_id", projectId)
-                    .eq("signal_strength_id", signalStrengthId)
-                    .not("raw_value", "is", null)
-                    .is("test_requesting_user", null)
-
-                if (existingDataError) {
-                    console.error("Error fetching existing data:", existingDataError)
-                    return
-                }
-
-                if (!testingData && existingData && existingData.length > 0) {
-                    console.log(`Day ${day.date} already exists in the database. Skipping raw score calculation...`)
+                if (existingUserRawData.length > 0 && existingUserRawData.find((item) => item.day === day.date)) {
+                    console.log(
+                        `Raw Calc: Day ${day.date} already exists in the database. Skipping raw score calculation...`,
+                    )
                     return
                 }
 
