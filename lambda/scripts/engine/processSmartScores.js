@@ -49,7 +49,6 @@ async function processSmartScores({
         signalStrengthData,
         rawActivityCombinedData,
         signalStrengthUsername,
-        userDisplayName,
         maxValue,
         previousDays,
         testingData,

@@ -1,4 +1,7 @@
 require("dotenv").config({ path: "../.env" })
+
+const { Parser } = require("expr-eval")
+
 const OpenAI = require("openai")
 const { processObjectForHtml } = require("../utils/processObjectForHtml")
 const { calculateSmartScore } = require("./calculateSmartScores")
@@ -13,8 +16,7 @@ async function analyzeUserData(
     signalStrengthData,
     userData,
     username,
-    displayName, // Used in the evaluation of the prompt
-    maxValue, // Used in the evaluation of the prompt
+    maxValue,
     previousDays,
     testingData,
     dayDate,
@@ -66,9 +68,9 @@ async function analyzeUserData(
 
     let basePrompt
     if (type === "raw" && rawTestingInputData?.testingPrompt) {
-        basePrompt = eval("`" + rawTestingInputData.testingPrompt + "`")
+        basePrompt = rawTestingInputData.testingPrompt
     } else if (type === "smart" && smartTestingInputData?.testingPrompt) {
-        basePrompt = eval("`" + smartTestingInputData.testingPrompt + "`")
+        basePrompt = smartTestingInputData.testingPrompt
     } else if (signalStrengthData.prompts.find((prompt) => prompt.type === type)) {
         // TODO: For now it just gets the latest prompt for the type
         // but in future it should get the prompt for the date so that history is consistent
@@ -79,10 +81,17 @@ async function analyzeUserData(
             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
 
         promptId = promptData.id
-        basePrompt = eval("`" + promptData.prompt + "`")
+        basePrompt = promptData.prompt
     } else {
         return { error: "No prompt set in DB" }
     }
+
+    const evaluatedBasePrompt = _evaluatePrompt(basePrompt, {
+        username,
+        maxValue,
+        dayDate,
+        floor: Math.floor, // Expose math floor function
+    })
 
     let maxChars
     if (type === "raw" && rawTestingInputData?.testingMaxChars) {
@@ -128,7 +137,7 @@ async function analyzeUserData(
         },
         {
             role: "user",
-            content: `${basePrompt}\n\nUser Data for ${username}:\n${truncatedData}`,
+            content: `${evaluatedBasePrompt}\n\nUser Data for ${username}:\n${truncatedData}`,
         },
     ]
 
@@ -183,6 +192,18 @@ truncatedData.length: ${truncatedData.length}
         console.error("Error analyzing user data:", err.message)
         return { error: "Failed to analyze user data" }
     }
+}
+
+function _evaluatePrompt(prompt, data) {
+    const parser = new Parser()
+    return prompt.replace(/\$\{([^}]+)\}/g, (_, expr) => {
+        try {
+            const parsed = parser.parse(expr)
+            return parsed.evaluate(data)
+        } catch (err) {
+            return ""
+        }
+    })
 }
 
 module.exports = { analyzeUserData }

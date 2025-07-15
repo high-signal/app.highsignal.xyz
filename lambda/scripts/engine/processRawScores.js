@@ -29,7 +29,6 @@ async function processRawScores({
                 signalStrengthData,
                 day.data,
                 signalStrengthUsername,
-                userDisplayName,
                 maxValue,
                 previousDays,
                 testingData,
