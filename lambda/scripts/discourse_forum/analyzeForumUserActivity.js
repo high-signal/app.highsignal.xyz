@@ -6,8 +6,8 @@ const { analyzeUserData } = require("./analyzeUserData")
 const { createClient } = require("@supabase/supabase-js")
 const { clearLastChecked } = require("./clearLastChecked")
 
-// Function to analyze forum user activity (OLD legacy script)
-async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUsername, testingData) {
+// Function to analyze forum user activity
+async function analyzeForumUserActivity(user_id, project_id, signalStrengthUsername, testingData) {
     const SIGNAL_STRENGTH_NAME = "discourse_forum"
 
     const forum_username = signalStrengthUsername
@@ -414,11 +414,11 @@ async function analyzeForumUserActivityOLD(user_id, project_id, signalStrengthUs
 
         clearLastChecked(supabase, user_id, project_id, signal_strength_id)
     } catch (error) {
-        console.error("Error in analyzeForumUserActivityOLD:", error)
+        console.error("Error in analyzeForumUserActivity:", error)
         if (supabase) {
             clearLastChecked(supabase, user_id, project_id, signal_strength_id)
         }
     }
 }
 
-module.exports = { analyzeForumUserActivityOLD }
+module.exports = { analyzeForumUserActivity }
