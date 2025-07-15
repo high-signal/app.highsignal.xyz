@@ -6,6 +6,7 @@ const { analyzeUserData } = require("../discourse_forum_OLD/analyzeUserData")
 
 const { getSignalStrengthData } = require("./db/getSignalStrengthData")
 const { setLastChecked, clearLastChecked } = require("./utils/lastCheckedUtils")
+const { checkProjectSignalStrengthEnabled } = require("./utils/checkProjectSignalStrengthEnabled")
 
 const { createClient } = require("@supabase/supabase-js")
 
@@ -28,22 +29,9 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
         signalStrengthId = signalStrengthData.id
 
         // Check if this signal strength is enabled for the project
-        const { data: projectSignalData, error: projectSignalError } = await supabase
-            .from("project_signal_strengths")
-            .select(
-                `
-                enabled,
-                projects (
-                    display_name
-                )
-            `,
-            )
-            .eq("project_id", projectId)
-            .eq("signal_strength_id", signalStrengthId)
-            .single()
-
-        if (projectSignalError || !projectSignalData || !projectSignalData.enabled) {
-            console.log(`Signal strength ${signalStrengthName} is not enabled for this project`)
+        const isEnabled = await checkProjectSignalStrengthEnabled(supabase, projectId, signalStrengthId)
+        if (!isEnabled) {
+            console.warn(`Signal strength ${signalStrengthName} is not enabled for project ID: ${projectId}`)
             return
         }
 
