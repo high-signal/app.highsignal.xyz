@@ -492,20 +492,28 @@ export default function SignalStrengthSettings({
                                     </Text>
                                     <ValidationErrorDisplay errors={validationErrors} field="authTypes" />
                                 </HStack>
-                                <Text fontSize={"sm"}>
-                                    Choose which options will be available to users to confirm ownership of their{" "}
-                                    {shortName} account. To learn about each option{" "}
-                                    <Link
-                                        href={`https://www.notion.so/Project-Settings-Forum-Engagement-211a88585e9580e6b586f248dd6604de`}
-                                        fontSize={"sm"}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        color={"blue.500"}
-                                        _hover={{ textDecoration: "underline" }}
-                                    >
-                                        read the docs <FontAwesomeIcon icon={faUpRightFromSquare} />
-                                    </Link>
-                                </Text>
+                                {!signalStrength.availableAuthTypes?.includes("privy") ? (
+                                    <Text fontSize={"sm"}>
+                                        Choose which options will be available to users to confirm ownership of their{" "}
+                                        {shortName} account. To learn about each option{" "}
+                                        <Link
+                                            href={`https://www.notion.so/Project-Settings-Forum-Engagement-211a88585e9580e6b586f248dd6604de`}
+                                            fontSize={"sm"}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            color={"blue.500"}
+                                            _hover={{ textDecoration: "underline" }}
+                                        >
+                                            read the docs <FontAwesomeIcon icon={faUpRightFromSquare} />
+                                        </Link>
+                                    </Text>
+                                ) : (
+                                    <Text fontSize={"sm"}>
+                                        Users confirm ownership of their {shortName} account using Privy OAuth. Their{" "}
+                                        {shortName} account is used for all High Signal projects, so if they have
+                                        already confirmed ownership, they will not need to do so again for your project.
+                                    </Text>
+                                )}
                                 <VStack alignItems={"start"} gap={3} w={"100%"}>
                                     {signalStrength.availableAuthTypes?.includes("api_auth") && (
                                         <VStack w={"100%"} alignItems={"start"} gap={1}>
