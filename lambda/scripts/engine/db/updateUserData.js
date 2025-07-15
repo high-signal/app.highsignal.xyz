@@ -1,34 +1,34 @@
 const { updateTotalScoreHistory } = require("./updateTotalScoreHistory")
 
-async function updateUserData(
+async function updateUserData({
     supabase,
-    PROJECT_ID,
-    SIGNAL_STRENGTH_ID,
-    username,
+    projectId,
+    signalStrengthId,
+    signalStrengthUsername,
     userId,
     analysisResults,
     maxValue,
     testingData,
     isRawScoreCalc = false,
     dayDate,
-) {
+}) {
     try {
-        console.log(`Updating database for user ${username}`)
+        console.log(`Updating database for user ${signalStrengthUsername}`)
 
         // Store the analysis results in the user_signal_strengths table
         const { error: signalError } = await supabase.from("user_signal_strengths").insert({
-            ...(!isRawScoreCalc && { value: analysisResults[username].value }),
-            ...(isRawScoreCalc && { raw_value: analysisResults[username].value }),
+            ...(!isRawScoreCalc && { value: analysisResults[signalStrengthUsername].value }),
+            ...(isRawScoreCalc && { raw_value: analysisResults[signalStrengthUsername].value }),
             max_value: maxValue,
-            summary: analysisResults[username].summary,
-            description: analysisResults[username].description,
-            improvements: analysisResults[username].improvements,
+            summary: analysisResults[signalStrengthUsername].summary,
+            description: analysisResults[signalStrengthUsername].description,
+            improvements: analysisResults[signalStrengthUsername].improvements,
             request_id: analysisResults.requestId,
             created: analysisResults.created,
             user_id: userId,
-            project_id: PROJECT_ID,
-            signal_strength_id: SIGNAL_STRENGTH_ID,
-            explained_reasoning: analysisResults[username].explainedReasoning,
+            project_id: projectId,
+            signal_strength_id: signalStrengthId,
+            explained_reasoning: analysisResults[signalStrengthUsername].explainedReasoning,
             prompt_tokens: analysisResults.promptTokens,
             completion_tokens: analysisResults.completionTokens,
             logs: analysisResults.logs,
@@ -41,9 +41,9 @@ async function updateUserData(
         })
 
         if (signalError) {
-            console.error(`Error storing signal strength for ${username}:`, signalError.message)
+            console.error(`Error storing signal strength for ${signalStrengthUsername}:`, signalError.message)
         } else {
-            console.log(`Successfully stored signal strength response in database for ${username}`)
+            console.log(`Successfully stored signal strength response in database for ${signalStrengthUsername}`)
         }
 
         // Remove duplicate rows
@@ -52,8 +52,8 @@ async function updateUserData(
             .from("user_signal_strengths")
             .delete()
             .eq("user_id", userId)
-            .eq("project_id", PROJECT_ID)
-            .eq("signal_strength_id", SIGNAL_STRENGTH_ID)
+            .eq("project_id", projectId)
+            .eq("signal_strength_id", signalStrengthId)
             .eq("day", dayDate)
             .not("request_id", "eq", analysisResults.requestId) // Keep the one that was just inserted
             .not(isRawScoreCalc ? "raw_value" : "value", "is", null)
@@ -61,17 +61,17 @@ async function updateUserData(
             .select()
 
         if (deleteError) {
-            console.error(`Error deleting duplicate rows for ${username}:`, deleteError.message)
+            console.error(`Error deleting duplicate rows for ${signalStrengthUsername}:`, deleteError.message)
         } else if (data && data.length > 0) {
-            console.log(`Successfully deleted ${data.length} duplicate rows for ${username}`)
+            console.log(`Successfully deleted ${data.length} duplicate rows for ${signalStrengthUsername}`)
         }
 
         // Update the user_project_scores_history table if it was a smart score calculation
         if (!isRawScoreCalc && !testingData?.requestingUserId) {
-            await updateTotalScoreHistory(supabase, userId, PROJECT_ID, dayDate)
+            await updateTotalScoreHistory(supabase, userId, projectId, dayDate)
         }
     } catch (dbError) {
-        console.error(`Database error for ${username}:`, dbError.message)
+        console.error(`Database error for ${signalStrengthUsername}:`, dbError.message)
     }
 }
 

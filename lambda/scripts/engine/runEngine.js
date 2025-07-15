@@ -141,6 +141,11 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
         // =====================
         // Process smart scores
         // =====================
+        // TODO: This only works for yesterday and does not account for any missed previous days
+        // I should at least try to get the last
+        // e.g. 3 days of smart scores to fill in gaps if the script did not run for a day or two
+        const dateYesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
+
         await processSmartScores({
             supabase,
             projectId,
@@ -153,8 +158,11 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
             maxValue,
             previousDays,
             testingData,
+            dayDate: dateYesterday,
             logs,
         })
+
+        console.log(`Analysis complete for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername})`)
     } catch (error) {
         console.error("Error in analyzeForumUserActivity:", error)
     } finally {

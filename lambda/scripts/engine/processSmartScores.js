@@ -13,17 +13,14 @@ async function processSmartScores({
     maxValue,
     previousDays,
     testingData,
+    dayDate,
     logs,
 }) {
-    // TODO: This only works for yesterday and does not account for any missed previous days
-    // I should at least try to get the last e.g. 3 days of smart scores to fill in gaps if the script did not run for a day or two
-    const dateYesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
-
-    // If a non-test smart score is already in the database for dateYesterday, skip the analysis
+    // If a non-test smart score is already in the database for dayDate, skip the analysis
     let existingQuery = supabase
         .from("user_signal_strengths")
         .select("id")
-        .eq("day", dateYesterday)
+        .eq("day", dayDate)
         .eq("user_id", userId)
         .eq("project_id", projectId)
         .eq("signal_strength_id", signalStrengthId)
@@ -39,7 +36,7 @@ async function processSmartScores({
 
     if (!testingData && existingData) {
         console.log(
-            `Smart score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dateYesterday} already exists in the database. Skipping...`,
+            `Smart score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate} already exists in the database. Skipping...`,
         )
         console.log("Analysis complete.")
         return
@@ -52,7 +49,7 @@ async function processSmartScores({
         maxValue,
         previousDays,
         testingData,
-        dayDate: dateYesterday,
+        dayDate: dayDate,
         type: "smart",
         logs,
     })
@@ -67,7 +64,7 @@ async function processSmartScores({
 
     // === Store the analysis results in the database ===
     if (analysisResults && !analysisResults.error) {
-        await updateUserData(
+        await updateUserData({
             supabase,
             projectId,
             signalStrengthId,
@@ -76,13 +73,12 @@ async function processSmartScores({
             analysisResults,
             maxValue,
             testingData,
-            false, // isRawScoreCalc
-            dateYesterday,
-        )
+            isRawScoreCalc: false,
+            dayDate: dayDate,
+        })
         console.log(
-            `Smart score successfully updated for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername})`,
+            `Smart score successfully updated for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate}`,
         )
-        console.log("Analysis complete .")
     } else {
         console.error(`Analysis failed for ${signalStrengthUsername}:`, analysisResults?.error || "Unknown error")
     }

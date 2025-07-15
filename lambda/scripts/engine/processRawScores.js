@@ -49,7 +49,7 @@ async function processRawScores({
 
             // === Store the analysis results in the database ===
             if (analysisResults && !analysisResults.error) {
-                await updateUserData(
+                await updateUserData({
                     supabase,
                     projectId,
                     signalStrengthId,
@@ -58,9 +58,9 @@ async function processRawScores({
                     analysisResults,
                     maxValue,
                     testingData,
-                    true, // isRawScoreCalc
-                    day.date,
-                )
+                    isRawScoreCalc: true,
+                    dayDate: day.date,
+                })
                 console.log(`User data successfully updated for day ${day.date}`)
                 console.log("")
             } else {
