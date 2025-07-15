@@ -10,6 +10,7 @@ const { getExistingUserRawData } = require("./db/getExistingUserRawData")
 
 const { setLastChecked, clearLastChecked } = require("./utils/lastCheckedUtils")
 const { checkProjectSignalStrengthEnabled } = require("./utils/checkProjectSignalStrengthEnabled")
+const { getRawActivityCombinedData } = require("./utils/getRawActivityCombinedData")
 
 const { processRawScores } = require("./processRawScores")
 
@@ -126,56 +127,18 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
             logs,
         })
 
-        // After the raw daily analysis is complete, generate a smart score for the user
-        let rawActivityCombinedData = []
-
-        let query = supabase
-            .from("user_signal_strengths")
-            .select("*")
-            .eq("user_id", userId)
-            .eq("project_id", projectId)
-            .eq("signal_strength_id", signalStrengthId)
-            .not("raw_value", "is", null)
-
-        if (testingData) {
-            query = query.not("test_requesting_user", "is", null)
-        } else {
-            query = query.is("test_requesting_user", null)
-        }
-
-        rawActivityCombinedData =
-            (
-                await query
-                    .gte(
-                        "day",
-                        new Date(new Date().setDate(new Date().getDate() - previousDays)).toISOString().split("T")[0],
-                    )
-                    .order("day", { ascending: false })
-            ).data || []
-
-        rawActivityCombinedData = rawActivityCombinedData.map((item) => ({
-            id: item.id,
-            // summary: item.summary,
-            description: item.description,
-            // improvements: item.improvements,
-            // explained_reasoning: item.explained_reasoning,
-            raw_value: item.raw_value,
-            max_value: item.max_value,
-            day: item.day,
-        }))
-
-        // This is a catch for an edge case where duplicate raw score rows for the same day are created
-        // It is important that raw scores and not double counted towards the smart score
-        // In case there are any duplicates for the same day, keep the one with the larger id value
-        const uniqueDays = [...new Set(rawActivityCombinedData.map((item) => item.day))]
-        rawActivityCombinedData = uniqueDays.map((day) => {
-            const itemsForDay = rawActivityCombinedData.filter((item) => item.day === day)
-            return itemsForDay.reduce((max, current) => (current.id > max.id ? current : max))
+        // =========================================
+        // Fetch raw activity combined data from DB
+        // =========================================
+        // This includes all the raw scores for the user for the previousDays
+        const rawActivityCombinedData = await getRawActivityCombinedData({
+            supabase,
+            userId,
+            projectId,
+            signalStrengthId,
+            testingData,
+            previousDays,
         })
-
-        // TODO: Add previous smart score (if it exists) to the end of the rawActivityCombinedData array so it can be
-        // used as a reference for the analysis. Tell the smart prompt how to use it and to try not vary wildly unless
-        // there is a good reason.
 
         // TODO: This only works for yesterday and does not account for any missed previous days
         // I should at least try to get the last e.g. 3 days of smart scores to fill in gaps if the script did not run for a day or two
