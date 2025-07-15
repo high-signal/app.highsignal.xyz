@@ -3,7 +3,7 @@ const { fetchUserActivity } = require("../discourse_forum/fetchUserActivity")
 const { updateUserData } = require("../discourse_forum/updateUserData")
 const { updateRequired } = require("../discourse_forum/updateRequired")
 const { analyzeUserData } = require("../discourse_forum/analyzeUserData")
-const { clearLastChecked } = require("../discourse_forum/clearLastChecked")
+const { setLastChecked, clearLastChecked } = require("./utils/lastCheckedUtils")
 
 const { createClient } = require("@supabase/supabase-js")
 
@@ -11,10 +11,13 @@ const { createClient } = require("@supabase/supabase-js")
 async function runEngine({ signalStrengthName, userId, projectId, signalStrengthUsername, testingData }) {
     const forum_username = signalStrengthUsername
 
+    let supabase
+    let signalStrengthId
+
     try {
         let logs = `signalStrengthUsername: ${signalStrengthUsername}`
 
-        const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+        supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
         // Returns all prompts for the signal strength
         // Prompt filtering for each type and date is carried out for each analysis
@@ -43,7 +46,7 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
             return //NextResponse.json("No signal strength found with name: " + signalStrengthName)
         }
 
-        const signalStrengthId = signalStrengthData.id
+        signalStrengthId = signalStrengthData.id
 
         // Check if this signal strength is enabled for the project
         const { data: projectSignalData, error: projectSignalError } = await supabase
@@ -62,10 +65,11 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
 
         if (projectSignalError || !projectSignalData || !projectSignalData.enabled) {
             console.log(`Signal strength ${signalStrengthName} is not enabled for this project`)
-            // Continue without triggering analysis
-            clearLastChecked(supabase, userId, projectId, signalStrengthId)
-            return //NextResponse.json("Signal strength is not enabled for this project")
+            return
         }
+
+        // Set last checked as soon as it is known that the signal strength is enabled for the project
+        setLastChecked(supabase, userId, projectId, signalStrengthId)
 
         // === Fetch signal strength config from Supabase ===
         const signalStrengthConfig = await getSignalStrengthConfig(supabase, projectId, signalStrengthId)
@@ -82,44 +86,12 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
 
         if (!signalStrengthConfig || signalStrengthConfig.length === 0) {
             console.error("Signal strength config not found")
-            clearLastChecked(supabase, userId, projectId, signalStrengthId)
             return
         }
 
-        const enabled = signalStrengthConfig[0].enabled
         const maxValue = signalStrengthConfig[0].max_value
         const url = signalStrengthConfig[0].url
         const previousDays = signalStrengthConfig[0].previous_days
-
-        if (!enabled) {
-            console.log(
-                `Signal strength ${signalStrengthName} is not enabled for this project: ${projectSignalData.projects.display_name}`,
-            )
-            clearLastChecked(supabase, userId, projectId, signalStrengthId)
-            return
-        }
-
-        // Set the last_checked value so that the user profile page shows the loading animation
-        // even when this update is triggered automatically each day
-        const { error: lastCheckError } = await supabase.from("user_signal_strengths").upsert(
-            {
-                user_id: userId,
-                project_id: projectId,
-                signal_strength_id: signalStrengthId,
-                last_checked: Math.floor(Date.now() / 1000),
-                request_id: `last_checked_${userId}_${projectId}_${signalStrengthId}`,
-                created: 99999999999999,
-            },
-            {
-                onConflict: "request_id",
-            },
-        )
-
-        if (lastCheckError) {
-            console.error(`Error updating last_checked for ${signalStrengthUsername}:`, lastCheckError.message)
-        } else {
-            console.log(`Successfully updated last_checked for ${signalStrengthUsername}`)
-        }
 
         // === Get user data from Supabase ===
         const { data: userData, error: userError } = await supabase
@@ -139,7 +111,6 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
 
         if (userError) {
             console.error("Error fetching user data:", userError)
-            clearLastChecked(supabase, userId, projectId, signalStrengthId)
             return
         }
 
@@ -158,7 +129,6 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
 
         if (!activityData || activityData.length === 0) {
             console.error(`No activity data found for ${displayName} (forum username: ${forum_username})`)
-            clearLastChecked(supabase, userId, projectId, signalStrengthId)
             return
         }
 
@@ -259,9 +229,9 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
                 if (analysisResults && !analysisResults.error) {
                     await updateUserData(
                         supabase,
-                        project_id,
-                        signal_strength_id,
-                        forum_username,
+                        projectId,
+                        signalStrengthId,
+                        signalStrengthUsername,
                         userData,
                         latestActivityDate,
                         analysisResults,
@@ -364,7 +334,6 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
                 `Smart score for ${displayName} (forum username: ${forum_username}) on ${dateYesterday} already exists in the database. Skipping...`,
             )
             console.log("Analysis complete.")
-            clearLastChecked(supabase, userId, projectId, signalStrengthId)
             return
         }
 
@@ -393,9 +362,9 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
         if (analysisResults && !analysisResults.error) {
             await updateUserData(
                 supabase,
-                project_id,
-                signal_strength_id,
-                forum_username,
+                projectId,
+                signalStrengthId,
+                signalStrengthUsername,
                 userData,
                 latestActivityDate,
                 analysisResults,
@@ -409,13 +378,10 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
         } else {
             console.error(`Analysis failed for ${forum_username}:`, analysisResults?.error || "Unknown error")
         }
-
-        clearLastChecked(supabase, userId, projectId, signalStrengthId)
     } catch (error) {
         console.error("Error in analyzeForumUserActivity:", error)
-        if (supabase) {
-            clearLastChecked(supabase, userId, projectId, signalStrengthId)
-        }
+    } finally {
+        clearLastChecked(supabase, userId, projectId, signalStrengthId)
     }
 }
 
