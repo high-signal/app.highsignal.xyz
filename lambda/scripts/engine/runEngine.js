@@ -11,6 +11,8 @@ const { getExistingUserRawData } = require("./db/getExistingUserRawData")
 const { setLastChecked, clearLastChecked } = require("./utils/lastCheckedUtils")
 const { checkProjectSignalStrengthEnabled } = require("./utils/checkProjectSignalStrengthEnabled")
 
+const { processRawScores } = require("./processRawScores")
+
 const { createClient } = require("@supabase/supabase-js")
 
 // Function to run the engine
@@ -105,72 +107,26 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
             dailyActivityData,
         )
 
-        // ============================
-        // Analyze daily activity data
-        // ============================
-        // For each day with data in dailyActivityData, run the analyzeUserData function
-        const analysisPromises = dailyActivityData.map(async (day) => {
-            if (day.data.length > 0) {
-                if (existingUserRawData.length > 0 && existingUserRawData.find((item) => item.day === day.date)) {
-                    console.log(
-                        `Raw Calc: Day ${day.date} already exists in the database. Skipping raw score calculation...`,
-                    )
-                    return
-                }
-
-                const analysisResults = await analyzeUserData(
-                    signalStrengthData,
-                    day.data,
-                    signalStrengthUsername,
-                    userDisplayName,
-                    maxValue,
-                    previousDays,
-                    testingData,
-                    day.date,
-                    "raw", // type
-                    logs + `Day ${day.date} activity: ${day.data.length}\n`,
-                )
-
-                // === Validity check on maxValue ===
-                if (analysisResults && !analysisResults.error) {
-                    if (analysisResults[forum_username].value > maxValue) {
-                        console.log(
-                            `User ${forum_username} has a score greater than ${maxValue}. Setting to ${maxValue}.`,
-                        )
-                        analysisResults[forum_username].value = maxValue
-                    }
-                }
-
-                // === Store the analysis results in the database ===
-                if (analysisResults && !analysisResults.error) {
-                    await updateUserData(
-                        supabase,
-                        projectId,
-                        signalStrengthId,
-                        signalStrengthUsername,
-                        userId,
-                        analysisResults,
-                        maxValue,
-                        testingData,
-                        true, // isRawScoreCalc
-                        day.date,
-                    )
-                    console.log(`User data successfully updated for day ${day.date}`)
-                    console.log("")
-                } else {
-                    console.error(
-                        `Analysis failed for ${forum_username} on day ${day.date}:`,
-                        analysisResults?.error || "Unknown error",
-                    )
-                }
-            }
+        // ===================
+        // Process raw scores
+        // ===================
+        await processRawScores({
+            supabase,
+            projectId,
+            userId,
+            dailyActivityData,
+            existingUserRawData,
+            signalStrengthData,
+            signalStrengthId,
+            signalStrengthUsername,
+            userDisplayName,
+            maxValue,
+            previousDays,
+            testingData,
+            logs,
         })
 
-        // Wait for all daily analyses to complete
-        await Promise.all(analysisPromises)
-
         // After the raw daily analysis is complete, generate a smart score for the user
-
         let rawActivityCombinedData = []
 
         let query = supabase
