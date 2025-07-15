@@ -1,4 +1,4 @@
-const { analyzeForumUserActivity } = require("./scripts/discourse_forum/analyzeForumUserActivity")
+const { runEngine } = require("./scripts/engine/runEngine")
 
 exports.handler = async (event) => {
     try {
@@ -32,9 +32,14 @@ exports.handler = async (event) => {
         }
 
         // Process the request based on the signal strength name
-        if (signalStrengthName === "discourse_forum") {
-            // TODO: Update to new engine when ready
-            await analyzeForumUserActivity(userId, projectId, signalStrengthUsername, testingData)
+        if (signalStrengthName === "discourse_forum" /* || signalStrengthName === "discord"*/) {
+            await runEngine({
+                signalStrengthName,
+                userId,
+                projectId,
+                signalStrengthUsername,
+                testingData,
+            })
             return {
                 statusCode: 200,
                 body: JSON.stringify({ message: "Analysis completed successfully" }),

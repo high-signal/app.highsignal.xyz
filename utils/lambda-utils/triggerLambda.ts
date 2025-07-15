@@ -1,5 +1,5 @@
 // @ts-ignore
-import { analyzeForumUserActivity } from "../../lambda/scripts/discourse_forum/analyzeForumUserActivity"
+import { runEngine } from "../../lambda/scripts/engine/runEngine"
 
 export async function triggerLambda(
     signalStrengthName: string,
@@ -66,8 +66,14 @@ export async function triggerLambda(
     } else {
         // Execute locally
         console.log("Executing locally")
-        if (signalStrengthName === "discourse_forum") {
-            analyzeForumUserActivity(userId, projectId, signalStrengthUsername, testingData)
+        try {
+            await runEngine({
+                signalStrengthName,
+                userId,
+                projectId,
+                signalStrengthUsername,
+                testingData,
+            })
             return {
                 success: true,
                 message: "Analysis initiated successfully",
@@ -79,11 +85,12 @@ export async function triggerLambda(
                     ...(testingData && { testingData }),
                 },
             }
-        } else {
-            console.log(`Signal strength (${signalStrengthName}) not configured for updates`)
+        } catch (error) {
+            console.error(`Error sending analysis request for ${signalStrengthName}:`, error)
             return {
                 success: false,
-                message: `Signal strength (${signalStrengthName}) not configured for updates`,
+                message: error instanceof Error ? error.message : "Failed to start analysis",
+                error: error,
             }
         }
     }
