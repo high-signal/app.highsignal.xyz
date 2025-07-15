@@ -1,18 +1,16 @@
-const { updateUserData } = require("../discourse_forum_OLD/updateUserData")
-const { analyzeUserData } = require("../discourse_forum_OLD/analyzeUserData")
-
-const adapterHandler = require("./platform_adapters/adapterHandler")
-
 const { getUserDisplayName } = require("./db/getUserDisplayName")
 const { getSignalStrengthData } = require("./db/getSignalStrengthData")
 const { getSignalStrengthConfig } = require("./db/getSignalStrengthConfig")
 const { getExistingUserRawData } = require("./db/getExistingUserRawData")
 
 const { setLastChecked, clearLastChecked } = require("./utils/lastCheckedUtils")
-const { checkProjectSignalStrengthEnabled } = require("./utils/checkProjectSignalStrengthEnabled")
 const { getRawActivityCombinedData } = require("./utils/getRawActivityCombinedData")
+const { checkProjectSignalStrengthEnabled } = require("./utils/checkProjectSignalStrengthEnabled")
 
 const { processRawScores } = require("./processRawScores")
+const { processSmartScores } = require("./processSmartScores")
+
+const adapterHandler = require("./platform_adapters/adapterHandler")
 
 const { createClient } = require("@supabase/supabase-js")
 
@@ -140,76 +138,23 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
             previousDays,
         })
 
-        // TODO: This only works for yesterday and does not account for any missed previous days
-        // I should at least try to get the last e.g. 3 days of smart scores to fill in gaps if the script did not run for a day or two
-        const dateYesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
-
-        // If a non-test smart score is already in the database for dateYesterday, skip the analysis
-        let existingQuery = supabase
-            .from("user_signal_strengths")
-            .select("id")
-            .eq("day", dateYesterday)
-            .eq("user_id", userId)
-            .eq("project_id", projectId)
-            .eq("signal_strength_id", signalStrengthId)
-            .not("value", "is", null)
-
-        if (testingData) {
-            existingQuery = existingQuery.not("test_requesting_user", "is", null)
-        } else {
-            existingQuery = existingQuery.is("test_requesting_user", null)
-        }
-
-        const { data: existingData, error: existingError } = await existingQuery.single()
-
-        if (!testingData && existingData) {
-            console.log(
-                `Smart score for ${userDisplayName} (forum username: ${forum_username}) on ${dateYesterday} already exists in the database. Skipping...`,
-            )
-            console.log("Analysis complete.")
-            return
-        }
-
-        const analysisResults = await analyzeUserData(
-            signalStrengthData,
+        // =====================
+        // Process smart scores
+        // =====================
+        await processSmartScores({
+            supabase,
+            projectId,
+            userId,
             rawActivityCombinedData,
-            forum_username,
+            signalStrengthData,
+            signalStrengthId,
+            signalStrengthUsername,
             userDisplayName,
             maxValue,
             previousDays,
             testingData,
-            dateYesterday,
-            "smart", // type
             logs,
-        )
-
-        // === Validity check on maxValue ===
-        if (analysisResults && !analysisResults.error) {
-            if (analysisResults[forum_username].value > maxValue) {
-                console.log(`User ${forum_username} has a score greater than ${maxValue}. Setting to ${maxValue}.`)
-                analysisResults[forum_username].value = maxValue
-            }
-        }
-
-        // === Store the analysis results in the database ===
-        if (analysisResults && !analysisResults.error) {
-            await updateUserData(
-                supabase,
-                projectId,
-                signalStrengthId,
-                signalStrengthUsername,
-                userId,
-                analysisResults,
-                maxValue,
-                testingData,
-                false, // isRawScoreCalc
-                dateYesterday,
-            )
-            console.log(`Smart score successfully updated for ${userDisplayName} (forum username: ${forum_username})`)
-            console.log("Analysis complete .")
-        } else {
-            console.error(`Analysis failed for ${forum_username}:`, analysisResults?.error || "Unknown error")
-        }
+        })
     } catch (error) {
         console.error("Error in analyzeForumUserActivity:", error)
     } finally {
