@@ -20,7 +20,7 @@ async function processRawScores({
         if (day.data.length > 0) {
             if (existingUserRawData.length > 0 && existingUserRawData.find((item) => item.day === day.date)) {
                 console.log(
-                    `Raw score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${day.date} already exists in the database. Skipping...`,
+                    `✅ Raw score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${day.date} already exists in the database. Skipping...`,
                 )
                 return
             }
@@ -28,6 +28,7 @@ async function processRawScores({
             const analysisResults = await analyzeUserData({
                 signalStrengthData,
                 userData: day.data,
+                userDisplayName,
                 signalStrengthUsername,
                 maxValue,
                 previousDays,
@@ -61,8 +62,6 @@ async function processRawScores({
                     isRawScoreCalc: true,
                     dayDate: day.date,
                 })
-                console.log(`User data successfully updated for day ${day.date}`)
-                console.log("")
             } else {
                 console.error(
                     `Analysis failed for ${signalStrengthUsername} on day ${day.date}:`,

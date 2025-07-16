@@ -29,9 +29,12 @@ async function updateTotalScoreHistory(supabase, userId, projectId, day) {
     )
 
     if (historyError) {
-        console.error(`Error updating user_project_scores_history for ${username}:`, historyError.message)
+        console.error(
+            `Error updating user_project_scores_history for userId: ${userId} for day: ${day}:`,
+            historyError.message,
+        )
     } else {
-        console.log(`Successfully updated user_project_scores_history for ${userId} for day ${day}`)
+        console.log(`💾 Successfully updated user_project_scores_history for: userId ${userId} for day ${day}`)
     }
 }
 

@@ -15,6 +15,7 @@ const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 async function analyzeUserData({
     signalStrengthData,
     userData,
+    userDisplayName,
     signalStrengthUsername,
     maxValue,
     previousDays,
@@ -23,7 +24,9 @@ async function analyzeUserData({
     type,
     logs = "",
 }) {
-    console.log(`Day ${dayDate} analysis started...`)
+    console.log(
+        `⏳ ${type === "smart" ? "Smart" : "Raw"} score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate} analysis started...`,
+    )
 
     let calculatedSmartScore
     if (type === "smart") {
@@ -53,7 +56,9 @@ async function analyzeUserData({
         return { error: "No model set in DB" }
     }
 
-    console.log("model", model)
+    console.log(
+        `🤖 Using model: ${model}. ${type === "smart" ? "Smart" : "Raw"} score for user: ${signalStrengthUsername} on ${dayDate}...`,
+    )
 
     let temperature
     if (type === "raw" && rawTestingInputData?.testingTemperature) {
@@ -142,7 +147,9 @@ async function analyzeUserData({
     ]
 
     try {
-        console.log("Making OpenAI API call...")
+        console.log(
+            `🤖 Making OpenAI API call. ${type === "smart" ? "Smart" : "Raw"} score for user: ${signalStrengthUsername} on ${dayDate}...`,
+        )
         const res = await openai.chat.completions.create({
             model: model,
             messages,
@@ -180,7 +187,9 @@ truncatedData.length: ${truncatedData.length}
             }
 
             // Return the results
-            console.log("Analysis complete for user:", signalStrengthUsername)
+            console.log(
+                `🤖 ${type === "smart" ? "Smart" : "Raw"} analysis complete for user: ${signalStrengthUsername} on ${dayDate}`,
+            )
             return responseWithDataAdded
         } catch (parseError) {
             console.error("Failed to parse JSON response:", parseError.message)

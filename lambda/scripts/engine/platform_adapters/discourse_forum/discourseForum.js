@@ -30,10 +30,10 @@ async function getDailyActivityData({
     }
 
     // === Fetch activity data from forum API ===
-    console.log(`Fetching forum activity data for ${userDisplayName} (forum username: ${forum_username})`)
+    console.log(`👀 Fetching forum activity data for ${userDisplayName} (forum username: ${forum_username})`)
     const activityData = await fetchUserActivity({ BASE_URL: url, username: forum_username })
     console.log(
-        `Processed ${activityData?.length || 0} activities for ${userDisplayName} (forum username: ${forum_username})`,
+        `🗓️ Processed ${activityData?.length || 0} activities for ${userDisplayName} (forum username: ${forum_username})`,
     )
     adapterLogs += `\nTotal API activities:  ${activityData?.length || 0}`
 
@@ -49,7 +49,7 @@ async function getDailyActivityData({
             Number(activity.id) !== Number(userData.auth_post_id),
     )
 
-    console.log(`Filtered activity data to the past ${previousDays} days: ${filteredActivityData.length}`)
+    console.log(`🗓️ Filtered activity data to the past ${previousDays} days: ${filteredActivityData.length}`)
     adapterLogs += `\nActivity past ${previousDays} days: ${filteredActivityData.length}`
 
     // console.log("filteredActivityData", filteredActivityData)
@@ -70,7 +70,7 @@ async function getDailyActivityData({
     }
 
     console.log(
-        "Number of days to analyze for raw score calculation:",
+        "🗓️ Number of days to analyze for raw score calculation:",
         dailyActivityData.filter((day) => day.data && day.data.length > 0).length,
     )
     adapterLogs += `\nUnique activity days: ${dailyActivityData.filter((day) => day.data && day.data.length > 0).length}\n`

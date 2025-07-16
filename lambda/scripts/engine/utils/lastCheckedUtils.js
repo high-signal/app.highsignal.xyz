@@ -20,7 +20,7 @@ async function setLastChecked({ supabase, userId, projectId, signalStrengthId })
         if (lastCheckError) {
             console.error(`Error updating last_checked for userId ${userId}:`, lastCheckError.message)
         } else {
-            console.log(`Successfully updated last_checked for userId ${userId}`)
+            console.log(`🏁 Successfully updated last_checked for userId ${userId}`)
         }
     } else {
         console.error("Error setting last_checked: missing parameters")

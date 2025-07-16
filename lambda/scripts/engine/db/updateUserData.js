@@ -13,7 +13,9 @@ async function updateUserData({
     dayDate,
 }) {
     try {
-        console.log(`Updating database for user ${signalStrengthUsername}`)
+        console.log(
+            `💾 ${isRawScoreCalc ? "Raw" : "Smart"} score for ${signalStrengthUsername} on ${dayDate} updating database...`,
+        )
 
         // Store the analysis results in the user_signal_strengths table
         const { error: signalError } = await supabase.from("user_signal_strengths").insert({
@@ -42,8 +44,6 @@ async function updateUserData({
 
         if (signalError) {
             console.error(`Error storing signal strength for ${signalStrengthUsername}:`, signalError.message)
-        } else {
-            console.log(`Successfully stored signal strength response in database for ${signalStrengthUsername}`)
         }
 
         // Remove duplicate rows
@@ -70,6 +70,10 @@ async function updateUserData({
         if (!isRawScoreCalc && !testingData?.requestingUserId) {
             await updateTotalScoreHistory(supabase, userId, projectId, dayDate)
         }
+
+        console.log(
+            `💾 ${isRawScoreCalc ? "Raw" : "Smart"} score for ${signalStrengthUsername} on ${dayDate} saved to database.`,
+        )
     } catch (dbError) {
         console.error(`Database error for ${signalStrengthUsername}:`, dbError.message)
     }

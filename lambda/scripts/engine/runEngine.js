@@ -17,10 +17,7 @@ const { createClient } = require("@supabase/supabase-js")
 // Function to run the engine
 async function runEngine({ signalStrengthName, userId, projectId, signalStrengthUsername, testingData }) {
     console.log("\n**************************************************")
-    console.log("Running engine for signal strength:", signalStrengthName)
-
-    // TODO: Change this
-    const forum_username = signalStrengthUsername
+    console.log("🏁 Running engine for signal strength:", signalStrengthName)
 
     let supabase
     let signalStrengthId
@@ -70,7 +67,7 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
         const previousDays = signalStrengthConfig.previous_days
 
         console.log(
-            `Analyzing activity for userId ${userId}, project ${projectId}, signal strength username ${signalStrengthUsername}`,
+            `🏁 Analyzing activity for userId ${userId}, projectId ${projectId}, signalStrengthUsername ${signalStrengthUsername}`,
         )
 
         // ================================
@@ -162,9 +159,11 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
             logs,
         })
 
-        console.log(`Analysis complete for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername})`)
+        console.log(
+            `☑️ Analysis complete for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) for ${dateYesterday}`,
+        )
     } catch (error) {
-        console.error("Error in analyzeForumUserActivity:", error)
+        console.error("Error in runEngine:", error)
     } finally {
         clearLastChecked({ supabase, userId, projectId, signalStrengthId })
     }

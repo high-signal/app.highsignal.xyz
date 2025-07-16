@@ -36,7 +36,7 @@ async function processSmartScores({
 
     if (!testingData && existingData) {
         console.log(
-            `Smart score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate} already exists in the database. Skipping...`,
+            `✅ Smart score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate} already exists in the database. Skipping...`,
         )
         console.log("Analysis complete.")
         return
@@ -45,6 +45,7 @@ async function processSmartScores({
     const analysisResults = await analyzeUserData({
         signalStrengthData,
         userData: rawActivityCombinedData,
+        userDisplayName,
         signalStrengthUsername,
         maxValue,
         previousDays,
@@ -76,9 +77,6 @@ async function processSmartScores({
             isRawScoreCalc: false,
             dayDate: dayDate,
         })
-        console.log(
-            `Smart score successfully updated for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate}`,
-        )
     } else {
         console.error(`Analysis failed for ${signalStrengthUsername}:`, analysisResults?.error || "Unknown error")
     }
