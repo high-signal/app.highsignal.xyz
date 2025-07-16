@@ -32,6 +32,7 @@ async function processSmartScores({
         existingQuery = existingQuery.is("test_requesting_user", null)
     }
 
+    // TODO: Handle this error
     const { data: existingData, error: existingError } = await existingQuery.single()
 
     if (!testingData && existingData) {
@@ -57,6 +58,7 @@ async function processSmartScores({
 
     // === Validity check on maxValue ===
     if (analysisResults && !analysisResults.error) {
+        // TODO: Check that this is working for both smart and raw scores
         if (analysisResults[signalStrengthUsername].value > maxValue) {
             console.log(`User ${signalStrengthUsername} has a score greater than ${maxValue}. Setting to ${maxValue}.`)
             analysisResults[signalStrengthUsername].value = maxValue
