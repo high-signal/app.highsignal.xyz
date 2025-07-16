@@ -39,7 +39,6 @@ async function processSmartScores({
         console.log(
             `✅ Smart score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate} already exists in the database. Skipping...`,
         )
-        console.log("Analysis complete.")
         return
     }
 
