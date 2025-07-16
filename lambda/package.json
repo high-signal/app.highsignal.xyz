@@ -1,14 +1,19 @@
 {
-  "name": "lambda",
+  "name": "high-signal-lambda",
   "version": "1.0.0",
-  "description": "Lambda function",
+  "description": "High Signal Lambda functions",
+  "author": {
+    "name": "Eridian",
+    "url": "https://eridian.xyz"
+  },
+  "license": "Proprietary",
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
     "package": "mkdir -p bundle && rsync -a . bundle/ --exclude bundle --exclude lambda-code.zip --exclude .git --exclude node_modules && rsync -a node_modules/ bundle/node_modules/ && cd bundle && zip -r ../lambda-code.zip . && cd .. && rm -rf bundle"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.3",
+    "@supabase/supabase-js": "^2.51.0",
     "axios": "^1.8.4",
     "discord.js": "^14.21.0",
     "dotenv": "^16.4.5",
