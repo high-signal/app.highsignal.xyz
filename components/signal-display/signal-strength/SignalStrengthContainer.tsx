@@ -34,6 +34,10 @@ export default function SignalStrengthContainer({
             return -1
         if (a.signalStrengthProjectData.status !== "active" && b.signalStrengthProjectData.status === "active") return 1
 
+        // Then sort by enabled - enabled comes first
+        if (a.signalStrengthProjectData.enabled && !b.signalStrengthProjectData.enabled) return -1
+        if (!a.signalStrengthProjectData.enabled && b.signalStrengthProjectData.enabled) return 1
+
         // Get user values, defaulting to "0" if not available
         const userValueA = a.userData ? parseFloat(a.userData.value) : 0
         const userValueB = b.userData ? parseFloat(b.userData.value) : 0

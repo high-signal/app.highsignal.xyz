@@ -6,7 +6,7 @@ import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
 import { useState, useEffect } from "react"
 
 import { useUser } from "../../../contexts/UserContext"
-import { getAccessToken, usePrivy } from "@privy-io/react-auth"
+import { usePrivy } from "@privy-io/react-auth"
 
 import { APP_CONFIG } from "../../../config/constants"
 import { useRouter } from "next/navigation"
@@ -151,7 +151,7 @@ export default function SignalStrength({
                 alignItems={userDataRefreshTriggered ? "center" : "baseline"}
                 py={2}
                 px={4}
-                justifyContent={{ base: "center", md: !signalStrengthProjectData.enabled ? "start" : "center" }}
+                justifyContent={{ base: "center", sm: !signalStrengthProjectData.enabled ? "space-between" : "center" }}
                 border={"5px solid"}
                 borderColor={"pageBackground"}
                 borderRadius={"12px"}
@@ -187,16 +187,20 @@ export default function SignalStrength({
                         </HStack>
                     )}
                 {signalStrengthProjectData.status === "dev" && (
-                    <SignalStrengthLozenge>
-                        <Text>🏗️</Text>
-                        <Text>Coming soon</Text>
-                        <Text>🏗️</Text>
-                    </SignalStrengthLozenge>
+                    <HStack w={{ base: "100%", sm: "auto" }} justifyContent={"space-between"}>
+                        <SignalStrengthLozenge>
+                            <Text>🏗️</Text>
+                            <Text>Coming soon</Text>
+                            <Text>🏗️</Text>
+                        </SignalStrengthLozenge>
+                    </HStack>
                 )}
                 {signalStrengthProjectData.status === "active" && !signalStrengthProjectData.enabled && (
-                    <SignalStrengthLozenge>
-                        <Text>Not enabled by {projectData.displayName}</Text>
-                    </SignalStrengthLozenge>
+                    <HStack w={{ base: "100%", sm: "auto" }} justifyContent={"space-between"}>
+                        <SignalStrengthLozenge>
+                            <Text>Not enabled by {projectData.displayName}</Text>
+                        </SignalStrengthLozenge>
+                    </HStack>
                 )}
             </HStack>
             {userContentAvailable &&
@@ -253,7 +257,7 @@ export default function SignalStrength({
                         <Text fontFamily={"monospace"}>{signalStrengthProjectData.maxValue}</Text>
                     </HStack>
                 )}
-            {userContentAvailable && !countdown && !userDataRefreshTriggered && (
+            {signalStrengthProjectData.enabled && userContentAvailable && !countdown && !userDataRefreshTriggered && (
                 <VStack w="100%" gap={0} alignItems={"start"}>
                     <HStack
                         alignItems={"center"}
@@ -395,6 +399,7 @@ export default function SignalStrength({
                 </VStack>
             )}
             {signalStrengthProjectData.status === "active" &&
+                signalStrengthProjectData.enabled &&
                 !userContentAvailable &&
                 loggedInUser?.username === username && (
                     <HStack w={"100%"} justifyContent={"center"} cursor={"disabled"}>
