@@ -16,11 +16,11 @@ const AUTH_TYPE_MAPPING = {
 export async function updatePrivyAccounts(privyId: string, targetUsername: string) {
     // Get user data directly from Privy API using the privyId
     try {
-        // If current user is the target user, update their Privy accounts
-        const { data: loggedInUser, error: loggedInUserError } = await fetchUserData(privyId)
+        // If privyIdUser user is the target user, update their Privy accounts
+        const { data: privyIdUser, error: privyIdUserError } = await fetchUserData(privyId)
 
         // This check is important to not overwrite the details of the target user with the logged in user details
-        if (!loggedInUserError && loggedInUser?.username === targetUsername) {
+        if (!privyIdUserError && privyIdUser?.username === targetUsername) {
             const privyResponse = await fetch(`https://api.privy.io/v1/users/${privyId}`, {
                 headers: {
                     Authorization: `Basic ${Buffer.from(`${process.env.NEXT_PUBLIC_PRIVY_APP_ID}:${process.env.PRIVY_APP_SECRET}`).toString("base64")}`,
@@ -37,7 +37,6 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
                 // ******************************************************
                 // Process each auth type mapping for users table columns
                 // ******************************************************
-                // Process each auth type mapping for users table columns
                 for (const [authType, mappings] of Object.entries(AUTH_TYPE_MAPPING)) {
                     for (const { dbColumn, privyField } of mappings) {
                         // Find the account from linked_accounts
