@@ -63,13 +63,16 @@ export async function PATCH(request: NextRequest) {
         // ************************************************
         const updateData: Record<string, any> = {}
 
+        // Check if the existing auth type is Privy, as that must be retained even when disabled
+        const isPrivyAuthType = settings.authTypes.current?.includes("privy")
+
         // If the new state is disabled, set all other fields to their default values
         if (settings.enabled.new === false) {
             updateData.enabled = false
             updateData.max_value = 20
             updateData.previous_days = 180
             updateData.url = null
-            updateData.auth_types = null
+            updateData.auth_types = isPrivyAuthType ? ["privy"] : null
             updateData.auth_parent_post_url = null
         } else {
             if (settings.maxValue.new !== null) updateData.max_value = parseInt(sanitize(settings.maxValue.new))
