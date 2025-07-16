@@ -1,0 +1,82 @@
+const { analyzeUserData } = require("./ai/analyzeUserData")
+const { updateUserData } = require("./db/updateUserData")
+
+async function processRawScores({
+    supabase,
+    projectId,
+    userId,
+    dailyActivityData,
+    existingUserRawData,
+    signalStrengthData,
+    signalStrengthId,
+    signalStrengthUsername,
+    userDisplayName,
+    maxValue,
+    previousDays,
+    testingData,
+    logs,
+}) {
+    const analysisPromises = dailyActivityData.map(async (day) => {
+        if (day.data.length > 0) {
+            if (
+                !testingData &&
+                existingUserRawData.length > 0 &&
+                existingUserRawData.find((item) => item.day === day.date)
+            ) {
+                console.log(
+                    `✅ Raw score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${day.date} already exists in the database. Skipping...`,
+                )
+                return
+            }
+
+            const analysisResults = await analyzeUserData({
+                signalStrengthData,
+                userData: day.data,
+                userDisplayName,
+                signalStrengthUsername,
+                maxValue,
+                previousDays,
+                testingData,
+                dayDate: day.date,
+                type: "raw",
+                logs: logs + `Day ${day.date} activity: ${day.data.length}\n`,
+            })
+
+            // === Validity check on maxValue ===
+            if (analysisResults && !analysisResults.error) {
+                if (analysisResults[signalStrengthUsername].value > maxValue) {
+                    console.log(
+                        `User ${signalStrengthUsername} has a score greater than ${maxValue}. Setting to ${maxValue}.`,
+                    )
+                    analysisResults[signalStrengthUsername].value = maxValue
+                }
+            }
+
+            // === Store the analysis results in the database ===
+            if (analysisResults && !analysisResults.error) {
+                await updateUserData({
+                    supabase,
+                    projectId,
+                    signalStrengthId,
+                    signalStrengthUsername,
+                    userId,
+                    analysisResults,
+                    maxValue,
+                    testingData,
+                    isRawScoreCalc: true,
+                    dayDate: day.date,
+                })
+            } else {
+                console.error(
+                    `Analysis failed for ${signalStrengthUsername} on day ${day.date}:`,
+                    analysisResults?.error || "Unknown error",
+                )
+            }
+        }
+    })
+
+    // Wait for all daily analyses to complete
+    await Promise.all(analysisPromises)
+}
+
+module.exports = { processRawScores }

@@ -25,7 +25,7 @@ export async function forumUserManagement({
     // Check if any existing forum_users entry exists for a DIFFERENT user_id and same project_id for the username
     const { data: existingEntries, error: existingEntriesError } = await supabase
         .from("forum_users")
-        .select("user_id, last_updated")
+        .select("user_id")
         .eq("project_id", projectId)
         .eq("forum_username", forumUsername)
 
@@ -56,7 +56,6 @@ export async function forumUserManagement({
         auth_encrypted_payload: type === "api_auth" ? data : null,
         auth_post_id: type === "manual_post" ? data : null,
         ...(type === "api_auth" ? { auth_post_code: null, auth_post_code_created: null } : {}),
-        ...(existingEntries[0]?.last_updated ? { last_updated: null } : {}), // Clear the last_updated if it exists as it will trigger the analysis again for any days that were not already covered
     })
 
     if (upsertError) {
@@ -75,7 +74,7 @@ export async function forumUserManagement({
             signal_strength_id: signalStrengthId,
             last_checked: Math.floor(Date.now() / 1000),
             request_id: `last_checked_${targetUserId}_${projectId}_${signalStrengthId}`,
-            created: 99999999999999,
+            created: 99999999999999, // This is needed so that it is always the top result
         },
         {
             onConflict: "request_id",

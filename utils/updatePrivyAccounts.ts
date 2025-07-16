@@ -3,11 +3,14 @@ import { fetchUserData } from "./fetchUserData"
 
 // Mapping of Privy auth types to database column names and Privy account field names
 const AUTH_TYPE_MAPPING = {
-    email: { dbColumn: "email", privyField: "address" },
-    discord_oauth: { dbColumn: "discord_username", privyField: "username" },
-    twitter_oauth: { dbColumn: "x_username", privyField: "username" },
-    farcaster: { dbColumn: "farcaster_username", privyField: "username" },
-    // privy_type: { dbColumn: "db_column_name", privyField: "privy_field_name" }
+    email: [{ dbColumn: "email", privyField: "address" }],
+    discord_oauth: [
+        { dbColumn: "discord_username", privyField: "username" },
+        { dbColumn: "discord_user_id", privyField: "subject" },
+    ],
+    twitter_oauth: [{ dbColumn: "x_username", privyField: "username" }],
+    farcaster: [{ dbColumn: "farcaster_username", privyField: "username" }],
+    // privy_type: [{ dbColumn: "db_column_name", privyField: "privy_field_name" }]
 } as const
 
 export async function updatePrivyAccounts(privyId: string, targetUsername: string) {
@@ -35,68 +38,70 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
                 // Process each auth type mapping for users table columns
                 // ******************************************************
                 // Process each auth type mapping for users table columns
-                for (const [authType, { dbColumn, privyField }] of Object.entries(AUTH_TYPE_MAPPING)) {
-                    // Find the account from linked_accounts
-                    const account = privyUser.linked_accounts?.find((account: any) => account.type === authType)
+                for (const [authType, mappings] of Object.entries(AUTH_TYPE_MAPPING)) {
+                    for (const { dbColumn, privyField } of mappings) {
+                        // Find the account from linked_accounts
+                        const account = privyUser.linked_accounts?.find((account: any) => account.type === authType)
 
-                    if (account) {
-                        // Check if there are any existing records with the same value for this field
-                        const { data: existingRecords, error: existingRecordsError } = await supabase
-                            .from("users")
-                            .select("id, privy_id")
-                            .eq(dbColumn, account[privyField])
-                            .not(dbColumn, "is", null)
+                        if (account) {
+                            // Check if there are any existing records with the same value for this field
+                            const { data: existingRecords, error: existingRecordsError } = await supabase
+                                .from("users")
+                                .select("id, privy_id")
+                                .eq(dbColumn, account[privyField])
+                                .not(dbColumn, "is", null)
 
-                        if (existingRecordsError) {
-                            console.error(`Error checking existing ${dbColumn} records:`, existingRecordsError)
-                            continue
-                        }
-
-                        // If there are existing records
-                        if (existingRecords && existingRecords.length > 0) {
-                            // Check if any of the existing records belong to the current user
-                            const currentUserRecord = existingRecords.find((record) => record.privy_id === privyId)
-
-                            if (currentUserRecord) {
-                                // The value is already set for this user, do nothing
+                            if (existingRecordsError) {
+                                console.error(`Error checking existing ${dbColumn} records:`, existingRecordsError)
                                 continue
-                            } else {
-                                // The value exists for another user, clear it from other users first
-                                const otherUserId = existingRecords[0].id
-                                const { error: clearError } = await supabase
-                                    .from("users")
-                                    .update({ [dbColumn]: null })
-                                    .eq("id", otherUserId)
-
-                                if (clearError) {
-                                    console.error(`Error clearing ${dbColumn} from other users:`, clearError)
-                                    continue
-                                }
-
-                                console.log(
-                                    `Duplicate value cleared for ${dbColumn} from user id: ${otherUserId} - Value cleared: ${account[privyField]}`,
-                                )
                             }
-                        }
 
-                        // Now update the current user with the new value
-                        const { error: updateError } = await supabase
-                            .from("users")
-                            .update({ [dbColumn]: account[privyField] })
-                            .eq("privy_id", privyId)
+                            // If there are existing records
+                            if (existingRecords && existingRecords.length > 0) {
+                                // Check if any of the existing records belong to the current user
+                                const currentUserRecord = existingRecords.find((record) => record.privy_id === privyId)
 
-                        if (updateError) {
-                            console.error(`Error updating user ${dbColumn}:`, updateError)
-                        }
-                    } else {
-                        // If no account is found, delete the user data from the database
-                        const { error: deleteError } = await supabase
-                            .from("users")
-                            .update({ [dbColumn]: null })
-                            .eq("privy_id", privyId)
+                                if (currentUserRecord) {
+                                    // The value is already set for this user, do nothing
+                                    continue
+                                } else {
+                                    // The value exists for another user, clear it from other users first
+                                    const otherUserId = existingRecords[0].id
+                                    const { error: clearError } = await supabase
+                                        .from("users")
+                                        .update({ [dbColumn]: null })
+                                        .eq("id", otherUserId)
 
-                        if (deleteError) {
-                            console.error(`Error deleting user ${dbColumn}:`, deleteError)
+                                    if (clearError) {
+                                        console.error(`Error clearing ${dbColumn} from other users:`, clearError)
+                                        continue
+                                    }
+
+                                    console.log(
+                                        `Duplicate value cleared for ${dbColumn} from user id: ${otherUserId} - Value cleared: ${account[privyField]}`,
+                                    )
+                                }
+                            }
+
+                            // Now update the current user with the new value
+                            const { error: updateError } = await supabase
+                                .from("users")
+                                .update({ [dbColumn]: account[privyField] })
+                                .eq("privy_id", privyId)
+
+                            if (updateError) {
+                                console.error(`Error updating user ${dbColumn}:`, updateError)
+                            }
+                        } else {
+                            // If no account is found, delete the user data from the database
+                            const { error: deleteError } = await supabase
+                                .from("users")
+                                .update({ [dbColumn]: null })
+                                .eq("privy_id", privyId)
+
+                            if (deleteError) {
+                                console.error(`Error deleting user ${dbColumn}:`, deleteError)
+                            }
                         }
                     }
                 }
