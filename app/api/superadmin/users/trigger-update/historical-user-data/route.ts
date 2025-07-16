@@ -3,6 +3,10 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js"
 import { NextRequest } from "next/server"
 
 // This function is used to backfill historical user total scores
+// Example usage:
+// http://localhost:3000/api/superadmin/users/trigger-update/historical-user-data?page=3&limit=100
+// POST
+// Setting correct bearer token in the request headers
 export async function POST(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const page = parseInt(searchParams.get("page") || "1", 10)
