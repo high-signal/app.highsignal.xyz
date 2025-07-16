@@ -10,7 +10,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "yarn install && cd lambda && yarn install && cd .. && next build",
+    "install-dependencies": "yarn install && cd lambda && yarn install",
+    "build": "next build",
     "export": "next export",
     "start": "yarn build && next start",
     "lint": "next lint",
