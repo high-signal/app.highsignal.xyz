@@ -3,6 +3,7 @@
 import { HStack, VStack, Text, Button, Image } from "@chakra-ui/react"
 import { getAccessToken } from "@privy-io/react-auth"
 import { ASSETS } from "../../../config/constants"
+import { toaster } from "../../ui/toaster"
 import { useSearchParams } from "next/navigation"
 
 export default function SignalStrengthsSettingsHeader({
@@ -191,24 +192,33 @@ export default function SignalStrengthsSettingsHeader({
                             py={1}
                             borderRadius={"full"}
                             onClick={async () => {
-                                const token = await getAccessToken()
-                                const response = await fetch(`/api/superadmin/accounts/trigger-update`, {
-                                    method: "PATCH",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        Authorization: `Bearer ${token}`,
-                                    },
-                                    body: JSON.stringify({
-                                        signalStrengthName: signalStrength.name,
-                                        userId: selectedUser.id,
-                                        projectId: project?.id,
-                                        signalStrengthUsername: signalStrengthUsername,
-                                    }),
-                                })
+                                if (signalStrengthUsername) {
+                                    const token = await getAccessToken()
+                                    const response = await fetch(`/api/superadmin/accounts/trigger-update`, {
+                                        method: "PATCH",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                            Authorization: `Bearer ${token}`,
+                                        },
+                                        body: JSON.stringify({
+                                            signalStrengthName: signalStrength.name,
+                                            userId: selectedUser.id,
+                                            projectId: project?.id,
+                                            signalStrengthUsername: signalStrengthUsername,
+                                        }),
+                                    })
 
-                                if (!response.ok) {
-                                    const errorData = await response.json()
-                                    console.error(errorData.error)
+                                    if (!response.ok) {
+                                        const errorData = await response.json()
+                                        console.error(errorData.error)
+                                    }
+                                } else {
+                                    console.log("No signal strength username found")
+                                    toaster.create({
+                                        title: "❌ Error triggering update",
+                                        description: `No signal strength username found for ${signalStrength.name}`,
+                                        type: "error",
+                                    })
                                 }
                             }}
                         >

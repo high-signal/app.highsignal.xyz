@@ -51,22 +51,6 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ error: "Error fetching signal strength ID" }, { status: 500 })
         }
 
-        // Delete all user_signal_strengths for these users, project, and signal strength
-        // if (process.env.NODE_ENV === "development") {
-        //     if (userIds.length > 0) {
-        //         const { error: deleteError } = await supabase
-        //             .from("user_signal_strengths")
-        //             .delete()
-        //             .in("user_id", userIds)
-        //             .eq("project_id", projectId)
-        //             .eq("signal_strength_id", signalStrengthId)
-        //         if (deleteError) {
-        //             console.error("Error deleting user_signal_strengths:", deleteError)
-        //             return NextResponse.json({ error: "Error deleting user_signal_strengths" }, { status: 500 })
-        //         }
-        //     }
-        // }
-
         // Trigger lambda for each user
         const results = await Promise.all(
             usersToUpdate.map(async ({ userId, signalStrengthUsername }) => {
