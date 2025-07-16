@@ -18,7 +18,11 @@ async function processRawScores({
 }) {
     const analysisPromises = dailyActivityData.map(async (day) => {
         if (day.data.length > 0) {
-            if (existingUserRawData.length > 0 && existingUserRawData.find((item) => item.day === day.date)) {
+            if (
+                !testingData &&
+                existingUserRawData.length > 0 &&
+                existingUserRawData.find((item) => item.day === day.date)
+            ) {
                 console.log(
                     `✅ Raw score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${day.date} already exists in the database. Skipping...`,
                 )
