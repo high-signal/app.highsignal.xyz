@@ -32,6 +32,7 @@ const MAX_QUEUE_LENGTH = 10
 const TIMEOUT_SECONDS = 60
 const MAX_ATTEMPTS = 3
 const MAX_MESSAGES_TO_PROCESS = 2
+const MAX_PAGINATION_LOOPS = 2
 const HEAD_GAP_MINUTES = 1
 
 // =================
@@ -457,82 +458,103 @@ async function triggerQueueItem(queueItemId) {
 
             console.log(`Processing channel: ${channel.name} (ID: ${claimedQueueItem[0].channel_id})`)
 
-            // TODO: Add "pagination" so that it processes more than one batch of messages before
-            // updating the queue item to "completed" and setting the oldest_message_id to the
-            // oldest message it processed and stored in the DB
-            // E.g. 1000 messages per batch? So 10 loops.
+            // This will either be an existing message id or null.
+            let newestMessageId = claimedQueueItem[0].newest_message_id
 
-            // Fetch messages from the channel
-            const messages = await channel.messages.fetch({
-                limit: MAX_MESSAGES_TO_PROCESS,
-                before: claimedQueueItem[0].newest_message_id,
-            })
+            // This will be set each loop, getting incrementally older.
+            let oldestMessageId = null
+            let oldestMessageTimestamp = null
 
-            // TODO: This should only happen on the first loop (pagination is implemented)
-            // If newestMessageId is null, then this is the a new head sync.
-            // So the `newest_message_id` should be set to the newest message in the channel.
-            if (!claimedQueueItem[0].newest_message_id) {
-                console.log(
-                    `New head sync detected for channel: ${channel.name} (ID: ${claimedQueueItem[0].channel_id}).`,
-                )
+            for (let i = 0; i < MAX_PAGINATION_LOOPS; i++) {
+                console.log(`Loop ${i + 1} of ${MAX_PAGINATION_LOOPS}`)
 
-                // Set the newest_message_id to the newest message in the channel.
-                const newestMessageId = messages.first().id
-                const { error: setNewestMessageIdError } = await supabase
-                    .from("discord_request_queue")
-                    .update({ newest_message_id: newestMessageId })
-                    .eq("id", queueItemId)
-                    .select()
+                // Fetch messages from the channel
+                const messages = await channel.messages.fetch({
+                    limit: MAX_MESSAGES_TO_PROCESS,
+                    before: newestMessageId,
+                })
 
-                if (setNewestMessageIdError) {
-                    console.error("Error updating newest_message_id:", setNewestMessageIdError)
+                // TODO: This should only happen on the first loop (pagination is implemented)
+                // If newestMessageId is null, then this is the a new head sync.
+                // So the `newest_message_id` should be set to the newest message in the channel.
+
+                // Process all messages concurrently but wait for all to complete
+                if (messages.size > 0) {
+                    // This will only happen on the first loop if newestMessageId is null (e.g. a head sync)
+                    // as on the second loop newestMessageId will have been set.
+                    if (!newestMessageId) {
+                        newestMessageId = messages.first().id
+
+                        console.log(`Head sync detected for channel: ${channel.name}.`)
+
+                        // Set the newest_message_id to the newest message in the channel.
+                        const { error: setNewestMessageIdError } = await supabase
+                            .from("discord_request_queue")
+                            .update({ newest_message_id: newestMessageId })
+                            .eq("id", queueItemId)
+                            .select()
+
+                        if (setNewestMessageIdError) {
+                            console.error("Error updating newest_message_id:", setNewestMessageIdError)
+                        }
+                    } else {
+                        // If a newestMessageId is set, then this is not the first loop
+                        // so update it to the newest message in this loop.
+                        newestMessageId = messages.first().id
+                    }
+
+                    // Set the oldest message found in this loop.
+                    oldestMessageId = messages.last().id
+                    oldestMessageTimestamp = messages.last().createdTimestamp
+
+                    await Promise.all(
+                        messages.map(async (msg) => {
+                            // If the message is shorter than 10 characters, skip it
+                            if (msg.content.length < 10) {
+                                console.log("Skipping message:", msg.id, "as it is shorter than 10 characters")
+                                return
+                            }
+
+                            // TODO: Sanitize the message content before storing it in the DB
+
+                            // Store the message in the DB
+                            const { data: storedMessage, error: storedMessageError } = await supabase
+                                .from("discord_messages")
+                                .insert({
+                                    message_id: msg.id,
+                                    guild_id: guild.id,
+                                    channel_id: channel.id,
+                                    discord_user_id: msg.author.id,
+                                    content: msg.content,
+                                    created_timestamp: new Date(msg.createdTimestamp).toISOString(),
+                                })
+                                .select()
+
+                            if (storedMessageError) {
+                                if (storedMessageError.message.includes("duplicate key")) {
+                                    console.log("Message already stored in DB:", msg.id)
+                                } else {
+                                    console.error("Error storing message:", storedMessageError)
+                                }
+                            }
+
+                            if (storedMessage) {
+                                console.log(`Stored message: ${msg.id}`)
+                            }
+                        }),
+                    )
+                } else {
+                    console.log("No messages to process. Breaking out of loop.")
+                    // TODO: Handle this case where there are no messages to process.
+                    // Check it works as expected.
+
+                    // Then break out of the loop.
+                    break
                 }
             }
 
-            // Process all messages concurrently but wait for all to complete
-            await Promise.all(
-                messages.map(async (msg) => {
-                    // If the message is shorter than 10 characters, skip it
-                    if (msg.content.length < 10) {
-                        console.log("Skipping message:", msg.id, "as it is shorter than 10 characters")
-                        return
-                    }
-
-                    // TODO: Sanitize the message content before storing it in the DB
-
-                    // Store the message in the DB
-                    const { data: storedMessage, error: storedMessageError } = await supabase
-                        .from("discord_messages")
-                        .insert({
-                            message_id: msg.id,
-                            guild_id: guild.id,
-                            channel_id: channel.id,
-                            discord_user_id: msg.author.id,
-                            content: msg.content,
-                            created_timestamp: new Date(msg.createdTimestamp).toISOString(),
-                        })
-                        .select()
-
-                    if (storedMessageError) {
-                        if (storedMessageError.message.includes("duplicate key")) {
-                            console.log("Message already stored in DB:", msg.id)
-                        } else {
-                            console.error("Error storing message:", storedMessageError)
-                        }
-                    }
-
-                    if (storedMessage) {
-                        console.log(`Stored message: ${msg.id}`)
-                    }
-                }),
-            )
-
-            // Once enough messages have been processed, update the queue item to "completed"
-            const lastMessage = messages.last()
-            const oldestMessageId = lastMessage?.id
-            const oldestMessageTimestamp = lastMessage?.createdTimestamp
-
-            const { data: updatedQueueItem, error: updatedQueueItemError } = await supabase
+            // Once the loop is complete, update the queue item to "completed"
+            const { error: updatedQueueItemError } = await supabase
                 .from("discord_request_queue")
                 .update({
                     status: "completed",
