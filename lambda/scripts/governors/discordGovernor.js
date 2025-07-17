@@ -28,12 +28,12 @@ client.once("ready", async () => {
 // ==========
 // Constants
 // ==========
-const MAX_QUEUE_LENGTH = 10
+const MAX_QUEUE_LENGTH = 20
 const TIMEOUT_SECONDS = 60
 const MAX_ATTEMPTS = 3
-const MAX_MESSAGES_TO_PROCESS = 5
+const MAX_MESSAGES_TO_PROCESS = 100
 const MAX_PAGINATION_LOOPS = 10
-const HEAD_GAP_MINUTES = 1
+const HEAD_GAP_MINUTES = 60
 const MIN_MESSAGE_CHAR_LENGTH = 10
 
 // =================

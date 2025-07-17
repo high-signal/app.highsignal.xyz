@@ -3,15 +3,27 @@ const { runDiscordGovernor } = require("./scripts/governors/discordGovernor")
 
 exports.handler = async (event) => {
     try {
-        // Check API key
-        const apiKey = event.headers?.["x-api-key"] || event.headers?.["X-API-Key"]
-        const expectedApiKey = process.env.LAMBDA_API_KEY
+        if (event.headers) {
+            // Check API key
+            const apiKey = event.headers?.["x-api-key"] || event.headers?.["X-API-Key"]
+            const expectedApiKey = process.env.LAMBDA_API_KEY
 
-        if (!apiKey || apiKey !== expectedApiKey) {
-            console.log(`Unauthorized: Invalid API key`)
+            if (!apiKey || apiKey !== expectedApiKey) {
+                console.log(`Unauthorized: Invalid API key`)
+                return {
+                    statusCode: 401,
+                    body: JSON.stringify({ error: "Unauthorized: Invalid API key" }),
+                }
+            }
+        } else if (event.source === "aws.events") {
+            // Triggered directly from AWS EventBridge
+            console.log("Received scheduled event")
+        } else {
+            console.warn("Unauthorized or unknown source")
+            console.log("event.source", event.source)
             return {
-                statusCode: 401,
-                body: JSON.stringify({ error: "Unauthorized: Invalid API key" }),
+                statusCode: 403,
+                body: JSON.stringify({ error: "Forbidden: Unknown source" }),
             }
         }
 
