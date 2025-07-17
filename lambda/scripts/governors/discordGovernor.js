@@ -32,6 +32,7 @@ const MAX_QUEUE_LENGTH = 10
 const TIMEOUT_SECONDS = 60
 const MAX_ATTEMPTS = 3
 const MAX_MESSAGES_TO_PROCESS = 2
+const HEAD_GAP_MINUTES = 1
 
 // =================
 // Run the governor
@@ -256,8 +257,7 @@ async function runDiscordGovernor() {
                 // ================================
                 // If there is no currentQueueItem
                 // ================================
-                // Then we might need to add one if there is a
-                // gap in the data or historical data missing.
+                // Then we might need to add one if there is a gap in the data.
 
                 // Calculate the time period for the current sync.
                 const now = new Date()
@@ -265,11 +265,11 @@ async function runDiscordGovernor() {
                 let newestTimestamp = now
                 let newestMessageId = null
 
-                // Calculate the oldest timestamp based on previousDays.
+                // Calculate the oldest timestamp limit based on previousDays.
                 const oldestTimestampLimit = new Date(now)
                 oldestTimestampLimit.setDate(oldestTimestampLimit.getDate() - previousDays)
 
-                // Check existing queue items to find the newest gap.
+                // Fetch any existing queue items.
                 const { data: existingQueueItems, error: existingQueueError } = await supabase
                     .from("discord_request_queue")
                     .select("id, oldest_message_timestamp, oldest_message_id, newest_message_timestamp")
@@ -282,18 +282,42 @@ async function runDiscordGovernor() {
                     continue
                 }
 
-                // Determine the starting point for the sync and check for gaps.
+                // ==========================================
+                // Determine the starting point for the sync
+                // ==========================================
+
+                // If there are no existing queue items, then the sync is a new head sync.
                 if (existingQueueItems.length === 0) {
                     // The `newestTimestamp` is already set to the current time.
                     // The newestMessageId will initially be null, but will be set when the first message is processed.
-                } else if (existingQueueItems.length > 0) {
-                    // TODO: Handle case where it needs to sync new data that has been added since the last sync.
+                }
 
+                // Look for a head gap.
+                // A head gap is when it has been longer than HEAD_GAP_MINUTES since the newest_message_timestamp.
+                let headGapFound = false
+                if (existingQueueItems.length > 0) {
+                    // Check if there is a gap between the newest_message_timestamp and the current time.
+                    const newestMessageTimestamp = new Date(existingQueueItems[0].newest_message_timestamp)
+                    const timeSinceNewestMessage = now.getTime() - newestMessageTimestamp.getTime()
+                    if (timeSinceNewestMessage > HEAD_GAP_MINUTES * 60 * 1000) {
+                        console.log(
+                            `Head gap found for channel: ${channel.name} (ID: ${channelId}). Processing head gap.`,
+                        )
+                        headGapFound = true
+                    }
+                }
+
+                if (headGapFound) {
+                    // Do nothing here as it will be processed like a new head sync
+                    // since the newest_message_id will be null.
+                }
+
+                // If there is no head gap, check for gaps between the items in the queue.
+                // A gap is when there are two consecutive items where the newest_message_timestamp
+                // of the next item is less than the oldest_message_timestamp of the current item.
+                if (!headGapFound && existingQueueItems.length > 0) {
                     let gapFound = false
 
-                    // Check for gaps between the items in the queue.
-                    // A gap is when there are two consecutive items where the newest_message_timestamp
-                    // of the next item is less than the oldest_message_timestamp of the current item.
                     for (let i = 0; i < existingQueueItems.length - 1; i++) {
                         const currentItem = existingQueueItems[i]
                         const nextItem = existingQueueItems[i + 1]
@@ -335,12 +359,12 @@ async function runDiscordGovernor() {
                     // null, which is 1970-01-01T00:00:00.000Z so will be less than the oldestTimestampLimit
                     // so this is correct response.
                     console.log(
-                        `The data already covers the range up to ${previousDays} days ago. No further sync needed. Guild: ${guild.name}. Channel: ${channel.name}.`,
+                        `The queue items already covers the range up to ${previousDays} days ago. No further sync needed. Guild: ${guild.name}. Channel: ${channel.name}.`,
                     )
                     continue
                 }
 
-                // Add an item to the queue then trigger that item.
+                // If sync is needed, add an item to the queue then trigger that item.
                 const { data: queueItem, error: queueItemError } = await supabase
                     .from("discord_request_queue")
                     .insert({
