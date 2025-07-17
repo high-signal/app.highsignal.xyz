@@ -36,6 +36,7 @@ export async function triggerLambda(
                     "X-API-Key": LAMBDA_API_KEY || "",
                 },
                 body: JSON.stringify({
+                    functionType: "runEngine",
                     signalStrengthName,
                     userId,
                     projectId,
