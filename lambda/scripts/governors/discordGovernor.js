@@ -462,8 +462,6 @@ async function triggerQueueItem(queueItemId) {
             const guild = await client.guilds.fetch(claimedQueueItem[0].guild_id)
             const channel = await guild.channels.fetch(claimedQueueItem[0].channel_id)
 
-            console.log(`Processing channel: ${channel.name} (ID: ${claimedQueueItem[0].channel_id})`)
-
             // This will either be an existing message id or null.
             let newestMessageId = claimedQueueItem[0].newest_message_id
 
@@ -487,7 +485,7 @@ async function triggerQueueItem(queueItemId) {
                     if (!newestMessageId) {
                         newestMessageId = messages.first().id
 
-                        console.log(`Head sync detected for channel: ${channel.name}.`)
+                        console.log(`Head sync detected.`)
 
                         // Set the newest_message_id to the newest message in the channel.
                         const { error: setNewestMessageIdError } = await supabase
@@ -499,15 +497,15 @@ async function triggerQueueItem(queueItemId) {
                         if (setNewestMessageIdError) {
                             console.error("Error updating newest_message_id:", setNewestMessageIdError)
                         }
-                    } else {
-                        // If a newestMessageId is set, then this is not the first loop
-                        // so update it to the newest message in this loop.
-                        newestMessageId = messages.first().id
                     }
 
                     // Set the oldest message found in this loop.
                     oldestMessageId = messages.last().id
                     oldestMessageTimestamp = messages.last().createdTimestamp
+
+                    // Set the newestMessageId for the next iteration to the oldest message from this batch.
+                    // This ensures we move backward through the message history.
+                    newestMessageId = oldestMessageId
 
                     // Track how many messages were already stored in this loop
                     let existsInDbCount = 0
