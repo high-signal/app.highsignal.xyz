@@ -165,11 +165,17 @@ async function runDiscordGovernor() {
             // Fetch all channels in the guild.
             // This does not seem to have a documented limit, so it should be
             // able to get all channels in the guild even if there are a lot.
-            await guild.channels.fetch()
+            // This ensures we have all channels loaded in the cache before filtering.
+            const fetchedChannels = await guild.channels.fetch()
+
+            // Filter out channels the bot does not have access to.
+            const accessibleChannels = fetchedChannels.filter((channel) =>
+                channel.permissionsFor(guild.members.me)?.has("ViewChannel"),
+            )
 
             // Filter out non-text channels.
             // 0 = TextChannel
-            const channels = guild.channels.cache.filter((channel) => channel.type === 0)
+            const channels = accessibleChannels.filter((channel) => channel.type === 0)
 
             console.log(`Found ${channels.size} text channels in guild: ${guild.name}`)
 
