@@ -144,15 +144,19 @@ async function runDiscordGovernor() {
 
         console.log(`🔍 Found ${projects.length} projects with discord enabled and URLs`)
 
+        // Shuffle projects to avoid always processing the same ones first.
+        // Useful in case of ratel-imit issues that only allow the first X projects to be processed.
+        const shuffledProjects = [...projects].sort(() => Math.random() - 0.5)
+
         // =====================
         // Process each project
         // =====================
-        for (const project of projects) {
+        for (const project of shuffledProjects) {
             console.log(
                 `⏳ Processing project: ${project.projects.display_name} (${project.projects.url_slug}) with Discord URL: ${project.url}`,
             )
 
-            // Extract guild ID from the Discord URL
+            // Extract guild ID from the Discord URL.
             const urlMatch = project.url.match(/discord\.com\/channels\/(\d+)/)
             if (!urlMatch) {
                 console.log(`⏭️ Skipping project ${project.project_id}: Invalid Discord URL format`)
@@ -179,10 +183,14 @@ async function runDiscordGovernor() {
 
             console.log(`🔍 Found ${channels.size} text channels in guild: ${guild.name}`)
 
+            // Shuffle channels to avoid always processing the same ones first.
+            // Useful in case of ratel-imit issues that only allow the first X channels to be processed.
+            const shuffledChannels = [...channels].sort(() => Math.random() - 0.5)
+
             // ====================================================
             // For each channel, check queue and trigger if needed
             // ====================================================
-            for (const [channelId, channel] of channels) {
+            for (const [channelId, channel] of shuffledChannels) {
                 console.log("--------------------------------")
                 console.log(`⭐️ Processing Guild: ${guild.name}. Channel: ${channel.name}.`)
 
