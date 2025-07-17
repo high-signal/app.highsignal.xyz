@@ -283,7 +283,12 @@ async function runDiscordGovernor() {
                 }
 
                 // Determine the starting point for the sync and check for gaps.
-                if (existingQueueItems.length > 0) {
+                if (existingQueueItems.length === 0) {
+                    // The `newestTimestamp` is already set to the current time.
+                    // The newestMessageId will initially be null, but will be set when the first message is processed.
+                } else if (existingQueueItems.length > 0) {
+                    // TODO: Handle case where it needs to sync new data that has been added since the last sync.
+
                     let gapFound = false
 
                     // Check for gaps between the items in the queue.
@@ -401,7 +406,6 @@ async function triggerQueueItem(queueItemId) {
             .eq("id", queueItemId)
             .eq("status", "pending")
             .select()
-        // TODO: If I make the .single() then it should be easier to handle below
 
         if (claimedQueueItemError) {
             console.error("Error claiming queue item:", claimedQueueItemError)
@@ -438,6 +442,27 @@ async function triggerQueueItem(queueItemId) {
                 limit: MAX_MESSAGES_TO_PROCESS,
                 before: claimedQueueItem[0].newest_message_id,
             })
+
+            // TODO: This should only happen on the first loop (pagination is implemented)
+            // If newestMessageId is null, then this is the a new head sync.
+            // So the `newest_message_id` should be set to the newest message in the channel.
+            if (!claimedQueueItem[0].newest_message_id) {
+                console.log(
+                    `New head sync detected for channel: ${channel.name} (ID: ${claimedQueueItem[0].channel_id}).`,
+                )
+
+                // Set the newest_message_id to the newest message in the channel.
+                const newestMessageId = messages.first().id
+                const { error: setNewestMessageIdError } = await supabase
+                    .from("discord_request_queue")
+                    .update({ newest_message_id: newestMessageId })
+                    .eq("id", queueItemId)
+                    .select()
+
+                if (setNewestMessageIdError) {
+                    console.error("Error updating newest_message_id:", setNewestMessageIdError)
+                }
+            }
 
             messages.forEach(async (msg) => {
                 // If the message is shorter than 10 characters, skip it
