@@ -15,7 +15,7 @@ const client = new Client({
 // ===========================================
 client.once("ready", async () => {
     console.log(`✅ Logged in as bot user: ${client.user.tag}`)
-    await runGovernor()
+    await runDiscordGovernor()
 })
 
 // ======================
@@ -23,6 +23,7 @@ client.once("ready", async () => {
 // ======================
 // 50 requests per second per bot token globally
 // ~5 requests per second per bot per channel
+// 100 messages max returned per request
 
 // ==========
 // Constants
@@ -35,7 +36,7 @@ const MAX_MESSAGES_TO_PROCESS = 2
 // =================
 // Run the governor
 // =================
-async function runGovernor() {
+async function runDiscordGovernor() {
     try {
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
@@ -228,7 +229,7 @@ async function runGovernor() {
 
                         // If the queue item was updated successfully to pending, try to trigger it again.
                         if (updatedQueueItem && updatedQueueItem.length > 0) {
-                            triggerQueueItem(currentQueueItem[0].id)
+                            await triggerQueueItem(currentQueueItem[0].id)
                             invokedCounter++
                         }
                         continue
@@ -247,7 +248,7 @@ async function runGovernor() {
                     console.log(
                         `Triggering pending queue item. Guild: ${guild.name}. Channel: ${channel.name}. Queue item ID: ${currentQueueItem[0].id}`,
                     )
-                    triggerQueueItem(currentQueueItem[0].id)
+                    await triggerQueueItem(currentQueueItem[0].id)
                     invokedCounter++
                     continue
                 }
@@ -356,7 +357,7 @@ async function runGovernor() {
                 const queueItemId = queueItem[0].id
 
                 console.log(`Triggering new queue item: ${queueItemId}`)
-                triggerQueueItem(queueItemId)
+                await triggerQueueItem(queueItemId)
                 invokedCounter++
 
                 // Calculate the new queue length.
@@ -367,7 +368,7 @@ async function runGovernor() {
             }
         }
     } catch (error) {
-        console.error("Error in runGovernor:", error)
+        console.error("Error in runDiscordGovernor:", error)
     }
 }
 
@@ -495,6 +496,7 @@ async function triggerQueueItem(queueItemId) {
                 console.error("Error updating queue item:", updatedQueueItemError)
             }
 
+            // TODO: This is always true? Combine with the error check above.
             if (updatedQueueItem) {
                 console.log(`Updated queue item: ${queueItemId}`)
             }
@@ -512,3 +514,6 @@ async function triggerQueueItem(queueItemId) {
 
 // Start the client.
 client.login(process.env.DISCORD_BOT_TOKEN)
+
+// Export the runDiscordGovernor function for use in Lambda
+module.exports = { runDiscordGovernor }
