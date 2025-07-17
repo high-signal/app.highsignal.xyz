@@ -175,6 +175,9 @@ async function runDiscordGovernor() {
             // For each channel, check queue and trigger if needed
             // ====================================================
             for (const [channelId, channel] of channels) {
+                console.log("--------------------------------")
+                console.log(`Processing Guild: ${guild.name}. Channel: ${channel.name}.`)
+
                 // Look in the queue for any current items for this channel that are not completed.
                 const { data: currentQueueItem, error: currentQueueItemError } = await supabase
                     .from("discord_request_queue")
@@ -185,12 +188,10 @@ async function runDiscordGovernor() {
                     .limit(1)
 
                 if (currentQueueItemError) {
-                    // TODO: Handle this better.
                     console.error("Error fetching current queue item:", currentQueueItemError)
                     continue
                 }
 
-                console.log("--------------------------------")
                 if (currentQueueItem?.length > 0) {
                     console.log("Processing queue item ID: ", currentQueueItem[0].id)
                 }
@@ -359,7 +360,7 @@ async function runDiscordGovernor() {
                     // null, which is 1970-01-01T00:00:00.000Z so will be less than the oldestTimestampLimit
                     // so this is correct response.
                     console.log(
-                        `The queue items already covers the range up to ${previousDays} days ago. No further sync needed. Guild: ${guild.name}. Channel: ${channel.name}.`,
+                        `The queue items already covers the range up to ${previousDays} days ago. No further sync needed.`,
                     )
                     continue
                 }
@@ -488,40 +489,43 @@ async function triggerQueueItem(queueItemId) {
                 }
             }
 
-            messages.forEach(async (msg) => {
-                // If the message is shorter than 10 characters, skip it
-                if (msg.content.length < 10) {
-                    console.log("Skipping message:", msg.id, "as it is shorter than 10 characters")
-                    return
-                }
-
-                // TODO: Sanitize the message content before storing it in the DB
-
-                // Store the message in the DB
-                const { data: storedMessage, error: storedMessageError } = await supabase
-                    .from("discord_messages")
-                    .insert({
-                        message_id: msg.id,
-                        guild_id: guild.id,
-                        channel_id: channel.id,
-                        discord_user_id: msg.author.id,
-                        content: msg.content,
-                        created_timestamp: new Date(msg.createdTimestamp).toISOString(),
-                    })
-                    .select()
-
-                if (storedMessageError) {
-                    if (storedMessageError.message.includes("duplicate key")) {
-                        console.log("Message already stored in DB:", msg.id)
-                    } else {
-                        console.error("Error storing message:", storedMessageError)
+            // Process all messages concurrently but wait for all to complete
+            await Promise.all(
+                messages.map(async (msg) => {
+                    // If the message is shorter than 10 characters, skip it
+                    if (msg.content.length < 10) {
+                        console.log("Skipping message:", msg.id, "as it is shorter than 10 characters")
+                        return
                     }
-                }
 
-                if (storedMessage) {
-                    console.log(`Stored message: ${msg.id}`)
-                }
-            })
+                    // TODO: Sanitize the message content before storing it in the DB
+
+                    // Store the message in the DB
+                    const { data: storedMessage, error: storedMessageError } = await supabase
+                        .from("discord_messages")
+                        .insert({
+                            message_id: msg.id,
+                            guild_id: guild.id,
+                            channel_id: channel.id,
+                            discord_user_id: msg.author.id,
+                            content: msg.content,
+                            created_timestamp: new Date(msg.createdTimestamp).toISOString(),
+                        })
+                        .select()
+
+                    if (storedMessageError) {
+                        if (storedMessageError.message.includes("duplicate key")) {
+                            console.log("Message already stored in DB:", msg.id)
+                        } else {
+                            console.error("Error storing message:", storedMessageError)
+                        }
+                    }
+
+                    if (storedMessage) {
+                        console.log(`Stored message: ${msg.id}`)
+                    }
+                }),
+            )
 
             // Once enough messages have been processed, update the queue item to "completed"
             const lastMessage = messages.last()
@@ -543,10 +547,7 @@ async function triggerQueueItem(queueItemId) {
 
             if (updatedQueueItemError) {
                 console.error("Error updating queue item:", updatedQueueItemError)
-            }
-
-            // TODO: This is always true? Combine with the error check above.
-            if (updatedQueueItem) {
+            } else {
                 console.log(`Updated queue item: ${queueItemId}`)
             }
             return
@@ -557,8 +558,6 @@ async function triggerQueueItem(queueItemId) {
     } catch (error) {
         console.error("Error in triggerQueueItem:", error)
     }
-
-    console.log(`Triggering queue item: ${queueItemId}`)
 }
 
 // Start the client.
