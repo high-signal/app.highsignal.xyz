@@ -150,6 +150,17 @@ export default function Leaderboard({
         return () => clearTimeout(timer)
     }, [searchTerm, router])
 
+    // Update URL when resultsPage changes
+    useEffect(() => {
+        const url = new URL(window.location.href)
+        if (resultsPage > 1) {
+            url.searchParams.set("page", resultsPage.toString())
+        } else {
+            url.searchParams.delete("page")
+        }
+        router.replace(url.pathname + url.search, { scroll: false })
+    }, [resultsPage, router])
+
     // Set isSearching to false when loading completes
     useEffect(() => {
         if (!loading) {
@@ -158,11 +169,13 @@ export default function Leaderboard({
     }, [loading])
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setResultsPage(1)
         setSearchTerm(e.target.value)
         setIsSearching(true)
     }
 
     const handleClearSearch = () => {
+        setResultsPage(1)
         setSearchTerm("")
         setIsSearching(true)
     }
@@ -495,7 +508,7 @@ export default function Leaderboard({
                     )}
                 </Table.Body>
             </Table.Root>
-            {!isSearching && maxResultsPage > 1 && (
+            {!isSearching && !loading && (
                 <LeaderboardPagination page={resultsPage} maxPage={maxResultsPage} onPageChange={setResultsPage} />
             )}
         </Box>

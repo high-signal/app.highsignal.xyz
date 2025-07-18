@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { HStack, Button, Text, VStack } from "@chakra-ui/react"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons"
+import { faBackwardStep, faChevronLeft, faChevronRight, faForwardStep } from "@fortawesome/free-solid-svg-icons"
 
 interface LeaderboardPaginationProps {
     page: number
@@ -58,10 +58,12 @@ export default function LeaderboardPagination({ page, maxPage, onPageChange }: L
         children,
         onClick,
         disabled,
+        isIconOnly = false,
     }: {
         children: React.ReactNode
         onClick: () => void
         disabled: boolean
+        isIconOnly?: boolean
     }) => {
         return (
             <Button
@@ -69,7 +71,7 @@ export default function LeaderboardPagination({ page, maxPage, onPageChange }: L
                 onClick={onClick}
                 disabled={disabled}
                 py={1}
-                px={{ base: 2, md: 6 }}
+                px={{ base: 2, md: isIconOnly ? 0 : 6 }}
                 borderRadius="full"
                 h={"35px"}
             >
@@ -80,13 +82,20 @@ export default function LeaderboardPagination({ page, maxPage, onPageChange }: L
 
     return (
         <VStack>
-            <HStack gap={{ base: 2, sm: 4 }} justify="space-around" mt={5} w={"100%"}>
-                <PaginationButton onClick={handlePrevPage} disabled={page <= 1}>
-                    <HStack gap={2} pl={2} pr={4}>
-                        <FontAwesomeIcon icon={faChevronLeft} />
-                        <Text>Previous</Text>
-                    </HStack>
-                </PaginationButton>
+            <HStack gap={{ base: 2, sm: 4 }} justify="space-around" mt={5} w={"100%"} alignItems="start">
+                <HStack flexWrap="wrap-reverse" justifyContent="center">
+                    <PaginationButton onClick={() => onPageChange(1)} disabled={page <= 1} isIconOnly>
+                        <HStack gap={2} pl={2} pr={2}>
+                            <FontAwesomeIcon icon={faBackwardStep} />
+                        </HStack>
+                    </PaginationButton>
+                    <PaginationButton onClick={handlePrevPage} disabled={page <= 1}>
+                        <HStack gap={2} pl={2} pr={4}>
+                            <FontAwesomeIcon icon={faChevronLeft} />
+                            <Text>Previous</Text>
+                        </HStack>
+                    </PaginationButton>
+                </HStack>
                 <HStack gap={2}>
                     <SingleLineTextInput
                         value={inputValue}
@@ -97,12 +106,19 @@ export default function LeaderboardPagination({ page, maxPage, onPageChange }: L
                     <Text color="textColorMuted">of</Text>
                     <Text color="textColorMuted">{maxPage}</Text>
                 </HStack>
-                <PaginationButton onClick={handleNextPage} disabled={page >= maxPage}>
-                    <HStack gap={2} pl={4} pr={2}>
-                        <Text>Next</Text>
-                        <FontAwesomeIcon icon={faChevronRight} />
-                    </HStack>
-                </PaginationButton>
+                <HStack flexWrap="wrap" justifyContent="center">
+                    <PaginationButton onClick={handleNextPage} disabled={page >= maxPage}>
+                        <HStack gap={2} pl={4} pr={2}>
+                            <Text>Next</Text>
+                            <FontAwesomeIcon icon={faChevronRight} />
+                        </HStack>
+                    </PaginationButton>
+                    <PaginationButton onClick={() => onPageChange(maxPage)} disabled={page >= maxPage} isIconOnly>
+                        <HStack gap={2} pl={2} pr={2}>
+                            <FontAwesomeIcon icon={faForwardStep} />
+                        </HStack>
+                    </PaginationButton>
+                </HStack>
             </HStack>
             {isInvalid && (
                 <Text color="orange.500" fontSize="sm">
