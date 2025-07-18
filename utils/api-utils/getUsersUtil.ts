@@ -240,6 +240,44 @@ export async function getUsersUtil(
                         authPostCodeCreated: user.auth_post_code_created,
                     })),
                 })
+
+                // Get Discord, X, and Farcaster usernames
+                const { data: connectedAccountsData, error: connectedAccountsError } = await supabase
+                    .from("users")
+                    .select(
+                        "id, username, display_name, profile_image_url, discord_username, x_username, farcaster_username",
+                    )
+                    .in("id", userIds)
+
+                if (connectedAccountsError) {
+                    console.error("connectedAccountsError", connectedAccountsError)
+                    return NextResponse.json({ error: "Error fetching connected accounts" }, { status: 500 })
+                }
+
+                // Add Discord, X, and Farcaster accounts if they exist
+                if (connectedAccountsData && connectedAccountsData.length > 0) {
+                    const accountTypes = [
+                        { field: "discord_username" as keyof (typeof connectedAccountsData)[0], name: "discord" },
+                        { field: "x_username" as keyof (typeof connectedAccountsData)[0], name: "x" },
+                        { field: "farcaster_username" as keyof (typeof connectedAccountsData)[0], name: "farcaster" },
+                    ]
+
+                    accountTypes.forEach(({ field, name }) => {
+                        const accounts = connectedAccountsData
+                            .filter((user) => user[field])
+                            .map((user) => ({
+                                userId: user.id,
+                                username: user[field] as string,
+                            }))
+
+                        if (accounts.length > 0) {
+                            connectedAccounts.push({
+                                name,
+                                data: accounts,
+                            })
+                        }
+                    })
+                }
             }
 
             // Get all available signal strengths
