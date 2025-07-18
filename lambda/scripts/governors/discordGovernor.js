@@ -14,7 +14,7 @@ const client = new Client({
 // Once the client is ready, run the governor
 // ===========================================
 client.once("ready", async () => {
-    console.log(`✅ Logged in as bot user: ${client.user.tag}`)
+    console.log(`🤖 Logged in as bot user: ${client.user.tag}`)
     await runDiscordGovernor()
 })
 
@@ -152,6 +152,8 @@ async function runDiscordGovernor() {
         // Process each project
         // =====================
         for (const project of shuffledProjects) {
+            console.log("")
+            console.log("================================")
             console.log(
                 `⏳ Processing project: ${project.projects.display_name} (${project.projects.url_slug}) with Discord URL: ${project.url}`,
             )
@@ -412,6 +414,10 @@ async function runDiscordGovernor() {
                 }
             }
         }
+
+        console.log("--------------------------------")
+        console.log("")
+        console.log("🎉 Finished processing all projects.")
     } catch (error) {
         console.error("Error in runDiscordGovernor:", error)
     }
