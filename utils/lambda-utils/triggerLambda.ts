@@ -17,7 +17,7 @@ export async function triggerLambda(
     const LAMBDA_FUNCTION_URL = process.env.LAMBDA_FUNCTION_URL
     const LAMBDA_API_KEY = process.env.LAMBDA_API_KEY
 
-    if (signalStrengthName != "discourse_forum") {
+    if (signalStrengthName != "discourse_forum" && signalStrengthName != "discord") {
         return {
             success: false,
             message: `Signal strength (${signalStrengthName}) not configured for updates`,
