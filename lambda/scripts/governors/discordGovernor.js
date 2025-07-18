@@ -290,6 +290,7 @@ async function runDiscordGovernor() {
 
                 // Fetch any existing queue items.
                 // TODO: Limit this to only return items within the previousDays.
+                //       This is critical to make the absolute oldest_message_timestamp work later on.
                 const { data: existingQueueItems, error: existingQueueError } = await supabase
                     .from("discord_request_queue")
                     .select("id, oldest_message_timestamp, oldest_message_id, newest_message_timestamp")
@@ -483,6 +484,7 @@ async function triggerQueueItem(queueItemId) {
             let oldestMessageId = null
             let oldestMessageTimestamp = null
 
+            // TODO: Add the 5 per second limit into this loop.
             for (let i = 0; i < MAX_PAGINATION_LOOPS; i++) {
                 console.log(`🔄 Loop ${i + 1} of ${MAX_PAGINATION_LOOPS}`)
 
@@ -525,6 +527,8 @@ async function triggerQueueItem(queueItemId) {
                     let existsInDbCount = 0
                     let totalProcessedCount = 0
 
+                    // TODO: Maybe this should just do one big insert at the end of the loop?
+                    //       Rather than potentially 100 inserts per loop?
                     await Promise.all(
                         messages.map(async (msg) => {
                             // If the message is shorter than MIN_MESSAGE_CHAR_LENGTH characters, skip it
@@ -535,7 +539,7 @@ async function triggerQueueItem(queueItemId) {
                                 return
                             }
 
-                            // TODO: Sanitize the message content before storing it in the DB
+                            // TODO: Sanitize the message content before storing it in the DBe
 
                             // Attempt to store the message in the DB.
                             const { data: storedMessage, error: storedMessageError } = await supabase
