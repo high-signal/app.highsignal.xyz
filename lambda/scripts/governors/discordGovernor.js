@@ -1,39 +1,59 @@
 require("dotenv").config({ path: "../../../.env" })
 const { Client, GatewayIntentBits, Partials } = require("discord.js")
-
 const { createClient } = require("@supabase/supabase-js")
 
+// ==========================
+// Create the Discord client
+// ==========================
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
     partials: [Partials.Channel],
 })
 
+// ===========================================
+// Once the client is ready, run the governor
+// ===========================================
 client.once("ready", async () => {
     console.log(`✅ Logged in as bot user: ${client.user.tag}`)
-    await runGovernor()
+    await runDiscordGovernor()
 })
 
-// *************************************************************
+// ======================
+// GLOBAL DISCORD LIMITS
+// ======================
+// 50 requests per second per bot token globally
+// ~5 requests per second per bot per channel
+// 100 messages max returned per request
+
+// ==========
 // Constants
-// *************************************************************
-const MAX_QUEUE_LENGTH = 10
+// ==========
+const MAX_QUEUE_LENGTH = 20
 const TIMEOUT_SECONDS = 60
 const MAX_ATTEMPTS = 3
+const MAX_MESSAGES_TO_PROCESS = 100
+const MAX_PAGINATION_LOOPS = 10
+const HEAD_GAP_MINUTES = 60
+const MIN_MESSAGE_CHAR_LENGTH = 10
 
-const MAX_MESSAGES_TO_PROCESS = 2
-
-async function runGovernor() {
+// =================
+// Run the governor
+// =================
+async function runDiscordGovernor() {
     try {
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+
+        // Invoked counter to optimistically track
+        // the number of items that have been invoked.
         let invokedCounter = 0
 
-        // *************************************************************
-        // STEP 1
-        // Check the queue for any items that have passed their timeout
-        // If so, increment their attempts, set their state to "error"
-        // *************************************************************
+        // ============================
+        // Check queue for stale items
+        // ============================
+        // Check the queue for any items that have passed their timeout.
+        // If so, increment their attempts, set their state to "error".
 
-        // Get all items in the queue that are running
+        // Get all items in the queue that are running.
         const { data: queueItems, error: queueError } = await supabase
             .from("discord_request_queue")
             .select("*")
@@ -44,18 +64,18 @@ async function runGovernor() {
             return
         }
 
-        // Check if any of these have passed their timeout
-        // If so, increment their attempts, set their state to "error"
+        // Check if any of these have passed their timeout.
+        // If so, increment their attempts, set their state to "error".
         if (queueItems?.length > 0) {
             for (const queueItem of queueItems) {
-                // Convert started_at string to timestamp for comparison
+                // Convert started_at string to timestamp for comparison.
                 const startedAtTimestamp = new Date(queueItem.started_at).getTime()
 
                 // If a queue item has been running for more than 60 seconds,
-                // increment the attempts and set the status to "error"
+                // increment the attempts and set the status to "error".
                 if (startedAtTimestamp < Date.now() - 1000 * TIMEOUT_SECONDS) {
                     console.log(
-                        `Queue item ${queueItem.id} has been running for more than ${TIMEOUT_SECONDS} seconds. Incrementing attempts and setting status to "error".`,
+                        `⚠️ Queue item ${queueItem.id} has been running for more than ${TIMEOUT_SECONDS} seconds. Incrementing attempts and setting status to "error".`,
                     )
                     await supabase
                         .from("discord_request_queue")
@@ -65,28 +85,29 @@ async function runGovernor() {
             }
         }
 
-        // *************************************************************
-        // STEP 2
-        // Look at the DB again to get the new total number of running
-        // items and available space
-        // *************************************************************
+        // ===================================
+        // Check available space in the queue
+        // ===================================
+        // Look at the DB again to get the new total
+        // number of running items and available space.
 
+        // Calculate the available space in the queue.
         const availableSpace = MAX_QUEUE_LENGTH - (queueItems?.length || 0)
 
         if (availableSpace <= 0) {
-            console.log("No available space in the queue. Exiting.")
+            console.log("🚧 No available space in the queue. Exiting.")
             return
         } else {
-            console.log(`Available space in queue: ${availableSpace}`)
+            console.log(`📋 Available space in queue: ${availableSpace}`)
         }
 
-        // *************************************************************
-        // STEP 3
+        // ==========================
+        // Find all enabled projects
+        // ==========================
         // Get all projects that have discord enabled and have a url in
-        // their project_signal_strengths url field
-        // *************************************************************
+        // their project_signal_strengths url field.
 
-        // Get the discord signal strength id
+        // Get the discord signal strength id.
         const { data: discordSignalStrength, error: discordError } = await supabase
             .from("signal_strengths")
             .select("id")
@@ -98,7 +119,8 @@ async function runGovernor() {
             return
         }
 
-        // Get all projects that have discord enabled and have a url in their project_signal_strengths url field
+        // Get all projects that have discord enabled and have a
+        // url in their project_signal_strengths url field.
         const { data: projects, error: projectsError } = await supabase
             .from("project_signal_strengths")
             .select(
@@ -120,39 +142,59 @@ async function runGovernor() {
             return
         }
 
-        console.log(`Found ${projects.length} projects with discord enabled and URLs`)
+        console.log(`🔍 Found ${projects.length} projects with discord enabled and URLs`)
 
-        // *************************************************************
-        // STEP 4
+        // Shuffle projects to avoid always processing the same ones first.
+        // Useful in case of ratel-imit issues that only allow the first X projects to be processed.
+        const shuffledProjects = [...projects].sort(() => Math.random() - 0.5)
+
+        // =====================
         // Process each project
-        // *************************************************************
-        for (const project of projects) {
+        // =====================
+        for (const project of shuffledProjects) {
             console.log(
-                `Processing project: ${project.projects.display_name} (${project.projects.url_slug}) with Discord URL: ${project.url}`,
+                `⏳ Processing project: ${project.projects.display_name} (${project.projects.url_slug}) with Discord URL: ${project.url}`,
             )
 
-            // Extract guild ID from the Discord URL
+            // Extract guild ID from the Discord URL.
             const urlMatch = project.url.match(/discord\.com\/channels\/(\d+)/)
             if (!urlMatch) {
-                console.log(`Skipping project ${project.project_id}: Invalid Discord URL format`)
+                console.log(`⏭️ Skipping project ${project.project_id}: Invalid Discord URL format`)
                 continue
             }
             const guildId = urlMatch[1]
 
             const guild = await client.guilds.fetch(guildId)
-            await guild.channels.fetch() // Fetch all channels in the guild
 
-            // Filter out non-text channels
-            const channels = guild.channels.cache.filter((channel) => channel.type === 0) // 0 = TextChannel
+            // Fetch all channels in the guild.
+            // This does not seem to have a documented limit, so it should be
+            // able to get all channels in the guild even if there are a lot.
+            // This ensures we have all channels loaded in the cache before filtering.
+            const fetchedChannels = await guild.channels.fetch()
 
-            console.log(`Found ${channels.size} text channels in guild: ${guild.name}`)
+            // Filter out channels the bot does not have access to.
+            const accessibleChannels = fetchedChannels.filter((channel) =>
+                channel.permissionsFor(guild.members.me)?.has("ViewChannel"),
+            )
 
-            // *************************************************************
-            // STEP 5
+            // Filter out non-text channels.
+            // 0 = TextChannel
+            const channels = accessibleChannels.filter((channel) => channel.type === 0)
+
+            console.log(`🔍 Found ${channels.size} text channels in guild: ${guild.name}`)
+
+            // Shuffle channels to avoid always processing the same ones first.
+            // Useful in case of ratel-imit issues that only allow the first X channels to be processed.
+            const shuffledChannels = [...channels].sort(() => Math.random() - 0.5)
+
+            // ====================================================
             // For each channel, check queue and trigger if needed
-            // *************************************************************
-            for (const [channelId, channel] of channels) {
-                // Look in the queue for any current items for this channel that are not completed
+            // ====================================================
+            for (const [channelId, channel] of shuffledChannels) {
+                console.log("--------------------------------")
+                console.log(`⭐️ Processing Guild: ${guild.name}. Channel: ${channel.name}.`)
+
+                // Look in the queue for any current items for this channel that are not completed.
                 const { data: currentQueueItem, error: currentQueueItemError } = await supabase
                     .from("discord_request_queue")
                     .select("*")
@@ -162,41 +204,36 @@ async function runGovernor() {
                     .limit(1)
 
                 if (currentQueueItemError) {
-                    // TODO: Handle this better
                     console.error("Error fetching current queue item:", currentQueueItemError)
                     continue
                 }
 
-                console.log("--------------------------------")
                 if (currentQueueItem?.length > 0) {
-                    console.log("Processing queue item ID: ", currentQueueItem[0].id)
+                    console.log("⏳ Processing queue item ID: ", currentQueueItem[0].id)
                 }
 
-                // *************************************************************
-                // STEP 6
+                // ============================================
                 // If the currentQueueItem is running, skip it
-                // This avoids the race conditions where two are triggered at
-                // the same time
-                // *************************************************************
+                // ============================================
+                // This avoids the race conditions where two are triggered at the same time.
                 if (currentQueueItem?.length > 0 && currentQueueItem[0]?.status === "running") {
                     console.log(
-                        `Skipping channel: ${channel.name} (ID: ${channelId}) as it is already running in queue`,
+                        `⏭️ Skipping channel: ${channel.name} (ID: ${channelId}) as it is already running in queue`,
                     )
                     continue
                 }
 
-                // *************************************************************
-                // STEP 7
-                // If the currentQueueItem status is "error", either try to
-                // trigger it again or skip it if the number of attempts is 3
-                // or more
-                // *************************************************************
+                // ==========================================
+                // If the currentQueueItem status is "error"
+                // ==========================================
+                // Either try to trigger it again or skip it if the
+                // number of attempts is MAX_ATTEMPTS or more.
                 if (currentQueueItem?.length > 0 && currentQueueItem[0]?.status === "error") {
                     // If the number of attempts is less than MAX_ATTEMPTS,
-                    // set it back to pending and try to trigger it again
+                    // set it back to pending and try to trigger it again.
                     if (currentQueueItem[0]?.attempts < MAX_ATTEMPTS) {
                         console.log(
-                            `Setting latest queue item (${currentQueueItem[0].id}) back to pending and trying again. Guild: ${guild.name}. Channel: ${channel.name}.`,
+                            `🔁 Setting latest queue item (${currentQueueItem[0].id}) back to pending and trying again. Guild: ${guild.name}. Channel: ${channel.name}.`,
                         )
                         const { data: updatedQueueItem, error: updatedQueueItemError } = await supabase
                             .from("discord_request_queue")
@@ -208,49 +245,49 @@ async function runGovernor() {
                             console.error("Error updating queue item:", updatedQueueItemError)
                         }
 
+                        // If the queue item was updated successfully to pending, try to trigger it again.
                         if (updatedQueueItem && updatedQueueItem.length > 0) {
-                            triggerQueueItem(currentQueueItem[0].id)
+                            await triggerQueueItem(currentQueueItem[0].id)
                             invokedCounter++
                         }
                         continue
                     } else {
-                        // If the number of attempts is MAX_ATTEMPTS or more, skip it
+                        // If the number of attempts is MAX_ATTEMPTS or more, skip it.
                         console.error(`ERROR LIMIT REACHED for queue item ${currentQueueItem[0].id}. Skipping.`)
                         continue
                     }
                 }
 
-                // *************************************************************
-                // STEP 8
-                // If the currentQueueItem status is "pending", try to trigger
-                // it again now there is space in the queue
-                // *************************************************************
+                // ============================================
+                // If the currentQueueItem status is "pending"
+                // ============================================
+                // Try to trigger it again now there is space in the queue.
                 if (currentQueueItem?.length > 0 && currentQueueItem[0]?.status === "pending") {
                     console.log(
-                        `Triggering pending queue item. Guild: ${guild.name}. Channel: ${channel.name}. Queue item ID: ${currentQueueItem[0].id}`,
+                        `🏁 Triggering pending queue item. Guild: ${guild.name}. Channel: ${channel.name}. Queue item ID: ${currentQueueItem[0].id}`,
                     )
-                    triggerQueueItem(currentQueueItem[0].id)
+                    await triggerQueueItem(currentQueueItem[0].id)
                     invokedCounter++
                     continue
                 }
 
-                // *************************************************************
-                // STEP 9
-                // If there is no currentQueueItem, then we might need to add
-                // one if there is a gap in the data or historical data missing
-                // *************************************************************
+                // ================================
+                // If there is no currentQueueItem
+                // ================================
+                // Then we might need to add one if there is a gap in the data.
 
-                // Calculate the time period for the current sync
+                // Calculate the time period for the current sync.
                 const now = new Date()
                 const previousDays = project.previous_days
                 let newestTimestamp = now
                 let newestMessageId = null
 
-                // Calculate the oldest timestamp based on previousDays
+                // Calculate the oldest timestamp limit based on previousDays.
                 const oldestTimestampLimit = new Date(now)
                 oldestTimestampLimit.setDate(oldestTimestampLimit.getDate() - previousDays)
 
-                // Check existing queue items to find the newest gap
+                // Fetch any existing queue items.
+                // TODO: Limit this to only return items within the previousDays.
                 const { data: existingQueueItems, error: existingQueueError } = await supabase
                     .from("discord_request_queue")
                     .select("id, oldest_message_timestamp, oldest_message_id, newest_message_timestamp")
@@ -263,23 +300,50 @@ async function runGovernor() {
                     continue
                 }
 
-                // Determine the starting point for the sync and check for gaps
+                // ==========================================
+                // Determine the starting point for the sync
+                // ==========================================
+
+                // If there are no existing queue items, then the sync is a new head sync.
+                if (existingQueueItems.length === 0) {
+                    // The `newestTimestamp` is already set to the current time.
+                    // The newestMessageId will initially be null, but will be set when the first message is processed.
+                }
+
+                // Look for a head gap.
+                // A head gap is when it has been longer than HEAD_GAP_MINUTES since the newest_message_timestamp.
+                let headGapFound = false
                 if (existingQueueItems.length > 0) {
+                    // Check if there is a gap between the newest_message_timestamp and the current time.
+                    const newestMessageTimestamp = new Date(existingQueueItems[0].newest_message_timestamp)
+                    const timeSinceNewestMessage = now.getTime() - newestMessageTimestamp.getTime()
+                    if (timeSinceNewestMessage > HEAD_GAP_MINUTES * 60 * 1000) {
+                        console.log(`📣 Head gap found. Processing newest messages.`)
+                        headGapFound = true
+                    }
+                }
+
+                if (headGapFound) {
+                    // Do nothing here as it will be processed like a new head sync
+                    // since the newest_message_id will be null.
+                }
+
+                // If there is no head gap, check for gaps between the items in the queue.
+                // A gap is when there are two consecutive items where the newest_message_timestamp
+                // of the next item is less than the oldest_message_timestamp of the current item.
+                if (!headGapFound && existingQueueItems.length > 0) {
                     let gapFound = false
 
-                    // Check for gaps between the items in the queue
-                    // A gap is when there are two consecutive items where the newest_message_timestamp
-                    // of the next item is less than the oldest_message_timestamp of the current item
                     for (let i = 0; i < existingQueueItems.length - 1; i++) {
                         const currentItem = existingQueueItems[i]
                         const nextItem = existingQueueItems[i + 1]
 
-                        // Check for a gap between current and next item
+                        // Check for a gap between current and next item.
                         if (nextItem.newest_message_timestamp < currentItem.oldest_message_timestamp) {
-                            // Found a gap, set the newestTimestamp and newestMessageId to the end of the gap
-                            console.log("Found a gap between current and next item")
-                            console.log("currentItem.id", currentItem.id)
-                            console.log("nextItem.id", nextItem.id)
+                            // Found a gap, set the newestTimestamp and newestMessageId to the end of the gap.
+                            console.log("➡️ ⬅️ Found a gap between current and next item")
+                            console.log("1️⃣ currentItem.id", currentItem.id)
+                            console.log("2️⃣ nextItem.id", nextItem.id)
                             newestTimestamp = new Date(currentItem.oldest_message_timestamp)
                             newestMessageId = currentItem.oldest_message_id
                             gapFound = true
@@ -287,7 +351,7 @@ async function runGovernor() {
                         }
                     }
 
-                    // If no gap was found, find the item with the absolute oldest_message_timestamp
+                    // If no gap was found, find the item with the absolute oldest_message_timestamp.
                     if (!gapFound) {
                         let oldestTimestamp = new Date(existingQueueItems[0].oldest_message_timestamp)
                         let oldestMessageId = existingQueueItems[0].oldest_message_id
@@ -305,18 +369,18 @@ async function runGovernor() {
                     }
                 }
 
-                // Ensure the sync does not go beyond the oldestTimestampLimit
+                // Ensure the sync does not go beyond the oldestTimestampLimit.
                 if (newestTimestamp < oldestTimestampLimit) {
                     // When there are no more messages to sync for a channel, the newestTimestamp will be
                     // null, which is 1970-01-01T00:00:00.000Z so will be less than the oldestTimestampLimit
                     // so this is correct response.
                     console.log(
-                        `The data already covers the range up to ${previousDays} days ago. No further sync needed. Guild: ${guild.name}. Channel: ${channel.name}.`,
+                        `✅ The queue items already covers the range up to ${previousDays} days ago. No further sync needed.`,
                     )
                     continue
                 }
 
-                // Add an item to the queue then trigger that item
+                // If sync is needed, add an item to the queue then trigger that item.
                 const { data: queueItem, error: queueItemError } = await supabase
                     .from("discord_request_queue")
                     .insert({
@@ -334,32 +398,30 @@ async function runGovernor() {
                     continue
                 }
 
-                // Get the id of the new queue item
+                // Get the id of the new queue item.
                 const queueItemId = queueItem[0].id
 
-                console.log(`Triggering new queue item: ${queueItemId}`)
-                triggerQueueItem(queueItemId)
+                console.log(`🏁 Triggering new queue item: ${queueItemId}`)
+                await triggerQueueItem(queueItemId)
                 invokedCounter++
 
-                // Calculate the new queue length
+                // Calculate the new queue length.
                 if (availableSpace <= invokedCounter >= MAX_QUEUE_LENGTH) {
-                    console.log("Queue is full. Exiting.")
+                    console.log("🚧 Queue is full. Exiting.")
                     return
                 }
             }
         }
     } catch (error) {
-        console.error("Error in runGovernor:", error)
+        console.error("Error in runDiscordGovernor:", error)
     }
 }
 
-// TODO: This will be a separate lambda function that will
-// be called by the governor to trigger a queue item
 async function triggerQueueItem(queueItemId) {
-    // Check running queue items to check there is space to attempt to claim
     try {
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
+        // Get the running queue items to see if there is space to attempt to claim.
         const { data: queueItems, error: queueError } = await supabase
             .from("discord_request_queue")
             .select("*")
@@ -370,14 +432,14 @@ async function triggerQueueItem(queueItemId) {
             return
         }
 
+        // Check if there is space to attempt to claim.
         const runningQueueItems = queueItems?.length || 0
-
         if (runningQueueItems >= MAX_QUEUE_LENGTH) {
-            console.log("Queue is full. Exiting.")
+            console.log("🚧 Queue is full. Exiting.")
             return
         }
 
-        // Try to claim the queue item
+        // If there is space, try to claim the queue item.
         const { data: claimedQueueItem, error: claimedQueueItemError } = await supabase
             .from("discord_request_queue")
             .update({ status: "running" })
@@ -391,9 +453,9 @@ async function triggerQueueItem(queueItemId) {
         }
 
         if (claimedQueueItem && claimedQueueItem.length > 0) {
-            console.log(`Claimed queue item: ${queueItemId}`)
+            console.log(`✅ Claimed queue item: ${queueItemId}`)
 
-            // Set the started_at timestamp to the current time
+            // Set the started_at timestamp to the current time.
             const { error: updatedQueueItemStartedAtError } = await supabase
                 .from("discord_request_queue")
                 .update({ started_at: new Date().toISOString() })
@@ -404,62 +466,114 @@ async function triggerQueueItem(queueItemId) {
                 console.error("Error updating queue item started_at:", updatedQueueItemStartedAtError)
             }
 
+            // Get the guild and channel to process.
             const guild = await client.guilds.fetch(claimedQueueItem[0].guild_id)
             const channel = await guild.channels.fetch(claimedQueueItem[0].channel_id)
 
-            console.log(`Processing channel: ${channel.name} (ID: ${claimedQueueItem[0].channel_id})`)
+            // This will either be an existing message id or null.
+            let newestMessageId = claimedQueueItem[0].newest_message_id
 
-            // TODO: Add "pagination" so that it processes more than one batch of messages before
-            // updating the queue item to "completed" and setting the oldest_message_id to the
-            // oldest message it processed and stored in the DB
+            // This will be set each loop, getting incrementally older.
+            let oldestMessageId = null
+            let oldestMessageTimestamp = null
 
-            // Fetch messages from the channel
-            const messages = await channel.messages.fetch({
-                limit: MAX_MESSAGES_TO_PROCESS,
-                before: claimedQueueItem[0].newest_message_id,
-            })
+            for (let i = 0; i < MAX_PAGINATION_LOOPS; i++) {
+                console.log(`🔄 Loop ${i + 1} of ${MAX_PAGINATION_LOOPS}`)
 
-            messages.forEach(async (msg) => {
-                // If the message is shorter than 10 characters, skip it
-                if (msg.content.length < 10) {
-                    console.log("Skipping message:", msg.id, "as it is shorter than 10 characters")
-                    return
-                }
+                // Fetch messages from the channel.
+                const messages = await channel.messages.fetch({
+                    limit: MAX_MESSAGES_TO_PROCESS,
+                    before: newestMessageId,
+                })
 
-                // TODO: Sanitize the message content before storing it in the DB
+                // Process all messages concurrently but wait for all to complete.
+                if (messages.size > 0) {
+                    // This will only happen on the first loop if newestMessageId is null (e.g. a head sync)
+                    // as on the second loop newestMessageId will have been set.
+                    if (!newestMessageId) {
+                        newestMessageId = messages.first().id
 
-                // Store the message in the DB
-                const { data: storedMessage, error: storedMessageError } = await supabase
-                    .from("discord_messages")
-                    .insert({
-                        message_id: msg.id,
-                        guild_id: guild.id,
-                        channel_id: channel.id,
-                        discord_user_id: msg.author.id,
-                        content: msg.content,
-                        created_timestamp: new Date(msg.createdTimestamp).toISOString(),
-                    })
-                    .select()
+                        console.log(`📣 Head sync detected.`)
 
-                if (storedMessageError) {
-                    if (storedMessageError.message.includes("duplicate key")) {
-                        console.log("Message already stored in DB:", msg.id)
-                    } else {
-                        console.error("Error storing message:", storedMessageError)
+                        // Set the newest_message_id to the newest message in the channel.
+                        const { error: setNewestMessageIdError } = await supabase
+                            .from("discord_request_queue")
+                            .update({ newest_message_id: newestMessageId })
+                            .eq("id", queueItemId)
+                            .select()
+
+                        if (setNewestMessageIdError) {
+                            console.error("Error updating newest_message_id:", setNewestMessageIdError)
+                        }
                     }
+
+                    // Set the oldest message found in this loop.
+                    oldestMessageId = messages.last().id
+                    oldestMessageTimestamp = messages.last().createdTimestamp
+
+                    // Set the newestMessageId for the next iteration to the oldest message from this batch.
+                    // This ensures we move backward through the message history.
+                    newestMessageId = oldestMessageId
+
+                    // Track how many messages were already stored in this loop
+                    let existsInDbCount = 0
+                    let totalProcessedCount = 0
+
+                    await Promise.all(
+                        messages.map(async (msg) => {
+                            // If the message is shorter than MIN_MESSAGE_CHAR_LENGTH characters, skip it
+                            if (msg.content.length < MIN_MESSAGE_CHAR_LENGTH) {
+                                console.log(
+                                    `⏭️ Skipping message: ${msg.id}. Shorter than ${MIN_MESSAGE_CHAR_LENGTH} characters`,
+                                )
+                                return
+                            }
+
+                            // TODO: Sanitize the message content before storing it in the DB
+
+                            // Attempt to store the message in the DB.
+                            const { data: storedMessage, error: storedMessageError } = await supabase
+                                .from("discord_messages")
+                                .insert({
+                                    message_id: msg.id,
+                                    guild_id: guild.id,
+                                    channel_id: channel.id,
+                                    discord_user_id: msg.author.id,
+                                    content: msg.content,
+                                    created_timestamp: new Date(msg.createdTimestamp).toISOString(),
+                                })
+                                .select()
+
+                            if (storedMessageError) {
+                                if (storedMessageError.message.includes("duplicate key")) {
+                                    console.log("☑️ Message already stored in DB:", msg.id)
+                                    existsInDbCount++
+                                    totalProcessedCount++
+                                } else {
+                                    console.error("Error storing message:", storedMessageError)
+                                }
+                            }
+
+                            if (storedMessage) {
+                                totalProcessedCount++
+                                console.log(`💾 Stored message: ${msg.id}`)
+                            }
+                        }),
+                    )
+
+                    // Check if all processed messages were already stored
+                    if (totalProcessedCount > 0 && existsInDbCount === totalProcessedCount) {
+                        console.log(`⏹️ All messages in this loop already existed in DB. Breaking out of loop.`)
+                        break
+                    }
+                } else {
+                    console.log("⏹️ No messages to process. Breaking out of loop.")
+                    break
                 }
+            }
 
-                if (storedMessage) {
-                    console.log(`Stored message: ${msg.id}`)
-                }
-            })
-
-            // Once enough messages have been processed, update the queue item to "completed"
-            const lastMessage = messages.last()
-            const oldestMessageId = lastMessage?.id
-            const oldestMessageTimestamp = lastMessage?.createdTimestamp
-
-            const { data: updatedQueueItem, error: updatedQueueItemError } = await supabase
+            // Once the loop is complete, update the queue item to "completed"
+            const { error: updatedQueueItemError } = await supabase
                 .from("discord_request_queue")
                 .update({
                     status: "completed",
@@ -474,22 +588,21 @@ async function triggerQueueItem(queueItemId) {
 
             if (updatedQueueItemError) {
                 console.error("Error updating queue item:", updatedQueueItemError)
-            }
-
-            if (updatedQueueItem) {
-                console.log(`Updated queue item: ${queueItemId}`)
+            } else {
+                console.log(`💾 Updated queue item: ${queueItemId}`)
             }
             return
         } else {
-            console.log(`Failed to claim queue item: ${queueItemId}`)
+            console.log(`❌ Failed to claim queue item: ${queueItemId}`)
             return
         }
     } catch (error) {
         console.error("Error in triggerQueueItem:", error)
     }
-
-    console.log(`Triggering queue item: ${queueItemId}`)
 }
 
-// Start the client
+// Start the client.
 client.login(process.env.DISCORD_BOT_TOKEN)
+
+// Export the runDiscordGovernor function for use in Lambda
+module.exports = { runDiscordGovernor }

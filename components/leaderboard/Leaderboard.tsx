@@ -7,6 +7,8 @@ import { Tooltip } from "../../components/ui/tooltip"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useEffect } from "react"
 
+import { useUser } from "../../contexts/UserContext"
+
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { useGetProjects } from "../../hooks/useGetProjects"
 
@@ -63,6 +65,7 @@ export default function Leaderboard({
     const [resultsPage, setResultsPage] = useState(parseInt(searchParams.get("page") || "1"))
     const [maxResultsPage, setMaxResultsPage] = useState(1)
 
+    const { loggedInUser } = useUser()
     // Use the appropriate hook based on mode
     const {
         users,
@@ -150,6 +153,17 @@ export default function Leaderboard({
         return () => clearTimeout(timer)
     }, [searchTerm, router])
 
+    // Update URL when resultsPage changes
+    useEffect(() => {
+        const url = new URL(window.location.href)
+        if (resultsPage > 1) {
+            url.searchParams.set("page", resultsPage.toString())
+        } else {
+            url.searchParams.delete("page")
+        }
+        router.replace(url.pathname + url.search, { scroll: false })
+    }, [resultsPage, router])
+
     // Set isSearching to false when loading completes
     useEffect(() => {
         if (!loading) {
@@ -158,11 +172,13 @@ export default function Leaderboard({
     }, [loading])
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setResultsPage(1)
         setSearchTerm(e.target.value)
         setIsSearching(true)
     }
 
     const handleClearSearch = () => {
+        setResultsPage(1)
         setSearchTerm("")
         setIsSearching(true)
     }
@@ -260,6 +276,9 @@ export default function Leaderboard({
                             const isScoreZero =
                                 mode === "users" ? ((item as UserData).score ?? 0) === 0 : (userData?.score ?? 0) === 0
 
+                            const isRowForLoggedInUser =
+                                mode === "users" && (item as UserData).username === loggedInUser?.username
+
                             return (
                                 <Table.Row
                                     key={index}
@@ -282,6 +301,7 @@ export default function Leaderboard({
                                             textAlign="center"
                                             minW={rankColumnWidth}
                                             maxW={rankColumnWidth}
+                                            borderLeftRadius={"full"}
                                         >
                                             <Link href={linkUrl}>
                                                 <Text
@@ -306,7 +326,11 @@ export default function Leaderboard({
                                     )}
                                     <Table.Cell borderBottom="none" py={"6px"} pr={0} maxW={displayNameColumnWidth}>
                                         <Link href={linkUrl}>
-                                            <HStack gap={3}>
+                                            <HStack
+                                                gap={3}
+                                                bg={isRowForLoggedInUser ? "gold.600" : "undefined"}
+                                                borderRadius={"full"}
+                                            >
                                                 <Box
                                                     position="relative"
                                                     boxSize="40px"
@@ -403,6 +427,7 @@ export default function Leaderboard({
                                                 py={0}
                                                 px={0}
                                                 maxW={scoreColumnWidth}
+                                                borderRightRadius={"full"}
                                             >
                                                 <Link href={linkUrl}>
                                                     <HStack justifyContent="center" alignItems="center">
@@ -495,7 +520,7 @@ export default function Leaderboard({
                     )}
                 </Table.Body>
             </Table.Root>
-            {!isSearching && maxResultsPage > 1 && (
+            {!isSearching && !loading && (
                 <LeaderboardPagination page={resultsPage} maxPage={maxResultsPage} onPageChange={setResultsPage} />
             )}
         </Box>
