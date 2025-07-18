@@ -1,22 +1,9 @@
+// How to run this locally:
+// node -e "require('./discordGovernor.js').runDiscordGovernor().catch(console.error)"
+
 require("dotenv").config({ path: "../../../.env" })
 const { Client, GatewayIntentBits, Partials } = require("discord.js")
 const { createClient } = require("@supabase/supabase-js")
-
-// ==========================
-// Create the Discord client
-// ==========================
-const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
-    partials: [Partials.Channel],
-})
-
-// ===========================================
-// Once the client is ready, run the governor
-// ===========================================
-client.once("ready", async () => {
-    console.log(`🤖 Logged in as bot user: ${client.user.tag}`)
-    await runDiscordGovernor()
-})
 
 // ======================
 // GLOBAL DISCORD LIMITS
@@ -36,10 +23,43 @@ const MAX_PAGINATION_LOOPS = 10
 const HEAD_GAP_MINUTES = 60
 const MIN_MESSAGE_CHAR_LENGTH = 10
 
+// Set the Discord client globally so it can be used in the triggerQueueItem function.
+let client
+
 // =================
 // Run the governor
 // =================
 async function runDiscordGovernor() {
+    console.log("💡 Running Discord governor")
+    // ==========================
+    // Create the Discord client
+    // ==========================
+    client = new Client({
+        intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+        partials: [Partials.Channel],
+    })
+
+    // Wait for the client to be ready before proceeding
+    await new Promise((resolve, reject) => {
+        // Set up error handling for login failures
+        client.once("error", (error) => {
+            console.error("Discord client error:", error)
+            reject(error)
+        })
+
+        // Set up the ready event handler
+        client.once("ready", async () => {
+            console.log(`🤖 Logged in as bot user: ${client.user.tag}`)
+            resolve()
+        })
+
+        // Start the client login
+        client.login(process.env.DISCORD_BOT_TOKEN).catch(reject)
+    })
+
+    // ===============================================
+    // Now that the client is ready, run the governor
+    // ===============================================
     try {
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
@@ -421,6 +441,12 @@ async function runDiscordGovernor() {
         console.log("🎉 Finished processing all projects.")
     } catch (error) {
         console.error("Error in runDiscordGovernor:", error)
+    } finally {
+        // Clean up the Discord client
+        if (client) {
+            console.log("🔌 Closing Discord client...")
+            client.destroy()
+        }
     }
 }
 
@@ -494,7 +520,7 @@ async function triggerQueueItem(queueItemId) {
                     before: newestMessageId,
                 })
 
-                // Process all messages concurrently but wait for all to complete.
+                // Check if there are any messages to process.
                 if (messages.size > 0) {
                     // This will only happen on the first loop if newestMessageId is null (e.g. a head sync)
                     // as on the second loop newestMessageId will have been set.
@@ -527,6 +553,7 @@ async function triggerQueueItem(queueItemId) {
                     let existsInDbCount = 0
                     let totalProcessedCount = 0
 
+                    // Process all messages concurrently but wait for all to complete.
                     // TODO: Maybe this should just do one big insert at the end of the loop?
                     //       Rather than potentially 100 inserts per loop?
                     await Promise.all(
@@ -610,9 +637,6 @@ async function triggerQueueItem(queueItemId) {
         console.error("Error in triggerQueueItem:", error)
     }
 }
-
-// Start the client.
-client.login(process.env.DISCORD_BOT_TOKEN)
 
 // Export the runDiscordGovernor function for use in Lambda
 module.exports = { runDiscordGovernor }
