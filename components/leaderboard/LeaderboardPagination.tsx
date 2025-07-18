@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { HStack, Button, Text, VStack } from "@chakra-ui/react"
+import { HStack, Button, Text, VStack, Box } from "@chakra-ui/react"
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBackwardStep, faChevronLeft, faChevronRight, faForwardStep } from "@fortawesome/free-solid-svg-icons"
@@ -66,17 +66,19 @@ export default function LeaderboardPagination({ page, maxPage, onPageChange }: L
         isIconOnly?: boolean
     }) => {
         return (
-            <Button
-                secondaryButton
-                onClick={onClick}
-                disabled={disabled}
-                py={1}
-                px={{ base: 2, md: isIconOnly ? 0 : 6 }}
-                borderRadius="full"
-                h={"35px"}
-            >
-                {children}
-            </Button>
+            // Box is needed so particles do not show through when disabled opacity is applied
+            <Box bg={"pageBackground"} borderRadius="full" overflow="hidden">
+                <Button
+                    secondaryButton
+                    onClick={onClick}
+                    disabled={disabled}
+                    py={1}
+                    px={{ base: 2, md: isIconOnly ? 0 : 6 }}
+                    h={"35px"}
+                >
+                    {children}
+                </Button>
+            </Box>
         )
     }
 
