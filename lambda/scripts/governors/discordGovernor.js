@@ -4,6 +4,7 @@
 require("dotenv").config({ path: "../../../.env" })
 const { Client, GatewayIntentBits, Partials } = require("discord.js")
 const { createClient } = require("@supabase/supabase-js")
+const outOfCharacter = require("out-of-character")
 
 // ======================
 // GLOBAL DISCORD LIMITS
@@ -487,6 +488,19 @@ async function triggerQueueItem(queueItemId) {
         if (claimedQueueItem && claimedQueueItem.length > 0) {
             console.log(`✅ Claimed queue item: ${queueItemId}`)
 
+            // Get the max_chars for the queue item.
+            const { data: discordSignalStrength, error: discordSignalStrengthError } = await supabase
+                .from("signal_strengths")
+                .select("max_chars")
+                .eq("name", "discord")
+                .single()
+
+            if (discordSignalStrengthError) {
+                console.error("Error fetching discord signal strength:", discordSignalStrengthError)
+            }
+
+            const maxChars = discordSignalStrength.max_chars
+
             // Set the started_at timestamp to the current time.
             const { error: updatedQueueItemStartedAtError } = await supabase
                 .from("discord_request_queue")
@@ -592,7 +606,15 @@ async function triggerQueueItem(queueItemId) {
                             break
                         }
 
-                        // TODO: Sanitize the message content before storing it in the DB.
+                        // Sanitize the message content before storing it in the DB.
+                        messagesToInsert.forEach((m) => {
+                            m.content = outOfCharacter.replace(m.content)
+
+                            // Truncate the message content if it exceeds the max_chars.
+                            if (m.content.length > maxChars) {
+                                m.content = m.content.slice(0, maxChars)
+                            }
+                        })
 
                         // Bulk upsert with onConflict to skip duplicates (will update existing rows if conflict)
                         // upsert stops edge cases where messages could be missed.
