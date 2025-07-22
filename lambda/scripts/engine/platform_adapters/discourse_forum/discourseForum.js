@@ -7,6 +7,7 @@ async function getDailyActivityData({
     projectId,
     signalStrengthUsername,
     signalStrengthConfig,
+    dayDate,
 }) {
     let adapterLogs = ""
     const forum_username = signalStrengthUsername
@@ -52,13 +53,14 @@ async function getDailyActivityData({
     console.log(`🗓️ Filtered activity data to the past ${previousDays} days: ${filteredActivityData.length}`)
     adapterLogs += `\nActivity past ${previousDays} days: ${filteredActivityData.length}`
 
-    // console.log("filteredActivityData", filteredActivityData)
-
     // Create an array of filteredActivityData that contains one element per day
-    // starting from yesterday and going back previousDays
+    // starting from dayDate and going back previousDays
+    const formattedDayDate = new Date(`${dayDate}T00:00:00.000Z`)
+
     const dailyActivityData = []
     for (let i = 0; i < previousDays; i++) {
-        const date = new Date(new Date().setDate(new Date().getDate() - (i + 1))) // Start yesterday
+        const date = new Date(new Date(formattedDayDate).setDate(formattedDayDate.getDate() - i))
+
         const activitiesForDay = filteredActivityData.filter((activity) => {
             const activityDate = new Date(activity.updated_at) // TODO: Should this be created_at?
             return activityDate.toISOString().split("T")[0] === date.toISOString().split("T")[0]

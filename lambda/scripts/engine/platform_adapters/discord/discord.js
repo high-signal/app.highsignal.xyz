@@ -1,4 +1,10 @@
-async function getDailyActivityData({ supabase, userDisplayName, signalStrengthUsername, signalStrengthConfig }) {
+async function getDailyActivityData({
+    supabase,
+    userDisplayName,
+    signalStrengthUsername,
+    signalStrengthConfig,
+    dayDate,
+}) {
     let adapterLogs = ""
     const discordUsername = signalStrengthUsername
     const previousDays = signalStrengthConfig.previous_days
@@ -27,7 +33,7 @@ async function getDailyActivityData({ supabase, userDisplayName, signalStrengthU
     // === Fetch activity data for Discord the DB for the previous days ===
     console.log(`👀 Fetching Discord activity data for ${userDisplayName} (Discord username: ${discordUsername})`)
 
-    const cutoffDate = new Date()
+    const cutoffDate = new Date(`${dayDate}T00:00:00.000Z`)
     cutoffDate.setDate(cutoffDate.getDate() - previousDays)
 
     const { data: activityData, error: activityError } = await supabase
@@ -56,10 +62,13 @@ async function getDailyActivityData({ supabase, userDisplayName, signalStrengthU
     adapterLogs += `\nActivity past ${previousDays} days: ${activityData.length}`
 
     // Create an array of activityData that contains one element per day
-    // starting from yesterday and going back previousDays
+    // starting from dayDate and going back previousDays
+    const formattedDayDate = new Date(`${dayDate}T00:00:00.000Z`)
+
     const dailyActivityData = []
     for (let i = 0; i < previousDays; i++) {
-        const date = new Date(new Date().setDate(new Date().getDate() - (i + 1))) // Start yesterday
+        const date = new Date(new Date(formattedDayDate).setDate(formattedDayDate.getDate() - i))
+
         const activitiesForDay = activityData
             .filter((activity) => {
                 const activityDate = new Date(activity.created_timestamp)
