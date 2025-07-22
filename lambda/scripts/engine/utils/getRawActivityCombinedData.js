@@ -21,7 +21,7 @@ async function getRawActivityCombinedData({
         query = query.is("test_requesting_user", null)
     }
 
-    const formattedDayDate = new Date(`${dayDate}T00:00:00.000Z`)
+    const formattedDayDate = new Date(`${dayDate}T23:59:59.999Z`)
 
     let rawActivityCombinedData =
         (

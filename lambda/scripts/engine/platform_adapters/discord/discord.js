@@ -30,18 +30,21 @@ async function getDailyActivityData({
 
     const discordUserId = userData.discord_user_id
 
-    // === Fetch activity data for Discord the DB for the previous days ===
+    // === Fetch activity data for Discord the DB for the range between dayDate and previousDays ===
     console.log(`👀 Fetching Discord activity data for ${userDisplayName} (Discord username: ${discordUsername})`)
 
-    const cutoffDate = new Date(`${dayDate}T00:00:00.000Z`)
-    cutoffDate.setDate(cutoffDate.getDate() - previousDays)
+    const activityRangeNewest = new Date(`${dayDate}T23:59:59.999Z`)
+    const activityRangeOldest = new Date(
+        new Date(activityRangeNewest).setDate(activityRangeNewest.getDate() - previousDays),
+    )
 
     const { data: activityData, error: activityError } = await supabase
         .from("discord_messages")
         .select("*")
         .eq("discord_user_id", discordUserId)
         .eq("guild_id", guildId)
-        .gte("created_timestamp", cutoffDate.toISOString())
+        .gte("created_timestamp", activityRangeOldest.toISOString())
+        .lte("created_timestamp", activityRangeNewest.toISOString())
         .order("created_timestamp", { ascending: false })
 
     if (activityError) {
@@ -63,7 +66,7 @@ async function getDailyActivityData({
 
     // Create an array of activityData that contains one element per day
     // starting from dayDate and going back previousDays
-    const formattedDayDate = new Date(`${dayDate}T00:00:00.000Z`)
+    const formattedDayDate = new Date(`${dayDate}T23:59:59.999Z`)
 
     const dailyActivityData = []
     for (let i = 0; i < previousDays; i++) {
