@@ -1,4 +1,5 @@
 const discourseForum = require("./discourse_forum/discourseForum")
+const discord = require("./discord/discord")
 
 async function getDailyActivityData({
     supabase,
@@ -19,6 +20,14 @@ async function getDailyActivityData({
             signalStrengthConfig,
         })
 
+        return { dailyActivityData, adapterLogs }
+    } else if (signalStrengthName === "discord") {
+        const { dailyActivityData, adapterLogs } = await discord.getDailyActivityData({
+            supabase,
+            userDisplayName,
+            signalStrengthUsername,
+            signalStrengthConfig,
+        })
         return { dailyActivityData, adapterLogs }
     } else {
         throw new Error(`Unsupported signal strength name: ${signalStrengthName}`)

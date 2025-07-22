@@ -41,7 +41,12 @@ export default function SignalStrengthSettings({
     const signalStrengthUsername =
         selectedUser?.connectedAccounts
             ?.find((accountType) => accountType.name === signalStrength.name)
-            ?.data?.find((forumUser) => Number(forumUser.projectId) === Number(project?.id))?.forumUsername || ""
+            ?.data?.find((account) => Number(account.projectId) === Number(project?.id))?.forumUsername ||
+        (
+            selectedUser?.connectedAccounts?.find((accountType) => accountType.name === signalStrength.name)
+                ?.data?.[0] as any
+        )?.username ||
+        ""
 
     const {
         setTestTimerStart,

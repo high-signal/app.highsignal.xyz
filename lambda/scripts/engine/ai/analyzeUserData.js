@@ -30,7 +30,7 @@ async function analyzeUserData({
 
     let calculatedSmartScore
     if (type === "smart") {
-        const smartScoreResult = calculateSmartScore(userData, previousDays)
+        const smartScoreResult = calculateSmartScore(userData, previousDays, maxValue)
         calculatedSmartScore = smartScoreResult.smartScore
         const topBandDays = smartScoreResult.topBandDays
 

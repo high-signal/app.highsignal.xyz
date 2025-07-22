@@ -81,7 +81,7 @@ async function handleRunEngine(params) {
     }
 
     // Process the request based on the signal strength name
-    if (signalStrengthName === "discourse_forum" /* || signalStrengthName === "discord"*/) {
+    if (signalStrengthName === "discourse_forum" || signalStrengthName === "discord") {
         await runEngine({
             signalStrengthName,
             userId,
