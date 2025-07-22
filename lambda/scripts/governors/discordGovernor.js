@@ -187,7 +187,6 @@ async function runDiscordGovernor() {
                 continue
             }
             const guildId = urlMatch[1]
-
             const guild = await client.guilds.fetch(guildId)
 
             // Fetch all channels in the guild.
@@ -229,7 +228,7 @@ async function runDiscordGovernor() {
 
                 if (currentQueueItemError) {
                     console.error("Error fetching current queue item:", currentQueueItemError)
-                    continue
+                    throw currentQueueItemError
                 }
 
                 if (currentQueueItem?.length > 0) {
@@ -267,6 +266,7 @@ async function runDiscordGovernor() {
 
                         if (updatedQueueItemError) {
                             console.error("Error updating queue item:", updatedQueueItemError)
+                            throw updatedQueueItemError
                         }
 
                         // If the queue item was updated successfully to pending, try to trigger it again.
@@ -321,7 +321,7 @@ async function runDiscordGovernor() {
 
                 if (existingQueueError) {
                     console.error("Error fetching existing queue items:", existingQueueError)
-                    continue
+                    throw existingQueueError
                 }
 
                 // ==========================================
@@ -419,7 +419,7 @@ async function runDiscordGovernor() {
 
                 if (queueItemError) {
                     console.error("Error adding queue item:", queueItemError)
-                    continue
+                    throw queueItemError
                 }
 
                 // Get the id of the new queue item.
@@ -442,6 +442,7 @@ async function runDiscordGovernor() {
         console.log("🎉 Finished processing all projects.")
     } catch (error) {
         console.error("Error in runDiscordGovernor:", error)
+        throw error
     } finally {
         // Clean up the Discord client
         if (client) {
@@ -463,7 +464,7 @@ async function triggerQueueItem(queueItemId) {
 
         if (queueError) {
             console.error("Error fetching queue items:", queueError)
-            return
+            throw queueError
         }
 
         // Check if there is space to attempt to claim.
@@ -483,7 +484,7 @@ async function triggerQueueItem(queueItemId) {
 
         if (claimedQueueItemError) {
             console.error("Error claiming queue item:", claimedQueueItemError)
-            return
+            throw claimedQueueItemError
         }
 
         if (claimedQueueItem && claimedQueueItem.length > 0) {
@@ -498,6 +499,7 @@ async function triggerQueueItem(queueItemId) {
 
             if (discordSignalStrengthError) {
                 console.error("Error fetching discord signal strength:", discordSignalStrengthError)
+                throw discordSignalStrengthError
             }
 
             const maxChars = discordSignalStrength.max_chars
@@ -511,6 +513,7 @@ async function triggerQueueItem(queueItemId) {
 
             if (updatedQueueItemStartedAtError) {
                 console.error("Error updating queue item started_at:", updatedQueueItemStartedAtError)
+                throw updatedQueueItemStartedAtError
             }
 
             // Get the guild and channel to process.
@@ -565,6 +568,7 @@ async function triggerQueueItem(queueItemId) {
 
                         if (setNewestMessageIdError) {
                             console.error("Error updating newest_message_id:", setNewestMessageIdError)
+                            throw setNewestMessageIdError
                         }
                     }
 
@@ -608,6 +612,7 @@ async function triggerQueueItem(queueItemId) {
                             .in("message_id", messageIds)
                         if (existingRowsError) {
                             console.error("Error fetching existing message IDs:", existingRowsError)
+                            throw existingRowsError
                         }
                         const existingIdSet = new Set((existingRows || []).map((row) => row.message_id))
 
@@ -637,6 +642,11 @@ async function triggerQueueItem(queueItemId) {
                             .upsert(messagesToInsert, { onConflict: ["message_id"] })
                             .select()
 
+                        if (upsertError) {
+                            console.error("Error upserting messages:", upsertError)
+                            throw upsertError
+                        }
+
                         // Log for each message whether it was newly stored or already existed
                         messagesToInsert.forEach((msgObj) => {
                             if (existingIdSet.has(msgObj.message_id)) {
@@ -645,9 +655,6 @@ async function triggerQueueItem(queueItemId) {
                                 console.log(`💾 Stored message: ${msgObj.message_id}`)
                             }
                         })
-                        if (upsertError) {
-                            console.error("Error upserting messages:", error)
-                        }
                     } else {
                         console.log("⏹️ No valid messages to insert in this loop.")
                         break
@@ -674,6 +681,7 @@ async function triggerQueueItem(queueItemId) {
 
             if (updatedQueueItemError) {
                 console.error("Error updating queue item:", updatedQueueItemError)
+                throw updatedQueueItemError
             } else {
                 console.log(`💾 Updated queue item: ${queueItemId}`)
             }
@@ -684,6 +692,7 @@ async function triggerQueueItem(queueItemId) {
         }
     } catch (error) {
         console.error("Error in triggerQueueItem:", error)
+        throw error
     }
 }
 
