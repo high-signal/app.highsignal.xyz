@@ -16,6 +16,7 @@ const outOfCharacter = require("out-of-character")
 // ==========
 // Constants
 // ==========
+const MAX_REQUESTS_PER_SECOND_PER_CHANNEL = 5
 const MAX_QUEUE_LENGTH = 20
 const TIMEOUT_SECONDS = 60
 const MAX_ATTEMPTS = 3
@@ -523,8 +524,21 @@ async function triggerQueueItem(queueItemId) {
             let oldestMessageId = null
             let oldestMessageTimestamp = null
 
-            // TODO: Add the 5 per second limit into this loop.
+            // Message fetch loop.
             for (let i = 0; i < MAX_PAGINATION_LOOPS; i++) {
+                // Rate limiter logic
+                // Ensures that only MAX_REQUESTS_PER_SECOND_PER_CHANNEL requests are made per second per channel.
+                if (!channel._requestTimestamps) channel._requestTimestamps = []
+                const now = Date.now()
+                channel._requestTimestamps = channel._requestTimestamps.filter((ts) => now - ts < 1000)
+                if (channel._requestTimestamps.length >= MAX_REQUESTS_PER_SECOND_PER_CHANNEL) {
+                    const waitTime = 1000 - (now - channel._requestTimestamps[0])
+                    console.log(`⏳ Rate limit hit, waiting ${waitTime}ms before next request...`)
+                    await new Promise((res) => setTimeout(res, waitTime))
+                }
+                channel._requestTimestamps.push(Date.now())
+
+                // Start loop logic after rate limit delay.
                 console.log(`🔄 Loop ${i + 1} of ${MAX_PAGINATION_LOOPS}`)
 
                 // Fetch messages from the channel.
