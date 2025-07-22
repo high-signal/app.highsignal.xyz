@@ -548,58 +548,72 @@ async function triggerQueueItem(queueItemId) {
                     // This ensures we move backward through the message history.
                     newestMessageId = oldestMessageId
 
-                    // Track how many messages were already stored in this loop
-                    let existsInDbCount = 0
-                    let totalProcessedCount = 0
+                    // Collect all valid messages to insert in one go
+                    let messagesToInsert = []
+                    let messageIdToMsg = {}
+                    messages.forEach((msg) => {
+                        if (msg.content.length < MIN_MESSAGE_CHAR_LENGTH) {
+                            console.log(
+                                `⏭️ Skipping message: ${msg.id}. Shorter than ${MIN_MESSAGE_CHAR_LENGTH} characters`,
+                            )
+                            return
+                        }
 
-                    // Process all messages concurrently but wait for all to complete.
-                    // TODO: Maybe this should just do one big insert at the end of the loop?
-                    //       Rather than potentially 100 inserts per loop?
-                    await Promise.all(
-                        messages.map(async (msg) => {
-                            // If the message is shorter than MIN_MESSAGE_CHAR_LENGTH characters, skip it
-                            if (msg.content.length < MIN_MESSAGE_CHAR_LENGTH) {
-                                console.log(
-                                    `⏭️ Skipping message: ${msg.id}. Shorter than ${MIN_MESSAGE_CHAR_LENGTH} characters`,
-                                )
-                                return
+                        // If message meets min char length, add it to the messagesToInsert array.
+                        messagesToInsert.push({
+                            message_id: msg.id,
+                            guild_id: guild.id,
+                            channel_id: channel.id,
+                            discord_user_id: msg.author.id,
+                            content: msg.content,
+                            created_timestamp: new Date(msg.createdTimestamp).toISOString(),
+                        })
+                        messageIdToMsg[msg.id] = msg
+                    })
+
+                    if (messagesToInsert.length > 0) {
+                        // Fetch existing message_ids for this batch
+                        const messageIds = messagesToInsert.map((m) => m.message_id)
+                        const { data: existingRows, error: existingRowsError } = await supabase
+                            .from("discord_messages")
+                            .select("message_id")
+                            .in("message_id", messageIds)
+                        if (existingRowsError) {
+                            console.error("Error fetching existing message IDs:", existingRowsError)
+                        }
+                        const existingIdSet = new Set((existingRows || []).map((row) => row.message_id))
+
+                        // If all processed messages were already stored, break
+                        if (
+                            messagesToInsert.length > 0 &&
+                            messagesToInsert.every((m) => existingIdSet.has(m.message_id))
+                        ) {
+                            console.log(`⏹️ All messages in this loop already existed in DB. Breaking out of loop.`)
+                            break
+                        }
+
+                        // TODO: Sanitize the message content before storing it in the DB.
+
+                        // Bulk upsert with onConflict to skip duplicates (will update existing rows if conflict)
+                        // upsert stops edge cases where messages could be missed.
+                        const { error: upsertError } = await supabase
+                            .from("discord_messages")
+                            .upsert(messagesToInsert, { onConflict: ["message_id"] })
+                            .select()
+
+                        // Log for each message whether it was newly stored or already existed
+                        messagesToInsert.forEach((msgObj) => {
+                            if (existingIdSet.has(msgObj.message_id)) {
+                                console.log(`☑️ Message already stored in DB: ${msgObj.message_id}`)
+                            } else {
+                                console.log(`💾 Stored message: ${msgObj.message_id}`)
                             }
-
-                            // TODO: Sanitize the message content before storing it in the DBe
-
-                            // Attempt to store the message in the DB.
-                            const { data: storedMessage, error: storedMessageError } = await supabase
-                                .from("discord_messages")
-                                .insert({
-                                    message_id: msg.id,
-                                    guild_id: guild.id,
-                                    channel_id: channel.id,
-                                    discord_user_id: msg.author.id,
-                                    content: msg.content,
-                                    created_timestamp: new Date(msg.createdTimestamp).toISOString(),
-                                })
-                                .select()
-
-                            if (storedMessageError) {
-                                if (storedMessageError.message.includes("duplicate key")) {
-                                    console.log("☑️ Message already stored in DB:", msg.id)
-                                    existsInDbCount++
-                                    totalProcessedCount++
-                                } else {
-                                    console.error("Error storing message:", storedMessageError)
-                                }
-                            }
-
-                            if (storedMessage) {
-                                totalProcessedCount++
-                                console.log(`💾 Stored message: ${msg.id}`)
-                            }
-                        }),
-                    )
-
-                    // Check if all processed messages were already stored
-                    if (totalProcessedCount > 0 && existsInDbCount === totalProcessedCount) {
-                        console.log(`⏹️ All messages in this loop already existed in DB. Breaking out of loop.`)
+                        })
+                        if (upsertError) {
+                            console.error("Error upserting messages:", error)
+                        }
+                    } else {
+                        console.log("⏹️ No valid messages to insert in this loop.")
                         break
                     }
                 } else {
