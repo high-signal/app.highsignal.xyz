@@ -309,13 +309,12 @@ async function runDiscordGovernor() {
                 oldestTimestampLimit.setDate(oldestTimestampLimit.getDate() - previousDays)
 
                 // Fetch any existing queue items.
-                // TODO: Limit this to only return items within the previousDays.
-                //       This is critical to make the absolute oldest_message_timestamp work later on.
                 const { data: existingQueueItems, error: existingQueueError } = await supabase
                     .from("discord_request_queue")
                     .select("id, oldest_message_timestamp, oldest_message_id, newest_message_timestamp")
                     .eq("guild_id", guildId)
                     .eq("channel_id", channelId)
+                    .gte("newest_message_timestamp", oldestTimestampLimit.toISOString())
                     .order("newest_message_timestamp", { ascending: false })
 
                 if (existingQueueError) {
