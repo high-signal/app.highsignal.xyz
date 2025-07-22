@@ -14,6 +14,7 @@ const DOMPurify = createDOMPurify(window)
  * @returns The sanitized string
  */
 export function sanitize(input: string): string {
-    const cleaned = outOfCharacter.replace(input)
+    const strInput = String(input)
+    const cleaned = outOfCharacter.replace(strInput)
     return DOMPurify.sanitize(cleaned)
 }
