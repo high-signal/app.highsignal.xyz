@@ -60,7 +60,7 @@ async function getDailyActivityData({
     for (let i = 0; i < previousDays; i++) {
         const date = new Date(new Date().setDate(new Date().getDate() - (i + 1))) // Start yesterday
         const activitiesForDay = filteredActivityData.filter((activity) => {
-            const activityDate = new Date(activity.updated_at)
+            const activityDate = new Date(activity.updated_at) // TODO: Should this be created_at?
             return activityDate.toISOString().split("T")[0] === date.toISOString().split("T")[0]
         })
         dailyActivityData.push({

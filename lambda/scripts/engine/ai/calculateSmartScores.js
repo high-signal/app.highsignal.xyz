@@ -1,4 +1,4 @@
-function calculateSmartScore(userData, previousDays) {
+function calculateSmartScore(userData, previousDays, maxValue) {
     if (!userData.length) return { smartScore: 0, topBandDays: [] }
 
     const now = Date.now()
@@ -52,7 +52,7 @@ function calculateSmartScore(userData, previousDays) {
     else if (count === 3 || count === 4) multiplier = 0.85
     else if (count >= 5) multiplier = 1.0
 
-    const smartScore = Math.round(weightedAverage * 100 * multiplier)
+    const smartScore = Math.round(weightedAverage * maxValue * multiplier)
 
     // Extract the days that were in the top band
     const topBandDays = topBand.map((d) => d.day)
