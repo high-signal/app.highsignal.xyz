@@ -89,6 +89,12 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
             signalStrengthConfig,
         })
 
+        if (!dailyActivityData || dailyActivityData.length === 0) {
+            // The console error is handled in the adapter.
+            // This just exits the function as there is nothing to do.
+            return
+        }
+
         // Add adapter logs to existing logs string
         logs += adapterLogs
 

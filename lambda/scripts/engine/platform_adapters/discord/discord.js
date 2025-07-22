@@ -19,7 +19,7 @@ async function getDailyActivityData({ supabase, userDisplayName, signalStrengthU
 
     if (userError) {
         console.error("Error fetching user data:", userError)
-        return
+        throw userError
     }
 
     const discordUserId = userData.discord_user_id
@@ -40,16 +40,17 @@ async function getDailyActivityData({ supabase, userDisplayName, signalStrengthU
 
     if (activityError) {
         console.error("Error fetching activity data:", activityError)
-        return
+        throw activityError
     }
 
     console.log(
         `🗓️ Processed ${activityData?.length || 0} activities for ${userDisplayName} (Discord username: ${discordUsername})`,
     )
 
+    // If no activity data is found, return an empty array and adapter logs.
     if (!activityData || activityData.length === 0) {
         console.error(`No activity data found for ${userDisplayName} (Discord username: ${discordUsername})`)
-        return
+        return { dailyActivityData: [], adapterLogs }
     }
 
     adapterLogs += `\nActivity past ${previousDays} days: ${activityData.length}`

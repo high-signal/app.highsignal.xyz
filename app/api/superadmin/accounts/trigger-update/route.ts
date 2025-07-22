@@ -11,7 +11,7 @@ export async function PATCH(request: NextRequest) {
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
         // Prepare array of users to process
-        let usersToUpdate = []
+        let usersToUpdate: { userId: string; signalStrengthUsername: string }[] = []
 
         if (userId && signalStrengthUsername) {
             // Single user mode
@@ -23,20 +23,39 @@ export async function PATCH(request: NextRequest) {
             if (!projectId) {
                 return NextResponse.json({ error: "Missing projectId for all-users update" }, { status: 400 })
             }
-            const { data: forumUsers, error: forumUsersError } = await supabase
-                .from("forum_users")
-                .select("user_id, forum_username")
-                .eq("project_id", projectId)
-                .not("forum_username", "is", null)
 
-            if (forumUsersError) {
-                console.error("Error fetching forum users:", forumUsersError)
-                return NextResponse.json({ error: "Error fetching forum users" }, { status: 500 })
+            if (signalStrengthName === "discourse_forum") {
+                const { data: forumUsers, error: forumUsersError } = await supabase
+                    .from("forum_users")
+                    .select("user_id, forum_username")
+                    .eq("project_id", projectId)
+                    .not("forum_username", "is", null)
+
+                if (forumUsersError) {
+                    console.error("Error fetching forum users:", forumUsersError)
+                    return NextResponse.json({ error: "Error fetching forum users" }, { status: 500 })
+                }
+                usersToUpdate = (forumUsers || []).map((u: any) => ({
+                    userId: u.user_id,
+                    signalStrengthUsername: u.forum_username,
+                }))
             }
-            usersToUpdate = (forumUsers || []).map((u: any) => ({
-                userId: u.user_id,
-                signalStrengthUsername: u.forum_username,
-            }))
+
+            if (signalStrengthName === "discord") {
+                const { data: discordUsers, error: discordUsersError } = await supabase
+                    .from("users")
+                    .select("id, discord_username")
+                    .not("discord_username", "is", null)
+
+                if (discordUsersError) {
+                    console.error("Error fetching discord users:", discordUsersError)
+                    return NextResponse.json({ error: "Error fetching discord users" }, { status: 500 })
+                }
+                usersToUpdate = (discordUsers || []).map((u: any) => ({
+                    userId: u.id,
+                    signalStrengthUsername: u.discord_username,
+                }))
+            }
         }
 
         // Lookup the signal_strength_id for the given signalStrengthName
