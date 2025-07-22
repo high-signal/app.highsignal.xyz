@@ -121,40 +121,6 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ error: "Error updating signal strength settings" }, { status: 500 })
         }
 
-        // Clear auth-related fields when their corresponding auth types are removed or feature is disabled
-        const authTypeConfigs = [
-            {
-                type: "api_auth",
-                fields: { auth_encrypted_payload: null },
-            },
-            {
-                type: "manual_post",
-                fields: { auth_post_code: null, auth_post_code_created: null, auth_post_id: null },
-            },
-        ]
-
-        for (const config of authTypeConfigs) {
-            if (
-                (settings.authTypes?.new &&
-                    settings.authTypes?.new.length > 0 &&
-                    !settings.authTypes?.new?.includes(config.type)) ||
-                settings.enabled.new === false
-            ) {
-                const { error: updateForumUsersError } = await supabase
-                    .from("forum_users")
-                    .update(config.fields)
-                    .eq("project_id", targetProject.id)
-
-                if (updateForumUsersError) {
-                    console.error(`Error clearing ${Object.keys(config.fields).join(", ")}:`, updateForumUsersError)
-                    return NextResponse.json(
-                        { error: `Error clearing ${Object.keys(config.fields).join(", ")}` },
-                        { status: 500 },
-                    )
-                }
-            }
-        }
-
         return NextResponse.json({ success: true }, { status: 200 })
     } catch (error) {
         console.error("Unhandled error in project settings signal strength update:", error)
