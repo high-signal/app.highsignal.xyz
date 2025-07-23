@@ -9,6 +9,7 @@ import { toaster } from "../../ui/toaster"
 import AccountConnectionManager, { AccountConnectionConfig } from "../AccountConnectionManager"
 import ConnectTypeSelectorModal from "./ConnectTypeSelectorModal"
 import DisconnectConfirmationModal from "./../DisconnectConfirmationModal"
+import ForumAccountPrivateError from "./ForumAccountPrivateError"
 
 export default function ForumConnectionManager({
     targetUser,
@@ -43,6 +44,7 @@ export default function ForumConnectionManager({
     const [isConnectTypeSelectorOpen, setIsConnectTypeSelectorOpen] = useState(false)
     const [isDisconnectCheckOpen, setIsDisconnectCheckOpen] = useState(false)
     const [isBrokenConnection, setIsBrokenConnection] = useState(false)
+    const [isPrivateProfile, setIsPrivateProfile] = useState(false)
 
     // Check if the user is connected to the forum
     useEffect(() => {
@@ -58,6 +60,29 @@ export default function ForumConnectionManager({
         }
         setIsConnectedLoading(false)
     }, [targetUser, config])
+
+    // If the user is connected, check if the forum account is private
+    // If private, show an error message
+    useEffect(() => {
+        if (isConnected) {
+            const checkForumAccountPrivate = async () => {
+                const token = await getAccessToken()
+                const response = await fetch(
+                    `/api/settings/u/accounts/forum_users/private-account-check?username=${forumUsername}&forumUrl=${config.forumUrl}`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    },
+                )
+                const responseData = await response.json()
+                responseData.isPrivate ? setIsPrivateProfile(true) : setIsPrivateProfile(false)
+            }
+            checkForumAccountPrivate()
+        }
+    }, [isConnected])
 
     // If the page is loaded with the query params type, project, and payload
     // process that as a returned value from a forum auth request
@@ -259,6 +284,10 @@ export default function ForumConnectionManager({
         }
     }
 
+    const forumAccountPrivateError = () => {
+        return <ForumAccountPrivateError />
+    }
+
     const getConnectionDescription = () => {
         return !isConnectedLoading && isConnected ? `Your ${config.projectDisplayName} forum username.` : ""
     }
@@ -288,7 +317,7 @@ export default function ForumConnectionManager({
             onDisconnect={handleDisconnect}
             onRefresh={handleRefresh}
             getConnectionTypeText={getConnectionTypeText}
-            getConnectionDescription={getConnectionDescription}
+            getConnectionDescription={isPrivateProfile ? forumAccountPrivateError : getConnectionDescription}
             disabled={disabled}
             lozengeTypes={lozengeTypes}
         >
