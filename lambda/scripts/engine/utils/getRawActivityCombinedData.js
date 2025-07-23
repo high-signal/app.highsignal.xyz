@@ -5,9 +5,8 @@ async function getRawActivityCombinedData({
     signalStrengthId,
     testingData,
     previousDays,
+    dayDate,
 }) {
-    let rawActivityCombinedData = []
-
     let query = supabase
         .from("user_signal_strengths")
         .select("*")
@@ -22,13 +21,18 @@ async function getRawActivityCombinedData({
         query = query.is("test_requesting_user", null)
     }
 
-    rawActivityCombinedData =
+    const formattedDayDate = new Date(`${dayDate}T23:59:59.999Z`)
+
+    let rawActivityCombinedData =
         (
             await query
                 .gte(
                     "day",
-                    new Date(new Date().setDate(new Date().getDate() - previousDays)).toISOString().split("T")[0],
+                    new Date(new Date(formattedDayDate).setDate(formattedDayDate.getDate() - previousDays))
+                        .toISOString()
+                        .split("T")[0],
                 )
+                .lte("day", dayDate)
                 .order("day", { ascending: false })
         ).data || []
 

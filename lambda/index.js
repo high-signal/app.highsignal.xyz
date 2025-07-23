@@ -67,7 +67,7 @@ exports.handler = async (event) => {
 }
 
 async function handleRunEngine(params) {
-    const { signalStrengthName, userId, projectId, signalStrengthUsername, testingData } = params
+    const { signalStrengthName, userId, projectId, signalStrengthUsername, dayDate, testingData } = params
 
     // Validate required parameters for runEngine
     if (!signalStrengthName || !userId || !projectId || !signalStrengthUsername) {
@@ -87,6 +87,7 @@ async function handleRunEngine(params) {
             userId,
             projectId,
             signalStrengthUsername,
+            dayDate,
             testingData,
         })
         return {

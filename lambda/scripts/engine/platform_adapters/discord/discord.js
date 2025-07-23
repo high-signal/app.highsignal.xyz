@@ -1,4 +1,10 @@
-async function getDailyActivityData({ supabase, userDisplayName, signalStrengthUsername, signalStrengthConfig }) {
+async function getDailyActivityData({
+    supabase,
+    userDisplayName,
+    signalStrengthUsername,
+    signalStrengthConfig,
+    dayDate,
+}) {
     let adapterLogs = ""
     const discordUsername = signalStrengthUsername
     const previousDays = signalStrengthConfig.previous_days
@@ -24,18 +30,21 @@ async function getDailyActivityData({ supabase, userDisplayName, signalStrengthU
 
     const discordUserId = userData.discord_user_id
 
-    // === Fetch activity data for Discord the DB for the previous days ===
+    // === Fetch activity data for Discord the DB for the range between dayDate and previousDays ===
     console.log(`👀 Fetching Discord activity data for ${userDisplayName} (Discord username: ${discordUsername})`)
 
-    const cutoffDate = new Date()
-    cutoffDate.setDate(cutoffDate.getDate() - previousDays)
+    const activityRangeNewest = new Date(`${dayDate}T23:59:59.999Z`)
+    const activityRangeOldest = new Date(
+        new Date(activityRangeNewest).setDate(activityRangeNewest.getDate() - previousDays),
+    )
 
     const { data: activityData, error: activityError } = await supabase
         .from("discord_messages")
         .select("*")
         .eq("discord_user_id", discordUserId)
         .eq("guild_id", guildId)
-        .gte("created_timestamp", cutoffDate.toISOString())
+        .gte("created_timestamp", activityRangeOldest.toISOString())
+        .lte("created_timestamp", activityRangeNewest.toISOString())
         .order("created_timestamp", { ascending: false })
 
     if (activityError) {
@@ -56,10 +65,13 @@ async function getDailyActivityData({ supabase, userDisplayName, signalStrengthU
     adapterLogs += `\nActivity past ${previousDays} days: ${activityData.length}`
 
     // Create an array of activityData that contains one element per day
-    // starting from yesterday and going back previousDays
+    // starting from dayDate and going back previousDays
+    const formattedDayDate = new Date(`${dayDate}T23:59:59.999Z`)
+
     const dailyActivityData = []
     for (let i = 0; i < previousDays; i++) {
-        const date = new Date(new Date().setDate(new Date().getDate() - (i + 1))) // Start yesterday
+        const date = new Date(new Date(formattedDayDate).setDate(formattedDayDate.getDate() - i))
+
         const activitiesForDay = activityData
             .filter((activity) => {
                 const activityDate = new Date(activity.created_timestamp)

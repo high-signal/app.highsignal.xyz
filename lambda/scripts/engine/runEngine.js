@@ -15,7 +15,7 @@ const adapterHandler = require("./platform_adapters/adapterHandler")
 const { createClient } = require("@supabase/supabase-js")
 
 // Function to run the engine
-async function runEngine({ signalStrengthName, userId, projectId, signalStrengthUsername, testingData }) {
+async function runEngine({ signalStrengthName, userId, projectId, signalStrengthUsername, dayDate, testingData }) {
     console.log("\n**************************************************")
     console.log("🏁 Running engine for signal strength:", signalStrengthName)
 
@@ -66,8 +66,13 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
         const maxValue = signalStrengthConfig.max_value
         const previousDays = signalStrengthConfig.previous_days
 
+        // If no dayDate is provided, set it to yesterday.
+        if (!dayDate) {
+            dayDate = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
+        }
+
         console.log(
-            `🏁 Analyzing activity for userId ${userId}, projectId ${projectId}, signalStrengthUsername ${signalStrengthUsername}`,
+            `🏁 Analyzing activity for userId ${userId}, projectId ${projectId}, signalStrengthUsername ${signalStrengthUsername} for dayDate ${dayDate}`,
         )
 
         // ================================
@@ -87,6 +92,7 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
             signalStrengthName,
             signalStrengthUsername,
             signalStrengthConfig,
+            dayDate,
         })
 
         if (!dailyActivityData || dailyActivityData.length === 0) {
@@ -139,16 +145,12 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
             signalStrengthId,
             testingData,
             previousDays,
+            dayDate,
         })
 
         // =====================
         // Process smart scores
         // =====================
-        // TODO: This only works for yesterday and does not account for any missed previous days
-        // I should at least try to get the last
-        // e.g. 3 days of smart scores to fill in gaps if the script did not run for a day or two
-        const dateYesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
-
         await processSmartScores({
             supabase,
             projectId,
@@ -161,12 +163,12 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
             maxValue,
             previousDays,
             testingData,
-            dayDate: dateYesterday,
+            dayDate,
             logs,
         })
 
         console.log(
-            `☑️ Analysis complete for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) for ${dateYesterday}`,
+            `☑️ Analysis complete for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) for ${dayDate}`,
         )
     } catch (error) {
         console.error("Error in runEngine:", error)

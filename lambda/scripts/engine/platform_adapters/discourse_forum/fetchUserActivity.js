@@ -11,12 +11,12 @@ async function fetchUserActivity({ BASE_URL, username }) {
             return response.data.map((action) => ({
                 id: action.id,
                 cooked: action.cooked,
-                updated_at: action.updated_at,
+                created_at: action.created_at,
             }))
         }
     } catch (error) {
         console.error(`Error fetching activity for user ${username}:`, error.message)
-        return null
+        throw error
     }
 }
 
