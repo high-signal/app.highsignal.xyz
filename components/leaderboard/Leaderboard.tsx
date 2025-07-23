@@ -12,7 +12,7 @@ import { useUser } from "../../contexts/UserContext"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { useGetProjects } from "../../hooks/useGetProjects"
 
-import { ASSETS } from "../../config/constants"
+import { ASSETS, APP_CONFIG } from "../../config/constants"
 
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import LeaderboardPagination from "./LeaderboardPagination"
@@ -263,15 +263,17 @@ export default function Leaderboard({
                             const userData =
                                 mode === "projects" ? getUserDataForProject((item as ProjectData).urlSlug) : null
 
-                            // Check if the user data is loading
+                            const scoreData = mode === "users" ? (item as UserData) : (userData as UserData)
                             const isScoreCalculating =
-                                mode === "users"
-                                    ? (item as UserData).signalStrengths?.some((strength) =>
-                                          strength.data?.some((dataPoint) => dataPoint.lastChecked),
-                                      ) || false
-                                    : (userData as UserData)?.signalStrengths?.some((strength) =>
-                                          strength.data?.some((dataPoint) => dataPoint.lastChecked),
-                                      ) || false
+                                scoreData?.signalStrengths?.some((strength) =>
+                                    strength.data?.some((dataPoint) => {
+                                        if (!dataPoint.lastChecked) return false
+                                        const now = Date.now()
+                                        const lastCheckedTime = dataPoint.lastChecked * 1000 // Convert to ms
+                                        const timeElapsed = now - lastCheckedTime
+                                        return timeElapsed < APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
+                                    }),
+                                ) || false
 
                             const isScoreZero =
                                 mode === "users" ? ((item as UserData).score ?? 0) === 0 : (userData?.score ?? 0) === 0
