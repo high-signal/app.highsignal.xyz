@@ -74,7 +74,8 @@ export async function triggerLambda(
         console.log("Executing locally")
 
         try {
-            await runEngine({
+            // Do not await the full response, just check that it starts successfully
+            runEngine({
                 signalStrengthName,
                 userId,
                 projectId,
