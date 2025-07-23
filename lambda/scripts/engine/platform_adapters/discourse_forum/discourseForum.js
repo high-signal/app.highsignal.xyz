@@ -7,6 +7,7 @@ async function getDailyActivityData({
     projectId,
     signalStrengthUsername,
     signalStrengthConfig,
+    dayDate,
 }) {
     let adapterLogs = ""
     const forum_username = signalStrengthUsername
@@ -26,7 +27,7 @@ async function getDailyActivityData({
 
     if (userError) {
         console.error("Error fetching user data:", userError)
-        return
+        throw userError
     }
 
     // === Fetch activity data from forum API ===
@@ -42,25 +43,35 @@ async function getDailyActivityData({
         return
     }
 
-    // Filter activity data to the past X days
-    const filteredActivityData = activityData.filter(
-        (activity) =>
-            new Date(activity.updated_at) > new Date(new Date().setDate(new Date().getDate() - previousDays)) &&
-            Number(activity.id) !== Number(userData.auth_post_id),
+    // Filter activity data to the activity range
+    const activityRangeNewest = new Date(`${dayDate}T23:59:59.999Z`)
+    const activityRangeOldest = new Date(
+        new Date(activityRangeNewest).setDate(activityRangeNewest.getDate() - previousDays),
     )
+
+    const filteredActivityData = activityData.filter((activity) => {
+        const activityDate = new Date(activity.created_at)
+
+        return (
+            activityDate > activityRangeOldest &&
+            activityDate < activityRangeNewest &&
+            Number(activity.id) !== Number(userData.auth_post_id)
+        )
+    })
 
     console.log(`🗓️ Filtered activity data to the past ${previousDays} days: ${filteredActivityData.length}`)
     adapterLogs += `\nActivity past ${previousDays} days: ${filteredActivityData.length}`
 
-    // console.log("filteredActivityData", filteredActivityData)
-
     // Create an array of filteredActivityData that contains one element per day
-    // starting from yesterday and going back previousDays
+    // starting from dayDate and going back previousDays
+    const formattedDayDate = new Date(`${dayDate}T23:59:59.999Z`)
+
     const dailyActivityData = []
     for (let i = 0; i < previousDays; i++) {
-        const date = new Date(new Date().setDate(new Date().getDate() - (i + 1))) // Start yesterday
+        const date = new Date(new Date(formattedDayDate).setDate(formattedDayDate.getDate() - i))
+
         const activitiesForDay = filteredActivityData.filter((activity) => {
-            const activityDate = new Date(activity.updated_at) // TODO: Should this be created_at?
+            const activityDate = new Date(activity.created_at)
             return activityDate.toISOString().split("T")[0] === date.toISOString().split("T")[0]
         })
         dailyActivityData.push({

@@ -9,6 +9,7 @@ async function getDailyActivityData({
     signalStrengthName,
     signalStrengthUsername,
     signalStrengthConfig,
+    dayDate,
 }) {
     if (signalStrengthName === "discourse_forum") {
         const { dailyActivityData, adapterLogs } = await discourseForum.getDailyActivityData({
@@ -18,6 +19,7 @@ async function getDailyActivityData({
             projectId,
             signalStrengthUsername,
             signalStrengthConfig,
+            dayDate,
         })
 
         return { dailyActivityData, adapterLogs }
@@ -27,6 +29,7 @@ async function getDailyActivityData({
             userDisplayName,
             signalStrengthUsername,
             signalStrengthConfig,
+            dayDate,
         })
         return { dailyActivityData, adapterLogs }
     } else {

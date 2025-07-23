@@ -24,6 +24,9 @@ export async function triggerLambda(
         }
     }
 
+    // Default to yesterday. Format: YYYY-MM-DD
+    const dayDate = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
+
     if (LAMBDA_FUNCTION_URL) {
         // Execute on AWS Lambda
         console.log("Executing on AWS Lambda")
@@ -41,6 +44,7 @@ export async function triggerLambda(
                     userId,
                     projectId,
                     signalStrengthUsername,
+                    dayDate,
                     async: true,
                     ...(testingData && { testingData }),
                 }),
@@ -54,6 +58,7 @@ export async function triggerLambda(
                     userId,
                     projectId,
                     signalStrengthUsername,
+                    dayDate,
                 },
             }
         } catch (error) {
@@ -67,12 +72,14 @@ export async function triggerLambda(
     } else {
         // Execute locally
         console.log("Executing locally")
+
         try {
             await runEngine({
                 signalStrengthName,
                 userId,
                 projectId,
                 signalStrengthUsername,
+                dayDate,
                 testingData,
             })
             return {
@@ -83,6 +90,7 @@ export async function triggerLambda(
                     userId,
                     projectId,
                     signalStrengthUsername,
+                    dayDate,
                     ...(testingData && { testingData }),
                 },
             }
