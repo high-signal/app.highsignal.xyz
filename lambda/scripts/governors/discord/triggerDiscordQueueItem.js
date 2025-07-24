@@ -14,7 +14,7 @@ const {
     MIN_MESSAGE_CHAR_LENGTH,
 } = require("./constants")
 
-async function triggerQueueItem(queueItemId) {
+async function triggerDiscordQueueItem({ queueItemId }) {
     // ==========================
     // Create the Discord client
     // ==========================
@@ -258,7 +258,7 @@ async function triggerQueueItem(queueItemId) {
             return
         }
     } catch (error) {
-        console.error("Error in triggerQueueItem:", error)
+        console.error("Error in triggerDiscordQueueItem:", error)
         throw error
     } finally {
         // Clean up the Discord client
@@ -269,4 +269,4 @@ async function triggerQueueItem(queueItemId) {
     }
 }
 
-module.exports = { triggerQueueItem }
+module.exports = { triggerDiscordQueueItem }

@@ -4,7 +4,7 @@
 require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { createReadyDiscordClient } = require("./discordClient")
-const { triggerQueueItem } = require("./triggerQueueItem")
+const { handleTriggerDiscordQueueItem } = require("./handleTriggerDiscordQueueItem")
 
 // ==========
 // Constants
@@ -230,7 +230,7 @@ async function runDiscordGovernor() {
 
                         // If the queue item was updated successfully to pending, try to trigger it again.
                         if (updatedQueueItem && updatedQueueItem.length > 0) {
-                            await triggerQueueItem(currentQueueItem[0].id)
+                            await handleTriggerDiscordQueueItem({ queueItemId: currentQueueItem[0].id })
                             invokedCounter++
                         }
                         continue
@@ -249,7 +249,7 @@ async function runDiscordGovernor() {
                     console.log(
                         `🏁 Triggering pending queue item. Guild: ${guild.name}. Channel: ${channel.name}. Queue item ID: ${currentQueueItem[0].id}`,
                     )
-                    await triggerQueueItem(currentQueueItem[0].id)
+                    await handleTriggerDiscordQueueItem({ queueItemId: currentQueueItem[0].id })
                     invokedCounter++
                     continue
                 }
@@ -372,7 +372,7 @@ async function runDiscordGovernor() {
                         status: "pending",
                         newest_message_timestamp: newestTimestamp,
                         newest_message_id: newestMessageId,
-                        // oldest_message_timestamp and oldest_message_id will be set by triggerQueueItem
+                        // oldest_message_timestamp and oldest_message_id will be set by triggerDiscordQueueItem
                     })
                     .select()
 
@@ -385,7 +385,7 @@ async function runDiscordGovernor() {
                 const queueItemId = queueItem[0].id
 
                 console.log(`🏁 Triggering new queue item: ${queueItemId}`)
-                await triggerQueueItem(queueItemId)
+                await handleTriggerDiscordQueueItem({ queueItemId })
                 invokedCounter++
 
                 // Calculate the new queue length.

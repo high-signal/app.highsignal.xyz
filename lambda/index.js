@@ -1,5 +1,6 @@
 const { runEngine } = require("./scripts/engine/runEngine")
-const { runDiscordGovernor } = require("./scripts/governors/discordGovernor")
+const { runDiscordGovernor } = require("./scripts/governors/discord/runDiscordGovernor")
+const { triggerDiscordQueueItem } = require("./scripts/governors/discord/triggerDiscordQueueItem")
 
 exports.handler = async (event) => {
     try {
@@ -50,6 +51,8 @@ exports.handler = async (event) => {
                 return await handleRunEngine(functionParams)
             case "runDiscordGovernor":
                 return await handleRunDiscordGovernor()
+            case "runDiscordQueueItem":
+                return await handleRunDiscordQueueItem(functionParams)
             default:
                 console.log(`Unknown function type: ${functionType}`)
                 return {
@@ -116,5 +119,24 @@ async function handleRunDiscordGovernor() {
             statusCode: 500,
             body: JSON.stringify({ error: "Error running governor" }),
         }
+    }
+}
+
+async function handleRunDiscordQueueItem(params) {
+    const { queueItemId } = params
+
+    // Validate required parameters for runDiscordQueueItem
+    if (!queueItemId) {
+        console.log(`Missing required parameters for runDiscordQueueItem: queueItemId: ${queueItemId}`)
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Missing required parameters for runDiscordQueueItem" }),
+        }
+    }
+
+    await triggerDiscordQueueItem({ queueItemId })
+    return {
+        statusCode: 200,
+        body: JSON.stringify({ message: "Analysis completed successfully" }),
     }
 }
