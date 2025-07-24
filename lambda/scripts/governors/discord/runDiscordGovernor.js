@@ -1,7 +1,7 @@
 // How to run this locally:
-// node -e "require('./discordGovernor.js').runDiscordGovernor().catch(console.error)"
+// node -e "require('./runDiscordGovernor.js').runDiscordGovernor().catch(console.error)"
 
-require("dotenv").config({ path: "../../../.env" })
+require("dotenv").config({ path: "../../../../.env" })
 const { Client, GatewayIntentBits, Partials } = require("discord.js")
 const { createClient } = require("@supabase/supabase-js")
 const outOfCharacter = require("out-of-character")
