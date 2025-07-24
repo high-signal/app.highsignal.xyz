@@ -11,17 +11,17 @@ export default function ForumAccountPrivateError() {
             justify={"center"}
             bg={"pageBackground"}
             border={"3px solid"}
-            borderColor={"orange.500"}
+            borderColor={"gold.500"}
             px={2}
-            py={1}
+            py={2}
             borderRadius={"16px"}
             textAlign={"center"}
             mt={2}
         >
-            <HStack w={"100%"} fontWeight={"bold"} justifyContent={"center"} color={"orange.500"}>
+            <HStack w={"100%"} fontWeight={"bold"} justifyContent={"center"} color={"gold.500"}>
                 <FontAwesomeIcon icon={faTriangleExclamation} />
-                <Text>Error - Your account is private</Text>
-                <FontAwesomeIcon icon={faTriangleExclamation} color={"red.500"} />
+                <Text>Warning - Your account is private</Text>
+                <FontAwesomeIcon icon={faTriangleExclamation} color={"gold.500"} />
             </HStack>
             <Text fontSize={"sm"} fontWeight={"bold"}>
                 It looks like your forum account has been set to private.
