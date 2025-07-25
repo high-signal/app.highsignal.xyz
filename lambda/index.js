@@ -1,6 +1,7 @@
-const { runEngine } = require("./scripts/engine/runEngine")
-const { runDiscordGovernor } = require("./scripts/governors/discord/runDiscordGovernor")
-const { triggerDiscordQueueItem } = require("./scripts/governors/discord/triggerDiscordQueueItem")
+const { handleRunEngine } = require("./scripts/index-handlers/handleRunEngine")
+const { handleRunDiscordGovernor } = require("./scripts/index-handlers/handleRunDiscordGovernor")
+const { handleRunDiscordQueueItem } = require("./scripts/index-handlers/handleRunDiscordQueueItem")
+
 const { selfInvokeAsynchronously } = require("./scripts/utils/selfInvokeAsynchronously")
 
 exports.handler = async (event) => {
@@ -19,7 +20,7 @@ exports.handler = async (event) => {
             }
 
             // If the http request is authorized, re-invoke lambda asynchronously and return 202
-            console.log("Received external HTTP request. Re-invoking lambda asynchronously...")
+            console.log("↪️ Received external HTTP request. Re-invoking lambda asynchronously...")
             await selfInvokeAsynchronously(event.body ?? event)
 
             // This is the immediate response to the http request to acknowledge
@@ -79,79 +80,5 @@ exports.handler = async (event) => {
             statusCode: 500,
             body: JSON.stringify({ error: "Internal server error" }),
         }
-    }
-}
-
-async function handleRunEngine(params) {
-    const { signalStrengthName, userId, projectId, signalStrengthUsername, dayDate, testingData } = params
-
-    // Validate required parameters for runEngine
-    if (!signalStrengthName || !userId || !projectId || !signalStrengthUsername) {
-        console.log(
-            `Missing required parameters for runEngine: signalStrengthName: ${signalStrengthName}, userId: ${userId}, projectId: ${projectId}, signalStrengthUsername: ${signalStrengthUsername}`,
-        )
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: "Missing required parameters for runEngine" }),
-        }
-    }
-
-    // Process the request based on the signal strength name
-    if (signalStrengthName === "discourse_forum" || signalStrengthName === "discord") {
-        await runEngine({
-            signalStrengthName,
-            userId,
-            projectId,
-            signalStrengthUsername,
-            dayDate,
-            testingData,
-        })
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ message: "Analysis completed successfully" }),
-        }
-    } else {
-        console.log(`Signal strength (${signalStrengthName}) not configured for updates`)
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: `Signal strength (${signalStrengthName}) not configured for updates` }),
-        }
-    }
-}
-
-async function handleRunDiscordGovernor() {
-    try {
-        await runDiscordGovernor()
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ message: "Discord Governor completed successfully" }),
-        }
-    } catch (error) {
-        console.error("Error in runDiscordGovernor:", error)
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: "Error running governor" }),
-        }
-    }
-}
-
-async function handleRunDiscordQueueItem(params) {
-    const { queueItemId } = params
-
-    // Validate required parameters for runDiscordQueueItem
-    if (!queueItemId) {
-        console.log(`Missing required parameters for runDiscordQueueItem: queueItemId: ${queueItemId}`)
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: "Missing required parameters for runDiscordQueueItem" }),
-        }
-    }
-
-    console.log("🏁 Triggering Discord queue item. queueItemId:", queueItemId)
-    await triggerDiscordQueueItem({ queueItemId })
-    console.log("🏁 Discord queue item finished. queueItemId:", queueItemId)
-    return {
-        statusCode: 200,
-        body: JSON.stringify({ message: "Analysis completed successfully" }),
     }
 }
