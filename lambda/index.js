@@ -1,14 +1,15 @@
 const { runEngine } = require("./scripts/engine/runEngine")
 const { runDiscordGovernor } = require("./scripts/governors/discord/runDiscordGovernor")
 const { triggerDiscordQueueItem } = require("./scripts/governors/discord/triggerDiscordQueueItem")
+const { selfInvokeAsynchronously } = require("./scripts/utils/selfInvokeAsynchronously")
 
 exports.handler = async (event) => {
     try {
         if (event.headers) {
-            // Check API key
             const apiKey = event.headers?.["x-api-key"] || event.headers?.["X-API-Key"]
             const expectedApiKey = process.env.LAMBDA_API_KEY
 
+            // Check if the api key is valid
             if (!apiKey || apiKey !== expectedApiKey) {
                 console.log(`Unauthorized: Invalid API key`)
                 return {
@@ -16,9 +17,21 @@ exports.handler = async (event) => {
                     body: JSON.stringify({ error: "Unauthorized: Invalid API key" }),
                 }
             }
+
+            // If the http request is authorized, re-invoke lambda asynchronously and return 202
+            console.log("Received external HTTP request. Re-invoking lambda asynchronously...")
+            await selfInvokeAsynchronously(event.body ?? event)
+
+            // This is the immediate response to the http request to acknowledge
+            // that the work has been scheduled asynchronously
+            return {
+                statusCode: 202,
+                body: JSON.stringify({ message: "Accepted. Work triggered asynchronously." }),
+            }
         } else if (event.source === "aws.events") {
             // Triggered directly from AWS EventBridge
-            console.log("Received scheduled event")
+        } else if (event.source === "aws.lambda") {
+            // Triggered directly from AWS Lambda
         } else {
             console.warn("Unauthorized or unknown source")
             console.log("event.source", event.source)
@@ -29,7 +42,7 @@ exports.handler = async (event) => {
         }
 
         // Parse the request body
-        console.log("Received event:", event)
+        console.log("🎟️ Received event:", event)
         const raw = event.body ?? event
         const body = typeof raw === "string" ? JSON.parse(raw) : raw
 
@@ -134,7 +147,9 @@ async function handleRunDiscordQueueItem(params) {
         }
     }
 
+    console.log("🏁 Triggering Discord queue item. queueItemId:", queueItemId)
     await triggerDiscordQueueItem({ queueItemId })
+    console.log("🏁 Discord queue item finished. queueItemId:", queueItemId)
     return {
         statusCode: 200,
         body: JSON.stringify({ message: "Analysis completed successfully" }),
