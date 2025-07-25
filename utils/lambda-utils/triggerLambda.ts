@@ -31,8 +31,8 @@ export async function triggerLambda(
         // Execute on AWS Lambda
         console.log("Executing on AWS Lambda")
         try {
-            // Don't await the full response, just check that it starts successfully
-            fetch(LAMBDA_FUNCTION_URL, {
+            // Does not await the full response, just check that it starts successfully
+            const response = await fetch(LAMBDA_FUNCTION_URL, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -45,10 +45,14 @@ export async function triggerLambda(
                     projectId,
                     signalStrengthUsername,
                     dayDate,
-                    async: true,
                     ...(testingData && { testingData }),
                 }),
             })
+
+            if (response.status !== 202) {
+                const errorBody = await response.text()
+                throw new Error(`Lambda did not accept async trigger (status ${response.status}): ${errorBody}`)
+            }
 
             return {
                 success: true,
