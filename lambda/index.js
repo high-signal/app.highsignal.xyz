@@ -1,13 +1,16 @@
-const { runEngine } = require("./scripts/engine/runEngine")
-const { runDiscordGovernor } = require("./scripts/governors/discordGovernor")
+const { handleRunEngine } = require("./scripts/index-handlers/handleRunEngine")
+const { handleRunDiscordGovernor } = require("./scripts/index-handlers/handleRunDiscordGovernor")
+const { handleRunDiscordQueueItem } = require("./scripts/index-handlers/handleRunDiscordQueueItem")
+
+const { selfInvokeAsynchronously } = require("./scripts/utils/selfInvokeAsynchronously")
 
 exports.handler = async (event) => {
     try {
         if (event.headers) {
-            // Check API key
             const apiKey = event.headers?.["x-api-key"] || event.headers?.["X-API-Key"]
             const expectedApiKey = process.env.LAMBDA_API_KEY
 
+            // Check if the api key is valid
             if (!apiKey || apiKey !== expectedApiKey) {
                 console.log(`Unauthorized: Invalid API key`)
                 return {
@@ -15,9 +18,21 @@ exports.handler = async (event) => {
                     body: JSON.stringify({ error: "Unauthorized: Invalid API key" }),
                 }
             }
+
+            // If the http request is authorized, re-invoke lambda asynchronously and return 202
+            console.log("↪️ Received external HTTP request. Re-invoking lambda asynchronously...")
+            await selfInvokeAsynchronously(event.body ?? event)
+
+            // This is the immediate response to the http request to acknowledge
+            // that the work has been scheduled asynchronously
+            return {
+                statusCode: 202,
+                body: JSON.stringify({ message: "Accepted. Work triggered asynchronously." }),
+            }
         } else if (event.source === "aws.events") {
             // Triggered directly from AWS EventBridge
-            console.log("Received scheduled event")
+        } else if (event.source === "aws.lambda") {
+            // Triggered directly from AWS Lambda
         } else {
             console.warn("Unauthorized or unknown source")
             console.log("event.source", event.source)
@@ -28,7 +43,7 @@ exports.handler = async (event) => {
         }
 
         // Parse the request body
-        console.log("Received event:", event)
+        console.log("🎟️ Received event:", event)
         const raw = event.body ?? event
         const body = typeof raw === "string" ? JSON.parse(raw) : raw
 
@@ -50,6 +65,8 @@ exports.handler = async (event) => {
                 return await handleRunEngine(functionParams)
             case "runDiscordGovernor":
                 return await handleRunDiscordGovernor()
+            case "runDiscordQueueItem":
+                return await handleRunDiscordQueueItem(functionParams)
             default:
                 console.log(`Unknown function type: ${functionType}`)
                 return {
@@ -62,59 +79,6 @@ exports.handler = async (event) => {
         return {
             statusCode: 500,
             body: JSON.stringify({ error: "Internal server error" }),
-        }
-    }
-}
-
-async function handleRunEngine(params) {
-    const { signalStrengthName, userId, projectId, signalStrengthUsername, dayDate, testingData } = params
-
-    // Validate required parameters for runEngine
-    if (!signalStrengthName || !userId || !projectId || !signalStrengthUsername) {
-        console.log(
-            `Missing required parameters for runEngine: signalStrengthName: ${signalStrengthName}, userId: ${userId}, projectId: ${projectId}, signalStrengthUsername: ${signalStrengthUsername}`,
-        )
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: "Missing required parameters for runEngine" }),
-        }
-    }
-
-    // Process the request based on the signal strength name
-    if (signalStrengthName === "discourse_forum" || signalStrengthName === "discord") {
-        await runEngine({
-            signalStrengthName,
-            userId,
-            projectId,
-            signalStrengthUsername,
-            dayDate,
-            testingData,
-        })
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ message: "Analysis completed successfully" }),
-        }
-    } else {
-        console.log(`Signal strength (${signalStrengthName}) not configured for updates`)
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: `Signal strength (${signalStrengthName}) not configured for updates` }),
-        }
-    }
-}
-
-async function handleRunDiscordGovernor() {
-    try {
-        await runDiscordGovernor()
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ message: "Discord Governor completed successfully" }),
-        }
-    } catch (error) {
-        console.error("Error in runDiscordGovernor:", error)
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: "Error running governor" }),
         }
     }
 }
