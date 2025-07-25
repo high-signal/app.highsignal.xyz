@@ -8,6 +8,10 @@
   },
   "license": "Proprietary",
   "private": true,
+  "enginesStrict": true,
+  "engines": {
+    "node": "22.17.1"
+  },
   "scripts": {
     "dev": "next dev --turbo",
     "install-dependencies": "yarn install && cd lambda && yarn install",
