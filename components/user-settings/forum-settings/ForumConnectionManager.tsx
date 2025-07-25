@@ -82,7 +82,7 @@ export default function ForumConnectionManager({
             }
             checkForumAccountPrivate()
         }
-    }, [isConnected])
+    }, [isConnected, config.forumUrl, forumUsername, getAccessToken])
 
     // If the page is loaded with the query params type, project, and payload
     // process that as a returned value from a forum auth request
