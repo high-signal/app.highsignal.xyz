@@ -40,6 +40,7 @@ async function updateUserData({
             prompt_id: analysisResults.promptId || null,
             max_chars: analysisResults.maxChars,
             day: dayDate,
+            previous_days: analysisResults.previousDays,
         })
 
         if (signalError) {

@@ -31,6 +31,7 @@ type SignalStrengthData = {
     last_checked?: number
     value: number
     max_value: number
+    previous_days: number
     summary: string
     description: string
     improvements: string
@@ -512,6 +513,7 @@ export async function getUsersUtil(
                                 day: d.day,
                                 value: d.value,
                                 maxValue: d.max_value,
+                                scoreCalculationPeriodPreviousDays: d.previous_days,
                                 // Only show summary for the latest result, if it is not `No activity in the past` but to anyone
                                 // Super admin can see all summaries for all results
                                 ...(isSuperAdminRequesting ||
