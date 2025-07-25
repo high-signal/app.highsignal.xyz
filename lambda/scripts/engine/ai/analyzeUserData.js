@@ -179,6 +179,7 @@ truncatedData.length: ${truncatedData.length}
                 temperature: temperature,
                 promptId: promptId,
                 maxChars: maxChars,
+                previousDays: previousDays,
                 ...JSON.parse(cleanResponse),
             }
 

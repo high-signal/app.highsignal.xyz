@@ -99,6 +99,17 @@ export default function SignalStrengthsSettingsCalculation({
                     CompletionTokens: {data?.completionTokens}
                     <br />
                     <br />
+                    Model: {data?.model}
+                    <br />
+                    Temperature: {data?.temperature}
+                    <br />
+                    Max Chars: {data?.maxChars}
+                    <br />
+                    Previous Days: {data?.scoreCalculationPeriodPreviousDays}
+                    <br />
+                    Max Value: {data?.maxValue}
+                    <br />
+                    <br />
                     {data?.logs}
                 </Text>
             </VStack>

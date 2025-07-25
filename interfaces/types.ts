@@ -84,6 +84,7 @@ interface SignalStrengthUserData {
     lastChecked?: number
     rawValue?: number
     testRequestingUser?: number
+    scoreCalculationPeriodPreviousDays?: number // Usually previousDays but made more verbose for the public API
 }
 
 interface ProjectData {
