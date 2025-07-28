@@ -16,30 +16,35 @@ async function processSmartScores({
     dayDate,
     logs,
 }) {
-    // If a non-test smart score is already in the database for dayDate, skip the analysis
-    let existingQuery = supabase
-        .from("user_signal_strengths")
-        .select("id")
-        .eq("day", dayDate)
-        .eq("user_id", userId)
-        .eq("project_id", projectId)
-        .eq("signal_strength_id", signalStrengthId)
-        .not("value", "is", null)
+    // Check if a non-test smart score already exists for the dayDate
+    if (!testingData) {
+        // If a non-test smart score is already in the database for dayDate, skip the analysis
+        let existingDataQuery = supabase
+            .from("user_signal_strengths")
+            .select("id")
+            .eq("day", dayDate)
+            .eq("user_id", userId)
+            .eq("project_id", projectId)
+            .eq("signal_strength_id", signalStrengthId)
+            .not("value", "is", null)
+            .is("test_requesting_user", null)
 
-    if (testingData) {
-        existingQuery = existingQuery.not("test_requesting_user", "is", null)
-    } else {
-        existingQuery = existingQuery.is("test_requesting_user", null)
-    }
+        // If there is more than one row, run the analysis again
+        // as the race condition protection will delete all but the latest row
+        const { data: existingData, error: existingError } = await existingDataQuery
 
-    // TODO: Handle this error
-    const { data: existingData, error: existingError } = await existingQuery.single()
+        if (existingError) {
+            const errorMessage = `Error getting existing data for ${signalStrengthUsername}: ${existingError.message}`
+            console.error(errorMessage)
+            throw new Error(errorMessage)
+        }
 
-    if (!testingData && existingData) {
-        console.log(
-            `✅ Smart score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate} already exists in the database. Skipping...`,
-        )
-        return
+        if (existingData && existingData.length === 1) {
+            console.log(
+                `✅ Smart score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate} already exists in the database. Skipping...`,
+            )
+            return
+        }
     }
 
     const analysisResults = await analyzeUserData({
