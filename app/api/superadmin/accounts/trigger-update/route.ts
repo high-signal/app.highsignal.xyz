@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { triggerLambda } from "../../../../../utils/lambda-utils/triggerLambda"
-import { createClient } from "@supabase/supabase-js"
 
 export async function PATCH(request: NextRequest) {
     try {
         // Parse the request body
         const body = await request.json()
         const { signalStrengthName, userId, projectId, signalStrengthUsername } = body
-
-        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
         // Prepare array of users to process
         let usersToUpdate: { userId: string; signalStrengthUsername: string }[] = []
@@ -17,7 +14,7 @@ export async function PATCH(request: NextRequest) {
             // Single user mode
             console.log("Single user mode")
 
-            await triggerLambda({ signalStrengthName, userId, projectId, functionType: "addSingleItemToAiQueue" })
+            await triggerLambda({ functionType: "addSingleItemToAiQueue", signalStrengthName, userId, projectId })
         } else {
             // All users mode
             console.log("All users mode")

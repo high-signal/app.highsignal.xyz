@@ -1,8 +1,8 @@
-// const { addSingleItemToAiQueue } = require("../governors/ai/addSingleItemToAiQueue")
+const { addSingleItemToAiQueue } = require("../governors/ai/addSingleItemToAiQueue")
 
-async function handleAddSingleItemToAiQueue() {
+async function handleAddSingleItemToAiQueue({ signalStrengthName, userId, projectId, dayDate, testingData }) {
     try {
-        // await addSingleItemToAiQueue()
+        await addSingleItemToAiQueue({ signalStrengthName, userId, projectId, dayDate, testingData })
         return {
             statusCode: 200,
             body: JSON.stringify({ message: "Single item added to AI queue successfully" }),

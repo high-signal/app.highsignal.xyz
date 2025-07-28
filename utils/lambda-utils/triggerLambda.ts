@@ -1,5 +1,7 @@
 // @ts-ignore
 import { handleAddAllItemsToAiQueue } from "../../lambda/scripts/index-handlers/handleAddAllItemsToAiQueue"
+// @ts-ignore
+import { handleAddSingleItemToAiQueue } from "../../lambda/scripts/index-handlers/handleAddSingleItemToAiQueue"
 
 export async function triggerLambda(params: {
     functionType: string
@@ -57,13 +59,6 @@ export async function triggerLambda(params: {
             return {
                 success: true,
                 message: "Analysis initiated successfully",
-                data: {
-                    functionType,
-                    signalStrengthName,
-                    userId,
-                    projectId,
-                    dayDate,
-                },
             }
         } catch (error) {
             console.error("Error sending forum analysis request:", error)
@@ -81,6 +76,19 @@ export async function triggerLambda(params: {
             // Do not await the full response, just check that it starts successfully
             if (functionType === "addAllItemsToAiQueue") {
                 await handleAddAllItemsToAiQueue()
+            } else if (functionType === "addSingleItemToAiQueue") {
+                await handleAddSingleItemToAiQueue({
+                    functionType,
+                    signalStrengthName,
+                    userId,
+                    projectId,
+                    dayDate,
+                    ...(testingData && { testingData }),
+                })
+            }
+            return {
+                success: true,
+                message: "Analysis initiated successfully",
             }
         } catch (error) {
             console.error(`Error sending analysis request for ${signalStrengthName}:`, error)
