@@ -44,27 +44,47 @@ async function updateUserData({
         })
 
         if (signalError) {
-            console.error(`Error storing signal strength for ${signalStrengthUsername}:`, signalError.message)
+            const errorMessage = `Error storing signal strength for ${signalStrengthUsername}: ${signalError.message}`
+            console.error(errorMessage)
+            throw new Error(errorMessage)
         }
 
-        // Remove duplicate rows
-        // Most likely to happen during a race condition where the same analysis is run twice at the same time
-        const { error: deleteError, data } = await supabase
+        // ==========================
+        // Race condition protection
+        // ==========================
+        // After saving the data, check the database for duplicate rows.
+        // If there are any, delete all apart from the latest row `id`.
+        // This means that if there is a race condition, the latest row will always remain.
+
+        // Get all duplicate rows
+        const { data: duplicateRows, error: duplicateError } = await supabase
             .from("user_signal_strengths")
-            .delete()
+            .select("id")
             .eq("user_id", userId)
             .eq("project_id", projectId)
             .eq("signal_strength_id", signalStrengthId)
             .eq("day", dayDate)
-            .not("request_id", "eq", analysisResults.requestId) // Keep the one that was just inserted
             .not(isRawScoreCalc ? "raw_value" : "value", "is", null)
             .not(testingData?.requestingUserId ? "test_requesting_user" : "id", "is", null)
-            .select()
+            .order("id", { ascending: false })
 
-        if (deleteError) {
-            console.error(`Error deleting duplicate rows for ${signalStrengthUsername}:`, deleteError.message)
-        } else if (data && data.length > 0) {
-            console.log(`Successfully deleted ${data.length} duplicate rows for ${signalStrengthUsername}`)
+        if (duplicateError) {
+            const errorMessage = `Error getting duplicate rows for ${signalStrengthUsername}: ${duplicateError.message}`
+            console.error(errorMessage)
+            throw new Error(errorMessage)
+        }
+
+        if (duplicateRows && duplicateRows.length > 1) {
+            // Delete all duplicate rows except the latest one (index 0)
+            const rowsToDelete = duplicateRows.slice(1).map((row) => row.id)
+
+            const { error: deleteError } = await supabase.from("user_signal_strengths").delete().in("id", rowsToDelete)
+
+            if (deleteError) {
+                const errorMessage = `Error deleting duplicate rows for ${signalStrengthUsername}: ${deleteError.message}`
+                console.error(errorMessage)
+                throw new Error(errorMessage)
+            }
         }
 
         // Update the user_project_scores_history table if it was a smart score calculation

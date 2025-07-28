@@ -12,13 +12,28 @@ async function getExistingUserRawData({ supabase, userId, projectId, signalStren
         .eq("signal_strength_id", signalStrengthId)
         .not("raw_value", "is", null)
         .is("test_requesting_user", null)
+        .order("id", { ascending: false })
 
     if (existingUserRawDataError) {
         console.error("Error fetching existing user_signal_strengths data:", existingUserRawDataError)
         throw new Error("Error fetching existing user_signal_strengths data")
     }
 
-    return existingUserRawData
+    // Filter out duplicate rows that have the same day, user_id, project_id, signal_strength_id
+    // Note: It is unlikely that there will be duplicate rows, but it is possible so this is a safety check
+    const uniqueRows = existingUserRawData.filter(
+        (row, index, self) =>
+            index ===
+            self.findIndex(
+                (t) =>
+                    t.day === row.day &&
+                    t.user_id === row.user_id &&
+                    t.project_id === row.project_id &&
+                    t.signal_strength_id === row.signal_strength_id,
+            ),
+    )
+
+    return uniqueRows
 }
 
 module.exports = { getExistingUserRawData }
