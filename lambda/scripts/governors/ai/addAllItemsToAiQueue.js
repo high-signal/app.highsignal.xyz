@@ -3,7 +3,7 @@ const { createClient } = require("@supabase/supabase-js")
 // For each signal strength, add all valid users to the AI queue
 async function addAllItemsToAiQueue() {
     try {
-        console.log("Adding all items to AI queue...")
+        console.log("🏁 Adding all items to AI queue...")
 
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
@@ -39,6 +39,8 @@ async function addAllItemsToAiQueue() {
         //     console.error(errorMessage)
         //     throw errorMessage
         // }
+
+        console.log("🎉 Finished adding all items to AI queue.")
     } catch (error) {
         const errorMessage = `Error adding all items to AI queue: ${error.message}`
         console.error(errorMessage)

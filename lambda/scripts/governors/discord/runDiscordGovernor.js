@@ -415,7 +415,7 @@ async function runDiscordGovernor() {
 
         console.log("--------------------------------")
         console.log("")
-        console.log("🎉 Finished processing all projects.")
+        console.log("🎉 Finished triggering Discord queue items. Discord governor complete.")
     } catch (error) {
         console.error("Error in runDiscordGovernor:", error)
         throw error

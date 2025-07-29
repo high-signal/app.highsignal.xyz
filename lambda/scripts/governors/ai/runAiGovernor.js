@@ -133,17 +133,13 @@ async function runAiGovernor() {
         for (const pendingQueueItem of pendingQueueItems) {
             console.log(`🏁 Triggering AI queue item: ${pendingQueueItem.id}`)
             await handleTriggerAiQueueItem({ queueItemId: pendingQueueItem.id })
-            // TODO: Remove this after testing.
-            console.log(
-                `🧪🧪🧪 AWS LAMBDA LOGIC TESTING: Finished await for handleTriggerAiQueueItem: ${pendingQueueItem.id}`,
-            )
             invokedCounter++
         }
 
         console.log("--------------------------------")
         console.log("")
         console.log(`☑️ Invoked ${invokedCounter} AI queue items.`)
-        console.log("🎉 Finished processing AI governor.")
+        console.log("🎉 Finished triggering AI queue items. AI governor complete.")
     } catch (error) {
         console.error("Error in runAiGovernor:", error)
         throw error
