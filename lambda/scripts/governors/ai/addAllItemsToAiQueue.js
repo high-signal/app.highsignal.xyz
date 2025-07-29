@@ -13,7 +13,6 @@ async function addAllItemsToAiQueue() {
         // - Find all projects with forum enabled
         // - For those enabled projects, find all users with forum username
         // - Add all those users to the AI queue for date yesterday
-
         const { error: addAllDiscourseForumUsersToAiQueueError } = await supabase.rpc(
             "add_all_discourse_forum_users_to_ai_queue",
         )
@@ -24,21 +23,19 @@ async function addAllItemsToAiQueue() {
             throw errorMessage
         }
 
-        // ================
+        // ========
         // Discord
-        // ================
+        // ========
         // - Find all users with discord username
         // - Find all projects with discord enabled
         // - Add items to the AI queue for each user for each enabled project
+        const { error: addAllDiscordUsersToAiQueueError } = await supabase.rpc("add_all_discord_users_to_ai_queue")
 
-        // TODO: Implement this
-        // const { error: addAllDiscordUsersToAiQueueError } = await supabase.rpc("add_all_discord_users_to_ai_queue")
-
-        // if (addAllDiscordUsersToAiQueueError) {
-        //     const errorMessage = `Failed to add all discord users to AI queue: ${addAllDiscordUsersToAiQueueError.message}`
-        //     console.error(errorMessage)
-        //     throw errorMessage
-        // }
+        if (addAllDiscordUsersToAiQueueError) {
+            const errorMessage = `Failed to add all discord users to AI queue: ${addAllDiscordUsersToAiQueueError.message}`
+            console.error(errorMessage)
+            throw errorMessage
+        }
 
         console.log("🎉 Finished adding all items to AI queue.")
     } catch (error) {

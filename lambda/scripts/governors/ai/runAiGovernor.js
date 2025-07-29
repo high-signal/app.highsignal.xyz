@@ -131,13 +131,14 @@ async function runAiGovernor() {
 
         // Attempt to trigger the next x items that are pending.
         for (const pendingQueueItem of pendingQueueItems) {
+            console.log("\n**************************************************")
             console.log(`🏁 Triggering AI queue item: ${pendingQueueItem.id}`)
             await handleTriggerAiQueueItem({ queueItemId: pendingQueueItem.id })
             invokedCounter++
         }
 
-        console.log("--------------------------------")
         console.log("")
+        console.log("--------------------------------")
         console.log(`☑️ Invoked ${invokedCounter} AI queue items.`)
         console.log("🎉 Finished triggering AI queue items. AI governor complete.")
     } catch (error) {

@@ -16,7 +16,6 @@ const { createClient } = require("@supabase/supabase-js")
 
 // Function to run the engine
 async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUsername, dayDate, testingData }) {
-    console.log("\n**************************************************")
     console.log("🏁 Running engine for signal strength:", signalStrengthId)
 
     let supabase
@@ -169,7 +168,11 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
             `☑️ Analysis complete for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) for ${dayDate}`,
         )
     } catch (error) {
-        console.error("Error in runEngine:", error)
+        if (error.status === 404 || error.message?.includes("404")) {
+            console.log("⚠️ 404 error in runEngine")
+        } else {
+            console.error("🚨 Error in runEngine:", error)
+        }
     } finally {
         clearLastChecked({ supabase, userId, projectId, signalStrengthId })
     }
