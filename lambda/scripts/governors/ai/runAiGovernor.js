@@ -5,6 +5,8 @@ require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { handleTriggerAiQueueItem } = require("./handleTriggerAiQueueItem")
 
+const { getPriorityQueueItems } = require("./getPriorityQueueItems")
+
 // ==========
 // Constants
 // ==========
@@ -112,22 +114,7 @@ async function runAiGovernor() {
         // Get pending queue items
         // ========================
         // If there are spaces in the queue, get the next x that are pending
-        // and attempt to trigger them.
-
-        // Get next x items that are pending ordered by type, then by newest id.
-        const { data: pendingQueueItems, error: pendingQueueItemsError } = await supabase
-            .from("ai_request_queue")
-            .select("*")
-            .eq("status", "pending")
-            .order("type", { ascending: false }) // TODO: This works with only two types, sorting alphabetically.
-            .order("id", { ascending: true })
-            .limit(availableSpace)
-
-        if (pendingQueueItemsError) {
-            const errorMessage = `Error fetching pending queue items: ${pendingQueueItemsError.message}`
-            console.error(errorMessage)
-            throw errorMessage
-        }
+        const pendingQueueItems = await getPriorityQueueItems(supabase, availableSpace)
 
         // Attempt to trigger the next x items that are pending.
         for (const pendingQueueItem of pendingQueueItems) {
