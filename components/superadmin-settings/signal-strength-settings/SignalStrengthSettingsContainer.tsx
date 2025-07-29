@@ -6,7 +6,6 @@ import SignalStrengthSettings from "./SignalStrengthSettings"
 import SettingsTabbedContent from "../../ui/SettingsTabbedContent"
 import ProjectPicker from "../../ui/ProjectPicker"
 import UserPicker from "../../ui/UserPicker"
-import DevButtons from "./DevButtons"
 import { useEffect, useState } from "react"
 import { useGetUsers } from "../../../hooks/useGetUsers"
 
@@ -114,12 +113,6 @@ export default function SignalStrengthSettingsContainer({
                     />
                 </HStack>
             </VStack>
-            <DevButtons
-                signalStrength={signalStrengths[0]}
-                selectedUser={selectedUser}
-                project={project}
-                signalStrengthUsername={selectedUsername}
-            />
             <SettingsTabbedContent
                 tabs={[
                     ...signalStrengths.map((signalStrength) => ({

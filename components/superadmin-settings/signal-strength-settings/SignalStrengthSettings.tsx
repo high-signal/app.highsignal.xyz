@@ -14,6 +14,7 @@ import SettingsTabbedContent from "../../ui/SettingsTabbedContent"
 import SignalStrengthsSettingsHeader from "./SignalStrengthsSettingsHeader"
 import SignalStrengthsSettingsCalculation from "./SignalStrengthsSettingsCalculation"
 import SingleLineTextInput from "../../ui/SingleLineTextInput"
+import DevButtons from "./DevButtons"
 
 import { useTestTimer } from "../../../hooks/useTestTimer"
 
@@ -190,6 +191,12 @@ export default function SignalStrengthSettings({
 
     return (
         <VStack w="100%" gap={4}>
+            <DevButtons
+                signalStrength={signalStrength}
+                selectedUser={selectedUser}
+                project={project}
+                signalStrengthUsername={signalStrengthUsername}
+            />
             <VStack w="100%" gap={0} borderBottomRadius={{ base: 0, sm: "16px" }} overflow={"hidden"} maxW={"1200px"}>
                 <SignalStrengthsSettingsHeader signalStrength={signalStrength} project={project} />
                 {/* Historical Data Tables and Usernames */}
