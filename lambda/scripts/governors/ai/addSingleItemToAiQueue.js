@@ -1,7 +1,7 @@
 const { createClient } = require("@supabase/supabase-js")
 
 // Add a single item to the AI queue
-async function addSingleItemToAiQueue({ signalStrengthName, userId, projectId, testingData }) {
+async function addSingleItemToAiQueue({ signalStrengthName, userId, projectId, signalStrengthUsername, testingData }) {
     try {
         console.log("Adding single item to AI queue...")
 
@@ -34,6 +34,7 @@ async function addSingleItemToAiQueue({ signalStrengthName, userId, projectId, t
                 user_id: userId,
                 project_id: projectId,
                 signal_strength_id: signalStrengthId,
+                signal_strength_username: signalStrengthUsername,
                 day: dayDate,
                 z_testing_data: testingData,
             },

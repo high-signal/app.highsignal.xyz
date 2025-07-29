@@ -8,6 +8,7 @@ export async function triggerLambda(params: {
     signalStrengthName?: string
     userId?: string
     projectId?: string
+    signalStrengthUsername?: string
     testingData?: {
         requestingUserId: string
         testingInputData: {
@@ -16,7 +17,7 @@ export async function triggerLambda(params: {
         }
     }
 }) {
-    const { functionType, signalStrengthName, userId, projectId, testingData } = params
+    const { functionType, signalStrengthName, userId, projectId, signalStrengthUsername, testingData } = params
     const LAMBDA_FUNCTION_URL = process.env.LAMBDA_FUNCTION_URL
     const LAMBDA_API_KEY = process.env.LAMBDA_API_KEY
 
@@ -46,6 +47,7 @@ export async function triggerLambda(params: {
                     signalStrengthName,
                     userId,
                     projectId,
+                    signalStrengthUsername,
                     dayDate,
                     ...(testingData && { testingData }),
                 }),
@@ -82,6 +84,7 @@ export async function triggerLambda(params: {
                     signalStrengthName,
                     userId,
                     projectId,
+                    signalStrengthUsername,
                     dayDate,
                     ...(testingData && { testingData }),
                 })

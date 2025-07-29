@@ -1,8 +1,8 @@
-// const { runAiGovernor } = require("../governors/ai/runAiGovernor")
+const { runAiGovernor } = require("../governors/ai/runAiGovernor")
 
 async function handleRunAiGovernor() {
     try {
-        // await runAiGovernor()
+        await runAiGovernor()
         return {
             statusCode: 200,
             body: JSON.stringify({ message: "AI Governor completed successfully" }),

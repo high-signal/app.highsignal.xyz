@@ -14,7 +14,13 @@ export async function PATCH(request: NextRequest) {
             // Single user mode
             console.log("Single user mode")
 
-            await triggerLambda({ functionType: "addSingleItemToAiQueue", signalStrengthName, userId, projectId })
+            await triggerLambda({
+                functionType: "addSingleItemToAiQueue",
+                signalStrengthName,
+                userId,
+                projectId,
+                signalStrengthUsername,
+            })
         } else {
             // All users mode
             console.log("All users mode")

@@ -94,6 +94,7 @@ export async function forumUserManagement({
         signalStrengthName,
         userId: targetUserId,
         projectId,
+        signalStrengthUsername: forumUsername,
     })
 
     if (!analysisResponse.success) {
