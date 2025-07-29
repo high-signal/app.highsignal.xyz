@@ -67,10 +67,9 @@ async function processRawScores({
                     dayDate: day.date,
                 })
             } else {
-                console.error(
-                    `Analysis failed for ${signalStrengthUsername} on day ${day.date}:`,
-                    analysisResults?.error || "Unknown error",
-                )
+                const errorMessage = `Analysis failed for ${signalStrengthUsername} on day ${day.date}: ${analysisResults?.error || "Unknown error"}`
+                console.error(errorMessage)
+                throw new Error(errorMessage)
             }
         }
     })
