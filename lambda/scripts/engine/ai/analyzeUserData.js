@@ -111,7 +111,7 @@ async function analyzeUserData({
 
     // If filteredActivityData is empty, return null
     if (userData.length === 0) {
-        console.log(`** No activity in the past ${previousDays} days **`)
+        console.log(`⚠️ No activity in the past ${previousDays} days`)
         return {
             [signalStrengthUsername]: {
                 summary: `No activity in the past ${previousDays} days`,
@@ -120,6 +120,7 @@ async function analyzeUserData({
                 value: 0,
             },
             created: Math.floor(Date.now() / 1000),
+            previousDays: previousDays,
         }
     }
 
