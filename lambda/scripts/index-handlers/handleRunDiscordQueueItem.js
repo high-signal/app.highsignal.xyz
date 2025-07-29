@@ -1,4 +1,4 @@
-const { triggerDiscordQueueItem } = require("../governors/discord/triggerDiscordQueueItem")
+const { runDiscordQueueItem } = require("../governors/discord/runDiscordQueueItem")
 
 async function handleRunDiscordQueueItem({ queueItemId }) {
     // Validate required parameters for runDiscordQueueItem
@@ -11,7 +11,7 @@ async function handleRunDiscordQueueItem({ queueItemId }) {
     }
 
     console.log("🏁 Triggering Discord queue item. queueItemId:", queueItemId)
-    await triggerDiscordQueueItem({ queueItemId })
+    await runDiscordQueueItem({ queueItemId })
     console.log("🏁 Discord queue item finished. queueItemId:", queueItemId)
     return {
         statusCode: 200,

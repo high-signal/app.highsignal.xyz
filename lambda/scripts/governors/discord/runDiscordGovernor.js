@@ -389,7 +389,7 @@ async function runDiscordGovernor() {
                         status: "pending",
                         newest_message_timestamp: newestTimestamp,
                         newest_message_id: newestMessageId,
-                        // oldest_message_timestamp and oldest_message_id will be set by triggerDiscordQueueItem
+                        // oldest_message_timestamp and oldest_message_id will be set by runDiscordQueueItem
                     })
                     .select()
 
