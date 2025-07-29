@@ -173,6 +173,7 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
         } else {
             console.error("🚨 Error in runEngine:", error)
         }
+        throw error
     } finally {
         clearLastChecked({ supabase, userId, projectId, signalStrengthId })
     }

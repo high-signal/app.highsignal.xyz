@@ -137,9 +137,12 @@ async function runAiGovernor() {
             invokedCounter++
         }
 
-        console.log("")
         console.log("--------------------------------")
-        console.log(`☑️ Invoked ${invokedCounter} AI queue items.`)
+        if (invokedCounter > 0) {
+            console.log(`☑️ Invoked ${invokedCounter} AI queue items.`)
+        } else {
+            console.log("🚧 No AI queue items to trigger.")
+        }
         console.log("🎉 Finished triggering AI queue items. AI governor complete.")
     } catch (error) {
         console.error("Error in runAiGovernor:", error)

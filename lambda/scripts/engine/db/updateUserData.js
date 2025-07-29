@@ -97,6 +97,7 @@ async function updateUserData({
         )
     } catch (dbError) {
         console.error(`Database error for ${signalStrengthUsername}:`, dbError.message)
+        throw dbError
     }
 }
 

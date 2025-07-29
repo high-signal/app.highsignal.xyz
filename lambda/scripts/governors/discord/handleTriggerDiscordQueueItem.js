@@ -1,6 +1,6 @@
 require("dotenv").config({ path: "../../../../.env" })
 
-const { triggerDiscordQueueItem } = require("./triggerDiscordQueueItem")
+const { runDiscordQueueItem } = require("./runDiscordQueueItem")
 const { selfInvokeAsynchronously } = require("../../utils/selfInvokeAsynchronously")
 
 const LAMBDA_FUNCTION_URL = process.env.LAMBDA_FUNCTION_URL
@@ -47,7 +47,7 @@ async function handleTriggerDiscordQueueItem({ queueItemId }) {
         }
     } else {
         // Running locally, call function directly
-        await triggerDiscordQueueItem({ queueItemId })
+        await runDiscordQueueItem({ queueItemId })
         return { started: true, invokedAs: "direct-local" }
     }
 }
