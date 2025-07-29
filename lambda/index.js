@@ -64,9 +64,9 @@ exports.handler = async (event) => {
 
         // Route to appropriate function based on function type
         switch (functionType) {
-            case "addAllItemsToAiQueue": // Adds all items to the AI queue
+            case "addAllItemsToAiQueue":
                 return await handleAddAllItemsToAiQueue()
-            case "addSingleItemToAiQueue": // Adds a single item to the AI queue
+            case "addSingleItemToAiQueue":
                 return await handleAddSingleItemToAiQueue(functionParams)
             case "runAiGovernor": // Processes the AI queue
                 return await handleRunAiGovernor()
