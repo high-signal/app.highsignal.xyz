@@ -1,6 +1,6 @@
 const { createClient } = require("@supabase/supabase-js")
 
-// For each signal strength, add all valid users to the AI queue
+// Add a single item to the AI queue
 async function addSingleItemToAiQueue({ signalStrengthName, userId, projectId, testingData }) {
     try {
         console.log("Adding single item to AI queue...")
@@ -28,16 +28,19 @@ async function addSingleItemToAiQueue({ signalStrengthName, userId, projectId, t
         // NOTE: z_ must be used as the objects are ordered alphabetically in the function cache,
         // and since testing_data is conditional, it must be the last parameter so it does not
         // change the order of the other parameters.
-        const { error: discourseForumError } = await supabase.rpc("add_single_discourse_forum_user_to_ai_queue", {
-            user_id: userId,
-            project_id: projectId,
-            signal_strength_id: signalStrengthId,
-            day: dayDate,
-            z_testing_data: testingData,
-        })
+        const { error: addSingleUserSignalStrengthToAiQueueError } = await supabase.rpc(
+            "add_single_user_signal_strength_to_ai_queue",
+            {
+                user_id: userId,
+                project_id: projectId,
+                signal_strength_id: signalStrengthId,
+                day: dayDate,
+                z_testing_data: testingData,
+            },
+        )
 
-        if (discourseForumError) {
-            const errorMessage = `Failed to add single forum user to AI queue: ${discourseForumError.message}`
+        if (addSingleUserSignalStrengthToAiQueueError) {
+            const errorMessage = `Failed to add single user signal strength to AI queue: ${addSingleUserSignalStrengthToAiQueueError.message}`
             console.error(errorMessage)
             throw errorMessage
         }
