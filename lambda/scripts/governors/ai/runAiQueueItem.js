@@ -64,6 +64,7 @@ async function runAiQueueItem({ queueItemId }) {
                 projectId: claimedQueueItem[0].project_id,
                 signalStrengthUsername: claimedQueueItem[0].signal_strength_username,
                 dayDate: claimedQueueItem[0].day,
+                type: claimedQueueItem[0].type,
                 ...(claimedQueueItem[0].testing_data && { testingData: claimedQueueItem[0].testing_data }),
             })
 

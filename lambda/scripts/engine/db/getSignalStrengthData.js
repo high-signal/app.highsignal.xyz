@@ -19,7 +19,7 @@ async function getSignalStrengthData({ supabase, signalStrengthId }) {
             `Error fetching signal strength data for signalStrengthId: ${signalStrengthId}:`,
             signalStrengthDataError,
         )
-        return
+        throw signalStrengthDataError
     }
 
     return signalStrengthData
