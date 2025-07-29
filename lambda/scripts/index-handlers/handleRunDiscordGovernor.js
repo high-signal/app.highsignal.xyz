@@ -11,7 +11,7 @@ async function handleRunDiscordGovernor() {
         console.error("Error in runDiscordGovernor:", error)
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: "Error running governor" }),
+            body: JSON.stringify({ error: "Error running Discord governor" }),
         }
     }
 }

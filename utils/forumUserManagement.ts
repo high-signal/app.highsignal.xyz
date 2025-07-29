@@ -89,7 +89,13 @@ export async function forumUserManagement({
 
     // Trigger analysis and wait for initial response
     console.log("Triggering forum analysis for user:", forumUsername)
-    const analysisResponse = await triggerLambda(signalStrengthName, targetUserId, projectId, forumUsername)
+    const analysisResponse = await triggerLambda({
+        functionType: "addSingleItemToAiQueue",
+        signalStrengthName,
+        userId: targetUserId,
+        projectId,
+        signalStrengthUsername: forumUsername,
+    })
 
     if (!analysisResponse.success) {
         console.error("Failed to start analysis:", analysisResponse.message)

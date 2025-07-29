@@ -1,28 +1,32 @@
 // @ts-ignore
-import { runEngine } from "../../lambda/scripts/engine/runEngine"
+import { handleAddAllItemsToAiQueue } from "../../lambda/scripts/index-handlers/handleAddAllItemsToAiQueue"
+// @ts-ignore
+import { handleAddSingleItemToAiQueue } from "../../lambda/scripts/index-handlers/handleAddSingleItemToAiQueue"
 
-export async function triggerLambda(
-    signalStrengthName: string,
-    userId: string,
-    projectId: string,
-    signalStrengthUsername: string,
+export async function triggerLambda(params: {
+    functionType: string
+    signalStrengthName?: string
+    userId?: string
+    projectId?: string
+    signalStrengthUsername?: string
     testingData?: {
         requestingUserId: string
         testingInputData: {
             rawTestingInputData?: TestingInputData
             smartTestingInputData?: TestingInputData
         }
-    },
-) {
+    }
+}) {
+    const { functionType, signalStrengthName, userId, projectId, signalStrengthUsername, testingData } = params
     const LAMBDA_FUNCTION_URL = process.env.LAMBDA_FUNCTION_URL
     const LAMBDA_API_KEY = process.env.LAMBDA_API_KEY
 
-    if (signalStrengthName != "discourse_forum" && signalStrengthName != "discord") {
-        return {
-            success: false,
-            message: `Signal strength (${signalStrengthName}) not configured for updates`,
-        }
-    }
+    // if (signalStrengthName != "discourse_forum" && signalStrengthName != "discord") {
+    //     return {
+    //         success: false,
+    //         message: `Signal strength (${signalStrengthName}) not configured for updates`,
+    //     }
+    // }
 
     // Default to yesterday. Format: YYYY-MM-DD
     const dayDate = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
@@ -39,7 +43,7 @@ export async function triggerLambda(
                     "X-API-Key": LAMBDA_API_KEY || "",
                 },
                 body: JSON.stringify({
-                    functionType: "runEngine",
+                    functionType,
                     signalStrengthName,
                     userId,
                     projectId,
@@ -57,13 +61,6 @@ export async function triggerLambda(
             return {
                 success: true,
                 message: "Analysis initiated successfully",
-                data: {
-                    signalStrengthName,
-                    userId,
-                    projectId,
-                    signalStrengthUsername,
-                    dayDate,
-                },
             }
         } catch (error) {
             console.error("Error sending forum analysis request:", error)
@@ -79,25 +76,22 @@ export async function triggerLambda(
 
         try {
             // Do not await the full response, just check that it starts successfully
-            runEngine({
-                signalStrengthName,
-                userId,
-                projectId,
-                signalStrengthUsername,
-                dayDate,
-                testingData,
-            })
-            return {
-                success: true,
-                message: "Analysis initiated successfully",
-                data: {
+            if (functionType === "addAllItemsToAiQueue") {
+                await handleAddAllItemsToAiQueue()
+            } else if (functionType === "addSingleItemToAiQueue") {
+                await handleAddSingleItemToAiQueue({
+                    functionType,
                     signalStrengthName,
                     userId,
                     projectId,
                     signalStrengthUsername,
                     dayDate,
                     ...(testingData && { testingData }),
-                },
+                })
+            }
+            return {
+                success: true,
+                message: "Analysis initiated successfully",
             }
         } catch (error) {
             console.error(`Error sending analysis request for ${signalStrengthName}:`, error)

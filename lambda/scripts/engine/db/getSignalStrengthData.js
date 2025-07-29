@@ -1,4 +1,4 @@
-async function getSignalStrengthData({ supabase, signalStrengthName }) {
+async function getSignalStrengthData({ supabase, signalStrengthId }) {
     // Returns all prompts for the signal strength
     // Prompt filtering for each type and date is carried out for each analysis
     const { data: signalStrengthData, error: signalStrengthDataError } = await supabase
@@ -11,11 +11,14 @@ async function getSignalStrengthData({ supabase, signalStrengthName }) {
                 )
             `,
         )
-        .eq("name", signalStrengthName)
+        .eq("id", signalStrengthId)
         .single()
 
     if (signalStrengthDataError) {
-        console.error(`Error fetching signal strength ID for ${signalStrengthName}:`, signalStrengthDataError)
+        console.error(
+            `Error fetching signal strength data for signalStrengthId: ${signalStrengthId}:`,
+            signalStrengthDataError,
+        )
         return
     }
 

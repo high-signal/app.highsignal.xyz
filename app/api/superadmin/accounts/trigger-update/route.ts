@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { triggerLambda } from "../../../../../utils/lambda-utils/triggerLambda"
-import { createClient } from "@supabase/supabase-js"
 
 export async function PATCH(request: NextRequest) {
     try {
@@ -8,84 +7,24 @@ export async function PATCH(request: NextRequest) {
         const body = await request.json()
         const { signalStrengthName, userId, projectId, signalStrengthUsername } = body
 
-        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-
         // Prepare array of users to process
         let usersToUpdate: { userId: string; signalStrengthUsername: string }[] = []
 
         if (userId && signalStrengthUsername) {
             // Single user mode
             console.log("Single user mode")
-            usersToUpdate = [{ userId, signalStrengthUsername }]
+
+            await triggerLambda({
+                functionType: "addSingleItemToAiQueue",
+                signalStrengthName,
+                userId,
+                projectId,
+                signalStrengthUsername,
+            })
         } else {
             // All users mode
             console.log("All users mode")
-            if (!projectId) {
-                return NextResponse.json({ error: "Missing projectId for all-users update" }, { status: 400 })
-            }
-
-            if (signalStrengthName === "discourse_forum") {
-                const { data: forumUsers, error: forumUsersError } = await supabase
-                    .from("forum_users")
-                    .select("user_id, forum_username")
-                    .eq("project_id", projectId)
-                    .not("forum_username", "is", null)
-
-                if (forumUsersError) {
-                    console.error("Error fetching forum users:", forumUsersError)
-                    return NextResponse.json({ error: "Error fetching forum users" }, { status: 500 })
-                }
-                usersToUpdate = (forumUsers || []).map((u: any) => ({
-                    userId: u.user_id,
-                    signalStrengthUsername: u.forum_username,
-                }))
-            }
-
-            if (signalStrengthName === "discord") {
-                const { data: discordUsers, error: discordUsersError } = await supabase
-                    .from("users")
-                    .select("id, discord_username")
-                    .not("discord_username", "is", null)
-
-                if (discordUsersError) {
-                    console.error("Error fetching discord users:", discordUsersError)
-                    return NextResponse.json({ error: "Error fetching discord users" }, { status: 500 })
-                }
-                usersToUpdate = (discordUsers || []).map((u: any) => ({
-                    userId: u.id,
-                    signalStrengthUsername: u.discord_username,
-                }))
-            }
-        }
-
-        // Lookup the signal_strength_id for the given signalStrengthName
-        const { data: signalStrengthData, error: signalStrengthDataError } = await supabase
-            .from("signal_strengths")
-            .select("id")
-            .eq("name", signalStrengthName)
-            .single()
-
-        if (signalStrengthDataError || !signalStrengthData) {
-            console.error("Error fetching signal strength ID:", signalStrengthDataError)
-            return NextResponse.json({ error: "Error fetching signal strength ID" }, { status: 500 })
-        }
-
-        // Trigger lambda for each user
-        const results = await Promise.all(
-            usersToUpdate.map(async ({ userId, signalStrengthUsername }) => {
-                const analysisResponse = await triggerLambda(
-                    signalStrengthName,
-                    userId,
-                    projectId,
-                    signalStrengthUsername,
-                )
-                return { userId, signalStrengthUsername, ...analysisResponse }
-            }),
-        )
-
-        const failed = results.filter((r) => !r.success)
-        if (failed.length > 0) {
-            return NextResponse.json({ error: "Some analyses failed to start", details: failed }, { status: 400 })
+            await triggerLambda({ functionType: "addAllItemsToAiQueue" })
         }
 
         return NextResponse.json({ success: true, message: `Analysis triggered for ${usersToUpdate.length} user(s)` })
