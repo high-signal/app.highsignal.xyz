@@ -15,7 +15,7 @@ async function fetchUserActivity({ BASE_URL, username }) {
             }))
         }
     } catch (error) {
-        console.error(`Error fetching activity for user ${username}:`, error.message)
+        console.error(`⚠️ Error fetching activity for user ${username}:`, error.message)
         throw error
     }
 }

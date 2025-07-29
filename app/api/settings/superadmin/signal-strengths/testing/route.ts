@@ -75,13 +75,13 @@ export async function POST(request: NextRequest) {
         }
 
         // Format the request body and pass it to the lambda function
-        const analysisResponse = await triggerLambda(
-            signalStrength.name,
-            targetUser.id,
-            project.id,
-            signalStrengthUsername,
-            structuredTestingData,
-        )
+        const analysisResponse = await triggerLambda({
+            functionType: "addSingleItemToAiQueue",
+            signalStrengthName: signalStrength.name,
+            userId: targetUser.id,
+            projectId: project.id,
+            testingData: structuredTestingData,
+        })
 
         if (!analysisResponse.success) {
             console.error("Failed to start analysis:", analysisResponse.message)

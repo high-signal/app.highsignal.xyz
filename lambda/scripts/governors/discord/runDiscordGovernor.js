@@ -35,20 +35,21 @@ async function runDiscordGovernor() {
         // If so, increment their attempts, set their state to "error".
 
         // Get all items in the queue that are running.
-        const { data: queueItems, error: queueError } = await supabase
+        const { data: runningQueueItems, error: runningQueueItemsError } = await supabase
             .from("discord_request_queue")
             .select("*")
             .eq("status", "running")
 
-        if (queueError) {
-            console.error("Error fetching queue items:", queueError)
-            return
+        if (runningQueueItemsError) {
+            const errorMessage = `Error fetching running queue items: ${runningQueueItemsError.message}`
+            console.error(errorMessage)
+            throw errorMessage
         }
 
         // Check if any of these have passed their timeout.
         // If so, increment their attempts, set their state to "error".
-        if (queueItems?.length > 0) {
-            for (const queueItem of queueItems) {
+        if (runningQueueItems?.length > 0) {
+            for (const queueItem of runningQueueItems) {
                 // Convert started_at string to timestamp for comparison.
                 const startedAtTimestamp = new Date(queueItem.started_at).getTime()
 
@@ -58,10 +59,16 @@ async function runDiscordGovernor() {
                     console.log(
                         `⚠️ Queue item ${queueItem.id} has been running for more than ${TIMEOUT_SECONDS} seconds. Incrementing attempts and setting status to "error".`,
                     )
-                    await supabase
+                    const { error: updatedQueueItemError } = await supabase
                         .from("discord_request_queue")
                         .update({ attempts: queueItem.attempts + 1, status: "error" })
                         .eq("id", queueItem.id)
+
+                    if (updatedQueueItemError) {
+                        const errorMessage = `Error updating queue item to "error" for queueItem.id: ${queueItem.id}. Error: ${updatedQueueItemError.message}`
+                        console.error(errorMessage)
+                        throw errorMessage
+                    }
                 }
             }
         }
@@ -71,9 +78,19 @@ async function runDiscordGovernor() {
         // ===================================
         // Look at the DB again to get the new total
         // number of running items and available space.
+        const { data: updatedRunningQueueItems, error: updatedRunningQueueItemsError } = await supabase
+            .from("discord_request_queue")
+            .select("*")
+            .eq("status", "running")
+
+        if (updatedRunningQueueItemsError) {
+            const errorMessage = `Error fetching updated running queue items: ${updatedRunningQueueItemsError.message}`
+            console.error(errorMessage)
+            throw errorMessage
+        }
 
         // Calculate the available space in the queue.
-        const availableSpace = MAX_QUEUE_LENGTH - (queueItems?.length || 0)
+        const availableSpace = MAX_QUEUE_LENGTH - (updatedRunningQueueItems?.length || 0)
 
         if (availableSpace <= 0) {
             console.log("🚧 No available space in the queue. Exiting.")
@@ -236,7 +253,7 @@ async function runDiscordGovernor() {
                         continue
                     } else {
                         // If the number of attempts is MAX_ATTEMPTS or more, skip it.
-                        console.error(`ERROR LIMIT REACHED for queue item ${currentQueueItem[0].id}. Skipping.`)
+                        console.error(`‼️ ERROR LIMIT REACHED for queue item ${currentQueueItem[0].id}. Skipping.`)
                         continue
                     }
                 }
@@ -372,7 +389,7 @@ async function runDiscordGovernor() {
                         status: "pending",
                         newest_message_timestamp: newestTimestamp,
                         newest_message_id: newestMessageId,
-                        // oldest_message_timestamp and oldest_message_id will be set by triggerDiscordQueueItem
+                        // oldest_message_timestamp and oldest_message_id will be set by runDiscordQueueItem
                     })
                     .select()
 
@@ -398,7 +415,7 @@ async function runDiscordGovernor() {
 
         console.log("--------------------------------")
         console.log("")
-        console.log("🎉 Finished processing all projects.")
+        console.log("🎉 Finished triggering Discord queue items. Discord governor complete.")
     } catch (error) {
         console.error("Error in runDiscordGovernor:", error)
         throw error
@@ -411,5 +428,4 @@ async function runDiscordGovernor() {
     }
 }
 
-// Export the runDiscordGovernor function for use in Lambda
 module.exports = { runDiscordGovernor }

@@ -1,18 +1,18 @@
 require("dotenv").config({ path: "../../../../.env" })
 
-const { runDiscordQueueItem } = require("./runDiscordQueueItem")
+const { runAiQueueItem } = require("./runAiQueueItem")
 const { selfInvokeAsynchronously } = require("../../utils/selfInvokeAsynchronously")
 
 const LAMBDA_FUNCTION_URL = process.env.LAMBDA_FUNCTION_URL
 const LAMBDA_API_KEY = process.env.LAMBDA_API_KEY
 
-async function handleTriggerDiscordQueueItem({ queueItemId }) {
+async function handleTriggerAiQueueItem({ queueItemId }) {
     const runningInLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME && !!process.env.AWS_REGION
 
     if (runningInLambda) {
         try {
             await selfInvokeAsynchronously({
-                functionType: "runDiscordQueueItem",
+                functionType: "runAiQueueItem",
                 queueItemId,
             })
 
@@ -31,7 +31,7 @@ async function handleTriggerDiscordQueueItem({ queueItemId }) {
                     "X-API-Key": LAMBDA_API_KEY,
                 },
                 body: JSON.stringify({
-                    functionType: "runDiscordQueueItem",
+                    functionType: "runAiQueueItem",
                     queueItemId,
                 }),
             })
@@ -47,9 +47,9 @@ async function handleTriggerDiscordQueueItem({ queueItemId }) {
         }
     } else {
         // Running locally, call function directly
-        await runDiscordQueueItem({ queueItemId })
+        await runAiQueueItem({ queueItemId })
         return { started: true, invokedAs: "direct-local" }
     }
 }
 
-module.exports = { handleTriggerDiscordQueueItem }
+module.exports = { handleTriggerAiQueueItem }

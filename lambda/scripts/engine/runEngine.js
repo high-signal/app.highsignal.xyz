@@ -15,12 +15,10 @@ const adapterHandler = require("./platform_adapters/adapterHandler")
 const { createClient } = require("@supabase/supabase-js")
 
 // Function to run the engine
-async function runEngine({ signalStrengthName, userId, projectId, signalStrengthUsername, dayDate, testingData }) {
-    console.log("\n**************************************************")
-    console.log("🏁 Running engine for signal strength:", signalStrengthName)
+async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUsername, dayDate, testingData }) {
+    console.log("🏁 Running engine for signal strength:", signalStrengthId)
 
     let supabase
-    let signalStrengthId
 
     try {
         // ================
@@ -38,15 +36,14 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
         // =================================
         // This includes everything in the signal_strengths table
         // and all the prompts for the signal strength.
-        const signalStrengthData = await getSignalStrengthData({ supabase, signalStrengthName })
-        signalStrengthId = signalStrengthData.id
+        const signalStrengthData = await getSignalStrengthData({ supabase, signalStrengthId })
 
         // ====================================================
         // Check if signal strength is enabled for the project
         // ====================================================
         const isEnabled = await checkProjectSignalStrengthEnabled({ supabase, projectId, signalStrengthId })
         if (!isEnabled) {
-            console.warn(`Signal strength ${signalStrengthName} is not enabled for project ID: ${projectId}`)
+            console.warn(`Signal strength ${signalStrengthId} is not enabled for project ID: ${projectId}`)
             return
         }
 
@@ -89,7 +86,7 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
             userId,
             userDisplayName,
             projectId,
-            signalStrengthName,
+            signalStrengthName: signalStrengthData.name,
             signalStrengthUsername,
             signalStrengthConfig,
             dayDate,
@@ -171,7 +168,12 @@ async function runEngine({ signalStrengthName, userId, projectId, signalStrength
             `☑️ Analysis complete for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) for ${dayDate}`,
         )
     } catch (error) {
-        console.error("Error in runEngine:", error)
+        if (error.status === 404 || error.message?.includes("404")) {
+            console.log("⚠️ 404 error in runEngine")
+        } else {
+            console.error("🚨 Error in runEngine:", error)
+        }
+        throw error
     } finally {
         clearLastChecked({ supabase, userId, projectId, signalStrengthId })
     }

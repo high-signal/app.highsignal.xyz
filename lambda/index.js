@@ -1,4 +1,7 @@
-const { handleRunEngine } = require("./scripts/index-handlers/handleRunEngine")
+const { handleAddAllItemsToAiQueue } = require("./scripts/index-handlers/handleAddAllItemsToAiQueue")
+const { handleAddSingleItemToAiQueue } = require("./scripts/index-handlers/handleAddSingleItemToAiQueue")
+const { handleRunAiGovernor } = require("./scripts/index-handlers/handleRunAiGovernor")
+const { handleRunAiQueueItem } = require("./scripts/index-handlers/handleRunAiQueueItem")
 const { handleRunDiscordGovernor } = require("./scripts/index-handlers/handleRunDiscordGovernor")
 const { handleRunDiscordQueueItem } = require("./scripts/index-handlers/handleRunDiscordQueueItem")
 
@@ -61,11 +64,17 @@ exports.handler = async (event) => {
 
         // Route to appropriate function based on function type
         switch (functionType) {
-            case "runEngine":
-                return await handleRunEngine(functionParams)
-            case "runDiscordGovernor":
+            case "addAllItemsToAiQueue":
+                return await handleAddAllItemsToAiQueue()
+            case "addSingleItemToAiQueue":
+                return await handleAddSingleItemToAiQueue(functionParams)
+            case "runAiGovernor": // Processes the AI queue
+                return await handleRunAiGovernor()
+            case "runAiQueueItem": // Processes a single item from the AI queue
+                return await handleRunAiQueueItem(functionParams)
+            case "runDiscordGovernor": // Processes the Discord queue
                 return await handleRunDiscordGovernor()
-            case "runDiscordQueueItem":
+            case "runDiscordQueueItem": // Processes a single item from the Discord queue
                 return await handleRunDiscordQueueItem(functionParams)
             default:
                 console.log(`Unknown function type: ${functionType}`)
