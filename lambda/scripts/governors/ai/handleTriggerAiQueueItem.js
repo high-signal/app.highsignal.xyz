@@ -1,6 +1,6 @@
 require("dotenv").config({ path: "../../../../.env" })
 
-const { triggerAiQueueItem } = require("./triggerAiQueueItem")
+const { runAiQueueItem } = require("./runAiQueueItem")
 const { selfInvokeAsynchronously } = require("../../utils/selfInvokeAsynchronously")
 
 const LAMBDA_FUNCTION_URL = process.env.LAMBDA_FUNCTION_URL
@@ -47,7 +47,7 @@ async function handleTriggerAiQueueItem({ queueItemId }) {
         }
     } else {
         // Running locally, call function directly
-        await triggerAiQueueItem({ queueItemId })
+        await runAiQueueItem({ queueItemId })
         return { started: true, invokedAs: "direct-local" }
     }
 }

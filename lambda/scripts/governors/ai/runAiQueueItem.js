@@ -7,7 +7,7 @@ const { runEngine } = require("../../engine/runEngine")
 // ==========
 const { MAX_TOKENS_PER_MINUTE, MAX_QUEUE_LENGTH, TIMEOUT_SECONDS, MAX_ATTEMPTS } = require("./constants")
 
-async function triggerAiQueueItem({ queueItemId }) {
+async function runAiQueueItem({ queueItemId }) {
     try {
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
@@ -89,9 +89,9 @@ async function triggerAiQueueItem({ queueItemId }) {
             return
         }
     } catch (error) {
-        console.error("Error in triggerAiQueueItem:", error)
+        console.error("Error in runAiQueueItem:", error)
         throw error
     }
 }
 
-module.exports = { triggerAiQueueItem }
+module.exports = { runAiQueueItem }

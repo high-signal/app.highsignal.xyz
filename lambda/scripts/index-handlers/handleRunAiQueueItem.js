@@ -1,4 +1,4 @@
-const { triggerAiQueueItem } = require("../governors/ai/triggerAiQueueItem")
+const { runAiQueueItem } = require("../governors/ai/runAiQueueItem")
 
 async function handleRunAiQueueItem({ queueItemId }) {
     // Validate required parameters for runAiQueueItem
@@ -11,7 +11,7 @@ async function handleRunAiQueueItem({ queueItemId }) {
     }
 
     console.log("🏁 Triggering AI queue item. queueItemId:", queueItemId)
-    await triggerAiQueueItem({ queueItemId })
+    await runAiQueueItem({ queueItemId })
     console.log("🏁 AI queue item finished. queueItemId:", queueItemId)
     return {
         statusCode: 200,
