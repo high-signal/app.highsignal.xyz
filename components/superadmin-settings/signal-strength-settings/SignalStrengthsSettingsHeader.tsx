@@ -1,21 +1,15 @@
 "use client"
 
-import { HStack, VStack, Text, Button, Image } from "@chakra-ui/react"
-import { getAccessToken } from "@privy-io/react-auth"
+import { HStack, VStack, Text, Image } from "@chakra-ui/react"
 import { ASSETS } from "../../../config/constants"
-import { toaster } from "../../ui/toaster"
 import { useSearchParams } from "next/navigation"
 
 export default function SignalStrengthsSettingsHeader({
     signalStrength,
     project,
-    selectedUser,
-    signalStrengthUsername,
 }: {
     project: ProjectData | null
-    selectedUser: UserData | null
     signalStrength: SignalStrengthData
-    signalStrengthUsername: string
 }) {
     const params = useSearchParams()
     const dev = params.get("dev") === "true"
@@ -65,37 +59,6 @@ export default function SignalStrengthsSettingsHeader({
                             {signalStrength.status.charAt(0).toUpperCase() + signalStrength.status.slice(1)}
                         </Text>
                     </HStack>
-                    {project && (
-                        <Button
-                            primaryButton
-                            px={2}
-                            py={1}
-                            borderRadius={"full"}
-                            onClick={async () => {
-                                const token = await getAccessToken()
-                                const response = await fetch(`/api/superadmin/accounts/trigger-update`, {
-                                    method: "PATCH",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        Authorization: `Bearer ${token}`,
-                                    },
-                                    body: JSON.stringify({
-                                        signalStrengthName: signalStrength.name,
-                                        userId: null,
-                                        projectId: project?.id,
-                                        signalStrengthUsername: null,
-                                    }),
-                                })
-
-                                if (!response.ok) {
-                                    const errorData = await response.json()
-                                    console.error(errorData.error)
-                                }
-                            }}
-                        >
-                            Refresh all users
-                        </Button>
-                    )}
                 </HStack>
                 {project &&
                     (() => {
@@ -180,53 +143,6 @@ export default function SignalStrengthsSettingsHeader({
                         )
                     })()}
             </HStack>
-            {selectedUser && (
-                <HStack maxW={"100%"} justifyContent={"center"} flexWrap={"wrap"} gap={3} minH={"35px"}>
-                    <>
-                        <Text textAlign={"center"}>
-                            Manually trigger/refresh user analysis for {selectedUser.username}
-                        </Text>
-                        <Button
-                            primaryButton
-                            px={2}
-                            py={1}
-                            borderRadius={"full"}
-                            onClick={async () => {
-                                if (signalStrengthUsername) {
-                                    const token = await getAccessToken()
-                                    const response = await fetch(`/api/superadmin/accounts/trigger-update`, {
-                                        method: "PATCH",
-                                        headers: {
-                                            "Content-Type": "application/json",
-                                            Authorization: `Bearer ${token}`,
-                                        },
-                                        body: JSON.stringify({
-                                            signalStrengthName: signalStrength.name,
-                                            userId: selectedUser.id,
-                                            projectId: project?.id,
-                                            signalStrengthUsername: signalStrengthUsername,
-                                        }),
-                                    })
-
-                                    if (!response.ok) {
-                                        const errorData = await response.json()
-                                        console.error(errorData.error)
-                                    }
-                                } else {
-                                    console.log("No signal strength username found")
-                                    toaster.create({
-                                        title: "❌ Error triggering update",
-                                        description: `No signal strength username found for ${signalStrength.name}`,
-                                        type: "error",
-                                    })
-                                }
-                            }}
-                        >
-                            Trigger
-                        </Button>
-                    </>
-                </HStack>
-            )}
         </VStack>
     )
 }

@@ -191,12 +191,7 @@ export default function SignalStrengthSettings({
     return (
         <VStack w="100%" gap={4}>
             <VStack w="100%" gap={0} borderBottomRadius={{ base: 0, sm: "16px" }} overflow={"hidden"} maxW={"1200px"}>
-                <SignalStrengthsSettingsHeader
-                    signalStrength={signalStrength}
-                    project={project}
-                    selectedUser={selectedUser}
-                    signalStrengthUsername={signalStrengthUsername}
-                />
+                <SignalStrengthsSettingsHeader signalStrength={signalStrength} project={project} />
                 {/* Historical Data Tables and Usernames */}
                 {selectedUser && (
                     <HStack

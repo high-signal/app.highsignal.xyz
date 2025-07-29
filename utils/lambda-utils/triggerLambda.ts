@@ -2,6 +2,8 @@
 import { handleAddAllItemsToAiQueue } from "../../lambda/scripts/index-handlers/handleAddAllItemsToAiQueue"
 // @ts-ignore
 import { handleAddSingleItemToAiQueue } from "../../lambda/scripts/index-handlers/handleAddSingleItemToAiQueue"
+// @ts-ignore
+import { handleRunAiGovernor } from "../../lambda/scripts/index-handlers/handleRunAiGovernor"
 
 export async function triggerLambda(params: {
     functionType: string
@@ -20,13 +22,6 @@ export async function triggerLambda(params: {
     const { functionType, signalStrengthName, userId, projectId, signalStrengthUsername, testingData } = params
     const LAMBDA_FUNCTION_URL = process.env.LAMBDA_FUNCTION_URL
     const LAMBDA_API_KEY = process.env.LAMBDA_API_KEY
-
-    // if (signalStrengthName != "discourse_forum" && signalStrengthName != "discord") {
-    //     return {
-    //         success: false,
-    //         message: `Signal strength (${signalStrengthName}) not configured for updates`,
-    //     }
-    // }
 
     // Default to yesterday. Format: YYYY-MM-DD
     const dayDate = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
@@ -88,6 +83,10 @@ export async function triggerLambda(params: {
                     dayDate,
                     ...(testingData && { testingData }),
                 })
+            } else if (functionType === "runAiGovernor") {
+                await handleRunAiGovernor()
+            } else {
+                throw new Error(`Unknown function type: ${functionType}`)
             }
             return {
                 success: true,
