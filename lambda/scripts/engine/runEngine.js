@@ -189,7 +189,7 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
             }
 
             // Throw an error to stop the engine from continuing and setting the parent to "completed"
-            throw new Error("Raw score calculations are required. Exiting smart score engine run.")
+            throw new Error("⚠️ Raw score calculations are required. Exiting smart score engine run.")
         }
 
         // =========================================
