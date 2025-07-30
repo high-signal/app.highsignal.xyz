@@ -402,21 +402,26 @@ export default function SignalStrength({
                 signalStrengthProjectData.enabled &&
                 !userContentAvailable &&
                 loggedInUser?.username === username && (
-                    <HStack w={"100%"} justifyContent={"center"} cursor={"disabled"}>
-                        <Link href={`/settings/u/${username}?tab=accounts`}>
-                            <Button
-                                primaryButton
-                                justifyContent={"start"}
-                                fontWeight={"bold"}
-                                fontSize={"sm"}
-                                borderRadius={"full"}
-                                px={3}
-                                py={1}
-                            >
-                                Connect your account
-                            </Button>
-                        </Link>
-                    </HStack>
+                    <VStack w={"100%"} gap={2} alignItems={"center"}>
+                        <Text textAlign={"center"} fontSize={"sm"} color={"textColorMuted"}>
+                            Confirm ownership of this account so it can be used to calculate your score.
+                        </Text>
+                        <HStack w={"100%"} justifyContent={"center"}>
+                            <Link href={`/settings/u/${username}?tab=accounts`}>
+                                <Button
+                                    primaryButton
+                                    justifyContent={"start"}
+                                    fontWeight={"bold"}
+                                    fontSize={"sm"}
+                                    borderRadius={"full"}
+                                    px={3}
+                                    py={1}
+                                >
+                                    Confirm ownership
+                                </Button>
+                            </Link>
+                        </HStack>
+                    </VStack>
                 )}
         </VStack>
     )

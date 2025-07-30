@@ -77,10 +77,6 @@ async function analyzeUserData({
     } else if (type === "smart" && smartTestingInputData?.testingPrompt) {
         basePrompt = smartTestingInputData.testingPrompt
     } else if (signalStrengthData.prompts.find((prompt) => prompt.type === type)) {
-        // TODO: For now it just gets the latest prompt for the type
-        // but in future it should get the prompt for the date so that history is consistent
-        // e.g. if a user disconnects and reconnects their forum account, the prompt used to calculate
-        // their previous days raw scores should be the same each time
         const promptData = signalStrengthData.prompts
             .filter((prompt) => prompt.type === type)
             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
@@ -157,8 +153,6 @@ async function analyzeUserData({
             temperature: Number(temperature),
         })
 
-        // console.log("res", res)
-
         const analysisLogs = `${logs ? logs + "\n" : ""}userDataString.length: ${userDataString.length}
 truncatedData.length: ${truncatedData.length}
 `
@@ -194,13 +188,14 @@ truncatedData.length: ${truncatedData.length}
             )
             return responseWithDataAdded
         } catch (parseError) {
-            console.error("Failed to parse JSON response:", parseError.message)
-            console.error("Cleaned response:", cleanResponse)
-            return { error: "Failed to parse analysis results" }
+            const errorMessage = `Failed to parse JSON response: ${parseError.message}`
+            console.error(errorMessage)
+            throw new Error(errorMessage)
         }
     } catch (err) {
-        console.error("Error analyzing user data:", err.message)
-        return { error: "Failed to analyze user data" }
+        const errorMessage = `Error analyzing user data: ${err.message}`
+        console.error(errorMessage)
+        throw new Error(errorMessage)
     }
 }
 
