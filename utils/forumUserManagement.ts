@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js"
+import { SupabaseClient } from "@supabase/supabase-js"
 import { triggerLambda } from "./lambda-utils/triggerLambda"
 
 interface ForumUserManagementParams {
@@ -88,7 +88,7 @@ export async function forumUserManagement({
     }
 
     // Trigger analysis and wait for initial response
-    console.log("Triggering forum analysis for user:", forumUsername)
+    console.log("addSingleItemToAiQueue for:", forumUsername)
     const analysisResponse = await triggerLambda({
         functionType: "addSingleItemToAiQueue",
         signalStrengthName,
@@ -100,6 +100,17 @@ export async function forumUserManagement({
     if (!analysisResponse.success) {
         console.error("Failed to start analysis:", analysisResponse.message)
         throw new Error(analysisResponse.message)
+    }
+
+    // Trigger the runAiGovernor lambda to run the engine.
+    console.log("runAiGovernor for:", forumUsername)
+    const runAiGovernorResponse = await triggerLambda({
+        functionType: "runAiGovernor",
+    })
+
+    if (!runAiGovernorResponse.success) {
+        console.error("Failed to start runAiGovernor:", runAiGovernorResponse.message)
+        throw new Error(runAiGovernorResponse.message)
     }
 
     console.log("Analysis started successfully:", analysisResponse.message)

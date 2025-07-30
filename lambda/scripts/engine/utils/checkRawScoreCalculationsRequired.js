@@ -64,7 +64,7 @@ async function checkRawScoreCalculationsRequired({
 
                     try {
                         // Dynamic require to avoid circular dependency
-                        const { handleTriggerAiQueueItem } = require("../governors/ai/handleTriggerAiQueueItem")
+                        const { handleTriggerAiQueueItem } = require("../../governors/ai/handleTriggerAiQueueItem")
                         await handleTriggerAiQueueItem({ queueItemId: newQueueItem[0].id })
                     } catch (error) {
                         console.error(`❌ Failed to trigger queue item ${newQueueItem[0].id}:`, error)
