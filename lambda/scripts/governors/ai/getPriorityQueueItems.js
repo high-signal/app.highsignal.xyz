@@ -42,3 +42,5 @@ async function getPriorityQueueItems(supabase, availableSpace) {
 
     return combinedQueueItems
 }
+
+module.exports = { getPriorityQueueItems }

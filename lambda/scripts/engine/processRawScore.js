@@ -75,7 +75,6 @@ async function processRawScore({
         .eq("user_id", userId)
         .eq("project_id", projectId)
         .eq("signal_strength_id", signalStrengthId)
-        .eq("day", dayDate)
         .eq("type", "raw_score")
         .neq("status", "completed")
 
@@ -85,7 +84,13 @@ async function processRawScore({
         throw new Error(errorMessage)
     }
 
-    if (aiRequestQueueData.length > 0) {
+    // Filter out the current raw score queue item from the ai_request_queue.
+    const queueItemUniqueIdentifier = `${userId}_${projectId}_${signalStrengthId}_${dayDate}_RAW`
+    const cleanedAiRequestQueueData = aiRequestQueueData.filter(
+        (item) => item.queue_item_unique_identifier !== queueItemUniqueIdentifier,
+    )
+
+    if (cleanedAiRequestQueueData.length > 0) {
         return false
     } else {
         return true

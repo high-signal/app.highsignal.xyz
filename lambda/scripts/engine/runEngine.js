@@ -6,10 +6,11 @@ const { getExistingUserRawData } = require("./db/getExistingUserRawData")
 const { setLastChecked, clearLastChecked } = require("./utils/lastCheckedUtils")
 const { getRawActivityCombinedData } = require("./utils/getRawActivityCombinedData")
 const { checkProjectSignalStrengthEnabled } = require("./utils/checkProjectSignalStrengthEnabled")
+const { checkRawScoreCalculationsRequired } = require("./utils/checkRawScoreCalculationsRequired")
+const { retryParentQueueItem } = require("./utils/retryParentQueueItem")
 
 const { processRawScore } = require("./processRawScore")
 const { processSmartScores } = require("./processSmartScores")
-const { checkRawScoreCalculationsRequired } = require("./checkRawScoreCalculationsRequired")
 
 const adapterHandler = require("./platform_adapters/adapterHandler")
 
@@ -131,7 +132,7 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
             // If it is the last raw score to process,
             // trigger the parent again to run the smart score calculations.
             if (isLastRawScoreToProcess) {
-                // TODO: How to get the parent queue item id?
+                await retryParentQueueItem({ supabase, userId, projectId, signalStrengthId, dayDate })
             }
 
             // Return as it should not progress to smart score calculations as this is a raw_score queue item.
