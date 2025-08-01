@@ -1,3 +1,5 @@
+"use client"
+
 import { HStack, Text, Button } from "@chakra-ui/react"
 import Link from "next/link"
 

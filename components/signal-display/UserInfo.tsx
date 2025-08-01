@@ -1,3 +1,5 @@
+"use client"
+
 import { HStack, Text, Box, Image, Button } from "@chakra-ui/react"
 import Link from "next/link"
 import { ASSETS } from "../../config/constants"

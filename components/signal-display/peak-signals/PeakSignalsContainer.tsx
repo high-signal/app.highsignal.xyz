@@ -1,3 +1,5 @@
+"use client"
+
 import { VStack, Text, Grid, GridItem, HStack, Box } from "@chakra-ui/react"
 import PeakSignal from "./PeakSignal"
 

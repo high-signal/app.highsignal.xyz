@@ -1,3 +1,5 @@
+"use client"
+
 import { HStack, Text, Box, Image, Spinner } from "@chakra-ui/react"
 import { useState, useRef, useEffect } from "react"
 import SingleLineTextInput from "./SingleLineTextInput"

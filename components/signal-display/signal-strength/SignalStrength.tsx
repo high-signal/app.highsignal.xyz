@@ -1,3 +1,5 @@
+"use client"
+
 import { HStack, VStack, Box, Text, Spinner, Button } from "@chakra-ui/react"
 import Link from "next/link"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
