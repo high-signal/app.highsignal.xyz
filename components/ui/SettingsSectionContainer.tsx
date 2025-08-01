@@ -1,3 +1,5 @@
+"use client"
+
 import { VStack } from "@chakra-ui/react"
 
 interface SettingsSectionContainerProps {

@@ -1,3 +1,5 @@
+"use client"
+
 import { Dialog, Portal, useBreakpointValue } from "@chakra-ui/react"
 import { ReactNode } from "react"
 import { RemoveScroll } from "react-remove-scroll"

@@ -1,3 +1,5 @@
+"use client"
+
 import { Popover as ChakraPopover, Portal } from "@chakra-ui/react"
 import React from "react"
 

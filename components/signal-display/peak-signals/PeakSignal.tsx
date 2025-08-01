@@ -1,3 +1,5 @@
+"use client"
+
 import { Box, Text, Image, HStack, VStack } from "@chakra-ui/react"
 
 export default function PeakSignal({ peakSignal }: { peakSignal: PeakSignalUserData }) {

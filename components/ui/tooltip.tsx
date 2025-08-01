@@ -1,3 +1,5 @@
+"use client"
+
 import { Tooltip as ChakraTooltip, Portal, useToken } from "@chakra-ui/react"
 import * as React from "react"
 

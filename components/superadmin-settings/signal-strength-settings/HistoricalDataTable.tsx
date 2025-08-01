@@ -1,3 +1,5 @@
+"use client"
+
 import { VStack, Text, Table } from "@chakra-ui/react"
 
 export default function HistoricalDataTable({
