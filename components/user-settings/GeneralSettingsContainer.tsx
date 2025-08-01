@@ -11,6 +11,7 @@ import { validateUsername, validateDisplayName } from "../../utils/inputValidati
 import SettingsInputField from "../ui/SettingsInputField"
 import ImageEditor from "../ui/ImageEditor"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
+import DeleteAccountContainer from "./DeleteAccountContainer"
 
 export default function GeneralSettingsContainer({ targetUser }: { targetUser: UserData }) {
     const { refreshUser } = useUser()
@@ -225,6 +226,7 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
                     Save Changes
                 </Button>
             </Box>
+            <DeleteAccountContainer targetUser={targetUser} />
         </SettingsSectionContainer>
     )
 }
