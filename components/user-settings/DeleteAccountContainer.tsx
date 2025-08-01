@@ -89,7 +89,7 @@ const DeleteAccountContainer = ({ targetUser }: { targetUser: UserData }) => {
                     <Text fontStyle={"italic"} px={3} py={1} borderRadius={"full"} bg={"contentBackground"}>
                         Are you sure?
                     </Text>
-                    <Text>Type "delete" to confirm</Text>
+                    <Text>Type &quot;delete&quot; to confirm</Text>
                     <SingleLineTextInput
                         value={inputValue}
                         onChange={(e) => {
