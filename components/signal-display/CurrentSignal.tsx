@@ -1,3 +1,5 @@
+"use client"
+
 import { VStack, HStack, Text, Box, Span, Spinner, Skeleton } from "@chakra-ui/react"
 import { calculateSignalPercentageFromName, calculateSignalThresholdFromName } from "../../utils/calculateSignal"
 import { useEffect, useState } from "react"

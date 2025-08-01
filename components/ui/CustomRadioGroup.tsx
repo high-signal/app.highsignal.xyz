@@ -1,3 +1,5 @@
+"use client"
+
 import { RadioGroup, Box, Text, HStack } from "@chakra-ui/react"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

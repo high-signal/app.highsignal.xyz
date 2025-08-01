@@ -1,3 +1,5 @@
+"use client"
+
 import { VStack, Text } from "@chakra-ui/react"
 import SignalStrength from "./SignalStrength"
 

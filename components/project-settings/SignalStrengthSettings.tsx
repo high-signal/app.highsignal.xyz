@@ -1,3 +1,5 @@
+"use client"
+
 import { HStack, Text, VStack, Box, Switch, Button, Span, RadioGroup, Link } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {

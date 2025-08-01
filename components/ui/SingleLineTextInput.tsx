@@ -1,3 +1,5 @@
+"use client"
+
 import { Box, Button, Input } from "@chakra-ui/react"
 import { faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

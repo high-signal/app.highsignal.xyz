@@ -87,6 +87,7 @@ export default function SettingsTabbedContent({
                                     bg: "button.secondary.active",
                                     _hover: { bg: "button.secondary.active" },
                                     color: "textColor",
+                                    textDecoration: "underline",
                                 }}
                             >
                                 {tab.label}
