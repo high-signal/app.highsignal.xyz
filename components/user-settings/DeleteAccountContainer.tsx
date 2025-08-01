@@ -59,6 +59,7 @@ const DeleteAccountContainer = ({ targetUser }: { targetUser: UserData }) => {
             pb={4}
             borderRadius={"16px"}
             w={"100%"}
+            bg={"pageBackground"}
         >
             <Text fontSize={"2xl"} fontWeight={"bold"}>
                 Danger Zone
@@ -133,6 +134,7 @@ const DeleteAccountContainer = ({ targetUser }: { targetUser: UserData }) => {
                         px={3}
                         py={2}
                         borderRadius={"full"}
+                        disabled={isDeleting}
                     >
                         <Text>No - Keep my account</Text>
                     </Button>
