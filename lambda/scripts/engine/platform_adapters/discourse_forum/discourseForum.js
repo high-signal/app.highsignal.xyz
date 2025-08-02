@@ -36,6 +36,8 @@ async function getDailyActivityData({
         supabase,
         projectId,
         userId,
+        dayDate,
+        previousDays,
     })
     console.log(
         `🗓️ Processed ${activityData?.length || 0} activities for ${userDisplayName} (forum username: ${forum_username})`,

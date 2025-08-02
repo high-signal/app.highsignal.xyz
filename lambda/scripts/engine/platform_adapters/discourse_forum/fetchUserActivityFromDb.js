@@ -1,12 +1,23 @@
-async function fetchUserActivityFromDb({ supabase, projectId, userId }) {
+async function fetchUserActivityFromDb({ supabase, projectId, userId, dayDate, previousDays }) {
     try {
+        const formattedDayDate = new Date(`${dayDate}T23:59:59.999Z`)
+
         const { data: forumMessages, error: forumMessageError } = await supabase
             .from("forum_messages")
             .select("*")
             .eq("project_id", projectId)
             .eq("user_id", userId)
             .order("created_at", { ascending: false })
+            .gte(
+                "created_at",
+                new Date(new Date(formattedDayDate).setDate(formattedDayDate.getDate() - previousDays))
+                    .toISOString()
+                    .split("T")[0],
+            )
+            .lte("created_at", new Date(`${dayDate}T23:59:59.999Z`).toISOString())
             .limit(50)
+
+        console.log("🔍 Forum messages:", forumMessages)
 
         if (forumMessageError) {
             console.error("Error fetching forum message:", forumMessageError)
