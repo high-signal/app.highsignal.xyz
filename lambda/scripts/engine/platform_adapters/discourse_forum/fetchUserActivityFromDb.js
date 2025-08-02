@@ -11,11 +11,10 @@ async function fetchUserActivityFromDb({ supabase, projectId, userId }) {
             throw forumMessageError
         }
         const formattedActivity = forumMessages.map((message) => ({
-            id: message.id,
+            id: message.post_id,
             cooked: message.cooked,
             created_at: message.created_at,
         }))
-        console.log("🔍 Formatted activity:", formattedActivity)
         return formattedActivity
     } catch (error) {
         console.error(`⚠️ Error fetching activity for user ${username}:`, error.message)
