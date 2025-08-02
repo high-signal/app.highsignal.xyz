@@ -134,6 +134,32 @@ export default function DevButtons({
             >
                 addAllItemsToForumQueue
             </Button>
+            <Button
+                primaryButton
+                px={2}
+                py={1}
+                borderRadius={"full"}
+                onClick={async () => {
+                    const token = await getAccessToken()
+                    const response = await fetch(
+                        `/api/superadmin/accounts/trigger-update?functionType=runForumGovernor`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                        },
+                    )
+
+                    if (!response.ok) {
+                        const errorData = await response.json()
+                        console.error(errorData.error)
+                    }
+                }}
+            >
+                runForumGovernor
+            </Button>
         </HStack>
     )
 }
