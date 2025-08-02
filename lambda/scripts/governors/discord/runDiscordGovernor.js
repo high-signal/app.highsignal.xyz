@@ -53,7 +53,7 @@ async function runDiscordGovernor() {
                 // Convert started_at string to timestamp for comparison.
                 const startedAtTimestamp = new Date(queueItem.started_at).getTime()
 
-                // If a queue item has been running for more than 60 seconds,
+                // If a queue item has been running for more than TIMEOUT_SECONDS seconds,
                 // increment the attempts and set the status to "error".
                 if (startedAtTimestamp < Date.now() - 1000 * TIMEOUT_SECONDS) {
                     console.log(
