@@ -17,8 +17,6 @@ async function fetchUserActivityFromDb({ supabase, projectId, userId, dayDate, p
             .lte("created_at", new Date(`${dayDate}T23:59:59.999Z`).toISOString())
             .limit(50)
 
-        console.log("🔍 Forum messages:", forumMessages)
-
         if (forumMessageError) {
             console.error("Error fetching forum message:", forumMessageError)
             throw forumMessageError
