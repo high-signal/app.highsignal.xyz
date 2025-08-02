@@ -4,6 +4,8 @@ const { handleRunAiGovernor } = require("./scripts/index-handlers/handleRunAiGov
 const { handleRunAiQueueItem } = require("./scripts/index-handlers/handleRunAiQueueItem")
 const { handleRunDiscordGovernor } = require("./scripts/index-handlers/handleRunDiscordGovernor")
 const { handleRunDiscordQueueItem } = require("./scripts/index-handlers/handleRunDiscordQueueItem")
+const { handleAddAllItemsToForumQueue } = require("./scripts/index-handlers/handleAddAllItemsToForumQueue")
+const { handleRunForumGovernor } = require("./scripts/index-handlers/handleRunForumGovernor")
 
 const { selfInvokeAsynchronously } = require("./scripts/utils/selfInvokeAsynchronously")
 
@@ -76,6 +78,10 @@ exports.handler = async (event) => {
                 return await handleRunDiscordGovernor()
             case "runDiscordQueueItem": // Processes a single item from the Discord queue
                 return await handleRunDiscordQueueItem(functionParams)
+            case "addAllItemsToForumQueue":
+                return await handleAddAllItemsToForumQueue()
+            case "runForumGovernor": // Processes the forum queue
+                return await handleRunForumGovernor()
             default:
                 console.log(`Unknown function type: ${functionType}`)
                 return {
