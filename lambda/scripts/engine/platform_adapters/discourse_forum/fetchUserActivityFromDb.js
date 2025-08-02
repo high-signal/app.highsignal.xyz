@@ -5,6 +5,8 @@ async function fetchUserActivityFromDb({ supabase, projectId, userId }) {
             .select("*")
             .eq("project_id", projectId)
             .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(50)
 
         if (forumMessageError) {
             console.error("Error fetching forum message:", forumMessageError)
