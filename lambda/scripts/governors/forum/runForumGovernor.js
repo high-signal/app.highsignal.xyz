@@ -151,9 +151,8 @@ async function runForumGovernor() {
                     console.log(`🏁 Marked queue item ${pendingQueueItem.id} as "completed"`)
                 }
             }
-
-            console.log("🎉 Finished processing all forum queue items. Forum governor complete.")
         }
+        console.log("🎉 Finished processing all forum queue items. Forum governor complete.")
     } catch (error) {
         console.error("Error in runForumGovernor:", error)
         throw error

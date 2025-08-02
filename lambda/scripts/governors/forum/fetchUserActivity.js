@@ -1,6 +1,8 @@
 const axios = require("axios")
 const { processObjectForHtml } = require("../../engine/utils/processObjectForHtml")
 
+const { MAX_ACTIVITY_CHAR_LIMIT } = require("./constants")
+
 async function fetchUserActivity({ pendingQueueItem, projectSignalStrengthConfig }) {
     const BASE_URL = projectSignalStrengthConfig.url
     const username = pendingQueueItem.forum_username
@@ -17,7 +19,7 @@ async function fetchUserActivity({ pendingQueueItem, projectSignalStrengthConfig
         } else {
             forumActivity = response.data.map((action) => ({
                 id: action.id,
-                cooked: processObjectForHtml(action.cooked),
+                cooked: processObjectForHtml(action.cooked).substring(0, MAX_ACTIVITY_CHAR_LIMIT),
                 created_at: action.created_at,
             }))
         }
