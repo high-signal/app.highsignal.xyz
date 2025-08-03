@@ -3,10 +3,14 @@
 import { Box, Button, HStack, Link, Text, VStack } from "@chakra-ui/react"
 import SettingsSectionContainer from "../../ui/SettingsSectionContainer"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCheckCircle, faCopy, faExternalLink, faKey, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons"
+import { faCheckCircle, faCopy, faKey, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons"
 import { useState } from "react"
 import ApiKeyConfirmationModal from "./ApiKeyConfirmationModal"
 import { usePrivy } from "@privy-io/react-auth"
+
+import AllUsersApiTab from "./AllUsersApiTab"
+import SingleUserApiTab from "./SingleUserApiTab"
+import SettingsTabbedContent from "../../ui/SettingsTabbedContent"
 
 export default function ApiKeysSettingsContainer({
     project,
@@ -180,110 +184,22 @@ export default function ApiKeysSettingsContainer({
                                 <Text>Revoke API Key</Text>
                             </Button>
                         </HStack>
-                        <VStack maxW={"100%"} gap={5} alignItems={"start"} pt={2}>
-                            <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
-                            <Text w={"100%"}>
-                                Use this API with pagination to fetch historical data for all users and their Ethereum
-                                addresses that are either public or shared with {project.displayName} directly.
-                            </Text>
-                            <VStack alignItems={"start"} gap={1}>
-                                <Text fontWeight={"bold"}>URL Path</Text>
-                                <Text
-                                    bg={"pageBackground"}
-                                    px={3}
-                                    py={1}
-                                    borderRadius={"full"}
-                                >{`${process.env.NEXT_PUBLIC_SITE_URL}/api/users/`}</Text>
-                            </VStack>
-                            <VStack alignItems={"start"} gap={1}>
-                                <Text fontWeight={"bold"}>URL Params</Text>
-                                <Text
-                                    bg={"pageBackground"}
-                                    px={3}
-                                    py={1}
-                                    borderRadius={"full"}
-                                >{`apiKey=<YOUR_API_KEY>`}</Text>
-
-                                <Text
-                                    bg={"pageBackground"}
-                                    px={3}
-                                    py={1}
-                                    borderRadius={"full"}
-                                >{`project=${project.urlSlug}`}</Text>
-                                <Text bg={"pageBackground"} px={3} py={1} borderRadius={"full"}>{`page=1`}</Text>
-                            </VStack>
-                            <VStack alignItems={"start"} gap={1}>
-                                <Text fontWeight={"bold"}>Full URL</Text>
-                                <Link href={apiUrl} target="_blank" textDecoration={"none"} maxW={"500px"}>
-                                    <Button
-                                        secondaryButton
-                                        px={3}
-                                        py={1}
-                                        borderRadius={"16px"}
-                                        maxW={"500px"}
-                                        h="auto"
-                                        whiteSpace="normal"
-                                        textAlign="center"
-                                    >
-                                        <Text
-                                            lineBreak={"anywhere"}
-                                            maxW={"500px"}
-                                            wordBreak="break-all"
-                                            whiteSpace="normal"
-                                            overflowWrap="break-word"
-                                        >
-                                            {apiUrl}
-                                        </Text>
-                                        <FontAwesomeIcon icon={faExternalLink} size="lg" />
-                                    </Button>
-                                </Link>
-                            </VStack>
-                            <VStack alignItems={"start"} gap={1} w={"100%"}>
-                                <Text fontWeight={"bold"}>Example Response</Text>
-                                <Text
-                                    bg={"pageBackground"}
-                                    px={3}
-                                    py={2}
-                                    borderRadius={"8px"}
-                                    fontFamily={"monospace"}
-                                    fontSize={"sm"}
-                                    whiteSpace="pre-wrap"
-                                    w={"100%"}
-                                >
-                                    {`{
-  "data": [...],
-  "maxPage": 1,
-  "totalResults": 1,
-  "currentPage": 1,
-  "resultsPerPage": 100
-}`}
-                                </Text>
-                            </VStack>
-                            <VStack alignItems={"start"} gap={1} w={"100%"}>
-                                <Text fontWeight={"bold"}>Example data</Text>
-                                <Text
-                                    bg={"pageBackground"}
-                                    px={3}
-                                    py={2}
-                                    borderRadius={"8px"}
-                                    fontFamily={"monospace"}
-                                    fontSize={"sm"}
-                                    whiteSpace="pre-wrap"
-                                    w={"100%"}
-                                >
-                                    {`{
-  "username": "eridian",
-  "displayName": "Eridian",
-  "rank": 16,
-  "score": 54,
-  "addresses": [
-    "0x9ca44BDA52cACb3a4F7fB3ED46498a00698238e1",
-    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
-  ]
-}`}
-                                </Text>
-                            </VStack>
-                        </VStack>
+                        <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
+                        <SettingsTabbedContent
+                            updateUrlParam={false}
+                            tabs={[
+                                {
+                                    value: "allUsersApi",
+                                    label: "All Users API",
+                                    content: <AllUsersApiTab project={project} />,
+                                },
+                                {
+                                    value: "singleUserApi",
+                                    label: "Single User API",
+                                    content: <SingleUserApiTab project={project} />,
+                                },
+                            ]}
+                        />
                     </>
                 ) : (
                     <Button
