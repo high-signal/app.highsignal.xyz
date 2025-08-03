@@ -8,6 +8,7 @@ const { getRawActivityCombinedData } = require("./utils/getRawActivityCombinedDa
 const { checkProjectSignalStrengthEnabled } = require("./utils/checkProjectSignalStrengthEnabled")
 const { checkRawScoreCalculationsRequired } = require("./utils/checkRawScoreCalculationsRequired")
 const { retryParentQueueItem } = require("./utils/retryParentQueueItem")
+const { checkForSmartScoreGaps } = require("./utils/checkForSmartScoreGaps")
 
 const { processRawScore } = require("./processRawScore")
 const { processSmartScores } = require("./processSmartScores")
@@ -224,6 +225,11 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
             dayDate,
             logs,
         })
+
+        // ===========================
+        // Check for gaps in the data
+        // ===========================
+        await checkForSmartScoreGaps({ supabase, userId, projectId, signalStrengthId })
 
         console.log(
             `☑️ Analysis complete for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) for ${dayDate}`,
