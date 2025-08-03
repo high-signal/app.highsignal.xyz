@@ -99,8 +99,8 @@ export default function AllUsersApiTab({ project }: { project: ProjectData }) {
   "rank": 16,
   "score": 54,
   "addresses": [
-    "0x9ca44BDA52cACb3a4F7fB3ED46498a00698238e1",
-    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+    "0x1234567890123456789012345678901234567890",
+    "0x1234567890123456789012345678901234567891"
   ]
 }`}
                     </Text>
