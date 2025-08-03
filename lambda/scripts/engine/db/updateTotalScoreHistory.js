@@ -11,7 +11,7 @@ async function updateTotalScoreHistory(supabase, userId, projectId, day) {
 
     if (signalStrengthScoresError) {
         console.error("Error fetching signal strength scores:", signalStrengthScoresError.message)
-        return
+        throw signalStrengthScoresError
     }
 
     // Calculate the total score
@@ -33,6 +33,7 @@ async function updateTotalScoreHistory(supabase, userId, projectId, day) {
             `Error updating user_project_scores_history for userId: ${userId} for day: ${day}:`,
             historyError.message,
         )
+        throw historyError
     } else {
         console.log(`💾 Successfully updated user_project_scores_history for: userId ${userId} for day ${day}`)
     }
