@@ -12,6 +12,7 @@ import { usePrivy } from "@privy-io/react-auth"
 
 import { APP_CONFIG } from "../../../config/constants"
 import { useRouter } from "next/navigation"
+import { Lozenges } from "../../ui/Lozenges"
 
 const SignalStrengthLozenge = ({ children }: { children: React.ReactNode }) => (
     <HStack flexGrow={1} justifyContent={{ base: "center", sm: "end" }}>
@@ -174,18 +175,26 @@ export default function SignalStrength({
                     !userDataRefreshTriggered &&
                     signalStrengthProjectData.status === "active" &&
                     signalStrengthProjectData.enabled && (
-                        <HStack
-                            gap={"2px"}
-                            bg={
-                                completedBarWidth !== "0%" ? "lozenge.background.active" : "lozenge.background.disabled"
-                            }
-                            fontSize="xl"
-                            px={2}
-                            borderRadius="8px"
-                            color={completedBarWidth !== "0%" ? "lozenge.text.active" : "lozenge.text.disabled"}
-                        >
-                            {completedBarWidth !== "0%" && <Text>+</Text>}
-                            <Text>{displayValue}</Text>
+                        <HStack>
+                            <HStack
+                                gap={"2px"}
+                                bg={
+                                    completedBarWidth !== "0%"
+                                        ? "lozenge.background.active"
+                                        : "lozenge.background.disabled"
+                                }
+                                fontSize="xl"
+                                px={2}
+                                borderRadius="8px"
+                                color={completedBarWidth !== "0%" ? "lozenge.text.active" : "lozenge.text.disabled"}
+                                cursor={"default"}
+                            >
+                                {completedBarWidth !== "0%" && <Text>+</Text>}
+                                <Text>{displayValue}</Text>
+                            </HStack>
+                            {userContentAvailable && loggedInUser?.username === username && (
+                                <Lozenges types={["calcInfo"]} />
+                            )}
                         </HStack>
                     )}
                 {signalStrengthProjectData.status === "dev" && (
