@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
             signalStrengthName: signalStrength.name,
             userId: targetUser.id,
             projectId: project.id,
+            signalStrengthUsername: signalStrengthUsername,
             testingData: structuredTestingData,
         })
 

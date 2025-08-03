@@ -1,4 +1,4 @@
-const { fetchUserActivity } = require("./fetchUserActivity")
+const { fetchUserActivityFromDb } = require("./fetchUserActivityFromDb")
 
 async function getDailyActivityData({
     supabase,
@@ -32,7 +32,13 @@ async function getDailyActivityData({
 
     // === Fetch activity data from forum API ===
     console.log(`👀 Fetching forum activity data for ${userDisplayName} (forum username: ${forum_username})`)
-    const activityData = await fetchUserActivity({ BASE_URL: url, username: forum_username })
+    const activityData = await fetchUserActivityFromDb({
+        supabase,
+        projectId,
+        userId,
+        dayDate,
+        previousDays,
+    })
     console.log(
         `🗓️ Processed ${activityData?.length || 0} activities for ${userDisplayName} (forum username: ${forum_username})`,
     )

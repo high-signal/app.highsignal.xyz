@@ -4,6 +4,10 @@ import { handleAddAllItemsToAiQueue } from "../../lambda/scripts/index-handlers/
 import { handleAddSingleItemToAiQueue } from "../../lambda/scripts/index-handlers/handleAddSingleItemToAiQueue"
 // @ts-ignore
 import { handleRunAiGovernor } from "../../lambda/scripts/index-handlers/handleRunAiGovernor"
+// @ts-ignore
+import { handleAddAllItemsToForumQueue } from "../../lambda/scripts/index-handlers/handleAddAllItemsToForumQueue"
+// @ts-ignore
+import { handleRunForumGovernor } from "../../lambda/scripts/index-handlers/handleRunForumGovernor"
 
 export async function triggerLambda(params: {
     functionType: string
@@ -85,6 +89,10 @@ export async function triggerLambda(params: {
                 })
             } else if (functionType === "runAiGovernor") {
                 await handleRunAiGovernor()
+            } else if (functionType === "addAllItemsToForumQueue") {
+                await handleAddAllItemsToForumQueue()
+            } else if (functionType === "runForumGovernor") {
+                await handleRunForumGovernor()
             } else {
                 throw new Error(`Unknown function type: ${functionType}`)
             }
