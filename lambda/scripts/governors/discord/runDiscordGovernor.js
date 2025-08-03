@@ -3,7 +3,7 @@
 
 require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
-const { createReadyDiscordClient } = require("./discordClient")
+const { DiscordRestApi } = require("./discordRestApi")
 const { handleTriggerDiscordQueueItem } = require("./handleTriggerDiscordQueueItem")
 
 // ==========
@@ -16,10 +16,10 @@ const { MAX_QUEUE_LENGTH, TIMEOUT_SECONDS, MAX_ATTEMPTS, HEAD_GAP_MINUTES } = re
 // =================
 async function runDiscordGovernor() {
     console.log("💡 Running Discord governor")
-    // ==========================
-    // Create the Discord client
-    // ==========================
-    const client = await createReadyDiscordClient()
+    // ===================================
+    // Create the Discord REST API client
+    // ===================================
+    const discordApi = new DiscordRestApi()
 
     try {
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -163,33 +163,36 @@ async function runDiscordGovernor() {
                 continue
             }
             const guildId = urlMatch[1]
-            const guild = await client.guilds.fetch(guildId)
 
-            // Fetch all channels in the guild.
-            // This does not seem to have a documented limit, so it should be
-            // able to get all channels in the guild even if there are a lot.
-            // This ensures we have all channels loaded in the cache before filtering.
-            const fetchedChannels = await guild.channels.fetch()
+            // Get guild information
+            const guild = await discordApi.getGuild(guildId)
 
-            // Filter out channels the bot does not have access to.
-            const accessibleChannels = fetchedChannels.filter((channel) =>
-                channel.permissionsFor(guild.members.me)?.has("ViewChannel"),
-            )
+            // Fetch all channels in the guild
+            const allChannels = await discordApi.getGuildChannels(guildId)
 
-            // Filter out non-text channels.
-            // 0 = TextChannel
-            const channels = accessibleChannels.filter((channel) => channel.type === 0)
+            // Filter for text channels (type 0) and check permissions
+            const textChannels = []
+            for (const channel of allChannels) {
+                if (channel.type === 0) {
+                    // Text channel
+                    const canView = await discordApi.canViewChannel(guildId, channel.id)
+                    if (canView) {
+                        textChannels.push(channel)
+                    }
+                }
+            }
 
-            console.log(`🔍 Found ${channels.size} text channels in guild: ${guild.name}`)
+            console.log(`🔍 Found ${textChannels.length} accessible text channels in guild: ${guild.name}`)
 
             // Shuffle channels to avoid always processing the same ones first.
             // Useful in case of ratel-imit issues that only allow the first X channels to be processed.
-            const shuffledChannels = [...channels].sort(() => Math.random() - 0.5)
+            const shuffledChannels = [...textChannels].sort(() => Math.random() - 0.5)
 
             // ====================================================
             // For each channel, check queue and trigger if needed
             // ====================================================
-            for (const [channelId, channel] of shuffledChannels) {
+            for (const channel of shuffledChannels) {
+                const channelId = channel.id
                 console.log("--------------------------------")
                 console.log(`⭐️ Processing Guild: ${guild.name}. Channel: ${channel.name}.`)
 
@@ -420,11 +423,7 @@ async function runDiscordGovernor() {
         console.error("Error in runDiscordGovernor:", error)
         throw error
     } finally {
-        // Clean up the Discord client
-        if (client) {
-            console.log("🔌 Closing Discord client...")
-            client.destroy()
-        }
+        console.log("✅ Discord REST API governor complete")
     }
 }
 

@@ -1,6 +1,6 @@
 require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
-const { createReadyDiscordClient } = require("./discordClient")
+const { DiscordRestApi } = require("./discordRestApi")
 const outOfCharacter = require("out-of-character")
 
 // ==========
@@ -15,10 +15,10 @@ const {
 } = require("./constants")
 
 async function runDiscordQueueItem({ queueItemId }) {
-    // ==========================
-    // Create the Discord client
-    // ==========================
-    const client = await createReadyDiscordClient()
+    // ===================================
+    // Create the Discord REST API client
+    // ===================================
+    const discordApi = new DiscordRestApi()
 
     try {
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -44,7 +44,7 @@ async function runDiscordQueueItem({ queueItemId }) {
         // If there is space, try to claim the queue item.
         const { data: claimedQueueItem, error: claimedQueueItemError } = await supabase
             .from("discord_request_queue")
-            .update({ status: "running" })
+            .update({ status: "running", started_at: new Date().toISOString() })
             .eq("id", queueItemId)
             .eq("status", "pending")
             .select()
@@ -71,21 +71,9 @@ async function runDiscordQueueItem({ queueItemId }) {
 
             const maxChars = discordSignalStrength.max_chars
 
-            // Set the started_at timestamp to the current time.
-            const { error: updatedQueueItemStartedAtError } = await supabase
-                .from("discord_request_queue")
-                .update({ started_at: new Date().toISOString() })
-                .eq("id", queueItemId)
-                .select()
-
-            if (updatedQueueItemStartedAtError) {
-                console.error("Error updating queue item started_at:", updatedQueueItemStartedAtError)
-                throw updatedQueueItemStartedAtError
-            }
-
             // Get the guild and channel to process.
-            const guild = await client.guilds.fetch(claimedQueueItem[0].guild_id)
-            const channel = await guild.channels.fetch(claimedQueueItem[0].channel_id)
+            const guildId = claimedQueueItem[0].guild_id
+            const channelId = claimedQueueItem[0].channel_id
 
             // This will either be an existing message id or null.
             let newestMessageId = claimedQueueItem[0].newest_message_id
@@ -96,33 +84,20 @@ async function runDiscordQueueItem({ queueItemId }) {
 
             // Message fetch loop.
             for (let i = 0; i < MAX_PAGINATION_LOOPS; i++) {
-                // Rate limiter logic
-                // Ensures that only MAX_REQUESTS_PER_SECOND_PER_CHANNEL requests are made per second per channel.
-                if (!channel._requestTimestamps) channel._requestTimestamps = []
-                const now = Date.now()
-                channel._requestTimestamps = channel._requestTimestamps.filter((ts) => now - ts < 1000)
-                if (channel._requestTimestamps.length >= MAX_REQUESTS_PER_SECOND_PER_CHANNEL) {
-                    const waitTime = 1000 - (now - channel._requestTimestamps[0])
-                    console.log(`⏳ Rate limit hit, waiting ${waitTime}ms before next request...`)
-                    await new Promise((res) => setTimeout(res, waitTime))
-                }
-                channel._requestTimestamps.push(Date.now())
-
-                // Start loop logic after rate limit delay.
                 console.log(`🔄 Loop ${i + 1} of ${MAX_PAGINATION_LOOPS}`)
 
-                // Fetch messages from the channel.
-                const messages = await channel.messages.fetch({
+                // Fetch messages from the channel using REST API.
+                const messages = await discordApi.fetchMessages(channelId, {
                     limit: MAX_MESSAGES_TO_PROCESS,
                     before: newestMessageId,
                 })
 
                 // Check if there are any messages to process.
-                if (messages.size > 0) {
+                if (messages.length > 0) {
                     // This will only happen on the first loop if newestMessageId is null (e.g. a head sync)
                     // as on the second loop newestMessageId will have been set.
                     if (!newestMessageId) {
-                        newestMessageId = messages.first().id
+                        newestMessageId = messages[0].id
 
                         console.log(`📣 Head sync detected.`)
 
@@ -140,8 +115,8 @@ async function runDiscordQueueItem({ queueItemId }) {
                     }
 
                     // Set the oldest message found in this loop.
-                    oldestMessageId = messages.last().id
-                    oldestMessageTimestamp = messages.last().createdTimestamp
+                    oldestMessageId = messages[messages.length - 1].id
+                    oldestMessageTimestamp = new Date(messages[messages.length - 1].timestamp).getTime()
 
                     // Set the newestMessageId for the next iteration to the oldest message from this batch.
                     // This ensures we move backward through the message history.
@@ -149,7 +124,6 @@ async function runDiscordQueueItem({ queueItemId }) {
 
                     // Collect all valid messages to insert in one go
                     let messagesToInsert = []
-                    let messageIdToMsg = {}
                     messages.forEach((msg) => {
                         if (msg.content.length < MIN_MESSAGE_CHAR_LENGTH) {
                             console.log(
@@ -161,13 +135,12 @@ async function runDiscordQueueItem({ queueItemId }) {
                         // If message meets min char length, add it to the messagesToInsert array.
                         messagesToInsert.push({
                             message_id: msg.id,
-                            guild_id: guild.id,
-                            channel_id: channel.id,
+                            guild_id: guildId,
+                            channel_id: channelId,
                             discord_user_id: msg.author.id,
                             content: msg.content,
-                            created_timestamp: new Date(msg.createdTimestamp).toISOString(),
+                            created_timestamp: new Date(msg.timestamp).toISOString(),
                         })
-                        messageIdToMsg[msg.id] = msg
                     })
 
                     if (messagesToInsert.length > 0) {
@@ -261,11 +234,8 @@ async function runDiscordQueueItem({ queueItemId }) {
         console.error("Error in runDiscordQueueItem:", error)
         throw error
     } finally {
-        // Clean up the Discord client
-        if (client) {
-            console.log("🔌 Closing Discord client...")
-            client.destroy()
-        }
+        // No cleanup needed for REST API client
+        console.log("✅ Discord REST API queue item processing complete")
     }
 }
 

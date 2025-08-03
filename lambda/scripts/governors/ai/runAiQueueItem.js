@@ -32,7 +32,7 @@ async function runAiQueueItem({ queueItemId }) {
         // If there is space, try to claim the queue item.
         const { data: claimedQueueItem, error: claimedQueueItemError } = await supabase
             .from("ai_request_queue")
-            .update({ status: "running" })
+            .update({ status: "running", started_at: new Date().toISOString() })
             .eq("id", queueItemId)
             .eq("status", "pending")
             .select()
@@ -44,18 +44,6 @@ async function runAiQueueItem({ queueItemId }) {
 
         if (claimedQueueItem && claimedQueueItem.length > 0) {
             console.log(`✅ Claimed queue item: ${queueItemId}`)
-
-            // Set the started_at timestamp to the current time.
-            const { error: updatedQueueItemStartedAtError } = await supabase
-                .from("ai_request_queue")
-                .update({ started_at: new Date().toISOString() })
-                .eq("id", queueItemId)
-                .select()
-
-            if (updatedQueueItemStartedAtError) {
-                console.error("Error updating queue item started_at:", updatedQueueItemStartedAtError)
-                throw updatedQueueItemStartedAtError
-            }
 
             // Run the AI engine.
             await runEngine({
