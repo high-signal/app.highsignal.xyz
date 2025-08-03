@@ -1,6 +1,6 @@
 "use client"
 
-import { HStack, Text } from "@chakra-ui/react"
+import { HStack, Text, VStack } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faBell,
@@ -9,6 +9,7 @@ import {
     faLock,
     faChartLine,
     faShare,
+    faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons"
 import { ToggleTip } from "./toggle-tip"
 
@@ -55,6 +56,29 @@ const typeConfig = {
         text: "Signal Score",
         tip: "When confirmed, your activity on these accounts will contribute to your Signal Score.",
     },
+    calcInfo: {
+        bgColor: "blue.500",
+        color: "blue.100",
+        icon: faInfoCircle,
+        text: "",
+        tip: (
+            <VStack p={1} textAlign="center" gap={3}>
+                <Text>
+                    Scores are updated daily. They are calculated from your activity yesterday (UTC) and a number of
+                    previous days.
+                </Text>
+                <HStack w="100%" justifyContent="space-around">
+                    <Text>🗓️</Text>
+                    <Text>⏳</Text>
+                    <Text>🗓️</Text>
+                    <Text>⏳</Text>
+                    <Text>🗓️</Text>
+                    <Text>⏳</Text>
+                </HStack>
+                <Text>If your score has not been updated, come back tomorrow to see your new daily score.</Text>
+            </VStack>
+        ),
+    },
 }
 
 interface LozengeProps {
@@ -64,9 +88,13 @@ interface LozengeProps {
 
 export function Lozenge({ type, lozengeTypes = [] }: LozengeProps) {
     const config = typeConfig[type]
+    const iconOnly = !config.text
 
     return (
-        <ToggleTip content={<Text textAlign="center">{config.tip}</Text>} positioning={{ placement: "top" }}>
+        <ToggleTip
+            content={typeof config.tip === "string" ? <Text textAlign="center">{config.tip}</Text> : config.tip}
+            positioning={{ placement: "top" }}
+        >
             <HStack
                 fontSize="sm"
                 color={config.color}
@@ -74,11 +102,11 @@ export function Lozenge({ type, lozengeTypes = [] }: LozengeProps) {
                 gap={"6px"}
                 bg={config.bgColor}
                 borderRadius="full"
-                px={2}
-                py={"1px"}
+                px={iconOnly ? "5px" : 2}
+                py={iconOnly ? "5px" : "1px"}
             >
                 <FontAwesomeIcon icon={config.icon} />
-                <Text>{config.text}</Text>
+                {!iconOnly && <Text>{config.text}</Text>}
             </HStack>
         </ToggleTip>
     )
