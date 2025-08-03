@@ -23,6 +23,14 @@ export const routePermissions: RoutePermission[] = [
         },
     },
     {
+        path: "/api/data/",
+        methods: {
+            GET: {
+                requiresAuth: false,
+            },
+        },
+    },
+    {
         path: "/api/info",
         methods: {
             // Public read access to project info (Vercel region, etc.)
