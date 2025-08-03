@@ -44,7 +44,7 @@ async function runDiscordQueueItem({ queueItemId }) {
         // If there is space, try to claim the queue item.
         const { data: claimedQueueItem, error: claimedQueueItemError } = await supabase
             .from("discord_request_queue")
-            .update({ status: "running" })
+            .update({ status: "running", started_at: new Date().toISOString() })
             .eq("id", queueItemId)
             .eq("status", "pending")
             .select()
@@ -70,18 +70,6 @@ async function runDiscordQueueItem({ queueItemId }) {
             }
 
             const maxChars = discordSignalStrength.max_chars
-
-            // Set the started_at timestamp to the current time.
-            const { error: updatedQueueItemStartedAtError } = await supabase
-                .from("discord_request_queue")
-                .update({ started_at: new Date().toISOString() })
-                .eq("id", queueItemId)
-                .select()
-
-            if (updatedQueueItemStartedAtError) {
-                console.error("Error updating queue item started_at:", updatedQueueItemStartedAtError)
-                throw updatedQueueItemStartedAtError
-            }
 
             // Get the guild and channel to process.
             const guild = await client.guilds.fetch(claimedQueueItem[0].guild_id)
