@@ -5,7 +5,8 @@ import { NextResponse } from "next/server"
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const projectSlug = searchParams.get("project")
-    const targetUsername = searchParams.get("targetUsername")
+    const searchType = searchParams.get("searchType")
+    const searchValue = searchParams.get("searchValue")
     const startDate = searchParams.get("startDate")
     const endDate = searchParams.get("endDate")
     const apiKey = searchParams.get("apiKey")
@@ -16,8 +17,24 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "Project is required" }, { status: 400 })
     }
 
-    if (!targetUsername) {
-        return NextResponse.json({ error: "targetUsername is required" }, { status: 400 })
+    if (!searchType || !searchValue) {
+        return NextResponse.json({ error: "Both searchType and searchValue are required" }, { status: 400 })
+    }
+
+    if (
+        searchType !== "highSignalUsername" &&
+        searchType !== "address" &&
+        searchType !== "email" &&
+        searchType !== "discordUsername" &&
+        searchType !== "xUsername" &&
+        searchType !== "farcasterUsername"
+    ) {
+        return NextResponse.json(
+            {
+                error: "searchType must be either 'highSignalUsername', 'address', 'email', 'discordUsername', 'xUsername', or 'farcasterUsername'",
+            },
+            { status: 400 },
+        )
     }
 
     // Validate startDate format if provided
@@ -30,12 +47,19 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "endDate must be in YYYY-MM-DD format" }, { status: 400 })
     }
 
+    // Check that searchValue is not greater than 255 characters
+    if (searchValue && searchValue.length > 255) {
+        return NextResponse.json({ error: "searchValue must be less than 255 characters" }, { status: 400 })
+    }
+
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
     try {
         let apiKeyProjectSlug: string | null = null
 
+        // =============================
         // Validate API key if provided
+        // =============================
         if (apiKey) {
             const { data: apiKeyData, error: apiKeyError } = await supabase
                 .from("projects")
@@ -58,35 +82,137 @@ export async function GET(request: Request) {
             }
         }
 
-        // Get user project score
-        const { data: userProjectScore, error: scoresError } = await supabase
-            .from("user_project_scores")
-            .select(
-                `
-                user_id,
-                username,
-                display_name,
-                project_id,
-                total_score,
-                projects!project_signal_strengths_project_id_fkey!inner (
-                    id,
-                    url_slug
+        // ===============================
+        // Find user based on search type
+        // ===============================
+        let userProjectScore: any = null
+        let scoresError: any = null
+
+        if (searchType === "highSignalUsername") {
+            // Search by username
+            const { data, error } = await supabase
+                .from("user_project_scores")
+                .select(
+                    `
+                    user_id,
+                    username,
+                    display_name,
+                    project_id,
+                    total_score,
+                    projects!project_signal_strengths_project_id_fkey!inner (
+                        id,
+                        url_slug
+                    )
+                `,
                 )
-            `,
-            )
-            .eq("projects.url_slug", projectSlug)
-            .eq("username", targetUsername)
-            .single()
+                .eq("projects.url_slug", projectSlug)
+                .eq("username", searchValue)
+                .single()
+
+            userProjectScore = data
+            scoresError = error
+        } else if (searchType === "address") {
+            // Search by address - first find the user_id from user_addresses
+            // We need to check both public addresses and shared addresses separately
+            let foundUserId: string | null = null
+
+            // First, try to find public addresses (always accessible)
+            const { data: publicAddressData, error: publicAddressError } = await supabase
+                .from("user_addresses")
+                .select("user_id")
+                .eq("address", searchValue)
+                .eq("is_public", true)
+                .single()
+
+            if (publicAddressData) {
+                foundUserId = publicAddressData.user_id
+            } else if (publicAddressError && publicAddressError.code !== "PGRST116") {
+                console.error("publicAddressError", publicAddressError)
+                return NextResponse.json({ error: "Error fetching address" }, { status: 500 })
+            }
+
+            // If not found in public addresses, check shared addresses (only if API key is provided)
+            if (!foundUserId) {
+                if (!apiKeyProjectSlug) {
+                    return NextResponse.json(
+                        {
+                            error: `Address '${searchValue}' not found or not accessible. API key required for shared addresses.`,
+                        },
+                        { status: 404 },
+                    )
+                }
+
+                const { data: sharedAddressData, error: sharedAddressError } = await supabase
+                    .from("user_addresses")
+                    .select(
+                        `
+                        user_id,
+                        user_addresses_shared!inner(
+                            projects!inner(
+                                url_slug
+                            )
+                        )
+                    `,
+                    )
+                    .eq("address", searchValue)
+                    .eq("user_addresses_shared.projects.url_slug", projectSlug)
+                    .single()
+
+                if (sharedAddressData) {
+                    foundUserId = sharedAddressData.user_id
+                } else if (sharedAddressError && sharedAddressError.code !== "PGRST116") {
+                    console.error("sharedAddressError", sharedAddressError)
+                    return NextResponse.json({ error: "Error fetching address" }, { status: 500 })
+                }
+            }
+
+            if (!foundUserId) {
+                return NextResponse.json({ error: `Address '${searchValue}' not found` }, { status: 404 })
+            }
+
+            // Now get the user project score using the found user_id
+            const { data, error } = await supabase
+                .from("user_project_scores")
+                .select(
+                    `
+                    user_id,
+                    username,
+                    display_name,
+                    project_id,
+                    total_score,
+                    projects!project_signal_strengths_project_id_fkey!inner (
+                        id,
+                        url_slug
+                    )
+                `,
+                )
+                .eq("projects.url_slug", projectSlug)
+                .eq("user_id", foundUserId)
+                .single()
+
+            userProjectScore = data
+            scoresError = error
+        } else if (
+            searchType === "email" ||
+            searchType === "discordUsername" ||
+            searchType === "xUsername" ||
+            searchType === "farcasterUsername"
+        ) {
+            // TODO: Implement search by email, discord username, x username, or farcaster username
+            return NextResponse.json({ error: "Not yet implemented" }, { status: 501 })
+        }
 
         if (scoresError) {
             if (scoresError.code === "PGRST116") {
-                return NextResponse.json({ error: "User not found in this project" }, { status: 404 })
+                return NextResponse.json({ error: `User '${searchValue}' not found` }, { status: 404 })
             }
             console.error("scoresError", scoresError)
             return NextResponse.json({ error: "Error fetching user score" }, { status: 500 })
         }
 
+        // ============================
         // Get historical total scores
+        // ============================
         let historicalScoresQuery = supabase
             .from("user_project_scores_history")
             .select("total_score, day")
@@ -111,7 +237,9 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: "Error fetching historical total scores" }, { status: 500 })
         }
 
+        // =====================
         // Get signal strengths
+        // =====================
         const { data: signalStrengthIds, error: signalStrengthIdsError } = await supabase
             .from("signal_strengths")
             .select("id")
@@ -170,7 +298,9 @@ export async function GET(request: Request) {
 
         const signalStrengths = signalStrengthsResults.filter(Boolean)
 
+        // ==============
         // Get addresses
+        // ==============
         let addresses: string[] = []
 
         // Get public addresses (always visible)
@@ -184,7 +314,7 @@ export async function GET(request: Request) {
                 )
             `,
             )
-            .eq("users.username", targetUsername)
+            .eq("users.username", userProjectScore.username)
             .eq("is_public", true)
 
         if (publicAddressesError) {
@@ -193,7 +323,7 @@ export async function GET(request: Request) {
             addresses.push(...(publicAddresses?.map((addr) => addr.address) || []))
         }
 
-        // Get shared addresses if API key is provided
+        // Get addresses that the user has shared with the selected project if API key is provided
         if (apiKeyProjectSlug) {
             const { data: sharedAddresses, error: sharedAddressesError } = await supabase
                 .from("user_addresses")
@@ -210,7 +340,7 @@ export async function GET(request: Request) {
                     )
                 `,
                 )
-                .eq("users.username", targetUsername)
+                .eq("users.username", userProjectScore.username)
                 .eq("user_addresses_shared.projects.url_slug", projectSlug)
 
             if (sharedAddressesError) {
@@ -219,6 +349,13 @@ export async function GET(request: Request) {
                 addresses.push(...(sharedAddresses?.map((addr) => addr.address) || []))
             }
         }
+
+        // ===================
+        // Get other accounts
+        // ===================
+        // TODO: First get public accounts
+
+        // TODO: Get accounts that the user has shared with the selected project if API key is provided
 
         // Format the response
         const response = {

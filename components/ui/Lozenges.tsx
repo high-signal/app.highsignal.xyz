@@ -62,10 +62,9 @@ const typeConfig = {
         icon: faInfoCircle,
         text: "",
         tip: (
-            <VStack p={1} textAlign="center" gap={3}>
+            <VStack p={1} textAlign="center" gap={5} fontSize="md">
                 <Text>
-                    Scores are updated daily. They are calculated from your activity yesterday (UTC) and a number of
-                    previous days.
+                    Scores are updated daily and use your activity from yesterday, as well as a number of previous days.
                 </Text>
                 <HStack w="100%" justifyContent="space-around">
                     <Text>🗓️</Text>
@@ -75,7 +74,7 @@ const typeConfig = {
                     <Text>🗓️</Text>
                     <Text>⏳</Text>
                 </HStack>
-                <Text>If your score has not been updated, come back tomorrow to see your new daily score.</Text>
+                <Text>If your score has not yet been updated, come back tomorrow to see your new daily score.</Text>
             </VStack>
         ),
     },

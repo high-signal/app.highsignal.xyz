@@ -15,7 +15,7 @@ export default function SingleUserApiTab({ project }: { project: ProjectData }) 
 
     const { loggedInUser } = useUser()
 
-    const apiUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/data/v1/user/?project=${project.urlSlug}&targetUsername=${loggedInUser?.username}&startDate=${twoDaysAgoString}&endDate=${yesterdayString}&apiKey=${project.apiKey}`
+    const apiUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/data/v1/user/?project=${project.urlSlug}&searchType=highSignalUsername&searchValue=${loggedInUser?.username}&startDate=${twoDaysAgoString}&endDate=${yesterdayString}&apiKey=${project.apiKey}`
 
     return (
         <VStack maxW={"100%"} gap={0} alignItems={"start"}>
@@ -42,12 +42,13 @@ export default function SingleUserApiTab({ project }: { project: ProjectData }) 
                         py={1}
                         borderRadius={"full"}
                     >{`project=${project.urlSlug}`}</Text>
+                    <Text bg={"pageBackground"} px={3} py={1} borderRadius={"full"}>{`searchType=<SEARCH_TYPE>`}</Text>
                     <Text
                         bg={"pageBackground"}
                         px={3}
                         py={1}
                         borderRadius={"full"}
-                    >{`targetUsername=<TARGET_USERNAME>`}</Text>
+                    >{`searchValue=<SEARCH_VALUE>`}</Text>
                     <Text bg={"pageBackground"} px={3} py={1} borderRadius={"full"}>{`startDate=YYYY-MM-DD`}</Text>
                     <HStack>
                         <Text bg={"pageBackground"} px={3} py={1} borderRadius={"full"}>{`endDate=YYYY-MM-DD`}</Text>
@@ -55,7 +56,7 @@ export default function SingleUserApiTab({ project }: { project: ProjectData }) 
                     </HStack>
                 </VStack>
                 <VStack alignItems={"start"} gap={1}>
-                    <Text fontWeight={"bold"}>Full URL</Text>
+                    <Text fontWeight={"bold"}>Example URL</Text>
                     <Link href={apiUrl} target="_blank" textDecoration={"none"} maxW={"500px"}>
                         <Button
                             secondaryButton
@@ -99,7 +100,7 @@ export default function SingleUserApiTab({ project }: { project: ProjectData }) 
     "0x1234567890123456789012345678901234567890",
     "0x1234567890123456789012345678901234567891"
   ],
-  "discord": eridianalpha#0,
+  "discordUsername": eridianalpha#0,
   "totalScores": [
     {
       "day": "${yesterdayString}",
