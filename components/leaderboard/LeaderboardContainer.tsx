@@ -48,28 +48,26 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                 justifyContent="center"
             >
                 {!loading && !error ? (
-                    <>
-                        <HStack gap={3} h="50px">
-                            <Image
-                                src={currentProject?.projectLogoUrl}
-                                alt={currentProject?.displayName}
-                                boxSize="50px"
-                                borderRadius="full"
-                            />
-                            <Text
-                                fontWeight="bold"
-                                whiteSpace="normal"
-                                overflowWrap="break-word"
-                                wordBreak="break-word"
-                                fontSize={{
-                                    base: currentProject?.displayName?.length >= 16 ? "2xl" : "3xl",
-                                    sm: "4xl",
-                                }}
-                            >
-                                {currentProject?.displayName}{" "}
-                            </Text>
-                        </HStack>
-                    </>
+                    <HStack gap={3} h="50px">
+                        <Image
+                            src={currentProject?.projectLogoUrl}
+                            alt={currentProject?.displayName}
+                            boxSize="50px"
+                            borderRadius="full"
+                        />
+                        <Text
+                            fontWeight="bold"
+                            whiteSpace="normal"
+                            overflowWrap="break-word"
+                            wordBreak="break-word"
+                            fontSize={{
+                                base: currentProject?.displayName?.length >= 16 ? "2xl" : "3xl",
+                                sm: "4xl",
+                            }}
+                        >
+                            {currentProject?.displayName}{" "}
+                        </Text>
+                    </HStack>
                 ) : (
                     <HStack w="200px" h="50px" justifyContent="center">
                         {error ? (

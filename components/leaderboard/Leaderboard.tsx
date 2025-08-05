@@ -326,7 +326,13 @@ export default function Leaderboard({
                                             </Link>
                                         </Table.Cell>
                                     )}
-                                    <Table.Cell borderBottom="none" py={"6px"} pr={0} maxW={displayNameColumnWidth}>
+                                    <Table.Cell
+                                        borderBottom="none"
+                                        py={"6px"}
+                                        pr={0}
+                                        maxW={displayNameColumnWidth}
+                                        borderLeftRadius={mode === "projects" ? "full" : "none"}
+                                    >
                                         <Link href={linkUrl}>
                                             <HStack
                                                 gap={3}
