@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { usePrivy, useLinkAccount, getAccessToken, User } from "@privy-io/react-auth"
-import { useUser } from "../../contexts/UserContext"
-import { toaster } from "../ui/toaster"
+import { useUser } from "../../../contexts/UserContext"
+import { toaster } from "../../ui/toaster"
 import { FontAwesomeIconProps } from "@fortawesome/react-fontawesome"
 
-import AccountConnectionManager, { AccountConnectionConfig } from "./AccountConnectionManager"
-import GenericConfirmModal from "./DisconnectConfirmationModal"
+import AccountConnectionManager, { AccountConnectionConfig } from "../AccountConnectionManager"
+import GenericConfirmModal from "../DisconnectConfirmationModal"
+import PrivyAccountsEditor from "./PrivyAccountsEditor"
 
 export interface LinkPrivyAccountsContainerProps {
     targetUser: UserData
@@ -98,6 +99,8 @@ export default function LinkPrivyAccountsContainer({
     const [accountUsername, setAccountUsername] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
     // Check if the user is connected to the account type
     useEffect(() => {
@@ -279,7 +282,20 @@ export default function LinkPrivyAccountsContainer({
                 disabled={disabled}
                 lozengeTypes={lozengeTypes}
                 loginOnly={loginOnly}
-            />
+                onEditButton={
+                    disabled
+                        ? undefined
+                        : () => {
+                              setIsEditModalOpen(true)
+                          }
+                }
+            >
+                <PrivyAccountsEditor
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    // privyAccountConfig={accountConfig}
+                />
+            </AccountConnectionManager>
             {accountConfig.confirmDelete && (
                 <GenericConfirmModal
                     name={accountConfig.displayName}

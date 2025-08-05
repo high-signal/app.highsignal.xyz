@@ -3,7 +3,7 @@
 import { Spinner, VStack, Text, Box } from "@chakra-ui/react"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import ForumAccountsContainer from "./forum-settings/ForumAccountsContainer"
-import LinkPrivyAccountsContainer from "./LinkPrivyAccountsContainer"
+import LinkPrivyAccountsContainer from "./privy-account-settings/LinkPrivyAccountsContainer"
 import { faBullhorn, faEnvelope, faMobileScreen, faRightToBracket } from "@fortawesome/free-solid-svg-icons"
 import { faDiscord, faGithub, faGoogle, faXTwitter } from "@fortawesome/free-brands-svg-icons"
 import { useUser } from "../../contexts/UserContext"

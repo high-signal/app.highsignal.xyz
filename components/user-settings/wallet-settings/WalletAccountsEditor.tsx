@@ -4,8 +4,7 @@ import { VStack, Text, Button, HStack, Dialog, RadioGroup, Box, Image } from "@c
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams } from "next/navigation"
 
-import Modal from "../../ui/Modal"
-import ModalCloseButton from "../../ui/ModalCloseButton"
+import EditorModal from "../../ui/EditorModal"
 import SingleLineTextInput from "../../ui/SingleLineTextInput"
 import { CustomRadioItem } from "../../ui/CustomRadioGroup"
 import { toaster } from "../../ui/toaster"
@@ -245,257 +244,227 @@ export default function WalletAccountsEditor({
     if (!settings) return null
 
     return (
-        <Modal open={isOpen} close={handleClose} closeOnInteractOutside={!hasChanges}>
-            <Dialog.Content borderRadius={{ base: "0px", sm: "16px" }} p={0} bg={"pageBackground"} maxW={"900px"}>
-                <Dialog.Header>
-                    <Dialog.Title maxW={"100%"}>
-                        <HStack flexWrap="wrap" pr={5}>
-                            <Text fontWeight="bold">Edit settings for address</Text>
-                            <HStack bg={"contentBackground"} borderRadius={"full"} gap={0}>
-                                <Text
-                                    fontSize={"md"}
-                                    fontFamily={"monospace"}
-                                    wordBreak="break-all"
-                                    px={{ base: 6, md: 3 }}
-                                    py={{ base: 2, md: 1 }}
-                                >
-                                    {userAddressConfig.address}
-                                </Text>
-                                <Button
-                                    secondaryButton
-                                    onClick={handleCopyAddress}
-                                    borderRadius="full"
-                                    pl={2}
-                                    pr={3}
-                                    mr={{ base: 3, md: 0 }}
-                                    py={1}
-                                    h={"36px"}
-                                >
-                                    <HStack gap={1}>
-                                        <FontAwesomeIcon icon={isCopied ? faCheckCircle : faCopy} />
-                                        <Text fontSize="sm" fontWeight="bold">
-                                            {isCopied ? "Copied" : "Copy"}
-                                        </Text>
-                                    </HStack>
-                                </Button>
-                            </HStack>
+        <EditorModal
+            isOpen={isOpen}
+            handleClose={handleClose}
+            hasChanges={hasChanges}
+            title="Edit settings for address"
+            titleRight={
+                <HStack bg={"contentBackground"} borderRadius={"full"} gap={0}>
+                    <Text
+                        fontSize={"md"}
+                        fontFamily={"monospace"}
+                        wordBreak="break-all"
+                        px={{ base: 6, md: 3 }}
+                        py={{ base: 2, md: 1 }}
+                    >
+                        {userAddressConfig.address}
+                    </Text>
+                    <Button
+                        secondaryButton
+                        onClick={handleCopyAddress}
+                        borderRadius="full"
+                        pl={2}
+                        pr={3}
+                        mr={{ base: 3, md: 0 }}
+                        py={1}
+                        h={"36px"}
+                    >
+                        <HStack gap={1}>
+                            <FontAwesomeIcon icon={isCopied ? faCheckCircle : faCopy} />
+                            <Text fontSize="sm" fontWeight="bold">
+                                {isCopied ? "Copied" : "Copy"}
+                            </Text>
                         </HStack>
-                        <ModalCloseButton onClose={handleClose} />
-                    </Dialog.Title>
-                </Dialog.Header>
-                <Dialog.Body py={6} borderTop={"2px solid"} borderColor={"contentBorder"}>
-                    <VStack gap={8} alignItems={"start"}>
-                        <VStack w={"100%"} gap={2} flexWrap={"wrap"} alignItems={"start"}>
-                            <Text fontWeight={"bold"} fontSize={"md"} pl={1}>
-                                Address name (optional)
-                            </Text>
-                            <HStack w={"100%"} gap={2} flexWrap={"wrap"}>
-                                <SingleLineTextInput
-                                    value={settings.name.new ?? settings.name.current ?? ""}
-                                    placeholder="e.g. Treasure Chest"
-                                    onChange={(e) => {
-                                        const error = validateAddressName(e.target.value)
-                                        if (error) {
-                                            setAddressNameValidationError(error)
-                                        } else {
-                                            setAddressNameValidationError(null)
-                                        }
-                                        setSettings({
-                                            ...settings,
-                                            name: { ...settings.name, new: e.target.value },
-                                        })
-                                    }}
-                                    maxW={"300px"}
-                                    minW={"100px"}
-                                    h={"36px"}
-                                />
-                                <VStack alignItems={"start"} gap={0} pl={1}>
-                                    <Text fontSize={"sm"} color={"textColorMuted"}>
-                                        Give this address a friendly name.
-                                    </Text>
-                                    <Text fontSize={"sm"} color={"textColorMuted"}>
-                                        This name is private and will not be shared with other users or projects.
-                                    </Text>
-                                </VStack>
-                                {addressNameValidationError && (
-                                    <Text fontSize={"sm"} color={"orange.500"} pl={1}>
-                                        {addressNameValidationError}
-                                    </Text>
-                                )}
-                            </HStack>
-                        </VStack>
-                        <VStack w={"100%"} alignItems={"start"} gap={3}>
-                            <Text fontWeight={"bold"} fontSize={"md"} pl={1}>
-                                Sharing settings
-                            </Text>
-                            <VStack>
-                                <RadioGroup.Root
-                                    value={settings.sharing.new ?? settings.sharing.current ?? "private"}
-                                    onValueChange={(details: { value: string | null }) => {
-                                        const newSharingValue = details.value as "private" | "public" | "shared"
-
-                                        // If changing from shared to something else, clear the project list
-                                        const currentSharing = settings.sharing.new ?? settings.sharing.current
-                                        const shouldClearProjects =
-                                            currentSharing === "shared" && newSharingValue !== "shared"
-
-                                        setSettings({
-                                            ...settings,
-                                            sharing: {
-                                                ...settings.sharing,
-                                                new: newSharingValue,
-                                            },
-                                            userAddressesShared: shouldClearProjects
-                                                ? {
-                                                      ...settings.userAddressesShared,
-                                                      new: [],
-                                                  }
-                                                : settings.userAddressesShared,
-                                        })
-                                    }}
-                                >
-                                    <VStack gap={6} alignItems={"start"} w={"100%"}>
-                                        {[
-                                            {
-                                                selected:
-                                                    (settings.sharing.current === "private" && !settings.sharing.new) ||
-                                                    settings.sharing.new === "private",
-                                                value: "private",
-                                                text: "Private",
-                                                bgColor: "blue.800",
-                                                borderColor: "transparent",
-                                                textColor: "blue.100",
-                                                itemBackground: "contentBackground",
-                                                tip: "Private addresses are not visible to other users or projects.",
-                                            },
-                                            {
-                                                selected:
-                                                    (settings.sharing.current === "public" && !settings.sharing.new) ||
-                                                    settings.sharing.new === "public",
-                                                value: "public",
-                                                text: "Public",
-                                                bgColor: "green.500",
-                                                borderColor: "transparent",
-                                                textColor: "white",
-                                                itemBackground: "contentBackground",
-                                                tip: "Public addresses are visible to everyone.",
-                                            },
-                                            {
-                                                selected:
-                                                    (settings.sharing.current === "shared" && !settings.sharing.new) ||
-                                                    settings.sharing.new === "shared",
-                                                value: "shared",
-                                                text: "Shared",
-                                                bgColor: "teal.500",
-                                                borderColor: "transparent",
-                                                textColor: "white",
-                                                itemBackground: "contentBackground",
-                                                tip: "Share this address with selected projects.",
-                                            },
-                                        ].map((option) => (
-                                            <HStack
-                                                key={option.value}
-                                                gap={4}
-                                                alignItems={{ base: "start", sm: "center" }}
-                                            >
-                                                <HStack minW={"110px"}>
-                                                    <CustomRadioItem option={option} />
-                                                </HStack>
-                                                <Text fontSize={"sm"} color={"textColorMuted"}>
-                                                    {option.tip}
-                                                </Text>
-                                            </HStack>
-                                        ))}
-                                    </VStack>
-                                </RadioGroup.Root>
-                            </VStack>
-                            {(settings.sharing.new === "shared" ||
-                                (settings.sharing.new === null && settings.sharing.current === "shared")) && (
-                                <HStack
-                                    bg={"contentBackground"}
-                                    borderRadius={{ base: "25px", sm: "35px" }}
-                                    p={4}
-                                    w={"100%"}
-                                    flexWrap={"wrap"}
-                                    gap={4}
-                                >
-                                    <Box w={"300px"} maxW={"100%"}>
-                                        <ProjectPicker
-                                            onProjectSelect={(project) => {
-                                                addProject(project)
-                                            }}
-                                            selectorText={`Select projects to share with...`}
-                                            placeholder={"Search..."}
-                                        />
-                                    </Box>
-
-                                    <HStack flexWrap={"wrap"} gap={3}>
-                                        {sharingValidationError ? (
-                                            <Text color={"orange.500"} pl={1} fontWeight={"bold"}>
-                                                {sharingValidationError}
-                                            </Text>
-                                        ) : (
-                                            getCurrentProjectList().map((project) => (
-                                                <HStack
-                                                    key={project.projectUrlSlug}
-                                                    bg={"pageBackground"}
-                                                    pr={2}
-                                                    borderRadius="full"
-                                                    cursor="default"
-                                                    h={"35px"}
-                                                >
-                                                    <Image
-                                                        src={
-                                                            !project.projectLogoUrl || project.projectLogoUrl === ""
-                                                                ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                                                : project.projectLogoUrl
-                                                        }
-                                                        alt={`${project.projectDisplayName} Logo`}
-                                                        fit="cover"
-                                                        w="35px"
-                                                        borderRadius="full"
-                                                    />
-                                                    <Text fontWeight={"bold"}>{project.projectDisplayName}</Text>
-                                                    <Button
-                                                        secondaryButton
-                                                        borderRadius="full"
-                                                        p={0}
-                                                        minW="auto"
-                                                        h="20px"
-                                                        onClick={() => removeProject(project.projectUrlSlug)}
-                                                    >
-                                                        <FontAwesomeIcon icon={faXmark} />
-                                                    </Button>
-                                                </HStack>
-                                            ))
-                                        )}
-                                    </HStack>
-                                </HStack>
-                            )}
-                        </VStack>
-                    </VStack>
-                </Dialog.Body>
-                <Dialog.Footer>
-                    <HStack minW={"100%"} justifyContent={{ base: "center", sm: "end" }} flexWrap={"wrap"} gap={5}>
-                        <Button secondaryButton borderRadius={"full"} px={4} py={2} onClick={handleClose}>
-                            Cancel
-                        </Button>
-                        <Button
-                            primaryButton
-                            borderRadius={"full"}
-                            px={4}
-                            py={2}
-                            disabled={
-                                !hasChanges || isSaving || !!addressNameValidationError || !!sharingValidationError
+                    </Button>
+                </HStack>
+            }
+            isSaving={isSaving}
+            handleSave={handleSave}
+            disabled={!hasChanges || isSaving || !!addressNameValidationError || !!sharingValidationError}
+        >
+            <VStack w={"100%"} gap={2} flexWrap={"wrap"} alignItems={"start"}>
+                <Text fontWeight={"bold"} fontSize={"md"} pl={1}>
+                    Address name (optional)
+                </Text>
+                <HStack w={"100%"} gap={2} flexWrap={"wrap"}>
+                    <SingleLineTextInput
+                        value={settings.name.new ?? settings.name.current ?? ""}
+                        placeholder="e.g. Treasure Chest"
+                        onChange={(e) => {
+                            const error = validateAddressName(e.target.value)
+                            if (error) {
+                                setAddressNameValidationError(error)
+                            } else {
+                                setAddressNameValidationError(null)
                             }
-                            onClick={handleSave}
-                            loading={isSaving}
-                        >
-                            <Text>Save changes</Text>
-                        </Button>
+                            setSettings({
+                                ...settings,
+                                name: { ...settings.name, new: e.target.value },
+                            })
+                        }}
+                        maxW={"300px"}
+                        minW={"100px"}
+                        h={"36px"}
+                    />
+                    <VStack alignItems={"start"} gap={0} pl={1}>
+                        <Text fontSize={"sm"} color={"textColorMuted"}>
+                            Give this address a friendly name.
+                        </Text>
+                        <Text fontSize={"sm"} color={"textColorMuted"}>
+                            This name is private and will not be shared with other users or projects.
+                        </Text>
+                    </VStack>
+                    {addressNameValidationError && (
+                        <Text fontSize={"sm"} color={"orange.500"} pl={1}>
+                            {addressNameValidationError}
+                        </Text>
+                    )}
+                </HStack>
+            </VStack>
+            <VStack w={"100%"} alignItems={"start"} gap={3}>
+                <Text fontWeight={"bold"} fontSize={"md"} pl={1}>
+                    Sharing settings
+                </Text>
+                <VStack>
+                    <RadioGroup.Root
+                        value={settings.sharing.new ?? settings.sharing.current ?? "private"}
+                        onValueChange={(details: { value: string | null }) => {
+                            const newSharingValue = details.value as "private" | "public" | "shared"
+
+                            // If changing from shared to something else, clear the project list
+                            const currentSharing = settings.sharing.new ?? settings.sharing.current
+                            const shouldClearProjects = currentSharing === "shared" && newSharingValue !== "shared"
+
+                            setSettings({
+                                ...settings,
+                                sharing: {
+                                    ...settings.sharing,
+                                    new: newSharingValue,
+                                },
+                                userAddressesShared: shouldClearProjects
+                                    ? {
+                                          ...settings.userAddressesShared,
+                                          new: [],
+                                      }
+                                    : settings.userAddressesShared,
+                            })
+                        }}
+                    >
+                        <VStack gap={6} alignItems={"start"} w={"100%"}>
+                            {[
+                                {
+                                    selected:
+                                        (settings.sharing.current === "private" && !settings.sharing.new) ||
+                                        settings.sharing.new === "private",
+                                    value: "private",
+                                    text: "Private",
+                                    bgColor: "blue.800",
+                                    borderColor: "transparent",
+                                    textColor: "blue.100",
+                                    itemBackground: "contentBackground",
+                                    tip: "Private addresses are not visible to other users or projects.",
+                                },
+                                {
+                                    selected:
+                                        (settings.sharing.current === "public" && !settings.sharing.new) ||
+                                        settings.sharing.new === "public",
+                                    value: "public",
+                                    text: "Public",
+                                    bgColor: "green.500",
+                                    borderColor: "transparent",
+                                    textColor: "white",
+                                    itemBackground: "contentBackground",
+                                    tip: "Public addresses are visible to everyone.",
+                                },
+                                {
+                                    selected:
+                                        (settings.sharing.current === "shared" && !settings.sharing.new) ||
+                                        settings.sharing.new === "shared",
+                                    value: "shared",
+                                    text: "Shared",
+                                    bgColor: "teal.500",
+                                    borderColor: "transparent",
+                                    textColor: "white",
+                                    itemBackground: "contentBackground",
+                                    tip: "Share this address with selected projects.",
+                                },
+                            ].map((option) => (
+                                <HStack key={option.value} gap={4} alignItems={{ base: "start", sm: "center" }}>
+                                    <HStack minW={"110px"}>
+                                        <CustomRadioItem option={option} />
+                                    </HStack>
+                                    <Text fontSize={"sm"} color={"textColorMuted"}>
+                                        {option.tip}
+                                    </Text>
+                                </HStack>
+                            ))}
+                        </VStack>
+                    </RadioGroup.Root>
+                </VStack>
+                {(settings.sharing.new === "shared" ||
+                    (settings.sharing.new === null && settings.sharing.current === "shared")) && (
+                    <HStack
+                        bg={"contentBackground"}
+                        borderRadius={{ base: "25px", sm: "35px" }}
+                        p={4}
+                        w={"100%"}
+                        flexWrap={"wrap"}
+                        gap={4}
+                    >
+                        <Box w={"300px"} maxW={"100%"}>
+                            <ProjectPicker
+                                onProjectSelect={(project) => {
+                                    addProject(project)
+                                }}
+                                selectorText={`Select projects to share with...`}
+                                placeholder={"Search..."}
+                            />
+                        </Box>
+                        <HStack flexWrap={"wrap"} gap={3}>
+                            {sharingValidationError ? (
+                                <Text color={"orange.500"} pl={1} fontWeight={"bold"}>
+                                    {sharingValidationError}
+                                </Text>
+                            ) : (
+                                getCurrentProjectList().map((project) => (
+                                    <HStack
+                                        key={project.projectUrlSlug}
+                                        bg={"pageBackground"}
+                                        pr={2}
+                                        borderRadius="full"
+                                        cursor="default"
+                                        h={"35px"}
+                                    >
+                                        <Image
+                                            src={
+                                                !project.projectLogoUrl || project.projectLogoUrl === ""
+                                                    ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                                    : project.projectLogoUrl
+                                            }
+                                            alt={`${project.projectDisplayName} Logo`}
+                                            fit="cover"
+                                            w="35px"
+                                            borderRadius="full"
+                                        />
+                                        <Text fontWeight={"bold"}>{project.projectDisplayName}</Text>
+                                        <Button
+                                            secondaryButton
+                                            borderRadius="full"
+                                            p={0}
+                                            minW="auto"
+                                            h="20px"
+                                            onClick={() => removeProject(project.projectUrlSlug)}
+                                        >
+                                            <FontAwesomeIcon icon={faXmark} />
+                                        </Button>
+                                    </HStack>
+                                ))
+                            )}
+                        </HStack>
                     </HStack>
-                </Dialog.Footer>
-            </Dialog.Content>
-        </Modal>
+                )}
+            </VStack>
+        </EditorModal>
     )
 }
