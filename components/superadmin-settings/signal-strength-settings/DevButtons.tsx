@@ -3,6 +3,47 @@
 import { Button, HStack, Text } from "@chakra-ui/react"
 import { getAccessToken } from "@privy-io/react-auth"
 
+interface DevButtonProps {
+    label: string
+    functionType?: string
+    method?: "POST" | "PATCH"
+    body?: any
+    disabled?: boolean
+}
+
+function DevButton({ label, functionType, method = "POST", body, disabled = false }: DevButtonProps) {
+    const handleClick = async () => {
+        try {
+            const token = await getAccessToken()
+            const url = functionType
+                ? `/api/superadmin/accounts/trigger-update?functionType=${functionType}`
+                : `/api/superadmin/accounts/trigger-update`
+
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                ...(body && { body: JSON.stringify(body) }),
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json()
+                console.error(errorData.error)
+            }
+        } catch (error) {
+            console.error("Error executing dev button action:", error)
+        }
+    }
+
+    return (
+        <Button primaryButton px={2} py={1} borderRadius={"full"} disabled={disabled} onClick={handleClick}>
+            {label}
+        </Button>
+    )
+}
+
 export default function DevButtons({
     signalStrength,
     selectedUser,
@@ -14,6 +55,8 @@ export default function DevButtons({
     project: ProjectData | null
     signalStrengthUsername: string | null
 }) {
+    const isSingleItemDisabled = !selectedUser || !project || !signalStrengthUsername
+
     return (
         <HStack
             gap={4}
@@ -27,139 +70,22 @@ export default function DevButtons({
             flexWrap={"wrap"}
         >
             <Text fontWeight={"bold"}>Dev Buttons</Text>
-            <Button
-                primaryButton
-                px={2}
-                py={1}
-                borderRadius={"full"}
-                onClick={async () => {
-                    const token = await getAccessToken()
-                    const response = await fetch(
-                        `/api/superadmin/accounts/trigger-update?functionType=addAllItemsToAiQueue`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                        },
-                    )
-
-                    if (!response.ok) {
-                        const errorData = await response.json()
-                        console.error(errorData.error)
-                    }
+            <DevButton label="addAllItemsToAiQueue" functionType="addAllItemsToAiQueue" />
+            <DevButton
+                label="addSingleItemToAiQueue"
+                method="PATCH"
+                body={{
+                    signalStrengthName: signalStrength.name,
+                    userId: selectedUser?.id,
+                    projectId: project?.id,
+                    signalStrengthUsername: signalStrengthUsername,
                 }}
-            >
-                addAllItemsToAiQueue
-            </Button>
-            <Button
-                primaryButton
-                px={2}
-                py={1}
-                borderRadius={"full"}
-                disabled={!selectedUser || !project || !signalStrengthUsername}
-                onClick={async () => {
-                    if (selectedUser && project && signalStrengthUsername) {
-                        const token = await getAccessToken()
-                        const response = await fetch(`/api/superadmin/accounts/trigger-update`, {
-                            method: "PATCH",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({
-                                signalStrengthName: signalStrength.name,
-                                userId: selectedUser.id,
-                                projectId: project?.id,
-                                signalStrengthUsername: signalStrengthUsername,
-                            }),
-                        })
-
-                        if (!response.ok) {
-                            const errorData = await response.json()
-                            console.error(errorData.error)
-                        }
-                    }
-                }}
-            >
-                addSingleItemToAiQueue
-            </Button>
-            <Button
-                primaryButton
-                px={2}
-                py={1}
-                borderRadius={"full"}
-                onClick={async () => {
-                    const token = await getAccessToken()
-                    const response = await fetch(`/api/superadmin/accounts/trigger-update?functionType=runAiGovernor`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                    })
-
-                    if (!response.ok) {
-                        const errorData = await response.json()
-                        console.error(errorData.error)
-                    }
-                }}
-            >
-                runAiGovernor
-            </Button>
-            <Button
-                primaryButton
-                px={2}
-                py={1}
-                borderRadius={"full"}
-                onClick={async () => {
-                    const token = await getAccessToken()
-                    const response = await fetch(
-                        `/api/superadmin/accounts/trigger-update?functionType=addAllItemsToForumQueue`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                        },
-                    )
-
-                    if (!response.ok) {
-                        const errorData = await response.json()
-                        console.error(errorData.error)
-                    }
-                }}
-            >
-                addAllItemsToForumQueue
-            </Button>
-            <Button
-                primaryButton
-                px={2}
-                py={1}
-                borderRadius={"full"}
-                onClick={async () => {
-                    const token = await getAccessToken()
-                    const response = await fetch(
-                        `/api/superadmin/accounts/trigger-update?functionType=runForumGovernor`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                        },
-                    )
-
-                    if (!response.ok) {
-                        const errorData = await response.json()
-                        console.error(errorData.error)
-                    }
-                }}
-            >
-                runForumGovernor
-            </Button>
+                disabled={isSingleItemDisabled}
+            />
+            <DevButton label="runAiGovernor" functionType="runAiGovernor" />
+            <DevButton label="addAllItemsToForumQueue" functionType="addAllItemsToForumQueue" />
+            <DevButton label="runForumGovernor" functionType="runForumGovernor" />
+            <DevButton label="runDiscordGovernor" functionType="runDiscordGovernor" />
         </HStack>
     )
 }

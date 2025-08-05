@@ -42,6 +42,7 @@ class DiscordRestApi {
 
         const url = `${this.baseUrl}/channels/${channelId}/messages?${params.toString()}`
 
+        console.log("📡 DISCORD API CALL: fetchMessages")
         const response = await fetch(url, {
             headers: {
                 Authorization: `Bot ${this.token}`,
@@ -57,11 +58,10 @@ class DiscordRestApi {
         return await response.json()
     }
 
-    // Get guild information
-    async getGuild(guildId) {
-        const url = `${this.baseUrl}/guilds/${guildId}`
-
-        const response = await fetch(url, {
+    // Get guild roles
+    async getGuildRoles(guildId) {
+        console.log("📡 DISCORD API CALL: Get all guild roles")
+        const response = await fetch(`${this.baseUrl}/guilds/${guildId}/roles`, {
             headers: {
                 Authorization: `Bot ${this.token}`,
                 "Content-Type": "application/json",
@@ -73,94 +73,81 @@ class DiscordRestApi {
             throw new Error(`Discord API error: ${response.status} ${response.statusText} - ${errorText}`)
         }
 
-        return await response.json()
+        const allGuildRoles = await response.json()
+        return allGuildRoles
     }
 
-    // Get guild channels
-    async getGuildChannels(guildId) {
-        const url = `${this.baseUrl}/guilds/${guildId}/channels`
+    // Get accessible text channels in a guild
+    async getAccessibleTextChannels(guildId) {
+        const TEXT_CHANNEL_TYPES = [0] // GuildText
 
-        const response = await fetch(url, {
+        // Fetch all channels
+        console.log("📡 DISCORD API CALL: Fetching all channels")
+        const channelsRes = await fetch(`${this.baseUrl}/guilds/${guildId}/channels`, {
             headers: {
                 Authorization: `Bot ${this.token}`,
                 "Content-Type": "application/json",
             },
         })
-
-        if (!response.ok) {
-            const errorText = await response.text()
-            throw new Error(`Discord API error: ${response.status} ${response.statusText} - ${errorText}`)
+        if (!channelsRes.ok) {
+            const errorText = await channelsRes.text()
+            throw new Error(`Discord API error: ${channelsRes.status} ${channelsRes.statusText} - ${errorText}`)
         }
+        const allChannels = await channelsRes.json()
 
-        return await response.json()
-    }
+        // Fetch all roles
+        const roles = await this.getGuildRoles(guildId)
+        const roleMap = new Map(roles.map((r) => [r.id, BigInt(r.permissions)]))
 
-    // Get bot user information
-    async getCurrentUser() {
-        const url = `${this.baseUrl}/users/@me`
-
-        const response = await fetch(url, {
+        // Get bot user and their member roles
+        const botUserId = process.env.DISCORD_BOT_USER_ID
+        console.log("📡 DISCORD API CALL: Get bot member roles")
+        const memberRes = await fetch(`${this.baseUrl}/guilds/${guildId}/members/${botUserId}`, {
             headers: {
                 Authorization: `Bot ${this.token}`,
                 "Content-Type": "application/json",
             },
         })
+        if (!memberRes.ok) {
+            const errorText = await memberRes.text()
+            throw new Error(`Discord API error: ${memberRes.status} ${memberRes.statusText} - ${errorText}`)
+        }
+        const botMember = await memberRes.json()
+        const botRoleIds = botMember.roles
 
-        if (!response.ok) {
-            const errorText = await response.text()
-            throw new Error(`Discord API error: ${response.status} ${response.statusText} - ${errorText}`)
+        // Compute base permissions from @everyone + bot roles
+        const everyoneRoleId = guildId
+        let basePerms = roleMap.get(everyoneRoleId) || 0n
+        for (const id of botRoleIds) {
+            const perms = roleMap.get(id)
+            if (perms) basePerms |= perms
         }
 
-        return await response.json()
-    }
+        // Filter only readable channels
+        const readable = allChannels.filter((channel) => {
+            if (!TEXT_CHANNEL_TYPES.includes(channel.type)) return false
 
-    // Check if bot has permission to view a channel
-    async canViewChannel(guildId, channelId) {
-        try {
-            // Get guild member (bot) permissions
-            const botUser = await this.getCurrentUser()
-            const url = `${this.baseUrl}/guilds/${guildId}/members/${botUser.id}`
+            let allow = 0n
+            let deny = 0n
 
-            const response = await fetch(url, {
-                headers: {
-                    Authorization: `Bot ${this.token}`,
-                    "Content-Type": "application/json",
-                },
-            })
+            for (const ow of channel.permission_overwrites || []) {
+                const targetId = ow.id
+                const type = ow.type // 0 = role, 1 = member
 
-            if (!response.ok) {
-                return false // Bot is not a member of the guild
+                if (type === 0 && (targetId === everyoneRoleId || botRoleIds.includes(targetId))) {
+                    allow |= BigInt(ow.allow)
+                    deny |= BigInt(ow.deny)
+                } else if (type === 1 && targetId === botUserId) {
+                    allow |= BigInt(ow.allow)
+                    deny |= BigInt(ow.deny)
+                }
             }
 
-            const member = await response.json()
+            const finalPerms = (basePerms & ~deny) | allow
+            return (finalPerms & (1n << 10n)) !== 0n // 1 << 10 = VIEW_CHANNEL
+        })
 
-            // Get channel information to check permissions
-            const channelUrl = `${this.baseUrl}/channels/${channelId}`
-            const channelResponse = await fetch(channelUrl, {
-                headers: {
-                    Authorization: `Bot ${this.token}`,
-                    "Content-Type": "application/json",
-                },
-            })
-
-            if (!channelResponse.ok) {
-                return false // Cannot access channel
-            }
-
-            const channel = await channelResponse.json()
-
-            // Check if it's a text channel (type 0)
-            if (channel.type !== 0) {
-                return false
-            }
-
-            // For now, if we can fetch the channel info, we assume we have view permissions
-            // In a more sophisticated implementation, you'd calculate permissions based on roles
-            return true
-        } catch (error) {
-            console.error(`Error checking channel permissions: ${error.message}`)
-            return false
-        }
+        return readable
     }
 }
 
