@@ -164,29 +164,16 @@ async function runDiscordGovernor() {
             }
             const guildId = urlMatch[1]
 
-            // Get guild information
-            const guild = await discordApi.getGuild(guildId)
+            // Fetch accessible text channels in the guild
+            const accessibleTextChannels = await discordApi.getAccessibleTextChannels(guildId)
 
-            // Fetch all channels in the guild
-            const allChannels = await discordApi.getGuildChannels(guildId)
-
-            // Filter for text channels (type 0) and check permissions
-            const textChannels = []
-            for (const channel of allChannels) {
-                if (channel.type === 0) {
-                    // Text channel
-                    const canView = await discordApi.canViewChannel(guildId, channel.id)
-                    if (canView) {
-                        textChannels.push(channel)
-                    }
-                }
-            }
-
-            console.log(`🔍 Found ${textChannels.length} accessible text channels in guild: ${guild.name}`)
+            console.log(
+                `🔍 Found ${accessibleTextChannels.length} accessible text channels in Discord: ${project.projects.display_name} (${project.projects.url_slug}). Guild ID: ${guildId}`,
+            )
 
             // Shuffle channels to avoid always processing the same ones first.
             // Useful in case of ratel-imit issues that only allow the first X channels to be processed.
-            const shuffledChannels = [...textChannels].sort(() => Math.random() - 0.5)
+            const shuffledChannels = [...accessibleTextChannels].sort(() => Math.random() - 0.5)
 
             // ====================================================
             // For each channel, check queue and trigger if needed
@@ -194,7 +181,9 @@ async function runDiscordGovernor() {
             for (const channel of shuffledChannels) {
                 const channelId = channel.id
                 console.log("--------------------------------")
-                console.log(`⭐️ Processing Guild: ${guild.name}. Channel: ${channel.name}.`)
+                console.log(
+                    `⭐️ Processing Discord: ${project.projects.url_slug}. Guild ID: ${guildId}. Channel: ${channel.name}.`,
+                )
 
                 // Look in the queue for any current items for this channel that are not completed.
                 const { data: currentQueueItem, error: currentQueueItemError } = await supabase
