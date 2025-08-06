@@ -15,11 +15,9 @@ import { toaster } from "../../ui/toaster"
 export default function WalletAccountsManager({
     userAddressConfig,
     disabled,
-    index,
 }: {
     userAddressConfig: UserAddressConfig
     disabled: boolean
-    index: number
 }) {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -34,7 +32,7 @@ export default function WalletAccountsManager({
 
     const lozengeTypes: LozengeType[] = userAddressConfig.isPublic
         ? ["public"]
-        : userAddressConfig.userAddressesShared.length > 0
+        : userAddressConfig.projectsSharedWith.length > 0
           ? ["shared"]
           : ["private"]
 
@@ -73,13 +71,13 @@ export default function WalletAccountsManager({
                 }
             }}
             getConnectionDescription={() => {
-                if (userAddressConfig.userAddressesShared.length > 0) {
+                if (userAddressConfig.projectsSharedWith.length > 0) {
                     return (
                         <VStack w={"100%"} alignItems="start">
                             <HStack fontSize="sm" pt={1} px={2} mt={2} flexWrap="wrap">
                                 <Text fontWeight="bold">You have shared this address with:</Text>
                                 <HStack flexWrap="wrap">
-                                    {userAddressConfig.userAddressesShared
+                                    {userAddressConfig.projectsSharedWith
                                         .sort((a, b) => a.projectDisplayName.localeCompare(b.projectDisplayName))
                                         .map((shared) => (
                                             <HStack

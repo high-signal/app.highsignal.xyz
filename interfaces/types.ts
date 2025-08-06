@@ -30,7 +30,7 @@ interface UserAddressConfig {
     address: string
     addressName?: string
     isPublic: boolean
-    userAddressesShared: SharedProjectData[]
+    projectsSharedWith: SharedProjectData[]
 }
 
 interface SharedProjectData {
@@ -45,6 +45,11 @@ interface SharedProjectData {
     projectLogoUrl?: string
 }
 
+interface EditorSettingsState {
+    name?: { current: string | null; new: string | null }
+    sharing: { current: "private" | "public" | "shared" | null; new: "private" | "public" | "shared" | null }
+    projectsSharedWith: { current: SharedProjectData[] | null; new: SharedProjectData[] | null }
+}
 interface ConnectedAccount {
     name: string
     data: ForumUser[]
