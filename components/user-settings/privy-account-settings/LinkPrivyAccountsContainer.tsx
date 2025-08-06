@@ -22,6 +22,7 @@ export interface LinkPrivyAccountsContainerProps {
     disabled?: boolean
     loginOnly?: boolean
     lozengeTypes?: LozengeType[]
+    sharingConfig?: UserPublicOrSharedAccount
 }
 
 export default function LinkPrivyAccountsContainer({
@@ -30,6 +31,7 @@ export default function LinkPrivyAccountsContainer({
     disabled = false,
     loginOnly = false,
     lozengeTypes = [],
+    sharingConfig,
 }: LinkPrivyAccountsContainerProps) {
     // **********************************
     // ADD ADDITIONAL ACCOUNT TYPES HERE

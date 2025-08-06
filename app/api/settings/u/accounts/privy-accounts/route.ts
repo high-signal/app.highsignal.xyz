@@ -2,6 +2,37 @@ import { createClient } from "@supabase/supabase-js"
 import { updatePrivyAccounts } from "../../../../../../utils/updatePrivyAccounts"
 import { NextRequest, NextResponse } from "next/server"
 
+// This function is used to get the public and shared user accounts for a user
+export async function GET(request: NextRequest) {
+    const targetUsername = request.nextUrl.searchParams.get("username")!
+    if (!targetUsername) {
+        return NextResponse.json({ error: "Username is required" }, { status: 400 })
+    }
+
+    const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+    // Lookup user, their accounts, and shared account data in a single query
+    const { data: userWithAccounts, error: userAccountsError } = await supabase
+        .from("users")
+        .select(
+            `
+            id,
+            user_accounts (
+                *,
+                user_accounts_shared (*)
+            )
+        `,
+        )
+        .eq("username", targetUsername)
+        .single()
+    if (userAccountsError) {
+        console.error("Error looking up user and accounts. Error code: 6RVX91:", userAccountsError)
+        return NextResponse.json({ error: "Error fetching user accounts. Error code: 6RVX91" }, { status: 500 })
+    }
+
+    return NextResponse.json(userWithAccounts.user_accounts)
+}
+
 // This function is used to update the Privy accounts for a user
 export async function PATCH(request: NextRequest) {
     const privyId = request.headers.get("x-privy-id")!

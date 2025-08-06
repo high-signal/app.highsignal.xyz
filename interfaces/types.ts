@@ -50,6 +50,17 @@ interface EditorSettingsState {
     sharing: { current: "private" | "public" | "shared" | null; new: "private" | "public" | "shared" | null }
     projectsSharedWith: { current: SharedProjectData[] | null; new: SharedProjectData[] | null }
 }
+
+interface UserPublicOrSharedAccount {
+    id: number
+    is_public: boolean
+    type: string
+    user_accounts_shared: {
+        project_id: number
+        user_account_id: number
+    }[]
+    user_id: number
+}
 interface ConnectedAccount {
     name: string
     data: ForumUser[]

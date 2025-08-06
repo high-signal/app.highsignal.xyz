@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+
 import { Spinner, VStack, Text, Box } from "@chakra-ui/react"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import ForumAccountsContainer from "./forum-settings/ForumAccountsContainer"
@@ -9,6 +11,7 @@ import { faDiscord, faGithub, faGoogle, faXTwitter } from "@fortawesome/free-bra
 import { useUser } from "../../contexts/UserContext"
 import SettingsGroupContainer from "../ui/SettingsGroupContainer"
 import WalletAccountsContainer from "./wallet-settings/WalletAccountsContainer"
+import { getAccessToken } from "@privy-io/react-auth"
 
 export default function ConnectedAccountsContainer({ targetUser }: { targetUser: UserData }) {
     const { loggedInUser } = useUser()
@@ -24,6 +27,55 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
     //       Use those rows to lookup any shared accounts in the user_accounts_shared table
     //       Use those results to populate the lozenge types and the sharing status for each account
 
+    const [publicAndSharedUserAccounts, setPublicAndSharedUserAccounts] = useState<UserPublicOrSharedAccount[]>([])
+
+    useEffect(() => {
+        const fetchPublicAndSharedUserAccounts = async () => {
+            const token = await getAccessToken()
+            const publicAndSharedUserAccountsResponse = await fetch(
+                `/api/settings/u/accounts/privy-accounts?username=${targetUser.username}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
+            )
+            const publicAndSharedUserAccounts = await publicAndSharedUserAccountsResponse.json()
+            setPublicAndSharedUserAccounts(publicAndSharedUserAccounts)
+        }
+        fetchPublicAndSharedUserAccounts()
+    }, [targetUser])
+
+    // TODO: Remove after testing
+    useEffect(() => {
+        console.log(publicAndSharedUserAccounts)
+    }, [publicAndSharedUserAccounts])
+
+    function checkSharingStatus(userColumnName: string) {
+        const account = publicAndSharedUserAccounts.find((account) => account.type === userColumnName)
+        if (account) {
+            // TODO: Remove after testing
+            console.log("account", account)
+
+            // Check if the account is public
+            if (account.is_public) {
+                return "public"
+            }
+
+            // Check if the account has any shared entries
+            if (account.user_accounts_shared && account.user_accounts_shared.length > 0) {
+                return "shared"
+            }
+
+            // Fallback to private
+            return "private"
+        }
+
+        // If the account is not found, return private
+        return "private"
+    }
     return (
         <SettingsSectionContainer>
             {!targetUser ? (
@@ -39,7 +91,8 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                             privyLinkMethod: "email",
                         }}
                         disabled={!isOwner}
-                        lozengeTypes={["notifications", "private"]}
+                        lozengeTypes={["comingSoon", checkSharingStatus("email")]}
+                        sharingConfig={publicAndSharedUserAccounts.find((account) => account.type === "email")}
                     />
                     <Divider />
                     <ForumAccountsContainer targetUser={targetUser} disabled={!isOwner} />
@@ -55,7 +108,10 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                 privyLinkMethod: "discord_oauth",
                             }}
                             disabled={!isOwner}
-                            lozengeTypes={["comingSoon", "private"]}
+                            lozengeTypes={["comingSoon", checkSharingStatus("discord_username")]}
+                            sharingConfig={publicAndSharedUserAccounts.find(
+                                (account) => account.type === "discord_username",
+                            )}
                         />
                         <LinkPrivyAccountsContainer
                             targetUser={targetUser}
@@ -67,7 +123,8 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                 privyLinkMethod: "twitter_oauth",
                             }}
                             disabled={!isOwner}
-                            lozengeTypes={["comingSoon", "private"]}
+                            lozengeTypes={["comingSoon", checkSharingStatus("x_username")]}
+                            sharingConfig={publicAndSharedUserAccounts.find((account) => account.type === "x_username")}
                         />
                         <LinkPrivyAccountsContainer
                             targetUser={targetUser}
@@ -79,7 +136,10 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                 privyLinkMethod: "farcaster",
                             }}
                             disabled={!isOwner}
-                            lozengeTypes={["comingSoon", "private"]}
+                            lozengeTypes={["comingSoon", checkSharingStatus("farcaster_username")]}
+                            sharingConfig={publicAndSharedUserAccounts.find(
+                                (account) => account.type === "farcaster_username",
+                            )}
                         />
                     </SettingsGroupContainer>
                     <Divider />
@@ -103,7 +163,10 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                         privyLinkMethod: "github",
                                     }}
                                     loginOnly={true}
-                                    lozengeTypes={["private"]}
+                                    lozengeTypes={[checkSharingStatus("github")]}
+                                    sharingConfig={publicAndSharedUserAccounts.find(
+                                        (account) => account.type === "github",
+                                    )}
                                 />
                                 <LinkPrivyAccountsContainer
                                     targetUser={targetUser}
@@ -114,7 +177,10 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                         privyLinkMethod: "google",
                                     }}
                                     loginOnly={true}
-                                    lozengeTypes={["private"]}
+                                    lozengeTypes={[checkSharingStatus("google")]}
+                                    sharingConfig={publicAndSharedUserAccounts.find(
+                                        (account) => account.type === "google",
+                                    )}
                                 />
                                 {/* TODO: This gives a 401 error when trying to log in and I have no idea why */}
                                 {/* <LinkPrivyAccountsContainer
