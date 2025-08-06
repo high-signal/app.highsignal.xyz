@@ -66,7 +66,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
 
             // Check if the account has any shared entries
             if (account.userAccountsShared && account.userAccountsShared.length > 0) {
-                return "shared"
+                return "shared_account"
             }
 
             // Fallback to private

@@ -33,7 +33,7 @@ export default function WalletAccountsManager({
     const lozengeTypes: LozengeType[] = userAddressConfig.isPublic
         ? ["public"]
         : userAddressConfig.projectsSharedWith.length > 0
-          ? ["shared"]
+          ? ["shared_address"]
           : ["private"]
 
     return (
