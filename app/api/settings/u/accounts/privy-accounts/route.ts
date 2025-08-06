@@ -66,6 +66,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(formattedUserAccounts)
 }
 
+// This function is used to update the sharing status for a user account
+export async function PUT(request: NextRequest) {
+    // TODO: Implement this function
+    return NextResponse.json({ message: "Not implemented", success: true, status: 401 })
+}
+
 // This function is used to update the Privy accounts for a user
 export async function PATCH(request: NextRequest) {
     const privyId = request.headers.get("x-privy-id")!

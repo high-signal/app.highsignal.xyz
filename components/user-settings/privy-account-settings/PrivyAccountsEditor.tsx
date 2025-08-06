@@ -20,20 +20,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { faCheckCircle } from "@fortawesome/free-regular-svg-icons"
 import { getAccessToken } from "@privy-io/react-auth"
+import { PrivyAccountConfig } from "./LinkPrivyAccountsContainer"
 
 export default function PrivyAccountsEditor({
     isOpen,
     onClose,
-    userAccountConfig,
+    accountConfig,
+    sharingConfig,
 }: {
     isOpen: boolean
     onClose: () => void
-    userAccountConfig: {
-        type: string
-        displayName: string
-        isPublic: boolean
-        userAccountsShared: SharedProjectData[]
-    }
+    accountConfig: PrivyAccountConfig
+    sharingConfig: UserPublicOrSharedAccount | null
 }) {
     // const [settings, setSettings] = useState<PrivyAccountSettingsState | null>(null)
     const [hasChanges, setHasChanges] = useState(false)
@@ -57,15 +55,19 @@ export default function PrivyAccountsEditor({
         onClose()
     }
 
-    // If the settings are not loaded, do not render anything
-    // if (!settings) return null
+    // TODO: Remove after testing
+    // console.log("sharingConfig", sharingConfig)
+    // console.log("accountConfig", accountConfig)
+
+    // If the accountConfig are not loaded, do not render anything
+    if (!accountConfig) return null
 
     return (
         <EditorModal
             isOpen={isOpen}
             handleClose={handleClose}
             hasChanges={hasChanges}
-            title={`Edit sharing settings for ${userAccountConfig.displayName.charAt(0).toUpperCase() + userAccountConfig.displayName.slice(1)}`}
+            title={`Edit sharing settings for ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)}`}
             isSaving={isSaving}
             handleSave={handleSave}
             disabled={!hasChanges || isSaving || !!sharingValidationError}
