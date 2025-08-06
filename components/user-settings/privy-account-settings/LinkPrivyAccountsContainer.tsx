@@ -110,10 +110,12 @@ export default function LinkPrivyAccountsContainer({
                 if ("username" in linkedAccount && linkedAccount.username) {
                     setAccountUsername(linkedAccount.username as string)
                     setIsConnected(true)
+                    // TODO: Get the sharing status from the DB
                 }
                 if ("email" in linkedAccount && linkedAccount.email) {
                     setAccountUsername(linkedAccount.email as string)
                     setIsConnected(true)
+                    // TODO: Get the sharing status from the DB
                 }
             }
 
@@ -126,14 +128,17 @@ export default function LinkPrivyAccountsContainer({
                     privyUser.linkedAccounts.find((account) => account.type === "passkey")?.authenticatorName as string,
                 )
                 setIsConnected(true)
+                // TODO: Get the sharing status from the DB
             }
 
             setIsConnectedLoading(false)
         } else if (targetUser[accountConfig.type as keyof UserData]) {
             if (accountConfig.type === "discordUsername") {
                 setAccountUsername((targetUser[accountConfig.type as keyof UserData] as string).split("#")[0])
+                // TODO: Get the sharing status from the DB
             } else {
                 setAccountUsername(targetUser[accountConfig.type as keyof UserData] as string)
+                // TODO: Get the sharing status from the DB
             }
             setIsConnected(true)
             setIsConnectedLoading(false)
@@ -293,7 +298,12 @@ export default function LinkPrivyAccountsContainer({
                 <PrivyAccountsEditor
                     isOpen={isEditModalOpen}
                     onClose={() => setIsEditModalOpen(false)}
-                    // privyAccountConfig={accountConfig}
+                    userAccountConfig={{
+                        type: accountConfig.type,
+                        displayName: accountConfig.displayName,
+                        isPublic: false,
+                        userAccountsShared: [],
+                    }}
                 />
             </AccountConnectionManager>
             {accountConfig.confirmDelete && (

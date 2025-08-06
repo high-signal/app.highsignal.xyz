@@ -24,13 +24,17 @@ import { getAccessToken } from "@privy-io/react-auth"
 export default function PrivyAccountsEditor({
     isOpen,
     onClose,
-    // privyAccountConfig,
+    userAccountConfig,
 }: {
     isOpen: boolean
     onClose: () => void
-    // privyAccountConfig: PrivyAccountConfig
+    userAccountConfig: {
+        type: string
+        displayName: string
+        isPublic: boolean
+        userAccountsShared: SharedProjectData[]
+    }
 }) {
-    const [isCopied, setIsCopied] = useState(false)
     // const [settings, setSettings] = useState<PrivyAccountSettingsState | null>(null)
     const [hasChanges, setHasChanges] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
@@ -61,7 +65,7 @@ export default function PrivyAccountsEditor({
             isOpen={isOpen}
             handleClose={handleClose}
             hasChanges={hasChanges}
-            title="Edit settings for TODO"
+            title={`Edit sharing settings for ${userAccountConfig.displayName.charAt(0).toUpperCase() + userAccountConfig.displayName.slice(1)}`}
             isSaving={isSaving}
             handleSave={handleSave}
             disabled={!hasChanges || isSaving || !!sharingValidationError}

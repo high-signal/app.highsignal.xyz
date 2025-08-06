@@ -19,6 +19,11 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
         return <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
     }
 
+    // Lookup all user_accounts for the target user
+    // TODO: Get all values in the user_accounts table for the target user user_id
+    //       Use those rows to lookup any shared accounts in the user_accounts_shared table
+    //       Use those results to populate the lozenge types and the sharing status for each account
+
     return (
         <SettingsSectionContainer>
             {!targetUser ? (

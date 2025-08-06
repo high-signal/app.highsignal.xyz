@@ -30,10 +30,16 @@ interface UserAddressConfig {
     address: string
     addressName?: string
     isPublic: boolean
-    userAddressesShared: UserAddressShared[]
+    userAddressesShared: SharedProjectData[]
 }
 
-interface UserAddressShared {
+interface SharedProjectData {
+    projectUrlSlug: string
+    projectDisplayName: string
+    projectLogoUrl?: string
+}
+
+interface SharedProjectData {
     projectUrlSlug: string
     projectDisplayName: string
     projectLogoUrl?: string

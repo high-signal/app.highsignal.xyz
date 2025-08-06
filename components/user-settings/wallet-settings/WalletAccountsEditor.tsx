@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, Text, Button, HStack, Dialog, RadioGroup, Box, Image } from "@chakra-ui/react"
+import { VStack, Text, Button, HStack, RadioGroup, Box, Image } from "@chakra-ui/react"
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams } from "next/navigation"
 
@@ -22,7 +22,7 @@ import { getAccessToken } from "@privy-io/react-auth"
 type WalletAccountSettingsState = {
     name: { current: string | null; new: string | null }
     sharing: { current: "private" | "public" | "shared" | null; new: "private" | "public" | "shared" | null }
-    userAddressesShared: { current: UserAddressShared[] | null; new: UserAddressShared[] | null }
+    userAddressesShared: { current: SharedProjectData[] | null; new: SharedProjectData[] | null }
 }
 
 export default function WalletAccountsEditor({
@@ -192,7 +192,7 @@ export default function WalletAccountsEditor({
     }
 
     // Helper function to get the current list of projects to display
-    const getCurrentProjectList = (): UserAddressShared[] => {
+    const getCurrentProjectList = (): SharedProjectData[] => {
         if (!settings) return []
         if (settings.userAddressesShared?.new !== null) {
             return settings.userAddressesShared.new || []
