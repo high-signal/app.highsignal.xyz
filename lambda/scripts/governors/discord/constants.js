@@ -8,7 +8,7 @@
 // ==========
 // Constants
 // ==========
-const MAX_REQUESTS_PER_SECOND_PER_CHANNEL = 5
+const MAX_REQUESTS_PER_SECOND_PER_CHANNEL = 2
 const MAX_QUEUE_LENGTH = 20
 const TIMEOUT_SECONDS = 32 // Lambda timeout is 30 seconds
 const MAX_ATTEMPTS = 1 // Gives it 2 attempts

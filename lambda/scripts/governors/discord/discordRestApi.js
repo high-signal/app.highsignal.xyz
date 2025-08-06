@@ -18,20 +18,41 @@ class DiscordRestApi {
         }
 
         const timestamps = this.requestTimestamps.get(channelId)
-        const recentRequests = timestamps.filter((ts) => now - ts < 1000)
+        // Clean up old timestamps (older than 1 second)
+        const cutoffTime = now - 1000
+        const validTimestamps = timestamps.filter((ts) => ts > cutoffTime)
 
-        if (recentRequests.length >= MAX_REQUESTS_PER_SECOND_PER_CHANNEL) {
-            const waitTime = 1000 - (now - recentRequests[0])
-            console.log(`⏳ Rate limit hit for channel ${channelId}, waiting ${waitTime}ms...`)
+        // Update the map with cleaned timestamps
+        this.requestTimestamps.set(channelId, validTimestamps)
+
+        console.log(
+            `   🐌 Rate limit check for channel ${channelId}: ${validTimestamps.length}/${MAX_REQUESTS_PER_SECOND_PER_CHANNEL} requests in last 1s (${new Date(now).toISOString()})`,
+        )
+
+        // Check if we're at the rate limit
+        if (validTimestamps.length >= MAX_REQUESTS_PER_SECOND_PER_CHANNEL) {
+            // Wait until the oldest request is more than 1 second old
+            const oldestRequest = Math.min(...validTimestamps)
+            const waitTime = 1000 - (now - oldestRequest) + 1 // Add 1ms buffer
+            console.log(
+                `⏳ Rate limit hit for channel ${channelId}, waiting ${waitTime}ms... (${new Date(now).toISOString()})`,
+            )
             await new Promise((resolve) => setTimeout(resolve, waitTime))
+            const afterWait = Date.now()
+            console.log(
+                `✅ Rate limit wait completed for channel ${channelId} (${new Date(afterWait).toISOString()}, actual wait: ${afterWait - now}ms)`,
+            )
         }
 
-        timestamps.push(Date.now())
-        this.requestTimestamps.set(channelId, timestamps)
+        // Add current timestamp
+        validTimestamps.push(Date.now())
+        this.requestTimestamps.set(channelId, validTimestamps)
     }
 
     // Fetch messages from a channel
-    async fetchMessages(channelId, options = {}) {
+    async fetchMessages(channelId, options = {}, retryCount = 0) {
+        const MAX_RETRIES = 3
+
         await this.checkRateLimit(channelId)
 
         const params = new URLSearchParams()
@@ -42,13 +63,43 @@ class DiscordRestApi {
 
         const url = `${this.baseUrl}/channels/${channelId}/messages?${params.toString()}`
 
-        console.log("📡 DISCORD API CALL: fetchMessages")
+        console.log("   📡 DISCORD API CALL: fetchMessages")
         const response = await fetch(url, {
             headers: {
                 Authorization: `Bot ${this.token}`,
                 "Content-Type": "application/json",
             },
         })
+
+        if (response.status === 429) {
+            // Handle Discord's rate limiting
+            const errorData = await response.json()
+            const retryAfter = errorData.retry_after * 1000 // Convert to milliseconds
+            const isGlobal = errorData.global || false
+
+            console.log(
+                `   🚫 Discord rate limit hit: ${isGlobal ? "global" : "endpoint"} limit, waiting ${retryAfter}ms...`,
+            )
+            await new Promise((resolve) => setTimeout(resolve, retryAfter))
+
+            // Retry the request after waiting
+            console.log("   🔄 Retrying Discord API call after rate limit wait...")
+            return await this.fetchMessages(channelId, options, retryCount)
+        }
+
+        if (response.status >= 500 && response.status < 600) {
+            // Handle server errors (5xx)
+            if (retryCount < MAX_RETRIES) {
+                const waitTime = Math.pow(2, retryCount) * 1000 // Exponential backoff: 1s, 2s, 4s
+                console.log(
+                    `   ⚠️ Server error ${response.status}, retrying in ${waitTime}ms... (attempt ${retryCount + 1}/${MAX_RETRIES})`,
+                )
+                await new Promise((resolve) => setTimeout(resolve, waitTime))
+                return await this.fetchMessages(channelId, options, retryCount + 1)
+            } else {
+                console.log(`   ❌ Max retries (${MAX_RETRIES}) reached for server error ${response.status}`)
+            }
+        }
 
         if (!response.ok) {
             const errorText = await response.text()

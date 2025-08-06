@@ -182,7 +182,7 @@ async function runDiscordGovernor() {
                 const channelId = channel.id
                 console.log("--------------------------------")
                 console.log(
-                    `⭐️ Processing Discord: ${project.projects.url_slug}. Guild ID: ${guildId}. Channel: ${channel.name}.`,
+                    `⭐️ Processing Discord: ${project.projects.url_slug}. Guild ID: ${guildId}. Channel: ${channel.name} (ID: ${channelId}).`,
                 )
 
                 // Look in the queue for any current items for this channel that are not completed.
@@ -224,7 +224,7 @@ async function runDiscordGovernor() {
                     // set it back to pending and try to trigger it again.
                     if (currentQueueItem[0]?.attempts < MAX_ATTEMPTS) {
                         console.log(
-                            `🔁 Setting latest queue item (${currentQueueItem[0].id}) back to pending and trying again. Guild: ${guild.name}. Channel: ${channel.name}.`,
+                            `🔁 Setting latest queue item (${currentQueueItem[0].id}) back to pending and trying again. Project: ${project.projects.display_name} (${project.projects.url_slug}). Guild: ${guildId}. Channel: ${channelId}.`,
                         )
                         const { data: updatedQueueItem, error: updatedQueueItemError } = await supabase
                             .from("discord_request_queue")
@@ -256,7 +256,7 @@ async function runDiscordGovernor() {
                 // Try to trigger it again now there is space in the queue.
                 if (currentQueueItem?.length > 0 && currentQueueItem[0]?.status === "pending") {
                     console.log(
-                        `🏁 Triggering pending queue item. Guild: ${guild.name}. Channel: ${channel.name}. Queue item ID: ${currentQueueItem[0].id}`,
+                        `🏁 Triggering pending queue item. Project: ${project.projects.display_name} (${project.projects.url_slug}). Guild: ${guildId}. Channel: ${channelId}. Queue item ID: ${currentQueueItem[0].id}`,
                     )
                     await handleTriggerDiscordQueueItem({ queueItemId: currentQueueItem[0].id })
                     invokedCounter++
