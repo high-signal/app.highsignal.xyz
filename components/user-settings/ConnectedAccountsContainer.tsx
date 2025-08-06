@@ -18,17 +18,8 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
 
     const isOwner = loggedInUser?.username === targetUser.username
 
-    const Divider = () => {
-        return <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
-    }
-
     // Lookup all user_accounts for the target user
-    // TODO: Get all values in the user_accounts table for the target user user_id
-    //       Use those rows to lookup any shared accounts in the user_accounts_shared table
-    //       Use those results to populate the lozenge types and the sharing status for each account
-
     const [publicAndSharedUserAccounts, setPublicAndSharedUserAccounts] = useState<UserPublicOrSharedAccount[]>([])
-
     useEffect(() => {
         const fetchPublicAndSharedUserAccounts = async () => {
             const token = await getAccessToken()
@@ -48,17 +39,9 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
         fetchPublicAndSharedUserAccounts()
     }, [targetUser])
 
-    // TODO: Remove after testing
-    useEffect(() => {
-        console.log(publicAndSharedUserAccounts)
-    }, [publicAndSharedUserAccounts])
-
     function checkSharingStatus(userColumnName: string) {
         const account = publicAndSharedUserAccounts.find((account) => account.type === userColumnName)
         if (account) {
-            // TODO: Remove after testing
-            console.log("account", account)
-
             // Check if the account is public
             if (account.isPublic) {
                 return "public"
@@ -76,6 +59,11 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
         // If the account is not found, return private
         return "private"
     }
+
+    const Divider = () => {
+        return <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
+    }
+
     return (
         <SettingsSectionContainer>
             {!targetUser ? (

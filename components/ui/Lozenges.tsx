@@ -19,7 +19,7 @@ const typeConfig = {
         color: "blue.100",
         icon: faLock,
         text: "Private",
-        tip: "This information is private and is not visible to other users.",
+        tip: "This information is private and is not visible to other users or projects.",
     },
     public: {
         bgColor: "green.500",
