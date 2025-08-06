@@ -43,7 +43,7 @@ const typeConfig = {
         tip: "You have chosen to share this account with the projects listed below. Only the account username is shared.",
     },
     comingSoon: {
-        bgColor: "blue.500",
+        bgColor: "blue.700",
         color: "blue.100",
         icon: faHourglassHalf,
         text: "Coming Soon",

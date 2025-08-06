@@ -91,7 +91,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                             privyLinkMethod: "email",
                         }}
                         disabled={!isOwner}
-                        lozengeTypes={["comingSoon", checkSharingStatus("email")]}
+                        lozengeTypes={["notifications", checkSharingStatus("email")]}
                         sharingConfig={publicAndSharedUserAccounts.find((account) => account.type === "email")}
                     />
                     <Divider />
