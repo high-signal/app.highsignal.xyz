@@ -39,12 +39,6 @@ interface SharedProjectData {
     projectLogoUrl?: string
 }
 
-interface SharedProjectData {
-    projectUrlSlug: string
-    projectDisplayName: string
-    projectLogoUrl?: string
-}
-
 interface EditorSettingsState {
     name?: { current: string | null; new: string | null }
     sharing: { current: "private" | "public" | "shared" | null; new: "private" | "public" | "shared" | null }
@@ -53,13 +47,14 @@ interface EditorSettingsState {
 
 interface UserPublicOrSharedAccount {
     id: number
-    is_public: boolean
+    isPublic: boolean
     type: string
-    user_accounts_shared: {
-        project_id: number
-        user_account_id: number
+    userAccountsShared: {
+        projectId: number
+        userAccountId: number
+        project: SharedProjectData
     }[]
-    user_id: number
+    userId: number
 }
 interface ConnectedAccount {
     name: string

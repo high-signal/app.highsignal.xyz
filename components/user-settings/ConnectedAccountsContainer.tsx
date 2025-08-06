@@ -60,12 +60,12 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
             console.log("account", account)
 
             // Check if the account is public
-            if (account.is_public) {
+            if (account.isPublic) {
                 return "public"
             }
 
             // Check if the account has any shared entries
-            if (account.user_accounts_shared && account.user_accounts_shared.length > 0) {
+            if (account.userAccountsShared && account.userAccountsShared.length > 0) {
                 return "shared"
             }
 

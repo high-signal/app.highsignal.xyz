@@ -18,8 +18,18 @@ export async function GET(request: NextRequest) {
             `
             id,
             user_accounts (
-                *,
-                user_accounts_shared (*)
+                user_id,
+                type,
+                is_public,
+                user_accounts_shared (
+                    user_account_id,
+                    project_id,
+                    project: projects!user_accounts_shared_project_id_fkey (
+                        url_slug,
+                        display_name,
+                        project_logo_url
+                    )
+                )
             )
         `,
         )
@@ -30,7 +40,30 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Error fetching user accounts. Error code: 6RVX91" }, { status: 500 })
     }
 
-    return NextResponse.json(userWithAccounts.user_accounts)
+    // Format response to only include the user_accounts_shared data with camelCase field names
+    const formattedUserAccounts = userWithAccounts.user_accounts.map((account) => {
+        return {
+            userId: account.user_id,
+            type: account.type,
+            isPublic: account.is_public,
+            userAccountsShared: account.user_accounts_shared.map((shared) => {
+                const project = Array.isArray(shared.project) ? shared.project[0] : shared.project
+                return {
+                    userAccountId: shared.user_account_id,
+                    projectId: shared.project_id,
+                    project: project
+                        ? {
+                              projectUrlSlug: project.url_slug,
+                              projectDisplayName: project.display_name,
+                              projectLogoUrl: project.project_logo_url,
+                          }
+                        : null,
+                }
+            }),
+        }
+    })
+
+    return NextResponse.json(formattedUserAccounts)
 }
 
 // This function is used to update the Privy accounts for a user
