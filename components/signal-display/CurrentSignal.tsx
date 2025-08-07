@@ -124,7 +124,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                                 left: 0,
                                 right: 0,
                                 bottom: 0,
-                                bg: signalValue === 100 ? "green.900" : `scoreColor.${signal}`,
+                                bg: signalValue === 100 ? "lozenge.background.active" : `scoreColor.${signal}`,
                                 opacity: 0.6,
                                 borderLeftRadius: "7px",
                             }}
