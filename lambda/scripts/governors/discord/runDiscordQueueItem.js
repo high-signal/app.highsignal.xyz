@@ -90,7 +90,7 @@ async function runDiscordQueueItem({ queueItemId }) {
             // Message fetch loop.
             for (let i = 0; i < MAX_PAGINATION_LOOPS; i++) {
                 console.log(`🔄 Loop ${i + 1} of ${MAX_PAGINATION_LOOPS}`)
-                console.log(`   🔚 Oldest message timestamp: ${oldestMessageTimestamp}`)
+                console.log(`|  🔚 Oldest message timestamp: ${oldestMessageTimestamp}`)
 
                 // Fetch messages from the channel using REST API.
                 const messages = await discordApi.fetchMessages(channelId, {
@@ -98,7 +98,7 @@ async function runDiscordQueueItem({ queueItemId }) {
                     before: newestMessageId,
                 })
 
-                console.log(`   📬 Messages fetched: ${messages.length || 0}`)
+                console.log(`|  📬 Messages fetched: ${messages.length || 0}`)
                 totalMessagesProcessed += messages.length || 0
 
                 let messagesSkipped = 0
@@ -112,7 +112,7 @@ async function runDiscordQueueItem({ queueItemId }) {
                     if (!newestMessageId) {
                         newestMessageId = messages[0].id
 
-                        console.log(`   📣 Head sync detected.`)
+                        console.log(`|  📣 Head sync detected.`)
 
                         // Set the newest_message_id to the newest message in the channel.
                         const { error: setNewestMessageIdError } = await supabase
@@ -217,9 +217,9 @@ async function runDiscordQueueItem({ queueItemId }) {
                             }
                         })
 
-                        console.log(`   🧮 Messages skipped: ${messagesSkipped}`)
-                        console.log(`   🧮 Messages stored: ${messagesStored}`)
-                        console.log(`   🧮 Messages already stored: ${messagesAlreadyStored}`)
+                        console.log(`|  🧮 Messages skipped: ${messagesSkipped}`)
+                        console.log(`|  🧮 Messages stored: ${messagesStored}`)
+                        console.log(`|  🧮 Messages already stored: ${messagesAlreadyStored}`)
                     } else {
                         console.log("⏹️ No valid messages to insert in this loop.")
                         break

@@ -26,7 +26,7 @@ class DiscordRestApi {
         this.requestTimestamps.set(channelId, validTimestamps)
 
         console.log(
-            `   🐌 Rate limit check for channel ${channelId}: ${validTimestamps.length}/${MAX_REQUESTS_PER_SECOND_PER_CHANNEL} requests in last 1s (${new Date(now).toISOString()})`,
+            `|  🐌 Rate limit check for channel ${channelId}: ${validTimestamps.length}/${MAX_REQUESTS_PER_SECOND_PER_CHANNEL} requests in last 1s (${new Date(now).toISOString()})`,
         )
 
         // Check if we're at the rate limit
@@ -69,12 +69,12 @@ class DiscordRestApi {
             const isGlobal = errorData.global || false
 
             console.log(
-                `   🚫 Discord rate limit hit: ${isGlobal ? "global" : "endpoint"} limit, waiting ${retryAfter}ms...`,
+                `|  🚫 Discord rate limit hit: ${isGlobal ? "global" : "endpoint"} limit, waiting ${retryAfter}ms...`,
             )
             await new Promise((resolve) => setTimeout(resolve, retryAfter))
 
             // Retry the request after waiting
-            console.log("   🔄 Retrying Discord API call after rate limit wait...")
+            console.log("|  🔄 Retrying Discord API call after rate limit wait...")
             return await this.makeDiscordRequest(url, options, retryCount)
         }
 
@@ -83,12 +83,12 @@ class DiscordRestApi {
             if (retryCount < MAX_RETRIES) {
                 const waitTime = Math.pow(2, retryCount) * 1000 // Exponential backoff: 1s, 2s, 4s
                 console.log(
-                    `   ⚠️ Server error ${response.status}, retrying in ${waitTime}ms... (attempt ${retryCount + 1}/${MAX_RETRIES})`,
+                    `|  ⚠️ Server error ${response.status}, retrying in ${waitTime}ms... (attempt ${retryCount + 1}/${MAX_RETRIES})`,
                 )
                 await new Promise((resolve) => setTimeout(resolve, waitTime))
                 return await this.makeDiscordRequest(url, options, retryCount + 1)
             } else {
-                console.log(`   ❌ Max retries (${MAX_RETRIES}) reached for server error ${response.status}`)
+                console.log(`|  ❌ Max retries (${MAX_RETRIES}) reached for server error ${response.status}`)
             }
         }
 
@@ -112,7 +112,7 @@ class DiscordRestApi {
 
         const url = `${this.baseUrl}/channels/${channelId}/messages?${params.toString()}`
 
-        console.log("   📡 DISCORD API CALL: fetchMessages")
+        console.log("|  📡 DISCORD API CALL: fetchMessages")
         return await this.makeDiscordRequest(url)
     }
 
