@@ -112,7 +112,7 @@ async function runDiscordQueueItem({ queueItemId }) {
                     if (!newestMessageId) {
                         newestMessageId = messages[0].id
 
-                        console.log(`📣 Head sync detected.`)
+                        console.log(`   📣 Head sync detected.`)
 
                         // Set the newest_message_id to the newest message in the channel.
                         const { error: setNewestMessageIdError } = await supabase
@@ -177,6 +177,8 @@ async function runDiscordQueueItem({ queueItemId }) {
                             messagesToInsert.every((m) => existingIdSet.has(m.message_id))
                         ) {
                             console.log(`⏹️ All messages in this loop already existed in DB. Breaking out of loop.`)
+                            messagesAlreadyStored = messagesToInsert.length
+                            totalMessagesAlreadyStored += messagesToInsert.length
                             break
                         }
 
