@@ -218,8 +218,8 @@ async function runDiscordQueueItem({ queueItemId }) {
                         })
 
                         console.log(`   🧮 Messages skipped: ${messagesSkipped}`)
-                        console.log(`   🧮Messages stored: ${messagesStored}`)
-                        console.log(`   🧮Messages already stored: ${messagesAlreadyStored}`)
+                        console.log(`   🧮 Messages stored: ${messagesStored}`)
+                        console.log(`   🧮 Messages already stored: ${messagesAlreadyStored}`)
                     } else {
                         console.log("⏹️ No valid messages to insert in this loop.")
                         break

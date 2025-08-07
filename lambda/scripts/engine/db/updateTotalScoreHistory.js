@@ -14,8 +14,11 @@ async function updateTotalScoreHistory(supabase, userId, projectId, day) {
         throw signalStrengthScoresError
     }
 
-    // Calculate the total score
-    const totalScore = signalStrengthScores.reduce((acc, curr) => acc + curr.value, 0)
+    // Calculate the total score of all signal strength smart scores for a user, project and day (max 100)
+    const totalScore = Math.min(
+        100,
+        signalStrengthScores.reduce((acc, curr) => acc + curr.value, 0),
+    )
 
     // Update the user_project_scores_history table
     const { error: historyError } = await supabase.from("user_project_scores_history").upsert(
