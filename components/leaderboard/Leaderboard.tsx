@@ -444,6 +444,13 @@ export default function Leaderboard({
                                                             py={1}
                                                             border="3px solid"
                                                             borderRadius="15px"
+                                                            className={
+                                                                (mode === "users"
+                                                                    ? (item as UserData).score
+                                                                    : userData?.score) === 100
+                                                                    ? "pulse-shadow-animation"
+                                                                    : ""
+                                                            }
                                                             borderColor={
                                                                 isScoreZero
                                                                     ? "transparent"
