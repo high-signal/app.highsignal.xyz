@@ -164,29 +164,16 @@ async function runDiscordGovernor() {
             }
             const guildId = urlMatch[1]
 
-            // Get guild information
-            const guild = await discordApi.getGuild(guildId)
+            // Fetch accessible text channels in the guild
+            const accessibleTextChannels = await discordApi.getAccessibleTextChannels(guildId)
 
-            // Fetch all channels in the guild
-            const allChannels = await discordApi.getGuildChannels(guildId)
-
-            // Filter for text channels (type 0) and check permissions
-            const textChannels = []
-            for (const channel of allChannels) {
-                if (channel.type === 0) {
-                    // Text channel
-                    const canView = await discordApi.canViewChannel(guildId, channel.id)
-                    if (canView) {
-                        textChannels.push(channel)
-                    }
-                }
-            }
-
-            console.log(`🔍 Found ${textChannels.length} accessible text channels in guild: ${guild.name}`)
+            console.log(
+                `🔍 Found ${accessibleTextChannels.length} accessible text channels in Discord: ${project.projects.display_name} (${project.projects.url_slug}). Guild ID: ${guildId}`,
+            )
 
             // Shuffle channels to avoid always processing the same ones first.
             // Useful in case of ratel-imit issues that only allow the first X channels to be processed.
-            const shuffledChannels = [...textChannels].sort(() => Math.random() - 0.5)
+            const shuffledChannels = [...accessibleTextChannels].sort(() => Math.random() - 0.5)
 
             // ====================================================
             // For each channel, check queue and trigger if needed
@@ -194,7 +181,9 @@ async function runDiscordGovernor() {
             for (const channel of shuffledChannels) {
                 const channelId = channel.id
                 console.log("--------------------------------")
-                console.log(`⭐️ Processing Guild: ${guild.name}. Channel: ${channel.name}.`)
+                console.log(
+                    `⭐️ Processing Discord: ${project.projects.url_slug}. Guild ID: ${guildId}. Channel: ${channel.name} (ID: ${channelId}).`,
+                )
 
                 // Look in the queue for any current items for this channel that are not completed.
                 const { data: currentQueueItem, error: currentQueueItemError } = await supabase
@@ -235,7 +224,7 @@ async function runDiscordGovernor() {
                     // set it back to pending and try to trigger it again.
                     if (currentQueueItem[0]?.attempts < MAX_ATTEMPTS) {
                         console.log(
-                            `🔁 Setting latest queue item (${currentQueueItem[0].id}) back to pending and trying again. Guild: ${guild.name}. Channel: ${channel.name}.`,
+                            `🔁 Setting latest queue item (${currentQueueItem[0].id}) back to pending and trying again. Project: ${project.projects.display_name} (${project.projects.url_slug}). Guild: ${guildId}. Channel: ${channelId}.`,
                         )
                         const { data: updatedQueueItem, error: updatedQueueItemError } = await supabase
                             .from("discord_request_queue")
@@ -267,7 +256,7 @@ async function runDiscordGovernor() {
                 // Try to trigger it again now there is space in the queue.
                 if (currentQueueItem?.length > 0 && currentQueueItem[0]?.status === "pending") {
                     console.log(
-                        `🏁 Triggering pending queue item. Guild: ${guild.name}. Channel: ${channel.name}. Queue item ID: ${currentQueueItem[0].id}`,
+                        `🏁 Triggering pending queue item. Project: ${project.projects.display_name} (${project.projects.url_slug}). Guild: ${guildId}. Channel: ${channelId}. Queue item ID: ${currentQueueItem[0].id}`,
                     )
                     await handleTriggerDiscordQueueItem({ queueItemId: currentQueueItem[0].id })
                     invokedCounter++
@@ -289,7 +278,11 @@ async function runDiscordGovernor() {
                 const oldestTimestampLimit = new Date(now)
                 oldestTimestampLimit.setDate(oldestTimestampLimit.getDate() - previousDays)
 
-                // Fetch any existing queue items.
+                // Initialize variables to track the absolute oldest message in the queue.
+                let absoluteOldestTimestampAlreadyInQueue
+                let absoluteOldestMessageIdAlreadyInQueue
+
+                // Fetch any existing queue items within the time range.
                 const { data: existingQueueItems, error: existingQueueError } = await supabase
                     .from("discord_request_queue")
                     .select("id, oldest_message_timestamp, oldest_message_id, newest_message_timestamp")
@@ -318,24 +311,23 @@ async function runDiscordGovernor() {
                 let headGapFound = false
                 if (existingQueueItems.length > 0) {
                     // Check if there is a gap between the newest_message_timestamp and the current time.
+                    // Note: newest_message_timestamp is set to "now" when it runs a head sync, so that is
+                    // what it compares to wait for the HEAD_GAP_MINUTES.
                     const newestMessageTimestamp = new Date(existingQueueItems[0].newest_message_timestamp)
                     const timeSinceNewestMessage = now.getTime() - newestMessageTimestamp.getTime()
                     if (timeSinceNewestMessage > HEAD_GAP_MINUTES * 60 * 1000) {
                         console.log(`📣 Head gap found. Processing newest messages.`)
                         headGapFound = true
+                        // Do nothing here as it will be processed like a new head sync
+                        // since the newest_message_id will be null.
                     }
-                }
-
-                if (headGapFound) {
-                    // Do nothing here as it will be processed like a new head sync
-                    // since the newest_message_id will be null.
                 }
 
                 // If there is no head gap, check for gaps between the items in the queue.
                 // A gap is when there are two consecutive items where the newest_message_timestamp
                 // of the next item is less than the oldest_message_timestamp of the current item.
                 if (!headGapFound && existingQueueItems.length > 0) {
-                    let gapFound = false
+                    let intermediateGapFound = false
 
                     for (let i = 0; i < existingQueueItems.length - 1; i++) {
                         const currentItem = existingQueueItems[i]
@@ -349,26 +341,27 @@ async function runDiscordGovernor() {
                             console.log("2️⃣ nextItem.id", nextItem.id)
                             newestTimestamp = new Date(currentItem.oldest_message_timestamp)
                             newestMessageId = currentItem.oldest_message_id
-                            gapFound = true
+                            intermediateGapFound = true
                             break
                         }
                     }
 
-                    // If no gap was found, find the item with the absolute oldest_message_timestamp.
-                    if (!gapFound) {
-                        let oldestTimestamp = new Date(existingQueueItems[0].oldest_message_timestamp)
-                        let oldestMessageId = existingQueueItems[0].oldest_message_id
+                    // If no intermediate gap was found, find the queue item with the absolute oldest_message_timestamp.
+                    // This is to continue the sync from the absolute oldest message to the end of the previousDays.
+                    if (!intermediateGapFound) {
+                        absoluteOldestTimestampAlreadyInQueue = new Date(existingQueueItems[0].oldest_message_timestamp)
+                        absoluteOldestMessageIdAlreadyInQueue = existingQueueItems[0].oldest_message_id
 
                         for (const item of existingQueueItems) {
                             const itemTimestamp = new Date(item.oldest_message_timestamp)
-                            if (itemTimestamp < oldestTimestamp) {
-                                oldestTimestamp = itemTimestamp
-                                oldestMessageId = item.oldest_message_id
+                            if (itemTimestamp < absoluteOldestTimestampAlreadyInQueue) {
+                                absoluteOldestTimestampAlreadyInQueue = itemTimestamp
+                                absoluteOldestMessageIdAlreadyInQueue = item.oldest_message_id
                             }
                         }
 
-                        newestTimestamp = oldestTimestamp
-                        newestMessageId = oldestMessageId
+                        newestTimestamp = absoluteOldestTimestampAlreadyInQueue
+                        newestMessageId = absoluteOldestMessageIdAlreadyInQueue
                     }
                 }
 
@@ -377,8 +370,11 @@ async function runDiscordGovernor() {
                     // When there are no more messages to sync for a channel, the newestTimestamp will be
                     // null, which is 1970-01-01T00:00:00.000Z so will be less than the oldestTimestampLimit
                     // so this is correct response.
+                    const daysBetweenNowAndAbsoluteOldestTimestamp =
+                        Math.floor((now - absoluteOldestTimestampAlreadyInQueue) / (1000 * 60 * 60 * 24)) + 1
+
                     console.log(
-                        `✅ The queue items already covers the range up to ${previousDays} days ago. No further sync needed.`,
+                        `✅ Queue items already cover ${previousDays} previous days. Oldest message in DB from date ${absoluteOldestTimestampAlreadyInQueue.toISOString().split("T")[0]} (${daysBetweenNowAndAbsoluteOldestTimestamp} days ago). No sync needed.`,
                     )
                     continue
                 }

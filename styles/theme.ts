@@ -13,6 +13,13 @@ const rainbowAnimation = keyframes`
         100% { background-position: 0% 50%; }
         `
 
+const pulseShadow = keyframes`
+    0% { box-shadow: 0 0 10px 0px green; }
+    50% { box-shadow: 0 0 20px 5px green; }
+    100% { box-shadow: 0 0 10px 0px green; }
+  }
+`
+
 // Run this command when adding a new variant to fix the type error:
 // npx @chakra-ui/cli typegen ./styles/theme.ts
 
@@ -293,6 +300,9 @@ export const customConfig = defineConfig({
             backgroundSize: "1000% 1000% !important",
             textShadow: "0px 0px 5px black !important",
             animation: `${rainbowAnimation} 20s linear infinite !important`,
+        },
+        ".pulse-shadow-animation": {
+            animation: `${pulseShadow} 2s ease-in-out infinite !important`,
         },
         ".chakra-popover__arrowTip": {
             backgroundColor: "{colors.pageBackground} !important",

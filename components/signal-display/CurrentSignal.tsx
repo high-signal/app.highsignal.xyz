@@ -108,6 +108,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                         opacity={0.8}
                         overflow="hidden"
                         position="relative"
+                        className={signalValue === 100 ? "pulse-shadow-animation" : ""}
                     >
                         <Box
                             position="relative"
@@ -123,7 +124,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                                 left: 0,
                                 right: 0,
                                 bottom: 0,
-                                bg: `scoreColor.${signal}`,
+                                bg: signalValue === 100 ? "lozenge.background.active" : `scoreColor.${signal}`,
                                 opacity: 0.6,
                                 borderLeftRadius: "7px",
                             }}

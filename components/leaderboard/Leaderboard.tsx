@@ -326,7 +326,13 @@ export default function Leaderboard({
                                             </Link>
                                         </Table.Cell>
                                     )}
-                                    <Table.Cell borderBottom="none" py={"6px"} pr={0} maxW={displayNameColumnWidth}>
+                                    <Table.Cell
+                                        borderBottom="none"
+                                        py={"6px"}
+                                        pr={0}
+                                        maxW={displayNameColumnWidth}
+                                        borderLeftRadius={mode === "projects" ? "full" : "none"}
+                                    >
                                         <Link href={linkUrl}>
                                             <HStack
                                                 gap={3}
@@ -438,6 +444,13 @@ export default function Leaderboard({
                                                             py={1}
                                                             border="3px solid"
                                                             borderRadius="15px"
+                                                            className={
+                                                                (mode === "users"
+                                                                    ? (item as UserData).score
+                                                                    : userData?.score) === 100
+                                                                    ? "pulse-shadow-animation"
+                                                                    : ""
+                                                            }
                                                             borderColor={
                                                                 isScoreZero
                                                                     ? "transparent"

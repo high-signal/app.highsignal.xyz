@@ -73,7 +73,7 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
         }
 
         console.log(
-            `🏁 Analyzing activity for userId ${userId}, projectId ${projectId}, signalStrengthUsername ${signalStrengthUsername} for dayDate ${dayDate}`,
+            `🏁 Analyzing activity for userId ${userId}, projectId ${projectId}, signalStrengthId ${signalStrengthId}, signalStrengthUsername ${signalStrengthUsername} for dayDate ${dayDate}`,
         )
 
         // ================================
