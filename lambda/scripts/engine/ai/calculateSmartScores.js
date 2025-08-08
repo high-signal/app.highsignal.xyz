@@ -32,11 +32,10 @@ function calculateSmartScore(userData, previousDays, maxValue) {
 
         let timeDecayMultiplier = 1
 
-        // TODO: This is commented out for regression testing on staging
-        // if (ageInDays > decayStartDay) {
-        //     const decayProgress = (ageInDays - decayStartDay) / (previousDays - decayStartDay)
-        //     timeDecayMultiplier = 1 - decayProgress
-        // }
+        if (ageInDays > decayStartDay) {
+            const decayProgress = (ageInDays - decayStartDay) / (previousDays - decayStartDay)
+            timeDecayMultiplier = 1 - decayProgress
+        }
 
         // Limit timeDecayMultiplier to [0, 1]
         timeDecayMultiplier = Math.max(0, Math.min(1, timeDecayMultiplier))
