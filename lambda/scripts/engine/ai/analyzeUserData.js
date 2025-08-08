@@ -168,6 +168,10 @@ truncatedData.length: ${truncatedData.length}
         // Try to clean the response if it has markdown backticks
         const cleanResponse = response.replace(/^```json\n?|\n?```$/g, "").trim()
 
+        const analysisItems = userData.map((d) => ({
+            id: d.id.toString(),
+        }))
+
         try {
             // Add the prompt and model to the response
             const responseWithDataAdded = {
@@ -181,6 +185,7 @@ truncatedData.length: ${truncatedData.length}
                 promptId: promptId,
                 maxChars: maxChars,
                 previousDays: previousDays,
+                analysisItems: analysisItems,
                 ...JSON.parse(cleanResponse),
             }
 
