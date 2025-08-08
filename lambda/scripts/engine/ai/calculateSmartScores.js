@@ -1,17 +1,33 @@
-function calculateSmartScore(userData, previousDays, maxValue) {
+function calculateSmartScore({ signalStrengthName, userData, previousDays, maxValue }) {
     if (!userData.length) return { smartScore: 0, topBandDays: [] }
 
-    const TOP_THRESHOLD_PERCENT = 0.3
-    const TOP_BAND_MAX_LENGTH_TO_CONSIDER = 5
-    const LOWER_FREQUENCY_MULTIPLIER_COUNT = 2
-    const UPPER_FREQUENCY_MULTIPLIER_COUNT = 5
-    const TIME_DECAY_PERCENT = 0.3 // final 30% of period decays to 0
+    let topThresholdNormalizedLowerBound // Take the normalized value and subtract this value to get the lower bound of the top band
+    let topBandMaxLengthToConsider
+    let lowerFrequencyMultiplierCount
+    let upperFrequencyMultiplierCount
+    let timeDecayPercent // final 30% of period decays to 0
+
+    if (signalStrengthName === "discourse_forum") {
+        topThresholdNormalizedLowerBound = 0.3
+        topBandMaxLengthToConsider = 5
+        lowerFrequencyMultiplierCount = 2
+        upperFrequencyMultiplierCount = 5
+        timeDecayPercent = 0.3
+    } else if (signalStrengthName === "discord") {
+        topThresholdNormalizedLowerBound = 0.3
+        topBandMaxLengthToConsider = 20
+        lowerFrequencyMultiplierCount = 5
+        upperFrequencyMultiplierCount = 10
+        timeDecayPercent = 0.3
+    } else {
+        throw new Error(`No smart score calculation configured for ${signalStrengthName}`)
+    }
 
     const roundToTwoDecimals = (value) => {
         return Math.round(value * 100) / 100
     }
 
-    // If the day is within the last TIME_DECAY_PERCENT of the period,
+    // If the day is within the last timeDecayPercent of the period,
     // the normalized value is multiplied by the time weight
     // based on how far away from the end of the period it is
     const timeDecayWeighted = ({ normalizedRawValue, day }) => {
@@ -28,7 +44,7 @@ function calculateSmartScore(userData, previousDays, maxValue) {
             return 0 // Outside range
         }
 
-        const decayStartDay = Math.floor(previousDays * (1 - TIME_DECAY_PERCENT))
+        const decayStartDay = Math.floor(previousDays * (1 - timeDecayPercent))
 
         let timeDecayMultiplier = 1
 
@@ -53,16 +69,16 @@ function calculateSmartScore(userData, previousDays, maxValue) {
     })
 
     const topEntry = enriched.reduce((a, b) => (a.normalizedRawValue > b.normalizedRawValue ? a : b))
-    const topThreshold = roundToTwoDecimals(Math.max(0, topEntry.normalizedRawValue - TOP_THRESHOLD_PERCENT))
+    const topThreshold = roundToTwoDecimals(Math.max(0, topEntry.normalizedRawValue - topThresholdNormalizedLowerBound))
     let topBand = enriched.filter((d) => d.normalizedRawValue >= topThreshold)
 
     if (!topBand.length) return { smartScore: 0, topBandDays: [] }
 
-    // Only consider the TOP_BAND_MAX_LENGTH_TO_CONSIDER posts for the smart score calculation
-    if (topBand.length > TOP_BAND_MAX_LENGTH_TO_CONSIDER) {
+    // Only consider the topBandMaxLengthToConsider posts for the smart score calculation
+    if (topBand.length > topBandMaxLengthToConsider) {
         topBand = topBand
             .sort((a, b) => b.normalizedRawValue - a.normalizedRawValue)
-            .slice(0, TOP_BAND_MAX_LENGTH_TO_CONSIDER)
+            .slice(0, topBandMaxLengthToConsider)
     }
 
     const topBandNormalizedTotal = roundToTwoDecimals(topBand.reduce((sum, d) => sum + d.normalizedRawValue, 0))
@@ -70,11 +86,11 @@ function calculateSmartScore(userData, previousDays, maxValue) {
 
     const count = topBand.length
     let frequencyMultiplier = 0.5
-    if (count === LOWER_FREQUENCY_MULTIPLIER_COUNT) {
+    if (count === lowerFrequencyMultiplierCount) {
         frequencyMultiplier = 0.7
-    } else if (count > LOWER_FREQUENCY_MULTIPLIER_COUNT && count < UPPER_FREQUENCY_MULTIPLIER_COUNT) {
+    } else if (count > lowerFrequencyMultiplierCount && count < upperFrequencyMultiplierCount) {
         frequencyMultiplier = 0.85
-    } else if (count >= UPPER_FREQUENCY_MULTIPLIER_COUNT) {
+    } else if (count >= upperFrequencyMultiplierCount) {
         frequencyMultiplier = 1.0
     }
 
