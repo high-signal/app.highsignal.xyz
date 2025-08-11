@@ -192,9 +192,7 @@ export default function SignalStrength({
                                 {completedBarWidth !== "0%" && <Text>+</Text>}
                                 <Text>{displayValue}</Text>
                             </HStack>
-                            {userContentAvailable && loggedInUser?.username === username && (
-                                <Lozenges types={["calcInfo"]} />
-                            )}
+                            <Lozenges types={["calcInfo"]} />
                         </HStack>
                     )}
                 {signalStrengthProjectData.status === "dev" && (

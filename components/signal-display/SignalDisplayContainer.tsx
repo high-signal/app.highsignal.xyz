@@ -8,6 +8,7 @@ import UserInfo from "./UserInfo"
 import CurrentSignal from "./CurrentSignal"
 import PeakSignalsContainer from "./peak-signals/PeakSignalsContainer"
 import SignalStrengthContainer from "./signal-strength/SignalStrengthContainer"
+import SignalScoreDescription from "./SignalScoreDescription"
 
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { useGetProjects } from "../../hooks/useGetProjects"
@@ -144,13 +145,7 @@ export default function SignalDisplayContainer({ project, username }: { project:
                     />
                     <Box w="100%" h={{ base: "30px", sm: "20px" }} />
                     <CurrentSignal currentUser={currentUser} />
-                    {/* <HStack w="100%" justifyContent="space-between">
-                    <Text textAlign="center">
-                        Placeholder text for the user summary. Placeholder text for the user summary. Placeholder text
-                        for the user summary. Placeholder text for the user summary. Placeholder text for the user
-                        summary. Placeholder text for the user summary.
-                    </Text>
-                </HStack> */}
+                    <SignalScoreDescription currentUser={currentUser} projectData={currentProject} />
                 </VStack>
                 {currentProject.peakSignalsEnabled && (
                     <PeakSignalsContainer
