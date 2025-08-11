@@ -15,9 +15,9 @@ function calculateSmartScore({ signalStrengthName, userData, previousDays, maxVa
         timeDecayPercent = 0.3
     } else if (signalStrengthName === "discord") {
         topThresholdNormalizedLowerBound = 0.3
-        topBandMaxLengthToConsider = 20
-        lowerFrequencyMultiplierCount = 5
-        upperFrequencyMultiplierCount = 10
+        topBandMaxLengthToConsider = 10
+        lowerFrequencyMultiplierCount = 2
+        upperFrequencyMultiplierCount = 5
         timeDecayPercent = 0.3
     } else {
         throw new Error(`No smart score calculation configured for ${signalStrengthName}`)
