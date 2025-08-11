@@ -17,6 +17,8 @@ import {
     ValidationError,
 } from "../../utils/validateSignalStrengthProjectSettings"
 
+import { toaster } from "../ui/toaster"
+
 function ValidationErrorDisplay({ errors, field }: { errors: ValidationError[]; field: string }) {
     return (
         <>
@@ -174,6 +176,20 @@ export default function SignalStrengthSettings({
             } else {
                 setTriggerProjectRefetch(true)
                 setSavingError(null)
+                if (settings.enabled.current && settings.enabled.new === false) {
+                    toaster.create({
+                        title: "✅ Settings saved",
+                        description: `${signalStrength.displayName} is now disabled.`,
+                        type: "success",
+                    })
+                } else {
+                    toaster.create({
+                        title: "✅ Settings saved",
+                        description:
+                            "These changes will be reflected in the next round of Signal Score calculations within 24 hours.",
+                        type: "success",
+                    })
+                }
             }
             setIsSaving(false)
         }
