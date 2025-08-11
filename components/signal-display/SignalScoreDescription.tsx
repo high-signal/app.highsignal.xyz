@@ -25,11 +25,11 @@ export default function SignalScoreDescription({
     } else if (currentUser.signal === "mid") {
         titleEmoji = "🙂"
         titleText = `${loggedInUser?.username === currentUser.username ? "You are" : `${currentUser.displayName} is`} ${currentUser.signal.slice(0, 1).toUpperCase() + currentUser.signal.slice(1)} Signal for ${projectData.displayName}`
-        descriptionText = `Add more accounts and engage with ${projectData.displayName} to get a High Signal Score.`
+        descriptionText = `Add accounts and engage more consistently with ${projectData.displayName} to get a High Signal Score.`
     } else if (currentUser.signal === "low") {
         titleEmoji = "😕"
         titleText = `${loggedInUser?.username === currentUser.username ? "You are" : `${currentUser.displayName} is`} ${currentUser.signal.slice(0, 1).toUpperCase() + currentUser.signal.slice(1)} Signal for ${projectData.displayName}`
-        descriptionText = `Add more accounts and engage with ${projectData.displayName} to get a higher Signal Score.`
+        descriptionText = `Add more accounts and engage more frequently with ${projectData.displayName} to get a higher Signal Score.`
     }
 
     return (
