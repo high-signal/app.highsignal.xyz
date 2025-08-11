@@ -78,6 +78,7 @@ async function getDailyActivityData({
                 return activityDate.toISOString().split("T")[0] === date.toISOString().split("T")[0]
             })
             .map((activity) => ({
+                id: activity.message_id,
                 created_timestamp: activity.created_timestamp,
                 content: activity.content,
             }))

@@ -41,6 +41,7 @@ async function updateUserData({
             max_chars: analysisResults.maxChars,
             day: dayDate,
             previous_days: analysisResults.previousDays,
+            analysis_items: analysisResults.analysisItems?.map((item) => item.id) || [],
         })
 
         if (signalError) {

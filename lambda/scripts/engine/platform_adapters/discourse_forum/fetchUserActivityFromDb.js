@@ -22,7 +22,8 @@ async function fetchUserActivityFromDb({ supabase, projectId, userId, dayDate, p
             throw forumMessageError
         }
         const formattedActivity = forumMessages.map((message) => ({
-            id: message.post_id,
+            id: `${message.project_id}_${message.user_id}_${message.post_id}`,
+            postId: message.post_id,
             cooked: message.cooked,
             created_at: message.created_at,
         }))
