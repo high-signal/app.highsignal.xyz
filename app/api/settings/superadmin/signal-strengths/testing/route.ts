@@ -72,6 +72,15 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ error: `Forum user not found for ${targetUser.username}` }, { status: 404 })
             }
             signalStrengthUsername = forumUser.forum_username
+        } else if (signalStrength.name === "discord") {
+            const discordUser = await getDiscordUserFromDb(supabase, targetUser.id)
+            if (!discordUser) {
+                return NextResponse.json(
+                    { error: `Discord user not found for ${targetUser.username}` },
+                    { status: 404 },
+                )
+            }
+            signalStrengthUsername = discordUser.discord_username
         } else {
             return NextResponse.json(
                 { error: `Signal strength (${signalStrength.name}) username not configured for testing` },
@@ -263,4 +272,18 @@ async function getSignalStrengthFromDb(supabase: SupabaseClient, signalStrengthN
     }
 
     return signalStrength
+}
+
+async function getDiscordUserFromDb(supabase: SupabaseClient, targetUserId: string) {
+    const { data: discordUser, error: discordUserError } = await supabase
+        .from("users")
+        .select("discord_username")
+        .eq("id", targetUserId)
+        .single()
+
+    if (discordUserError || !discordUser) {
+        return null
+    }
+
+    return discordUser
 }
