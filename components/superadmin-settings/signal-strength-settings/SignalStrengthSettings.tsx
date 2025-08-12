@@ -35,6 +35,7 @@ export default function SignalStrengthSettings({
     const [testResult, setTestResult] = useState<SignalStrengthUserData[] | null>(null)
     const [testResultsLoading, setTestResultsLoading] = useState(false)
     const [testResultRawData, setTestResultRawData] = useState<SignalStrengthUserData[] | null>(null)
+    const [testError, setTestError] = useState<string | null>(null)
 
     const [rawTestingInputData, setRawTestingInputData] = useState<TestingInputData>({})
     const [smartTestingInputData, setSmartTestingInputData] = useState<TestingInputData>({})
@@ -51,17 +52,11 @@ export default function SignalStrengthSettings({
         )?.username ||
         ""
 
-    const {
-        setTestTimerStart,
-        testTimerStop,
-        setTestTimerStop,
-        testTimerDuration,
-        setTestTimerDuration,
-        testError,
-        setTestError,
-    } = useTestTimer({
-        onTimeout: () => setTestResultsLoading(false),
-    })
+    const { setTestTimerStart, testTimerStop, setTestTimerStop, testTimerDuration, setTestTimerDuration } =
+        useTestTimer({
+            onTimeout: () => setTestResultsLoading(false),
+            setTestError,
+        })
 
     const resetTest = useCallback(() => {
         setTestResult(null)
@@ -111,6 +106,11 @@ export default function SignalStrengthSettings({
                 }),
             },
         )
+
+        if (!testingResponse.ok) {
+            const errorJson = await testingResponse.json()
+            setTestError(errorJson.error)
+        }
 
         // If response is 200, start a polling loop to check if the test is complete
         if (testingResponse.ok) {

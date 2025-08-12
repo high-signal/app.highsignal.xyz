@@ -2,11 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
 import { triggerLambda } from "../../../../../../utils/lambda-utils/triggerLambda"
 
-interface StructuredTestingData {
-    requestingUserId: string
-    testingInputData: TestingInputData
-}
-
 export async function POST(request: NextRequest) {
     try {
         // Get the requesting user from the request header
@@ -74,7 +69,7 @@ export async function POST(request: NextRequest) {
         } else if (signalStrength.name === "discourse_forum") {
             const forumUser = await getForumUserFromDb(supabase, targetUser.id, project.id)
             if (!forumUser) {
-                return NextResponse.json({ error: "Forum user not found" }, { status: 404 })
+                return NextResponse.json({ error: `Forum user not found for ${targetUser.username}` }, { status: 404 })
             }
             signalStrengthUsername = forumUser.forum_username
         } else {
@@ -101,10 +96,11 @@ export async function POST(request: NextRequest) {
         })
 
         if (!analysisResponse.success) {
-            console.error("Failed to start analysis:", analysisResponse.message)
+            const errorMessage = `Failed to start analysis: ${analysisResponse.message}`
+            console.error(errorMessage)
             return NextResponse.json(
                 {
-                    error: analysisResponse.message,
+                    error: errorMessage,
                 },
                 { status: 400 },
             )
@@ -116,8 +112,9 @@ export async function POST(request: NextRequest) {
         })
 
         if (!aiGovernorResponse.success) {
-            console.error("Failed to run AI governor:", aiGovernorResponse.message)
-            return NextResponse.json({ error: aiGovernorResponse.message }, { status: 400 })
+            const errorMessage = `Failed to run AI governor: ${aiGovernorResponse.message}`
+            console.error(errorMessage)
+            return NextResponse.json({ error: errorMessage }, { status: 400 })
         }
 
         return NextResponse.json({ success: true, message: "Analysis initiated successfully" }, { status: 200 })
