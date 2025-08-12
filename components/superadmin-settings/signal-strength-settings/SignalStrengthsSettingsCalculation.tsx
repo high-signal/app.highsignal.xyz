@@ -528,15 +528,24 @@ export default function SignalStrengthsSettingsCalculation({
                                     fontFamily={testResultsLoading ? "monospace" : undefined}
                                     minH={"50px"}
                                 >
-                                    {testResultsLoading ? (
-                                        <VStack gap={0}>
-                                            <Text>{formatDuration(testTimerDuration)}</Text>
-                                            <Text>Queue Length: {queueLength ? queueLength : "-"}</Text>
-                                        </VStack>
-                                    ) : (
-                                        "Run test analysis"
-                                    )}
+                                    <VStack gap={0}>
+                                        {testResultsLoading ? (
+                                            <>
+                                                <Text>{formatDuration(testTimerDuration)}</Text>
+                                                <Text>Queue Length: {queueLength ? queueLength : "-"}</Text>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Text>Run test analysis</Text>
+                                                <Text>
+                                                    {project?.displayName} - {selectedUser.username} -{" "}
+                                                    {signalStrength.displayName.replace(" Engagement", "")}
+                                                </Text>
+                                            </>
+                                        )}
+                                    </VStack>
                                 </Button>
+
                                 {testError && (
                                     <Text pt={3} px={5} textAlign={"center"} fontWeight={"bold"} color="orange.500">
                                         {testError}

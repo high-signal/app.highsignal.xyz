@@ -21,9 +21,11 @@ async function checkRawScoreCalculationsRequired({
                 console.log(
                     `🗳️ Adding raw_score queue item for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${day.date}`,
                 )
-                rawScoreCalculationsRequired = true
 
-                const queueItemUniqueIdentifier = `${userId}_${projectId}_${signalStrengthId}_${day.date}_RAW`
+                let queueItemUniqueIdentifier = `${userId}_${projectId}_${signalStrengthId}_${day.date}_RAW`
+                if (testingData) {
+                    queueItemUniqueIdentifier = queueItemUniqueIdentifier + "_TEST"
+                }
 
                 // Add item to ai_request_queue
                 const { data: newQueueItem, error: addQueueItemError } = await supabase
@@ -44,13 +46,17 @@ async function checkRawScoreCalculationsRequired({
                     if (addQueueItemError.code === "23505") {
                         // 23505 = unique_violation in Postgres
                         console.warn(`Queue item already exists for identifier ${queueItemUniqueIdentifier}`)
-                        // No throw — fail gracefully
+                        // No throw — continue to next day
+                        continue
                     } else {
                         const errorMessage = `Error adding raw_score queue item: ${addQueueItemError.message}`
                         console.error(errorMessage)
                         throw new Error(errorMessage)
                     }
                 }
+
+                // Only set rawScoreCalculationsRequired if the queue item was added successfully
+                rawScoreCalculationsRequired = true
 
                 // Attempt to trigger raw_score queue item that was just created
                 if (newQueueItem && newQueueItem.length > 0) {

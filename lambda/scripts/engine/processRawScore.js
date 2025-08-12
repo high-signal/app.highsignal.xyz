@@ -85,7 +85,11 @@ async function processRawScore({
     }
 
     // Filter out the current raw score queue item from the ai_request_queue.
-    const queueItemUniqueIdentifier = `${userId}_${projectId}_${signalStrengthId}_${dayDate}_RAW`
+    let queueItemUniqueIdentifier = `${userId}_${projectId}_${signalStrengthId}_${dayDate}_RAW`
+    if (testingData) {
+        queueItemUniqueIdentifier = queueItemUniqueIdentifier + "_TEST"
+    }
+
     const cleanedAiRequestQueueData = aiRequestQueueData.filter(
         (item) => item.queue_item_unique_identifier !== queueItemUniqueIdentifier,
     )
