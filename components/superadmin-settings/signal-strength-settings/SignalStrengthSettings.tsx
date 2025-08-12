@@ -17,6 +17,7 @@ import SingleLineTextInput from "../../ui/SingleLineTextInput"
 import DevButtons from "./DevButtons"
 
 import { useTestTimer } from "../../../hooks/useTestTimer"
+import { useUser } from "../../../contexts/UserContext"
 
 export default function SignalStrengthSettings({
     signalStrength,
@@ -43,6 +44,8 @@ export default function SignalStrengthSettings({
     const [queueLength, setQueueLength] = useState<number | null>(null)
     const [pollingTimeoutId, setPollingTimeoutId] = useState<NodeJS.Timeout | null>(null)
     const isPollingRef = useRef<boolean>(false)
+
+    const { loggedInUser } = useUser()
 
     const signalStrengthUsername =
         selectedUser?.connectedAccounts
@@ -191,7 +194,7 @@ export default function SignalStrengthSettings({
 
                     // Fetch the smart score test result
                     const testResultSmartDataResponse = await fetch(
-                        `/api/superadmin/users/?project=${project?.urlSlug}&username=${selectedUser?.username}&showTestDataOnly=true`,
+                        `/api/superadmin/users/?project=${project?.urlSlug}&username=${selectedUser?.username}&showTestDataOnly=true&testRequestingUser=${loggedInUser?.username}`,
                         {
                             method: "GET",
                             headers: {
@@ -212,7 +215,7 @@ export default function SignalStrengthSettings({
 
                     // Then fetch the test result raw user data
                     const testResultRawData = await fetch(
-                        `/api/superadmin/users/?project=${project?.urlSlug}&username=${selectedUser?.username}&showTestDataOnly=true&showRawScoreCalcOnly=true`,
+                        `/api/superadmin/users/?project=${project?.urlSlug}&username=${selectedUser?.username}&showTestDataOnly=true&showRawScoreCalcOnly=true&testRequestingUser=${loggedInUser?.username}`,
                         {
                             method: "GET",
                             headers: {
