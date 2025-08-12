@@ -1,7 +1,7 @@
 "use client"
 
 import { HStack, VStack, Text, Box } from "@chakra-ui/react"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { getAccessToken } from "@privy-io/react-auth"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -42,6 +42,7 @@ export default function SignalStrengthSettings({
 
     const [queueLength, setQueueLength] = useState<number | null>(null)
     const [pollingTimeoutId, setPollingTimeoutId] = useState<NodeJS.Timeout | null>(null)
+    const isPollingRef = useRef<boolean>(false)
 
     const signalStrengthUsername =
         selectedUser?.connectedAccounts
@@ -83,6 +84,9 @@ export default function SignalStrengthSettings({
             clearTimeout(pollingTimeoutId)
             setPollingTimeoutId(null)
         }
+
+        // Stop polling
+        isPollingRef.current = false
 
         setTestTimerStart(null)
         setTestTimerStop(null)
@@ -160,7 +164,7 @@ export default function SignalStrengthSettings({
             const testStartTime = Date.now()
             const pollTestResult = async () => {
                 // Check if polling has been cancelled
-                if (!pollingTimeoutId) {
+                if (!isPollingRef.current) {
                     return
                 }
 
@@ -183,7 +187,7 @@ export default function SignalStrengthSettings({
                 if (smartScoreCompleted) {
                     setTestResultsLoading(false)
                     setTestTimerStop(Date.now())
-                    setPollingTimeoutId(null) // Clear the timeout ID when done
+                    isPollingRef.current = false // Stop polling when done
 
                     // Fetch the smart score test result
                     const testResultSmartDataResponse = await fetch(
@@ -234,13 +238,14 @@ export default function SignalStrengthSettings({
                         const timeoutId = setTimeout(pollTestResult, 1000)
                         setPollingTimeoutId(timeoutId)
                     } else {
-                        setPollingTimeoutId(null) // Clear the timeout ID when max duration is reached
+                        isPollingRef.current = false // Stop polling when max duration is reached
                     }
                 }
             }
 
             // Start the polling loop
             // Add a small delay as the poll does not need to start immediately
+            isPollingRef.current = true
             const initialTimeoutId = setTimeout(pollTestResult, 3000)
             setPollingTimeoutId(initialTimeoutId)
         }
