@@ -124,6 +124,74 @@ export async function POST(request: NextRequest) {
     }
 }
 
+export async function DELETE(request: NextRequest) {
+    try {
+        // Get the requesting user from the request header
+        const privyId = request.headers.get("x-privy-id")!
+        const projectUrlSlug = request.nextUrl.searchParams.get("project")!
+
+        // Parse the request body
+        const { signalStrengthName, targetUsername, testingInputData } = await request.json()
+
+        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+        const requestingUser = await getRequestingUserFromDb(supabase, privyId)
+        if (!requestingUser) {
+            return NextResponse.json({ error: "Requesting user not found" }, { status: 404 })
+        }
+
+        const targetUser = await getTargetUserFromDb(supabase, targetUsername)
+        if (!targetUser) {
+            return NextResponse.json({ error: "Target user not found" }, { status: 404 })
+        }
+
+        const project = await getProjectFromDb(supabase, projectUrlSlug)
+        if (!project) {
+            return NextResponse.json({ error: "Project not found" }, { status: 404 })
+        }
+
+        const signalStrength = await getSignalStrengthFromDb(supabase, signalStrengthName)
+        if (!signalStrength) {
+            return NextResponse.json({ error: "Signal strength not found" }, { status: 404 })
+        }
+
+        // If there is testing data, delete the existing user_signal_strengths row
+        const { error: deleteError } = await supabase
+            .from("user_signal_strengths")
+            .delete()
+            .eq("test_requesting_user", requestingUser.id)
+            .eq("signal_strength_id", signalStrength.id)
+
+        if (deleteError) {
+            console.error(
+                `Error deleting user_signal_strengths row for ${requestingUser.username}:`,
+                deleteError.message,
+            )
+        }
+
+        // Then delete any existing ai_request_queue rows for the target user
+        const { error: deleteAiRequestQueueError } = await supabase
+            .from("ai_request_queue")
+            .delete()
+            .eq("user_id", targetUser.id)
+            .eq("project_id", project.id)
+            .eq("signal_strength_id", signalStrength.id)
+            .not("test_data", "is", null)
+
+        if (deleteAiRequestQueueError) {
+            console.error(
+                `Error deleting ai_request_queue rows for ${targetUser.username}:`,
+                deleteAiRequestQueueError.message,
+            )
+        }
+
+        return NextResponse.json({ success: true, message: "Analysis cancelled successfully" }, { status: 200 })
+    } catch (error) {
+        console.error("Error fetching project settings:", error)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}
+
 async function getRequestingUserFromDb(supabase: SupabaseClient, privyId: string) {
     const { data: requestingUser, error: requestingUserError } = await supabase
         .from("users")

@@ -27,6 +27,7 @@ export default function SignalStrengthsSettingsCalculation({
     setTestingInputData,
     resetTest,
     queueLength,
+    cancelTest,
 }: {
     type: "raw" | "smart"
     signalStrength: SignalStrengthData
@@ -43,6 +44,7 @@ export default function SignalStrengthsSettingsCalculation({
     setTestingInputData: (testingInputData: TestingInputData) => void
     resetTest: () => void
     queueLength: number | null
+    cancelTest: () => void
 }) {
     const [selectedSignalStrengthViewer, setSelectedSignalStrengthViewer] = useState<SignalStrengthUserData | null>(
         null,
@@ -545,6 +547,11 @@ export default function SignalStrengthsSettingsCalculation({
                                         )}
                                     </VStack>
                                 </Button>
+                                {testResultsLoading && (
+                                    <Button secondaryButton px={3} py={2} borderRadius={"full"} onClick={cancelTest}>
+                                        Cancel test
+                                    </Button>
+                                )}
 
                                 {testError && (
                                     <Text pt={3} px={5} textAlign={"center"} fontWeight={"bold"} color="orange.500">
