@@ -26,6 +26,7 @@ export default function SignalStrengthsSettingsCalculation({
     testingInputData,
     setTestingInputData,
     resetTest,
+    queueLength,
 }: {
     type: "raw" | "smart"
     signalStrength: SignalStrengthData
@@ -41,6 +42,7 @@ export default function SignalStrengthsSettingsCalculation({
     testingInputData: TestingInputData | null
     setTestingInputData: (testingInputData: TestingInputData) => void
     resetTest: () => void
+    queueLength: number | null
 }) {
     const [selectedSignalStrengthViewer, setSelectedSignalStrengthViewer] = useState<SignalStrengthUserData | null>(
         null,
@@ -524,8 +526,16 @@ export default function SignalStrengthsSettingsCalculation({
                                     onClick={fetchTestResult}
                                     disabled={testResultsLoading}
                                     fontFamily={testResultsLoading ? "monospace" : undefined}
+                                    minH={"50px"}
                                 >
-                                    {testResultsLoading ? formatDuration(testTimerDuration) : "Run test analysis"}
+                                    {testResultsLoading ? (
+                                        <VStack gap={0}>
+                                            <Text>{formatDuration(testTimerDuration)}</Text>
+                                            <Text>Queue Length: {queueLength ? queueLength : "-"}</Text>
+                                        </VStack>
+                                    ) : (
+                                        "Run test analysis"
+                                    )}
                                 </Button>
                                 {testError && (
                                     <Text pt={3} px={5} textAlign={"center"} fontWeight={"bold"} color="orange.500">

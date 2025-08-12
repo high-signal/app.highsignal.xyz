@@ -39,6 +39,8 @@ export default function SignalStrengthSettings({
     const [rawTestingInputData, setRawTestingInputData] = useState<TestingInputData>({})
     const [smartTestingInputData, setSmartTestingInputData] = useState<TestingInputData>({})
 
+    const [queueLength, setQueueLength] = useState<number | null>(null)
+
     const signalStrengthUsername =
         selectedUser?.connectedAccounts
             ?.find((accountType) => accountType.name === signalStrength.name)
@@ -112,8 +114,8 @@ export default function SignalStrengthSettings({
         if (testingResponse.ok) {
             const testStartTime = Date.now()
             const pollTestResult = async () => {
-                const testResultResponse = await fetch(
-                    `/api/superadmin/users/?project=${project?.urlSlug}&username=${selectedUser?.username}&showTestDataOnly=true`,
+                const queueLengthResponse = await fetch(
+                    `/api/settings/superadmin/signal-strengths/testing/queue-length`,
                     {
                         method: "GET",
                         headers: {
@@ -123,18 +125,35 @@ export default function SignalStrengthSettings({
                     },
                 )
 
-                const testResultResponseJson = await testResultResponse.json()
-                const testResult = testResultResponseJson.data
+                const queueLengthResponseJson = await queueLengthResponse.json()
+                setQueueLength(queueLengthResponseJson.queueLength)
 
-                // If the smart score is found in the DB then the test is complete
-                const foundSignalStrength = testResult[0].signalStrengths?.find(
-                    (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
-                )
+                const smartScoreCompleted = queueLengthResponseJson.smartScoreCompleted
 
-                if (foundSignalStrength) {
-                    setTestResult(foundSignalStrength.data)
+                if (smartScoreCompleted) {
                     setTestResultsLoading(false)
                     setTestTimerStop(Date.now())
+
+                    // Fetch the smart score test result
+                    const testResultSmartDataResponse = await fetch(
+                        `/api/superadmin/users/?project=${project?.urlSlug}&username=${selectedUser?.username}&showTestDataOnly=true`,
+                        {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                        },
+                    )
+
+                    const testResultSmartDataJson = await testResultSmartDataResponse.json()
+                    const testResultSmartData = testResultSmartDataJson.data
+
+                    setTestResult(
+                        testResultSmartData[0].signalStrengths?.find(
+                            (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
+                        )?.data,
+                    )
 
                     // Then fetch the test result raw user data
                     const testResultRawData = await fetch(
@@ -320,6 +339,7 @@ export default function SignalStrengthSettings({
                                     testingInputData={rawTestingInputData}
                                     setTestingInputData={setRawTestingInputData}
                                     resetTest={resetTest}
+                                    queueLength={queueLength}
                                 />
                             ),
                         },
@@ -356,6 +376,7 @@ export default function SignalStrengthSettings({
                                     testingInputData={smartTestingInputData}
                                     setTestingInputData={setSmartTestingInputData}
                                     resetTest={resetTest}
+                                    queueLength={queueLength}
                                 />
                             ),
                         },

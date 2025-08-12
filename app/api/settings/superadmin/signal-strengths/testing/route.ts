@@ -52,6 +52,22 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        // Then delete any existing ai_request_queue rows for the target user
+        const { error: deleteAiRequestQueueError } = await supabase
+            .from("ai_request_queue")
+            .delete()
+            .eq("user_id", targetUser.id)
+            .eq("project_id", project.id)
+            .eq("signal_strength_id", signalStrength.id)
+            .not("test_data", "is", null)
+
+        if (deleteAiRequestQueueError) {
+            console.error(
+                `Error deleting ai_request_queue rows for ${targetUser.username}:`,
+                deleteAiRequestQueueError.message,
+            )
+        }
+
         let signalStrengthUsername
         if (testingInputData.testingSignalStrengthUsername) {
             signalStrengthUsername = testingInputData.testingSignalStrengthUsername
@@ -92,6 +108,16 @@ export async function POST(request: NextRequest) {
                 },
                 { status: 400 },
             )
+        }
+
+        // Then trigger AI governor
+        const aiGovernorResponse = await triggerLambda({
+            functionType: "runAiGovernor",
+        })
+
+        if (!aiGovernorResponse.success) {
+            console.error("Failed to run AI governor:", aiGovernorResponse.message)
+            return NextResponse.json({ error: aiGovernorResponse.message }, { status: 400 })
         }
 
         return NextResponse.json({ success: true, message: "Analysis initiated successfully" }, { status: 200 })

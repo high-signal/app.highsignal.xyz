@@ -13,11 +13,7 @@ async function checkRawScoreCalculationsRequired({
 
     for (const day of dailyActivityData) {
         if (day.data.length > 0) {
-            if (
-                !testingData &&
-                existingUserRawData.length > 0 &&
-                existingUserRawData.find((item) => item.day === day.date)
-            ) {
+            if (existingUserRawData.length > 0 && existingUserRawData.find((item) => item.day === day.date)) {
                 console.log(
                     `✅ Raw score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${day.date} already exists in the database. Skipping...`,
                 )
@@ -40,7 +36,7 @@ async function checkRawScoreCalculationsRequired({
                         queue_item_unique_identifier: queueItemUniqueIdentifier,
                         type: "raw_score",
                         signal_strength_username: signalStrengthUsername,
-                        ...(testingData ? { testing_data: testingData } : {}),
+                        ...(testingData ? { test_data: testingData } : {}),
                     })
                     .select()
 
