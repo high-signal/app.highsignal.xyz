@@ -87,6 +87,8 @@ export default function SignalStrengthSettings({
         setTestTimerDuration(null)
         setTestResultsLoading(true)
         setTestResult(null)
+        setTestResultRawData(null)
+        setQueueLength(null)
         setTestError(null)
 
         const token = await getAccessToken()
