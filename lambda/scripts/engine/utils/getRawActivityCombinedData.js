@@ -15,7 +15,7 @@ async function getRawActivityCombinedData({
         .eq("signal_strength_id", signalStrengthId)
         .not("raw_value", "is", null)
 
-    if (testingData.requestingUserId) {
+    if (testingData?.requestingUserId) {
         query = query.eq("test_requesting_user", testingData.requestingUserId)
     } else {
         query = query.is("test_requesting_user", null)
