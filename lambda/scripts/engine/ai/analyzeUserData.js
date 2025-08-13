@@ -66,17 +66,6 @@ async function analyzeUserData({
         `🤖 Using model: ${model}. ${type === "smart" ? "Smart" : "Raw"} score for user: ${signalStrengthUsername} on ${dayDate}...`,
     )
 
-    let temperature
-    if (type === "raw" && rawTestingInputData?.testingTemperature) {
-        temperature = rawTestingInputData.testingTemperature
-    } else if (type === "smart" && smartTestingInputData?.testingTemperature) {
-        temperature = smartTestingInputData.testingTemperature
-    } else if (signalStrengthData.temperature) {
-        temperature = signalStrengthData.temperature
-    } else {
-        return { error: "No temperature set in DB" }
-    }
-
     let basePrompt
     if (type === "raw" && rawTestingInputData?.testingPrompt) {
         basePrompt = rawTestingInputData.testingPrompt
@@ -156,7 +145,6 @@ async function analyzeUserData({
         const res = await openai.chat.completions.create({
             model: model,
             messages,
-            temperature: Number(temperature),
         })
 
         const analysisLogs = `${logs ? logs + "\n" : ""}userDataString.length: ${userDataString.length}
@@ -181,7 +169,6 @@ truncatedData.length: ${truncatedData.length}
                 completionTokens: res.usage.completion_tokens,
                 logs: analysisLogs,
                 model: model,
-                temperature: temperature,
                 promptId: promptId,
                 maxChars: maxChars,
                 previousDays: previousDays,

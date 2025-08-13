@@ -76,7 +76,6 @@ interface SignalStrengthUserData {
     model?: string
     promptId?: string
     prompt?: string
-    temperature?: number
     maxChars?: number
     logs?: string
     promptTokens?: number
@@ -109,7 +108,6 @@ interface SignalStrengthProjectData {
     promptId?: string
     prompt?: string
     model?: string
-    temperature?: number
     maxChars?: number
     url?: string
     availableAuthTypes?: string[]
@@ -125,7 +123,6 @@ interface SignalStrengthData {
     status: string
     model?: string
     prompts: Prompt[]
-    temperature?: number
     maxChars?: number
     logs?: string
 }
@@ -150,7 +147,6 @@ interface Prompt {
 interface TestingInputData {
     testingPrompt?: string
     testingModel?: string
-    testingTemperature?: string
     testingMaxChars?: string
 }
 
