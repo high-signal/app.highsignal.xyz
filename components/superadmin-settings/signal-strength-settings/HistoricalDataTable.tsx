@@ -137,11 +137,14 @@ export default function HistoricalDataTable({
             return true
         })
 
-        // Final deduplication to ensure no duplicate days
+        // Final deduplication to ensure no duplicate days and no consecutive consolidated rows
         const uniqueRows = filteredRows.reduce(
             (acc, current) => {
                 if (current.type === "consolidated") {
-                    // Always keep consolidated rows
+                    // Check if the previous row is also consolidated - if so, skip this one
+                    if (acc.length > 0 && acc[acc.length - 1].type === "consolidated") {
+                        return acc
+                    }
                     acc.push(current)
                     return acc
                 } else {
@@ -159,7 +162,28 @@ export default function HistoricalDataTable({
             [] as Array<{ day: string; type: "normal" | "consolidated" }>,
         )
 
-        return uniqueRows
+        // Filter out consolidated rows that have no smart scores below them
+        const finalRows = uniqueRows.filter((row, index) => {
+            if (row.type === "consolidated") {
+                // Check if there are any smart scores below this consolidated row
+                const rowsBelow = uniqueRows.slice(index + 1)
+                const hasSmartScoresBelow = rowsBelow.some((belowRow) => {
+                    if (belowRow.type === "normal") {
+                        const processedData = deduplicatedUserData.find((d) => d.day === belowRow.day)
+                        return (
+                            processedData && processedData.value !== undefined && processedData.maxValue !== undefined
+                        )
+                    }
+                    return false
+                })
+
+                // Only keep consolidated rows if there are smart scores below them
+                return hasSmartScoresBelow
+            }
+            return true
+        })
+
+        return finalRows
     }
 
     const consolidatedRows = consolidateRows(allDays)
