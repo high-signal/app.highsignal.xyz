@@ -494,7 +494,13 @@ export default function SignalStrengthsSettingsCalculation({
                         )}
                     </VStack>
                     <VStack w={"100%"} maxW={"600px"} gap={0}>
-                        <HStack w={"100%"} px={3} position="relative" flexWrap={"wrap"} justifyContent={"center"}>
+                        <HStack
+                            w={"100%"}
+                            px={3}
+                            position="relative"
+                            flexWrap={"wrap"}
+                            justifyContent={testResult ? "space-around" : "center"}
+                        >
                             {selectedUser ? (
                                 <HStack flexWrap={"wrap"} gap={{ base: 0, lg: 2 }} justifyContent={"center"}>
                                     <Text
