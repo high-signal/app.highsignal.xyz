@@ -17,7 +17,7 @@ export default function SignalScoreDescription({
     if (currentUser.score === 100) {
         titleEmoji = "💯"
         titleText = `${loggedInUser?.username === currentUser.username ? "You have" : `${currentUser.displayName} has`} reached the maximum Signal Score for ${projectData.displayName}`
-        descriptionText = `Keep engaging with ${projectData.displayName} to maintain this amazing Signal Score!`
+        descriptionText = `Keep engaging with ${projectData.displayName} to maintain this perfect Signal Score!`
     } else if (currentUser.signal === "high") {
         titleEmoji = "🤩"
         titleText = `${loggedInUser?.username === currentUser.username ? "You are" : `${currentUser.displayName} is`} ${currentUser.signal.slice(0, 1).toUpperCase() + currentUser.signal.slice(1)} Signal for ${projectData.displayName}`
