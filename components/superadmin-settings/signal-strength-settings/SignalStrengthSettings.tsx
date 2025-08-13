@@ -1,7 +1,7 @@
 "use client"
 
 import { HStack, VStack, Text, Box } from "@chakra-ui/react"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { getAccessToken } from "@privy-io/react-auth"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -17,6 +17,7 @@ import SingleLineTextInput from "../../ui/SingleLineTextInput"
 import DevButtons from "./DevButtons"
 
 import { useTestTimer } from "../../../hooks/useTestTimer"
+import { useUser } from "../../../contexts/UserContext"
 
 export default function SignalStrengthSettings({
     signalStrength,
@@ -35,9 +36,16 @@ export default function SignalStrengthSettings({
     const [testResult, setTestResult] = useState<SignalStrengthUserData[] | null>(null)
     const [testResultsLoading, setTestResultsLoading] = useState(false)
     const [testResultRawData, setTestResultRawData] = useState<SignalStrengthUserData[] | null>(null)
+    const [testError, setTestError] = useState<string | null>(null)
 
     const [rawTestingInputData, setRawTestingInputData] = useState<TestingInputData>({})
     const [smartTestingInputData, setSmartTestingInputData] = useState<TestingInputData>({})
+
+    const [queueLength, setQueueLength] = useState<number | null>(null)
+    const [pollingTimeoutId, setPollingTimeoutId] = useState<NodeJS.Timeout | null>(null)
+    const isPollingRef = useRef<boolean>(false)
+
+    const { loggedInUser } = useUser()
 
     const signalStrengthUsername =
         selectedUser?.connectedAccounts
@@ -49,17 +57,11 @@ export default function SignalStrengthSettings({
         )?.username ||
         ""
 
-    const {
-        setTestTimerStart,
-        testTimerStop,
-        setTestTimerStop,
-        testTimerDuration,
-        setTestTimerDuration,
-        testError,
-        setTestError,
-    } = useTestTimer({
-        onTimeout: () => setTestResultsLoading(false),
-    })
+    const { setTestTimerStart, testTimerStop, setTestTimerStop, testTimerDuration, setTestTimerDuration } =
+        useTestTimer({
+            onTimeout: () => setTestResultsLoading(false),
+            setTestError,
+        })
 
     const resetTest = useCallback(() => {
         setTestResult(null)
@@ -79,13 +81,60 @@ export default function SignalStrengthSettings({
         setTestError,
     ])
 
-    const fetchTestResult = async () => {
-        setTestTimerStart(Date.now())
+    const clearAllStates = async () => {
+        // Clear any existing polling timeout
+        if (pollingTimeoutId) {
+            clearTimeout(pollingTimeoutId)
+            setPollingTimeoutId(null)
+        }
+
+        // Stop polling
+        isPollingRef.current = false
+
+        setTestTimerStart(null)
         setTestTimerStop(null)
         setTestTimerDuration(null)
-        setTestResultsLoading(true)
+        setTestResultsLoading(false)
         setTestResult(null)
+        setTestResultRawData(null)
+        setQueueLength(null)
         setTestError(null)
+    }
+
+    const cancelTest = async () => {
+        clearAllStates()
+
+        const token = await getAccessToken()
+        const cancelResponse = await fetch(
+            `/api/settings/superadmin/signal-strengths/testing?project=${project?.urlSlug}`,
+            {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    signalStrengthName: signalStrength.name,
+                    targetUsername: selectedUser?.username,
+                    testingInputData: {
+                        testingSignalStrengthUsername: newSignalStrengthUsername,
+                        rawTestingInputData: rawTestingInputData || {},
+                        smartTestingInputData: smartTestingInputData || {},
+                    },
+                }),
+            },
+        )
+
+        if (!cancelResponse.ok) {
+            const errorJson = await cancelResponse.json()
+            setTestError(errorJson.error)
+        }
+    }
+
+    const fetchTestResult = async () => {
+        clearAllStates()
+        setTestTimerStart(Date.now())
+        setTestResultsLoading(true)
 
         const token = await getAccessToken()
         const testingResponse = await fetch(
@@ -108,12 +157,22 @@ export default function SignalStrengthSettings({
             },
         )
 
+        if (!testingResponse.ok) {
+            const errorJson = await testingResponse.json()
+            setTestError(errorJson.error)
+        }
+
         // If response is 200, start a polling loop to check if the test is complete
         if (testingResponse.ok) {
             const testStartTime = Date.now()
             const pollTestResult = async () => {
-                const testResultResponse = await fetch(
-                    `/api/superadmin/users/?project=${project?.urlSlug}&username=${selectedUser?.username}&showTestDataOnly=true`,
+                // Check if polling has been cancelled
+                if (!isPollingRef.current) {
+                    return
+                }
+
+                const queueLengthResponse = await fetch(
+                    `/api/settings/superadmin/signal-strengths/testing/queue-length`,
                     {
                         method: "GET",
                         headers: {
@@ -123,22 +182,40 @@ export default function SignalStrengthSettings({
                     },
                 )
 
-                const testResultResponseJson = await testResultResponse.json()
-                const testResult = testResultResponseJson.data
+                const queueLengthResponseJson = await queueLengthResponse.json()
+                setQueueLength(queueLengthResponseJson.queueLength)
 
-                // If the smart score is found in the DB then the test is complete
-                const foundSignalStrength = testResult[0].signalStrengths?.find(
-                    (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
-                )
+                const smartScoreCompleted = queueLengthResponseJson.smartScoreCompleted
 
-                if (foundSignalStrength) {
-                    setTestResult(foundSignalStrength.data)
+                if (smartScoreCompleted) {
                     setTestResultsLoading(false)
                     setTestTimerStop(Date.now())
+                    isPollingRef.current = false // Stop polling when done
+
+                    // Fetch the smart score test result
+                    const testResultSmartDataResponse = await fetch(
+                        `/api/superadmin/users/?project=${project?.urlSlug}&username=${selectedUser?.username}&showTestDataOnly=true&testRequestingUser=${loggedInUser?.username}`,
+                        {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                        },
+                    )
+
+                    const testResultSmartDataJson = await testResultSmartDataResponse.json()
+                    const testResultSmartData = testResultSmartDataJson.data
+
+                    setTestResult(
+                        testResultSmartData[0].signalStrengths?.find(
+                            (ss: SignalStrengthData) => ss.signalStrengthName === signalStrength.name,
+                        )?.data,
+                    )
 
                     // Then fetch the test result raw user data
                     const testResultRawData = await fetch(
-                        `/api/superadmin/users/?project=${project?.urlSlug}&username=${selectedUser?.username}&showTestDataOnly=true&showRawScoreCalcOnly=true`,
+                        `/api/superadmin/users/?project=${project?.urlSlug}&username=${selectedUser?.username}&showTestDataOnly=true&showRawScoreCalcOnly=true&testRequestingUser=${loggedInUser?.username}`,
                         {
                             method: "GET",
                             headers: {
@@ -161,14 +238,19 @@ export default function SignalStrengthSettings({
                     // Stop polling if the duration exceeds the max duration
                     const currentDuration = Date.now() - testStartTime
                     if (currentDuration < APP_CONFIG.TEST_TIMER_MAX_DURATION) {
-                        setTimeout(pollTestResult, 1000)
+                        const timeoutId = setTimeout(pollTestResult, 1000)
+                        setPollingTimeoutId(timeoutId)
+                    } else {
+                        isPollingRef.current = false // Stop polling when max duration is reached
                     }
                 }
             }
 
             // Start the polling loop
             // Add a small delay as the poll does not need to start immediately
-            setTimeout(pollTestResult, 3000)
+            isPollingRef.current = true
+            const initialTimeoutId = setTimeout(pollTestResult, 3000)
+            setPollingTimeoutId(initialTimeoutId)
         }
     }
 
@@ -183,6 +265,15 @@ export default function SignalStrengthSettings({
             resetTest()
         }
     }, [resetTest, newUserSelectedTrigger, newSignalStrengthUsername, selectedUser])
+
+    // Cleanup polling timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (pollingTimeoutId) {
+                clearTimeout(pollingTimeoutId)
+            }
+        }
+    }, [pollingTimeoutId])
 
     // Helper function to check if the testing data has been modified
     const hasModifiedTestingInputs = (data: TestingInputData): boolean => {
@@ -320,6 +411,8 @@ export default function SignalStrengthSettings({
                                     testingInputData={rawTestingInputData}
                                     setTestingInputData={setRawTestingInputData}
                                     resetTest={resetTest}
+                                    queueLength={queueLength}
+                                    cancelTest={cancelTest}
                                 />
                             ),
                         },
@@ -356,6 +449,8 @@ export default function SignalStrengthSettings({
                                     testingInputData={smartTestingInputData}
                                     setTestingInputData={setSmartTestingInputData}
                                     resetTest={resetTest}
+                                    queueLength={queueLength}
+                                    cancelTest={cancelTest}
                                 />
                             ),
                         },

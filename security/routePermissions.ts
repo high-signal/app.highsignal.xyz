@@ -153,6 +153,10 @@ export const routePermissions: RoutePermission[] = [
                 requiresAuth: true,
                 allowedAccess: ["superAdmin"],
             },
+            DELETE: {
+                requiresAuth: true,
+                allowedAccess: ["superAdmin"],
+            },
         },
     },
     {

@@ -26,6 +26,8 @@ export default function SignalStrengthsSettingsCalculation({
     testingInputData,
     setTestingInputData,
     resetTest,
+    queueLength,
+    cancelTest,
 }: {
     type: "raw" | "smart"
     signalStrength: SignalStrengthData
@@ -41,10 +43,14 @@ export default function SignalStrengthsSettingsCalculation({
     testingInputData: TestingInputData | null
     setTestingInputData: (testingInputData: TestingInputData) => void
     resetTest: () => void
+    queueLength: number | null
+    cancelTest: () => void
 }) {
     const [selectedSignalStrengthViewer, setSelectedSignalStrengthViewer] = useState<SignalStrengthUserData | null>(
         null,
     )
+    const [selectedTestSignalStrengthViewer, setSelectedTestSignalStrengthViewer] =
+        useState<SignalStrengthUserData | null>(null)
 
     const [currentPromptObject, setCurrentPromptObject] = useState<Prompt | null>(
         signalStrength.prompts.filter((p) => p.type === type)[0] || null,
@@ -69,6 +75,13 @@ export default function SignalStrengthsSettingsCalculation({
             selectedUser?.signalStrengths?.find((s) => s.signalStrengthName === signalStrength.name)?.data?.[0] || null,
         )
     }, [selectedUser, signalStrength.name])
+
+    // Set selected signal strength viewer to first test result when test results are available
+    useEffect(() => {
+        if (testResult && testResult.length > 0) {
+            setSelectedTestSignalStrengthViewer(testResult[0])
+        }
+    }, [testResult])
 
     // Format duration to show seconds and tenths
     const formatDuration = (duration: number | null) => {
@@ -482,10 +495,32 @@ export default function SignalStrengthsSettingsCalculation({
                     </VStack>
                     <VStack w={"100%"} maxW={"600px"} gap={0}>
                         <HStack w={"100%"} px={3} position="relative" flexWrap={"wrap"} justifyContent={"center"}>
-                            <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
-                                Test Analysis{" "}
-                                {testTimerStop && !testError ? `(${formatDuration(testTimerDuration)})` : ""}
-                            </Text>
+                            {selectedUser ? (
+                                <HStack flexWrap={"wrap"} gap={{ base: 0, lg: 2 }} justifyContent={"center"}>
+                                    <Text
+                                        py={2}
+                                        textAlign={"center"}
+                                        fontWeight={"bold"}
+                                        w={{ base: "100%", lg: "auto" }}
+                                    >
+                                        Test Analysis{" "}
+                                        {testTimerStop && !testError ? `(${formatDuration(testTimerDuration)})` : ""}
+                                    </Text>
+                                    {testResult && (
+                                        <SignalStrengthViewerPicker
+                                            userSignalStrengths={testResult}
+                                            onSelect={(data) => {
+                                                setSelectedTestSignalStrengthViewer(data)
+                                            }}
+                                        />
+                                    )}
+                                </HStack>
+                            ) : (
+                                <Text w={"100%"} py={2} textAlign={"center"} fontWeight={"bold"}>
+                                    Test Analysis{" "}
+                                    {testTimerStop && !testError ? `(${formatDuration(testTimerDuration)})` : ""}
+                                </Text>
+                            )}
                             {testResult && selectedUser && (
                                 <Button
                                     py={0}
@@ -495,8 +530,6 @@ export default function SignalStrengthsSettingsCalculation({
                                     borderRadius={"full"}
                                     onClick={fetchTestResult}
                                     loading={testResultsLoading}
-                                    position={{ base: "relative", lg: "absolute" }}
-                                    right={{ base: "auto", lg: 10 }}
                                 >
                                     <FontAwesomeIcon icon={faRefresh} size="xl" />
                                     Re-run test
@@ -506,7 +539,18 @@ export default function SignalStrengthsSettingsCalculation({
                         {testResult ? (
                             <SignalStrength
                                 username={selectedUser?.username || ""}
-                                userData={testResult[0]}
+                                userData={
+                                    selectedTestSignalStrengthViewer ||
+                                    testResult[0] || {
+                                        value: "0",
+                                        description: "No data",
+                                        improvements: "No data",
+                                        name: signalStrength.name,
+                                        summary: "No data",
+                                        day: new Date().toISOString().split("T")[0],
+                                        maxValue: 0,
+                                    }
+                                }
                                 projectData={project!}
                                 signalStrengthProjectData={
                                     project?.signalStrengths?.find((s) => s.name === signalStrength.name)!
@@ -524,9 +568,31 @@ export default function SignalStrengthsSettingsCalculation({
                                     onClick={fetchTestResult}
                                     disabled={testResultsLoading}
                                     fontFamily={testResultsLoading ? "monospace" : undefined}
+                                    minH={"50px"}
                                 >
-                                    {testResultsLoading ? formatDuration(testTimerDuration) : "Run test analysis"}
+                                    <VStack gap={0}>
+                                        {testResultsLoading ? (
+                                            <>
+                                                <Text>{formatDuration(testTimerDuration)}</Text>
+                                                <Text>Queue Length: {queueLength ? queueLength : "-"}</Text>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Text>Run test analysis</Text>
+                                                <Text>
+                                                    {project?.displayName} - {selectedUser.username} -{" "}
+                                                    {signalStrength.displayName.replace(" Engagement", "")}
+                                                </Text>
+                                            </>
+                                        )}
+                                    </VStack>
                                 </Button>
+                                {testResultsLoading && (
+                                    <Button secondaryButton px={3} py={2} borderRadius={"full"} onClick={cancelTest}>
+                                        Cancel test
+                                    </Button>
+                                )}
+
                                 {testError && (
                                     <Text pt={3} px={5} textAlign={"center"} fontWeight={"bold"} color="orange.500">
                                         {testError}
@@ -545,7 +611,10 @@ export default function SignalStrengthsSettingsCalculation({
                         )}
                         {testResult && (
                             <VStack w={"100%"} gap={5}>
-                                <ExtraData title="Test Analysis Logs" data={testResult[0]} />
+                                <ExtraData
+                                    title="Test Analysis Logs"
+                                    data={selectedTestSignalStrengthViewer || testResult[0]}
+                                />
                             </VStack>
                         )}
                     </VStack>

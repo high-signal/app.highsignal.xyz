@@ -56,7 +56,9 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
         // =================
         // Set last checked as soon as it is known that
         // the signal strength is enabled for the project.
-        setLastChecked({ supabase, userId, projectId, signalStrengthId })
+        if (!testingData) {
+            setLastChecked({ supabase, userId, projectId, signalStrengthId })
+        }
 
         // ====================================
         // Fetch signal strength config from DB
@@ -133,7 +135,7 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
             // If it is the last raw score to process,
             // trigger the parent again to run the smart score calculations.
             if (isLastRawScoreToProcess) {
-                await retryParentQueueItem({ supabase, userId, projectId, signalStrengthId, dayDate })
+                await retryParentQueueItem({ supabase, userId, projectId, signalStrengthId, dayDate, testingData })
             }
 
             // Return as it should not progress to smart score calculations as this is a raw_score queue item.
@@ -152,6 +154,7 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
             projectId,
             signalStrengthId,
             dailyActivityData,
+            testingData,
         })
 
         // =============================================
@@ -175,7 +178,10 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
         if (rawScoreCalculationsRequired) {
             console.log(`🔄 Raw score calculations are required, setting this queue item back to "pending".`)
 
-            const queueItemUniqueIdentifier = `${userId}_${projectId}_${signalStrengthId}_${dayDate}`
+            let queueItemUniqueIdentifier = `${userId}_${projectId}_${signalStrengthId}_${dayDate}`
+            if (testingData) {
+                queueItemUniqueIdentifier = queueItemUniqueIdentifier + "_TEST"
+            }
 
             const { error: updateQueueItemError } = await supabase
                 .from("ai_request_queue")
@@ -189,8 +195,8 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
                 throw new Error(errorMessage)
             }
 
-            // Throw an error to stop the engine from continuing and setting the parent to "completed"
-            throw new Error("⚠️ Raw score calculations are required. Exiting smart score engine run.")
+            // Return an error to stop the engine from continuing and setting the parent to "completed"
+            return "⚠️ Raw score calculations are required. Exiting smart score engine run."
         }
 
         // =========================================

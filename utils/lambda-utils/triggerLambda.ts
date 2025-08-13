@@ -73,7 +73,7 @@ export async function triggerLambda(params: {
         }
     } else {
         // Execute locally
-        console.log("Executing locally")
+        console.log("🏁 Executing locally", functionType)
 
         try {
             // Do not await the full response, just check that it starts successfully

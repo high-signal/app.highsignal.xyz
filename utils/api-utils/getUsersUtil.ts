@@ -74,6 +74,7 @@ export async function getUsersUtil(
     const showTestDataOnly = searchParams.get("showTestDataOnly") === "true" || false
     const showRawScoreCalcOnly = searchParams.get("showRawScoreCalcOnly") === "true" || false
     const apiKey = searchParams.get("apiKey")
+    const testRequestingUser = searchParams.get("testRequestingUser")
 
     // Pagination
     const page = parseInt(searchParams.get("page") || "1")
@@ -336,8 +337,24 @@ export async function getUsersUtil(
                                             .eq("signal_strength_id", signalStrengthId)
 
                                         // Filter test data
-                                        if (isSuperAdminRequesting && showTestDataOnly) {
-                                            query = query.not("test_requesting_user", "is", null)
+                                        if (isSuperAdminRequesting && showTestDataOnly && testRequestingUser) {
+                                            // Get testRequestingUser ID from the users table
+                                            const {
+                                                data: testRequestingUserDetails,
+                                                error: testRequestingUserDetailsError,
+                                            } = await supabase
+                                                .from("users")
+                                                .select("id")
+                                                .eq("username", testRequestingUser)
+                                                .single()
+
+                                            if (testRequestingUserDetailsError) {
+                                                console.error(
+                                                    "testRequestingUserDetailsError",
+                                                    testRequestingUserDetailsError,
+                                                )
+                                            }
+                                            query = query.eq("test_requesting_user", testRequestingUserDetails?.id)
                                         } else {
                                             query = query.is("test_requesting_user", null)
                                         }

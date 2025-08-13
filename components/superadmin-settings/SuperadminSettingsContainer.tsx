@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { VStack, Text, Spinner } from "@chakra-ui/react"
 
 import { useUser } from "../../contexts/UserContext"
