@@ -36,7 +36,6 @@ async function updateUserData({
             logs: analysisResults.logs,
             ...(testingData?.requestingUserId && { test_requesting_user: testingData.requestingUserId }),
             model: analysisResults.model,
-            temperature: analysisResults.temperature,
             prompt_id: analysisResults.promptId || null,
             max_chars: analysisResults.maxChars,
             day: dayDate,

@@ -9,7 +9,7 @@ async function retryParentQueueItem({ supabase, userId, projectId, signalStrengt
     let queueItemUniqueIdentifier = `${userId}_${projectId}_${signalStrengthId}_${dateYesterday}`
 
     if (testingData) {
-        queueItemUniqueIdentifier = queueItemUniqueIdentifier + "_TEST"
+        queueItemUniqueIdentifier = queueItemUniqueIdentifier + "_TEST_" + testingData.requestingUserId
     }
 
     const { data: parentQueueItem, error: getParentQueueItemError } = await supabase
@@ -19,7 +19,7 @@ async function retryParentQueueItem({ supabase, userId, projectId, signalStrengt
         .single()
 
     if (getParentQueueItemError) {
-        const errorMessage = `Error getting parent queue item: ${getParentQueueItemError.message}`
+        const errorMessage = `⚠️ Error getting parent queue item: ${getParentQueueItemError.message}`
         console.error(errorMessage)
         // No need to throw since this is an optimistic update and will be retried by the governor.
     }

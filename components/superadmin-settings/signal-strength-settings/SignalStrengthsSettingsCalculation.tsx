@@ -114,8 +114,6 @@ export default function SignalStrengthsSettingsCalculation({
                     <br />
                     Model: {data?.model}
                     <br />
-                    Temperature: {data?.temperature}
-                    <br />
                     Max Chars: {data?.maxChars}
                     <br />
                     Previous Days: {data?.scoreCalculationPeriodPreviousDays}
@@ -172,19 +170,6 @@ export default function SignalStrengthsSettingsCalculation({
                             px={3}
                             borderRadius={"full"}
                         >
-                            <Text w={"120px"}>Temperature</Text>
-                            <Text>{signalStrength.temperature}</Text>
-                        </HStack>
-                        <HStack
-                            w={"fit-content"}
-                            h={"35px"}
-                            bg={"pageBackground"}
-                            justifyContent={"center"}
-                            gap={0}
-                            py={1}
-                            px={3}
-                            borderRadius={"full"}
-                        >
                             <Text w={"120px"}>Max Chars</Text>
                             <Text>{signalStrength.maxChars}</Text>
                         </HStack>
@@ -207,26 +192,6 @@ export default function SignalStrengthsSettingsCalculation({
                             setTestingInputData({
                                 ...testingInputData,
                                 testingModel: "",
-                            })
-                            resetTest()
-                        }}
-                        bg="pageBackground"
-                    />
-                    <SingleLineTextInput
-                        maxW={"300px"}
-                        value={testingInputData?.testingTemperature || ""}
-                        onChange={(e) => {
-                            setTestingInputData({
-                                ...testingInputData,
-                                testingTemperature: e.target.value,
-                            })
-                            resetTest()
-                        }}
-                        placeholder="New temperature... (optional)"
-                        handleClear={() => {
-                            setTestingInputData({
-                                ...testingInputData,
-                                testingTemperature: undefined,
                             })
                             resetTest()
                         }}
@@ -494,7 +459,13 @@ export default function SignalStrengthsSettingsCalculation({
                         )}
                     </VStack>
                     <VStack w={"100%"} maxW={"600px"} gap={0}>
-                        <HStack w={"100%"} px={3} position="relative" flexWrap={"wrap"} justifyContent={"center"}>
+                        <HStack
+                            w={"100%"}
+                            px={3}
+                            position="relative"
+                            flexWrap={"wrap"}
+                            justifyContent={testResult ? "space-around" : "center"}
+                        >
                             {selectedUser ? (
                                 <HStack flexWrap={"wrap"} gap={{ base: 0, lg: 2 }} justifyContent={"center"}>
                                     <Text

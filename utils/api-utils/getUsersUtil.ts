@@ -47,7 +47,6 @@ type SignalStrengthData = {
     prompts?: {
         prompt: string
     }
-    temperature?: number
     max_chars?: number
     logs?: string
     prompt_tokens?: number
@@ -561,7 +560,6 @@ export async function getUsersUtil(
                                           model: d.model,
                                           promptId: d.prompt_id,
                                           prompt: d.prompts?.prompt,
-                                          temperature: d.temperature,
                                           maxChars: d.max_chars,
                                           logs: d.logs,
                                           promptTokens: d.prompt_tokens,
