@@ -10,7 +10,7 @@
 // ==========
 const MAX_REQUESTS_PER_SECOND_PER_CHANNEL = 2
 const MAX_QUEUE_LENGTH = 20
-const TIMEOUT_SECONDS = 32 // Lambda timeout is 30 seconds
+const TIMEOUT_SECONDS = 52 // Lambda timeout is 50 seconds
 const MAX_ATTEMPTS = 10 // Gives it +1 attempts on this number (10 for max queue length of 20 and previous days of 180)
 const MAX_MESSAGES_TO_PROCESS = 100
 const MAX_PAGINATION_LOOPS = 10
