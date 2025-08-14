@@ -1,7 +1,7 @@
 require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { DiscordRestApi } = require("./discordRestApi")
-const outOfCharacter = require("out-of-character")
+const outOfCharacter = require("out-of-character").default
 
 // ==========
 // Constants

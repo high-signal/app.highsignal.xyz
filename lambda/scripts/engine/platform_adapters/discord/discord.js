@@ -38,6 +38,9 @@ async function getDailyActivityData({
         new Date(activityRangeNewest).setDate(activityRangeNewest.getDate() - previousDays),
     )
 
+    // Note: This has a maximum default return limit of 1000 messages.
+    //       That means it might not cover all messages in the range,
+    //       but is more than enough for an accurate score calculation.
     const { data: activityData, error: activityError } = await supabase
         .from("discord_messages")
         .select("*")

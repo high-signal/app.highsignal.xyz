@@ -368,7 +368,7 @@ export async function getUsersUtil(
                                         // TODO: Make this dynamic based on the previous_days value for the signal strength for the project
                                         const { data, error } = await query
                                             .order("day", { ascending: false })
-                                            .limit(180)
+                                            .limit(360)
 
                                         if (error) {
                                             console.error("signalStrengthsError", error)
