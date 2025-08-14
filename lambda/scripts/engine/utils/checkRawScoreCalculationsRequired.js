@@ -24,7 +24,7 @@ async function checkRawScoreCalculationsRequired({
 
                 let queueItemUniqueIdentifier = `${userId}_${projectId}_${signalStrengthId}_${day.date}_RAW`
                 if (testingData) {
-                    queueItemUniqueIdentifier = queueItemUniqueIdentifier + "_TEST"
+                    queueItemUniqueIdentifier = queueItemUniqueIdentifier + "_TEST_" + testingData.requestingUserId
                 }
 
                 // Add item to ai_request_queue

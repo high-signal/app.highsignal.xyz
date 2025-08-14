@@ -180,7 +180,7 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
 
             let queueItemUniqueIdentifier = `${userId}_${projectId}_${signalStrengthId}_${dayDate}`
             if (testingData) {
-                queueItemUniqueIdentifier = queueItemUniqueIdentifier + "_TEST"
+                queueItemUniqueIdentifier = queueItemUniqueIdentifier + "_TEST_" + testingData.requestingUserId
             }
 
             const { error: updateQueueItemError } = await supabase

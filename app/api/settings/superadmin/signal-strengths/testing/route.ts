@@ -33,35 +33,14 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Signal strength not found" }, { status: 404 })
         }
 
-        // If there is testing data, delete the existing user_signal_strengths row
-        const { error: deleteError } = await supabase
-            .from("user_signal_strengths")
-            .delete()
-            .eq("test_requesting_user", requestingUser.id)
-            .eq("signal_strength_id", signalStrength.id)
-
-        if (deleteError) {
-            console.error(
-                `Error deleting user_signal_strengths row for ${requestingUser.username}:`,
-                deleteError.message,
-            )
-        }
-
-        // Then delete any existing ai_request_queue rows for the target user
-        const { error: deleteAiRequestQueueError } = await supabase
-            .from("ai_request_queue")
-            .delete()
-            .eq("user_id", targetUser.id)
-            .eq("project_id", project.id)
-            .eq("signal_strength_id", signalStrength.id)
-            .not("test_data", "is", null)
-
-        if (deleteAiRequestQueueError) {
-            console.error(
-                `Error deleting ai_request_queue rows for ${targetUser.username}:`,
-                deleteAiRequestQueueError.message,
-            )
-        }
+        await clearExistingRows({
+            supabase,
+            requestingUserId: requestingUser.id,
+            signalStrengthId: signalStrength.id,
+            targetUserId: targetUser.id,
+            projectId: project.id,
+            requestingUsername: requestingUser.username,
+        })
 
         let signalStrengthUsername
         if (testingInputData.testingSignalStrengthUsername) {
@@ -164,40 +143,78 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ error: "Signal strength not found" }, { status: 404 })
         }
 
-        // If there is testing data, delete the existing user_signal_strengths row
-        const { error: deleteError } = await supabase
-            .from("user_signal_strengths")
-            .delete()
-            .eq("test_requesting_user", requestingUser.id)
-            .eq("signal_strength_id", signalStrength.id)
-
-        if (deleteError) {
-            console.error(
-                `Error deleting user_signal_strengths row for ${requestingUser.username}:`,
-                deleteError.message,
-            )
-        }
-
-        // Then delete any existing ai_request_queue rows for the target user
-        const { error: deleteAiRequestQueueError } = await supabase
-            .from("ai_request_queue")
-            .delete()
-            .eq("user_id", targetUser.id)
-            .eq("project_id", project.id)
-            .eq("signal_strength_id", signalStrength.id)
-            .not("test_data", "is", null)
-
-        if (deleteAiRequestQueueError) {
-            console.error(
-                `Error deleting ai_request_queue rows for ${targetUser.username}:`,
-                deleteAiRequestQueueError.message,
-            )
-        }
+        await clearExistingRows({
+            supabase,
+            requestingUserId: requestingUser.id,
+            signalStrengthId: signalStrength.id,
+            targetUserId: targetUser.id,
+            projectId: project.id,
+            requestingUsername: requestingUser.username,
+        })
 
         return NextResponse.json({ success: true, message: "Analysis cancelled successfully" }, { status: 200 })
     } catch (error) {
         console.error("Error fetching project settings:", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}
+
+async function clearExistingRows({
+    supabase,
+    requestingUserId,
+    signalStrengthId,
+    targetUserId,
+    projectId,
+    requestingUsername,
+}: {
+    supabase: SupabaseClient
+    requestingUserId: string
+    signalStrengthId: string
+    targetUserId: string
+    projectId: string
+    requestingUsername: string
+}) {
+    // If there is testing data, delete the existing user_signal_strengths row
+    const { error: deleteError } = await supabase
+        .from("user_signal_strengths")
+        .delete()
+        .eq("test_requesting_user", requestingUserId)
+        .eq("signal_strength_id", signalStrengthId)
+
+    if (deleteError) {
+        console.error(`Error deleting user_signal_strengths row for ${requestingUsername}:`, deleteError.message)
+    }
+
+    // Fetch all the existing ai_request_queue rows for the target user
+    const { data: aiRequestQueueRows, error: aiRequestQueueError } = await supabase
+        .from("ai_request_queue")
+        .select("*")
+        .eq("user_id", targetUserId)
+        .eq("project_id", projectId)
+        .eq("signal_strength_id", signalStrengthId)
+        .not("test_data", "is", null)
+
+    if (aiRequestQueueError) {
+        console.error(`Error fetching ai_request_queue rows for ${requestingUsername}:`, aiRequestQueueError.message)
+    }
+
+    // Filter for rows that have test_data with a matching test_requesting_user
+    const rowsToDelete = aiRequestQueueRows?.filter((row) => row.test_data?.requestingUserId === requestingUserId) || []
+
+    // Then delete the those matching rows
+    const { error: deleteAiRequestQueueError } = await supabase
+        .from("ai_request_queue")
+        .delete()
+        .in(
+            "id",
+            rowsToDelete.map((row) => row.id),
+        )
+
+    if (deleteAiRequestQueueError) {
+        console.error(
+            `Error deleting ai_request_queue rows for ${requestingUsername}:`,
+            deleteAiRequestQueueError.message,
+        )
     }
 }
 
