@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     const endDate = searchParams.get("endDate")
     const apiKey = searchParams.get("apiKey")
 
-    const MAX_DAYS_TO_FETCH = 180
+    const MAX_DAYS_TO_FETCH = 360
 
     if (!projectSlug) {
         return NextResponse.json({ error: "Project is required" }, { status: 400 })

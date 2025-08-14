@@ -1,6 +1,6 @@
 "use client"
 
-import { HStack, Text, VStack, Box, Switch, Button, Span, RadioGroup, Link } from "@chakra-ui/react"
+import { HStack, Text, VStack, Box, Switch, Button, Span, RadioGroup, Link, Grid } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
@@ -438,8 +438,8 @@ export default function SignalStrengthSettings({
                                         })
                                     }}
                                 >
-                                    <HStack columnGap={5} rowGap={3} alignItems={"start"} flexWrap={"wrap"}>
-                                        {[60, 120, 180].map((days) => (
+                                    <Grid templateColumns="repeat(3, 1fr)" gap={3} alignItems={"start"}>
+                                        {[30, 60, 90, 180, 270, 360].map((days) => (
                                             <RadioGroup.Item
                                                 key={days}
                                                 value={days.toString()}
@@ -481,7 +481,7 @@ export default function SignalStrengthSettings({
                                                 </RadioGroup.ItemText>
                                             </RadioGroup.Item>
                                         ))}
-                                    </HStack>
+                                    </Grid>
                                 </RadioGroup.Root>
                             </HStack>
                             <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
