@@ -6,12 +6,14 @@ interface BannerContextType {
     bannersChecking: boolean
     fullPageBanner: BannerProps | null
     headerBanners: BannerProps[]
+    hideFullPageBanner: () => void
 }
 
 const BannerContext = createContext<BannerContextType>({
     bannersChecking: true,
     fullPageBanner: null,
     headerBanners: [],
+    hideFullPageBanner: () => {},
 })
 
 export const useBanner = () => useContext(BannerContext)
@@ -19,6 +21,7 @@ export const useBanner = () => useContext(BannerContext)
 export function BannerProvider({ children }: { children: ReactNode }) {
     const [banners, setBanners] = useState<BannerProps[]>([])
     const [bannersChecking, setBannersChecking] = useState(true)
+    const [hiddenFullPageBanner, setHiddenFullPageBanner] = useState(false)
 
     // Load banners once on mount
     useEffect(() => {
@@ -53,14 +56,19 @@ export function BannerProvider({ children }: { children: ReactNode }) {
         fetchBanners()
     }, [])
 
-    // Get the full page banner if it exists and is enabled
-    const fullPageBanner = banners.find((banner) => banner.type === "fullPage") || null
+    // Function to hide the full page banner
+    const hideFullPageBanner = () => {
+        setHiddenFullPageBanner(true)
+    }
+
+    // Get the full page banner if it exists, is enabled, and not hidden
+    const fullPageBanner = !hiddenFullPageBanner ? banners.find((banner) => banner.type === "fullPage") || null : null
 
     // Get all header banners
     const headerBanners = banners.filter((banner) => banner.type === "header")
 
     return (
-        <BannerContext.Provider value={{ bannersChecking, fullPageBanner, headerBanners }}>
+        <BannerContext.Provider value={{ bannersChecking, fullPageBanner, headerBanners, hideFullPageBanner }}>
             {children}
         </BannerContext.Provider>
     )

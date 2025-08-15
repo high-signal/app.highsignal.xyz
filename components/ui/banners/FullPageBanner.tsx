@@ -1,11 +1,16 @@
 "use client"
 
-import { VStack, Text, Image } from "@chakra-ui/react"
+import { VStack, Text, Image, Button } from "@chakra-ui/react"
 import { ASSETS } from "../../../config/constants"
 import { usePrivy } from "@privy-io/react-auth"
+import { useUser } from "../../../contexts/UserContext"
+import { useBanner } from "../../../contexts/BannerContext"
 
 export default function FullPageBanner({ banner }: { banner: BannerProps }) {
     const { login, authenticated } = usePrivy()
+    const { loggedInUser } = useUser()
+    const { hideFullPageBanner } = useBanner()
+
     return (
         <VStack w="100dvw" h="100dvh" alignItems="center" mt={20} gap={10}>
             <VStack
@@ -35,17 +40,25 @@ export default function FullPageBanner({ banner }: { banner: BannerProps }) {
                 w="fit-content"
                 bg="contentBackground"
                 borderRadius={"16px"}
-                px={5}
-                py={4}
+                px={{ base: 3, sm: 5 }}
+                py={{ base: 3, sm: 5 }}
                 gap={4}
                 zIndex={1}
                 textAlign="center"
+                mx={3}
             >
                 <Text fontSize="2xl" fontWeight="bold">
                     {banner.title}
                 </Text>
                 <Text>{banner.content}</Text>
             </VStack>
+            {/* Note: This is not a secure banner. It is only a "soft" banner 
+            that can be closed by anyone who knows how to change state. */}
+            {loggedInUser?.isSuperAdmin && (
+                <Button primaryButton px={4} py={2} borderRadius={"full"} onClick={() => hideFullPageBanner()}>
+                    Super Admin - Close Banner
+                </Button>
+            )}
         </VStack>
     )
 }
