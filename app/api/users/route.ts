@@ -13,7 +13,6 @@ export async function GET(request: Request) {
 // Authenticated POST request (uses logged in user privyId)
 // Creates a new user in the database
 // Takes no user specific arguments as it creates a default user in the database
-// But it does require a valid earlyAccessCode to be passed in the query params
 // Note: This is a special API where it only requires a logged in user, so remains on this API route
 export async function POST(request: Request) {
     try {
@@ -21,30 +20,6 @@ export async function POST(request: Request) {
         const privyId = request.headers.get("x-privy-id")!
 
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-
-        // Get the earlyAccessCode from the query params
-        const { searchParams } = new URL(request.url)
-        const earlyAccessCode = searchParams.get("earlyAccessCode")
-
-        // Check if earlyAccessCode is valid
-        if (earlyAccessCode && earlyAccessCode !== "null") {
-            const { data: validAccessCode, error: accessCodeCheckError } = await supabase
-                .from("access_codes")
-                .select("id")
-                .eq("code", earlyAccessCode)
-                .single()
-
-            if (accessCodeCheckError) {
-                console.error("Error checking access code:", accessCodeCheckError)
-                return NextResponse.json({ error: "Error checking access code" }, { status: 500 })
-            }
-
-            if (!validAccessCode) {
-                return NextResponse.json({ error: "Invalid access code" }, { status: 400 })
-            }
-        } else {
-            return NextResponse.json({ error: "Access code required" }, { status: 400 })
-        }
 
         // Check if privy_id already exists
         const { data: existingPrivyUser, error: privyCheckError } = await supabase
@@ -115,7 +90,7 @@ export async function POST(request: Request) {
                     username: username,
                     display_name: displayName,
                     default_profile: true,
-                    ...(earlyAccessCode && { signup_code: earlyAccessCode }),
+                    signup_code: "access-code-feature-removed", // Legacy feature, retained for DB unique constraint
                 },
             ])
             .select()
