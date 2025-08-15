@@ -1,7 +1,7 @@
 "use client"
 
 import { VStack, Text, Image } from "@chakra-ui/react"
-import { ASSETS } from "../../config/constants"
+import { ASSETS } from "../../../config/constants"
 import { usePrivy } from "@privy-io/react-auth"
 
 export default function FullPageBanner({ banner }: { banner: BannerProps }) {

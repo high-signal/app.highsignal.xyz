@@ -8,8 +8,8 @@ import Header from "../layout/Header"
 import Footer from "./Footer"
 
 import { useBanner } from "../../contexts/BannerContext"
-import FullPageBanner from "../ui/FullPageBanner"
-import HeaderBanner from "../ui/HeaderBanner"
+import FullPageBanner from "../ui/banners/FullPageBanner"
+import HeaderBanner from "../ui/banners/HeaderBanner"
 
 interface ContentContainerProps {
     children: ReactNode
