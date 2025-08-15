@@ -150,4 +150,13 @@ interface TestingInputData {
     testingMaxChars?: string
 }
 
+interface BannerProps {
+    type: string
+    style: string
+    title?: string
+    content?: string
+    closable: boolean
+    enabled: boolean
+}
+
 type LozengeType = "public" | "private" | "shared" | "comingSoon" | "notifications" | "score" | "calcInfo"
