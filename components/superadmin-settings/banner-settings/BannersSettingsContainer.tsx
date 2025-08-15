@@ -81,8 +81,8 @@ export default function BannersSettingsContainer() {
                 <Text>- Full page banners have a close button when logged in as a super admin.</Text>
                 <Text>
                     - On full page banners, if you are a superadmin but are not logged in, click the High Signal logo to
-                    open the "hidden" login menu. This is to allow super admins to bypass the full page banner and still
-                    access the site.
+                    open the &quot;hidden&quot; login menu. This is to allow super admins to bypass the full page banner
+                    and still access the site.
                 </Text>
                 <Text>
                     - Currently, there is only one of each banner type, but in future more could be added to this list
