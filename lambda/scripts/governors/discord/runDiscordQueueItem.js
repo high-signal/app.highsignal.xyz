@@ -1,7 +1,15 @@
 require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { DiscordRestApi } = require("./discordRestApi")
-const outOfCharacter = require("out-of-character").default
+// Dynamic import for out-of-character based on environment
+let outOfCharacter
+if (process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    // Running in AWS Lambda
+    outOfCharacter = require("out-of-character")
+} else {
+    // Running locally
+    outOfCharacter = require("out-of-character").default
+}
 
 // ==========
 // Constants

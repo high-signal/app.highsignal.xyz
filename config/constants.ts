@@ -17,9 +17,9 @@ export const ASSETS = {
     LOGO_ID: "logo-coin_jvr3ni.png",
 } as const
 
-// TODO: Application settings
+// Application configuration
 export const APP_CONFIG = {
-    DEFAULT_PAGINATION_LIMIT: 25,
+    DEFAULT_PAGINATION_LIMIT: 50,
     SIGNAL_STRENGTH_LOADING_DURATION: 30000,
     IMAGE_UPLOAD_WIDTH: 300,
     TEST_TIMER_MAX_DURATION: 600000, // 10 minutes
