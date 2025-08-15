@@ -10,7 +10,7 @@ export default function ModalCloseButton({ onClose, noRadius }: { onClose: () =>
             closeButton
             position="absolute"
             right={0}
-            top="0px"
+            top={0}
             onClick={onClose}
             borderBottomLeftRadius={"50px"}
             borderTopRightRadius={noRadius ? "0px" : { base: 0, md: "16px" }}

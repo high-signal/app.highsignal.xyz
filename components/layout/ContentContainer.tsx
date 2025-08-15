@@ -26,7 +26,7 @@ export default function ContentContainer({ children }: ContentContainerProps) {
                 <VStack minH="100dvh" h={"fit-content"} gap={0} overflow={"hidden"}>
                     <Toaster />
                     {headerBanners.map((banner, index) => (
-                        <HeaderBanner key={index} banner={banner} />
+                        <HeaderBanner key={index} banner={banner} index={index} />
                     ))}
                     <Header />
                     <VStack
