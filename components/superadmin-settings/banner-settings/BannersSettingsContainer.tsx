@@ -44,7 +44,7 @@ export default function BannersSettingsContainer() {
             }
         }
         fetchBanners()
-    }, [triggerRefresh])
+    }, [triggerRefresh, getAccessToken])
 
     if (error) {
         return (

@@ -11,7 +11,6 @@ import PrivyProvider from "../components/auth/PrivyProvider"
 import { UserProvider } from "../contexts/UserContext"
 import { ParticleProvider } from "../contexts/ParticleContext"
 import { BannerProvider } from "../contexts/BannerContext"
-import { EarlyAccessProvider } from "../contexts/EarlyAccessContext"
 
 export function Provider(props: ColorModeProviderProps) {
     return (
@@ -21,9 +20,7 @@ export function Provider(props: ColorModeProviderProps) {
                 <UserProvider>
                     <ColorModeProvider {...props}>
                         <ParticleProvider>
-                            <BannerProvider>
-                                <EarlyAccessProvider>{props.children}</EarlyAccessProvider>
-                            </BannerProvider>
+                            <BannerProvider>{props.children}</BannerProvider>
                         </ParticleProvider>
                     </ColorModeProvider>
                 </UserProvider>

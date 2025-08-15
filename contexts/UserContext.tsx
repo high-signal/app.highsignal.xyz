@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import { usePrivy } from "@privy-io/react-auth"
-import { useEarlyAccess } from "./EarlyAccessContext"
 
 interface User {
     id: string
@@ -10,7 +9,6 @@ interface User {
     displayName: string
     profileImageUrl?: string
     isSuperAdmin?: boolean
-    accessCode?: string
     projectAdmins?: {
         projectId: string
         projectName: string
@@ -57,12 +55,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (authenticated && missingUser) {
             const createUser = async () => {
-                // Get the early earlyAccessCode from the browser local storage
-                // and store it in the database to track user signup funnel
-                const earlyAccessCode = localStorage.getItem("earlyAccessCode")
-
                 const token = await getAccessToken()
-                const response = await fetch("/api/users?earlyAccessCode=" + earlyAccessCode, {
+                const response = await fetch("/api/users", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
