@@ -37,6 +37,9 @@ export async function PATCH(request: NextRequest) {
         const body = await request.json()
         const { banner } = body
 
+        if (banner.internal_name === "") {
+            return NextResponse.json({ error: "Internal name cannot be empty" }, { status: 400 })
+        }
         const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
         // Update the banner in the database

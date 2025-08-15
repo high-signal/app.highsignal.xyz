@@ -36,12 +36,14 @@ export default function BannerSettings({
             if (!response.ok) {
                 const errorData = await response.json()
                 setError(errorData.error)
-                throw new Error("Failed to save banner", errorData.error)
+                return
             }
 
             setTriggerRefresh((prev) => !prev)
         } catch (error) {
-            console.error("Error saving banner:", error)
+            const errorMessage = error instanceof Error ? error.message : "Unknown error"
+            console.error("Error saving banner:", errorMessage)
+            setError(`Error saving banner: ${errorMessage}`)
         } finally {
             setIsSaving(false)
         }
