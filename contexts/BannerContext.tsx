@@ -61,7 +61,7 @@ export function BannerProvider({ children }: { children: ReactNode }) {
         setHiddenFullPageBanner(true)
     }
 
-    // Get the full page banner if it exists, is enabled, and not hidden
+    // Get the full page banner if it is not hidden
     const fullPageBanner = !hiddenFullPageBanner ? banners.find((banner) => banner.type === "fullPage") || null : null
 
     // Get all header banners

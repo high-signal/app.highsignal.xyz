@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
+// Public API to get all enabled banners
 export async function GET() {
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -12,8 +13,7 @@ export async function GET() {
             style,
             title,
             content,
-            closable,
-            enabled
+            closable
         `,
         )
         .eq("enabled", true)
