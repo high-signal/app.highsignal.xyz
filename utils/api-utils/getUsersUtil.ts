@@ -330,9 +330,6 @@ export async function getUsersUtil(
                     })
                 })
 
-                console.log("userProjectCombinations", userProjectCombinations.length)
-                console.log("signalStrengthIdValues", signalStrengthIdValues.length)
-
                 // OPTIMIZATION: Use OR conditions for specific combinations instead of cartesian product
                 let signalStrengthsQuery = supabase
                     .from("user_signal_strengths")
