@@ -119,13 +119,13 @@ export default function SingleUserApiTab({ project }: { project: ProjectData }) 
           "day": "${yesterdayString}",
           "value": 90,
           "maxValue": 100,
-          "scoreCalculationPeriodPreviousDays": 180,
+          "scoreCalculationPeriodPreviousDays": 360,
         },
         {
           "day": "${twoDaysAgoString}",
           "value": 85,
           "maxValue": 100,
-          "scoreCalculationPeriodPreviousDays": 180,
+          "scoreCalculationPeriodPreviousDays": 360,
         }
       ]
     }

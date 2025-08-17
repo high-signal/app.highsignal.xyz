@@ -1,11 +1,16 @@
-async function retryParentQueueItem({ supabase, userId, projectId, signalStrengthId }) {
+async function retryParentQueueItem({ supabase, userId, projectId, signalStrengthId, testingData }) {
     console.log("🔄 Last raw score to process, triggering the parent again.")
 
     // Each raw score queue item does not know its parent queue item id
     // but we can guess that it is todays date and we can guess the queue_item_unique_identifier.
     // In nearly all cases, this will be correct.
     const dateYesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
-    const queueItemUniqueIdentifier = `${userId}_${projectId}_${signalStrengthId}_${dateYesterday}`
+
+    let queueItemUniqueIdentifier = `${userId}_${projectId}_${signalStrengthId}_${dateYesterday}`
+
+    if (testingData) {
+        queueItemUniqueIdentifier = queueItemUniqueIdentifier + "_TEST_" + testingData.requestingUserId
+    }
 
     const { data: parentQueueItem, error: getParentQueueItemError } = await supabase
         .from("ai_request_queue")
@@ -14,7 +19,7 @@ async function retryParentQueueItem({ supabase, userId, projectId, signalStrengt
         .single()
 
     if (getParentQueueItemError) {
-        const errorMessage = `Error getting parent queue item: ${getParentQueueItemError.message}`
+        const errorMessage = `⚠️ Error getting parent queue item: ${getParentQueueItemError.message}`
         console.error(errorMessage)
         // No need to throw since this is an optimistic update and will be retried by the governor.
     }

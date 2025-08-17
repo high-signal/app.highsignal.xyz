@@ -10,7 +10,7 @@ import { systemConfig } from "../styles/theme"
 import PrivyProvider from "../components/auth/PrivyProvider"
 import { UserProvider } from "../contexts/UserContext"
 import { ParticleProvider } from "../contexts/ParticleContext"
-import { EarlyAccessProvider } from "../contexts/EarlyAccessContext"
+import { BannerProvider } from "../contexts/BannerContext"
 
 export function Provider(props: ColorModeProviderProps) {
     return (
@@ -20,7 +20,7 @@ export function Provider(props: ColorModeProviderProps) {
                 <UserProvider>
                     <ColorModeProvider {...props}>
                         <ParticleProvider>
-                            <EarlyAccessProvider>{props.children}</EarlyAccessProvider>
+                            <BannerProvider>{props.children}</BannerProvider>
                         </ParticleProvider>
                     </ColorModeProvider>
                 </UserProvider>

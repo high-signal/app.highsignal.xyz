@@ -4,6 +4,7 @@ import { HStack, Text, Box, Image, Spinner } from "@chakra-ui/react"
 import { useState, useRef, useEffect } from "react"
 import SingleLineTextInput from "./SingleLineTextInput"
 import { useGetProjects } from "../../hooks/useGetProjects"
+import { useDebounce } from "../../hooks/useDebounce"
 import { ASSETS } from "../../config/constants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons"
@@ -24,17 +25,13 @@ export default function ProjectPicker({
     isSuperAdminRequesting = false,
 }: ProjectPickerProps) {
     const [searchTerm, setSearchTerm] = useState<string>("")
-    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null!)
-    const { projects, loading, error } = useGetProjects(debouncedSearchTerm, true, isSuperAdminRequesting)
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearchTerm(searchTerm)
-        }, 200)
-        return () => clearTimeout(timer)
-    }, [searchTerm])
+    // Use the proper debounce hook with a 300ms delay for better UX
+    const debouncedSearchTerm = useDebounce(searchTerm, 300)
+
+    const { projects, loading, error } = useGetProjects(debouncedSearchTerm, true, isSuperAdminRequesting)
 
     return (
         <Box position="relative" minW={{ base: "100%", sm: "max-content" }} flexGrow={1}>
@@ -91,7 +88,7 @@ export default function ProjectPicker({
                     overflowY="auto"
                 >
                     {loading ? (
-                        <HStack w={"100%"} h={"30px"} ml={2}>
+                        <HStack w={"100%"} h={"30px"} ml={2} mt={1} mb={"7px"}>
                             <Spinner />
                         </HStack>
                     ) : error ? (

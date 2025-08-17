@@ -1,58 +1,100 @@
-function calculateSmartScore(userData, previousDays, maxValue) {
+function calculateSmartScore({ signalStrengthName, userData, previousDays, maxValue }) {
     if (!userData.length) return { smartScore: 0, topBandDays: [] }
 
-    const now = Date.now()
-    const MS_PER_DAY = 86400000
-    const startTime = now - previousDays * MS_PER_DAY
+    let topThresholdNormalizedLowerBound // Take the normalized value and subtract this value to get the lower bound of the top band
+    let topBandMaxLengthToConsider
+    let lowerFrequencyMultiplierCount
+    let upperFrequencyMultiplierCount
+    let timeDecayPercent // final 30% of period decays to 0
 
-    const decayDuration = 0.3 // final 30% of period decays to 0
-    const decayStart = startTime + previousDays * (1 - decayDuration) * MS_PER_DAY
+    if (signalStrengthName === "discourse_forum") {
+        topThresholdNormalizedLowerBound = 0.3
+        topBandMaxLengthToConsider = 5
+        lowerFrequencyMultiplierCount = 2
+        upperFrequencyMultiplierCount = 5
+        timeDecayPercent = 0.3
+    } else if (signalStrengthName === "discord") {
+        topThresholdNormalizedLowerBound = 0.3
+        topBandMaxLengthToConsider = 10
+        lowerFrequencyMultiplierCount = 2
+        upperFrequencyMultiplierCount = 5
+        timeDecayPercent = 0.3
+    } else {
+        throw new Error(`No smart score calculation configured for ${signalStrengthName}`)
+    }
 
-    // function getTimeMultiplier(timestamp) {
-    //     if (timestamp >= decayStart) {
-    //         return 1
-    //     } else {
-    //         const percent = 1 - (timestamp - decayStart) / (now - decayStart)
-    //         return Math.max(0, percent)
-    //     }
-    // }
+    const roundToTwoDecimals = (value) => {
+        return Math.round(value * 100) / 100
+    }
 
-    const enriched = userData.map((d) => {
-        const time = new Date(d.day).getTime()
-        const normalized = d.raw_value / d.max_value
-        // const timeWeight = getTimeMultiplier(time)
+    // If the day is within the last timeDecayPercent of the period,
+    // the normalized value is multiplied by the time weight
+    // based on how far away from the end of the period it is
+    const timeDecayWeighted = ({ normalizedRawValue, day }) => {
+        const today = new Date()
+        const inputDate = new Date(day)
+
+        // Ensure input date is not in the future
+        if (inputDate > today) return 0
+
+        const msPerDay = 1000 * 60 * 60 * 24
+        const ageInDays = Math.floor((today.getTime() - inputDate.getTime()) / msPerDay)
+
+        if (ageInDays < 0 || ageInDays > previousDays) {
+            return 0 // Outside range
+        }
+
+        const decayStartDay = Math.floor(previousDays * (1 - timeDecayPercent))
+
+        let timeDecayMultiplier = 1
+
+        if (ageInDays > decayStartDay) {
+            const decayProgress = (ageInDays - decayStartDay) / (previousDays - decayStartDay)
+            timeDecayMultiplier = 1 - decayProgress
+        }
+
+        // Limit timeDecayMultiplier to [0, 1]
+        timeDecayMultiplier = Math.max(0, Math.min(1, timeDecayMultiplier))
+        return roundToTwoDecimals(normalizedRawValue * timeDecayMultiplier)
+    }
+
+    const enriched = userData.map((data) => {
+        const normalizedRawValue = data.raw_value / data.max_value
+        const normalizedRawValueTimeDecayedWeighted = timeDecayWeighted({ normalizedRawValue, day: data.day })
+
         return {
-            raw_value: d.raw_value,
-            max_value: d.max_value,
-            normalized,
-            time,
-            timeWeight: 1,
-            day: d.day,
+            normalizedRawValue: normalizedRawValueTimeDecayedWeighted,
+            day: data.day,
         }
     })
 
-    const topEntry = enriched.reduce((a, b) => (a.normalized > b.normalized ? a : b))
-    const topThreshold = Math.max(0, topEntry.raw_value - topEntry.max_value * 0.3)
-    let topBand = enriched.filter((d) => d.raw_value >= topThreshold)
-
-    // Only consider the top 5 posts for the smart score calculation
-    if (topBand.length > 5) {
-        topBand = topBand.sort((a, b) => b.normalized - a.normalized).slice(0, 5)
-    }
+    const topEntry = enriched.reduce((a, b) => (a.normalizedRawValue > b.normalizedRawValue ? a : b))
+    const topThreshold = roundToTwoDecimals(Math.max(0, topEntry.normalizedRawValue - topThresholdNormalizedLowerBound))
+    let topBand = enriched.filter((d) => d.normalizedRawValue >= topThreshold)
 
     if (!topBand.length) return { smartScore: 0, topBandDays: [] }
 
-    const weightedSum = topBand.reduce((sum, d) => sum + d.normalized * d.timeWeight, 0)
-    const totalWeight = topBand.reduce((sum, d) => sum + d.timeWeight, 0)
-    const weightedAverage = weightedSum / totalWeight
+    // Only consider the topBandMaxLengthToConsider posts for the smart score calculation
+    if (topBand.length > topBandMaxLengthToConsider) {
+        topBand = topBand
+            .sort((a, b) => b.normalizedRawValue - a.normalizedRawValue)
+            .slice(0, topBandMaxLengthToConsider)
+    }
+
+    const topBandNormalizedTotal = roundToTwoDecimals(topBand.reduce((sum, d) => sum + d.normalizedRawValue, 0))
+    const topBandNormalizedAverage = roundToTwoDecimals(topBandNormalizedTotal / topBand.length)
 
     const count = topBand.length
-    let multiplier = 0.5
-    if (count === 2) multiplier = 0.7
-    else if (count === 3 || count === 4) multiplier = 0.85
-    else if (count >= 5) multiplier = 1.0
+    let frequencyMultiplier = 0.5
+    if (count === lowerFrequencyMultiplierCount) {
+        frequencyMultiplier = 0.7
+    } else if (count > lowerFrequencyMultiplierCount && count < upperFrequencyMultiplierCount) {
+        frequencyMultiplier = 0.85
+    } else if (count >= upperFrequencyMultiplierCount) {
+        frequencyMultiplier = 1.0
+    }
 
-    const smartScore = Math.round(weightedAverage * maxValue * multiplier)
+    const smartScore = Math.round(topBandNormalizedAverage * maxValue * frequencyMultiplier)
 
     // Extract the days that were in the top band
     const topBandDays = topBand.map((d) => d.day)

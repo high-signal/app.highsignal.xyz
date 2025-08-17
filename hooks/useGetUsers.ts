@@ -10,6 +10,7 @@ interface UseGetUsersOptions {
     isRawData?: boolean
     page?: number
     isUserDataVisible?: boolean
+    leaderboardOnly?: boolean
 }
 
 export const useGetUsers = ({
@@ -21,6 +22,7 @@ export const useGetUsers = ({
     isRawData = false,
     page = 1,
     isUserDataVisible = false,
+    leaderboardOnly = false,
 }: UseGetUsersOptions = {}) => {
     const [users, setUsers] = useState<UserData[] | null>(null)
     const [maxPage, setMaxPage] = useState(1)
@@ -47,6 +49,10 @@ export const useGetUsers = ({
 
                 if (project) {
                     url.searchParams.append("project", project)
+                }
+
+                if (leaderboardOnly) {
+                    url.searchParams.append("leaderboardOnly", "true")
                 }
 
                 if (username) {
@@ -81,7 +87,7 @@ export const useGetUsers = ({
                 setLoading(false)
             }
         },
-        [project, username, fuzzy, page, isUserDataVisible],
+        [project, username, fuzzy, page, isUserDataVisible, isSuperAdminRequesting, isRawData, leaderboardOnly],
     )
 
     useEffect(() => {
@@ -92,7 +98,7 @@ export const useGetUsers = ({
             setLoading(false)
             setError(null)
         }
-    }, [fetchData, shouldFetch])
+    }, [shouldFetch, fetchData])
 
     const refreshUserData = useCallback(() => {
         fetchData(true)

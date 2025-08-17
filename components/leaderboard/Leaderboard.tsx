@@ -46,6 +46,291 @@ const TableHeader = ({
     </Table.ColumnHeader>
 )
 
+const LeaderboardRow = ({
+    item,
+    mode,
+    project,
+    rankColumnWidth,
+    displayNameColumnWidth,
+    signalColumnWidth,
+    scoreColumnWidth,
+    peakSignalsColumnWidth,
+    isCurrentUser = false,
+    isSpecialTopRow = false,
+    getUserDataForProject,
+}: {
+    item: UserData | ProjectData
+    mode: "users" | "projects"
+    project?: ProjectData
+    rankColumnWidth: { base: string; sm: string }
+    displayNameColumnWidth: { base: string; sm: string }
+    signalColumnWidth: { base: string; sm: string }
+    scoreColumnWidth: { base: string; sm: string }
+    peakSignalsColumnWidth: { base: string; sm: string }
+    isCurrentUser?: boolean
+    isSpecialTopRow?: boolean
+    getUserDataForProject: (projectSlug: string) => UserData | undefined
+}) => {
+    const linkUrl =
+        mode === "users"
+            ? `/p/${project?.urlSlug}/${(item as UserData).username}${window.location.search}`
+            : `/p/${(item as ProjectData).urlSlug}/${(getUserDataForProject((item as ProjectData).urlSlug) as UserData)?.username}`
+
+    // Get user data for project if in projects mode
+    const userData = mode === "projects" ? getUserDataForProject((item as ProjectData).urlSlug) : null
+
+    const scoreData = mode === "users" ? (item as UserData) : (userData as UserData)
+    const isScoreCalculating =
+        scoreData?.signalStrengths?.some((strength) =>
+            strength.data?.some((dataPoint) => {
+                if (!dataPoint.lastChecked) return false
+                const now = Date.now()
+                const lastCheckedTime = dataPoint.lastChecked * 1000 // Convert to ms
+                const timeElapsed = now - lastCheckedTime
+                return timeElapsed < APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
+            }),
+        ) || false
+
+    const isScoreZero = mode === "users" ? ((item as UserData).score ?? 0) === 0 : (userData?.score ?? 0) === 0
+
+    const rowBg = "pageBackground"
+    const rowHoverBg = "contentBackground"
+    const borderBottom = isSpecialTopRow ? "5px solid" : "1px solid"
+    const borderColor = "contentBorder"
+    const displayNameBg = isCurrentUser ? "gold.600" : "undefined"
+    const displayNameText = isCurrentUser ? `${item.displayName} (You)` : item.displayName
+
+    return (
+        <Table.Row
+            cursor="pointer"
+            bg={rowBg}
+            _hover={{
+                bg: rowHoverBg,
+                _active: { bg: "button.secondary.active" },
+            }}
+            _active={{ bg: "button.secondary.active" }}
+            transition="all 0.1s ease"
+            borderBottom={borderBottom}
+            borderTop={isSpecialTopRow ? "5px solid" : "none"}
+            borderColor={borderColor}
+        >
+            {mode === "users" && (
+                <Table.Cell
+                    borderBottom="none"
+                    py={"6px"}
+                    px={0}
+                    textAlign="center"
+                    minW={rankColumnWidth}
+                    maxW={rankColumnWidth}
+                    borderLeftRadius={"full"}
+                >
+                    <Link href={linkUrl}>
+                        <Text
+                            fontSize={{
+                                base: (() => {
+                                    const rankText = isScoreZero ? "-" : (item as UserData).rank?.toString() || ""
+                                    if (rankText.length > 3) return "sm"
+                                    if (rankText.length > 2) return "md"
+                                    return "lg"
+                                })(),
+                                sm: "lg",
+                            }}
+                            fontWeight="bold"
+                            color="textColor"
+                        >
+                            {isScoreZero ? "-" : (item as UserData).rank}
+                        </Text>
+                    </Link>
+                </Table.Cell>
+            )}
+            <Table.Cell
+                borderBottom="none"
+                py={"6px"}
+                pr={0}
+                maxW={displayNameColumnWidth}
+                borderLeftRadius={mode === "projects" ? "full" : "none"}
+            >
+                <Link href={linkUrl}>
+                    <HStack gap={3} bg={displayNameBg} borderRadius={"full"}>
+                        <Box position="relative" boxSize="40px" minW="40px" borderRadius="full" overflow="hidden">
+                            <Image
+                                src={
+                                    mode === "users"
+                                        ? !(item as UserData).profileImageUrl ||
+                                          (item as UserData).profileImageUrl === ""
+                                            ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                            : (item as UserData).profileImageUrl
+                                        : !(item as ProjectData).projectLogoUrl ||
+                                            (item as ProjectData).projectLogoUrl === ""
+                                          ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                          : (item as ProjectData).projectLogoUrl
+                                }
+                                alt={`${item.displayName} Image`}
+                                fit="cover"
+                            />
+                        </Box>
+                        <Text fontSize="lg" color="textColor" truncate>
+                            {displayNameText}
+                        </Text>
+                    </HStack>
+                </Link>
+            </Table.Cell>
+            {isScoreCalculating ? (
+                <Table.Cell borderBottom="none" py={0} px={0} colSpan={3} maxW={"50px"}>
+                    <Link href={linkUrl} style={{ display: "flex", justifyContent: "center" }}>
+                        <HStack
+                            gap={3}
+                            py={1}
+                            w={"100%"}
+                            maxW={"150px"}
+                            border={"3px solid"}
+                            borderRadius={"10px"}
+                            borderColor={"contentBorder"}
+                            justifyContent={"center"}
+                            className="rainbow-animation"
+                        >
+                            <Text fontWeight={"bold"} color="white" textAlign={"center"} fontSize={"md"}>
+                                Updating...
+                            </Text>
+                        </HStack>
+                    </Link>
+                </Table.Cell>
+            ) : (
+                <>
+                    <Table.Cell borderBottom="none" py={0} px={0} maxW={signalColumnWidth}>
+                        <Link href={linkUrl}>
+                            <HStack
+                                justifyContent="center"
+                                alignItems="center"
+                                fontSize="xl"
+                                fontWeight={isScoreZero ? "normal" : "bold"}
+                            >
+                                <Text
+                                    color={
+                                        mode === "users"
+                                            ? (item as UserData).signal
+                                                ? `scoreColor.${(item as UserData).signal}`
+                                                : "textColorMuted"
+                                            : userData?.signal
+                                              ? `scoreColor.${userData.signal}`
+                                              : "textColorMuted"
+                                    }
+                                >
+                                    {(() => {
+                                        const signal =
+                                            (isScoreZero
+                                                ? "-"
+                                                : mode === "users"
+                                                  ? (item as UserData).signal
+                                                  : userData?.signal) || ""
+                                        return signal ? signal.charAt(0).toUpperCase() + signal.slice(1) : "-"
+                                    })()}
+                                </Text>
+                            </HStack>
+                        </Link>
+                    </Table.Cell>
+                    <Table.Cell
+                        borderBottom="none"
+                        textAlign="center"
+                        py={0}
+                        px={0}
+                        maxW={scoreColumnWidth}
+                        borderRightRadius={"full"}
+                    >
+                        <Link href={linkUrl}>
+                            <HStack justifyContent="center" alignItems="center">
+                                <Text
+                                    px={2}
+                                    py={1}
+                                    border="3px solid"
+                                    borderRadius="15px"
+                                    className={
+                                        (mode === "users" ? (item as UserData).score : userData?.score) === 100
+                                            ? "pulse-shadow-animation"
+                                            : ""
+                                    }
+                                    borderColor={
+                                        isScoreZero
+                                            ? "transparent"
+                                            : mode === "users"
+                                              ? (item as UserData).signal
+                                                  ? `scoreColor.${(item as UserData).signal}`
+                                                  : "transparent"
+                                              : userData?.signal
+                                                ? `scoreColor.${userData.signal}`
+                                                : "transparent"
+                                    }
+                                    color={
+                                        isScoreZero
+                                            ? "textColorMuted"
+                                            : mode === "users"
+                                              ? (item as UserData).signal
+                                                  ? "textColor"
+                                                  : "textColorMuted"
+                                              : userData?.signal
+                                                ? "textColor"
+                                                : "textColorMuted"
+                                    }
+                                    w="fit-content"
+                                    fontSize="lg"
+                                >
+                                    {isScoreZero
+                                        ? "-"
+                                        : mode === "users"
+                                          ? (item as UserData).score
+                                          : userData?.score || "0"}
+                                </Text>
+                            </HStack>
+                        </Link>
+                    </Table.Cell>
+                    <Table.Cell
+                        borderBottom="none"
+                        py={0}
+                        maxW={peakSignalsColumnWidth}
+                        display={{
+                            base: "none",
+                            sm: project?.peakSignalsEnabled ? "table-cell" : "none",
+                        }}
+                    >
+                        <Link href={linkUrl}>
+                            <HStack justify="center" gap={2}>
+                                {[
+                                    ...(mode === "users"
+                                        ? (item as UserData).peakSignals || []
+                                        : userData?.peakSignals || []),
+                                ]
+                                    .sort((a, b) => b.value - a.value)
+                                    .slice(0, 5)
+                                    .map((badge, index) => (
+                                        <Tooltip
+                                            key={index}
+                                            openDelay={100}
+                                            closeDelay={0}
+                                            content={badge.displayName}
+                                            positioning={{
+                                                placement: "top",
+                                                offset: { mainAxis: 2 },
+                                            }}
+                                        >
+                                            <Image
+                                                key={index}
+                                                src={badge.imageSrc}
+                                                alt={badge.imageAlt}
+                                                width={10}
+                                                height={10}
+                                                borderRadius="full"
+                                            />
+                                        </Tooltip>
+                                    ))}
+                            </HStack>
+                        </Link>
+                    </Table.Cell>
+                </>
+            )}
+        </Table.Row>
+    )
+}
+
 export default function Leaderboard({
     project,
     mode = "users",
@@ -66,6 +351,7 @@ export default function Leaderboard({
     const [maxResultsPage, setMaxResultsPage] = useState(1)
 
     const { loggedInUser } = useUser()
+
     // Use the appropriate hook based on mode
     const {
         users,
@@ -80,6 +366,22 @@ export default function Leaderboard({
         isSuperAdminRequesting: false,
         isRawData: false,
         page: resultsPage,
+        leaderboardOnly: true,
+    })
+
+    // Separate call to get current user data when in users mode
+    const {
+        users: currentUserData,
+        loading: currentUserLoading,
+        error: currentUserError,
+    } = useGetUsers({
+        project: project?.urlSlug,
+        username: loggedInUser?.username,
+        fuzzy: false,
+        shouldFetch: mode === "users" && !!loggedInUser?.username,
+        isSuperAdminRequesting: false,
+        isRawData: false,
+        page: 1,
     })
 
     // TODO: Add conditional to projects call so it only makes the request if mode is projects
@@ -93,6 +395,9 @@ export default function Leaderboard({
     const loading = mode === "users" ? usersLoading : projectsLoading
     const error = mode === "users" ? usersError : projectsError
     const items = mode === "users" ? users : projects
+
+    // Get current user data for the special top row
+    const currentUser = currentUserData?.[0]
 
     // Set the max page for the pagination based on the results from the API call
     useEffect(() => {
@@ -253,278 +558,45 @@ export default function Leaderboard({
                             </Table.Cell>
                         </Table.Row>
                     ) : (
-                        sortedItems.map((item, index) => {
-                            const linkUrl =
-                                mode === "users"
-                                    ? `/p/${project?.urlSlug}/${(item as UserData).username}${window.location.search}`
-                                    : `/p/${(item as ProjectData).urlSlug}/${(data as UserData[])?.[0]?.username}`
-
-                            // Get user data for project if in projects mode
-                            const userData =
-                                mode === "projects" ? getUserDataForProject((item as ProjectData).urlSlug) : null
-
-                            const scoreData = mode === "users" ? (item as UserData) : (userData as UserData)
-                            const isScoreCalculating =
-                                scoreData?.signalStrengths?.some((strength) =>
-                                    strength.data?.some((dataPoint) => {
-                                        if (!dataPoint.lastChecked) return false
-                                        const now = Date.now()
-                                        const lastCheckedTime = dataPoint.lastChecked * 1000 // Convert to ms
-                                        const timeElapsed = now - lastCheckedTime
-                                        return timeElapsed < APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
-                                    }),
-                                ) || false
-
-                            const isScoreZero =
-                                mode === "users" ? ((item as UserData).score ?? 0) === 0 : (userData?.score ?? 0) === 0
-
-                            const isRowForLoggedInUser =
-                                mode === "users" && (item as UserData).username === loggedInUser?.username
-
-                            return (
-                                <Table.Row
+                        <>
+                            {/* Special row for current user when in users mode */}
+                            {mode === "users" &&
+                                currentUser &&
+                                !debouncedSearchTerm &&
+                                (currentUser.rank || 0) >= 10 && (
+                                    <LeaderboardRow
+                                        key="current-user"
+                                        item={currentUser}
+                                        mode={mode}
+                                        project={project}
+                                        rankColumnWidth={rankColumnWidth}
+                                        displayNameColumnWidth={displayNameColumnWidth}
+                                        signalColumnWidth={signalColumnWidth}
+                                        scoreColumnWidth={scoreColumnWidth}
+                                        peakSignalsColumnWidth={peakSignalsColumnWidth}
+                                        isCurrentUser={true}
+                                        isSpecialTopRow={true}
+                                        getUserDataForProject={getUserDataForProject}
+                                    />
+                                )}
+                            {sortedItems.map((item, index) => (
+                                <LeaderboardRow
                                     key={index}
-                                    cursor="pointer"
-                                    bg={"pageBackground"}
-                                    _hover={{
-                                        bg: "contentBackground",
-                                        _active: { bg: "button.secondary.active" },
-                                    }}
-                                    _active={{ bg: "button.secondary.active" }}
-                                    transition="all 0.1s ease"
-                                    borderBottom="1px solid"
-                                    borderColor="contentBorder"
-                                >
-                                    {mode === "users" && (
-                                        <Table.Cell
-                                            borderBottom="none"
-                                            py={"6px"}
-                                            px={0}
-                                            textAlign="center"
-                                            minW={rankColumnWidth}
-                                            maxW={rankColumnWidth}
-                                            borderLeftRadius={"full"}
-                                        >
-                                            <Link href={linkUrl}>
-                                                <Text
-                                                    fontSize={{
-                                                        base: (() => {
-                                                            const rankText = isScoreZero
-                                                                ? "-"
-                                                                : (item as UserData).rank?.toString() || ""
-                                                            if (rankText.length > 3) return "sm"
-                                                            if (rankText.length > 2) return "md"
-                                                            return "lg"
-                                                        })(),
-                                                        sm: "lg",
-                                                    }}
-                                                    fontWeight="bold"
-                                                    color="textColor"
-                                                >
-                                                    {isScoreZero ? "-" : (item as UserData).rank}
-                                                </Text>
-                                            </Link>
-                                        </Table.Cell>
-                                    )}
-                                    <Table.Cell
-                                        borderBottom="none"
-                                        py={"6px"}
-                                        pr={0}
-                                        maxW={displayNameColumnWidth}
-                                        borderLeftRadius={mode === "projects" ? "full" : "none"}
-                                    >
-                                        <Link href={linkUrl}>
-                                            <HStack
-                                                gap={3}
-                                                bg={isRowForLoggedInUser ? "gold.600" : "undefined"}
-                                                borderRadius={"full"}
-                                            >
-                                                <Box
-                                                    position="relative"
-                                                    boxSize="40px"
-                                                    minW="40px"
-                                                    borderRadius="full"
-                                                    overflow="hidden"
-                                                >
-                                                    <Image
-                                                        src={
-                                                            mode === "users"
-                                                                ? !(item as UserData).profileImageUrl ||
-                                                                  (item as UserData).profileImageUrl === ""
-                                                                    ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                                                    : (item as UserData).profileImageUrl
-                                                                : !(item as ProjectData).projectLogoUrl ||
-                                                                    (item as ProjectData).projectLogoUrl === ""
-                                                                  ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                                                  : (item as ProjectData).projectLogoUrl
-                                                        }
-                                                        alt={`${item.displayName} Image`}
-                                                        fit="cover"
-                                                    />
-                                                </Box>
-                                                <Text fontSize="lg" color="textColor" truncate>
-                                                    {item.displayName}
-                                                </Text>
-                                            </HStack>
-                                        </Link>
-                                    </Table.Cell>
-                                    {isScoreCalculating ? (
-                                        <Table.Cell borderBottom="none" py={0} px={0} colSpan={3} maxW={"50px"}>
-                                            <Link href={linkUrl} style={{ display: "flex", justifyContent: "center" }}>
-                                                <HStack
-                                                    gap={3}
-                                                    py={1}
-                                                    w={"100%"}
-                                                    maxW={"150px"}
-                                                    border={"3px solid"}
-                                                    borderRadius={"10px"}
-                                                    borderColor={"contentBorder"}
-                                                    justifyContent={"center"}
-                                                    className="rainbow-animation"
-                                                >
-                                                    <Text
-                                                        fontWeight={"bold"}
-                                                        color="white"
-                                                        textAlign={"center"}
-                                                        fontSize={"md"}
-                                                    >
-                                                        Updating...
-                                                    </Text>
-                                                </HStack>
-                                            </Link>
-                                        </Table.Cell>
-                                    ) : (
-                                        <>
-                                            <Table.Cell borderBottom="none" py={0} px={0} maxW={signalColumnWidth}>
-                                                <Link href={linkUrl}>
-                                                    <HStack
-                                                        justifyContent="center"
-                                                        alignItems="center"
-                                                        fontSize="xl"
-                                                        fontWeight={isScoreZero ? "normal" : "bold"}
-                                                    >
-                                                        <Text
-                                                            color={
-                                                                mode === "users"
-                                                                    ? (item as UserData).signal
-                                                                        ? `scoreColor.${(item as UserData).signal}`
-                                                                        : "textColorMuted"
-                                                                    : userData?.signal
-                                                                      ? `scoreColor.${userData.signal}`
-                                                                      : "textColorMuted"
-                                                            }
-                                                        >
-                                                            {(() => {
-                                                                const signal =
-                                                                    (isScoreZero
-                                                                        ? "-"
-                                                                        : mode === "users"
-                                                                          ? (item as UserData).signal
-                                                                          : userData?.signal) || ""
-                                                                return signal
-                                                                    ? signal.charAt(0).toUpperCase() + signal.slice(1)
-                                                                    : "-"
-                                                            })()}
-                                                        </Text>
-                                                    </HStack>
-                                                </Link>
-                                            </Table.Cell>
-                                            <Table.Cell
-                                                borderBottom="none"
-                                                textAlign="center"
-                                                py={0}
-                                                px={0}
-                                                maxW={scoreColumnWidth}
-                                                borderRightRadius={"full"}
-                                            >
-                                                <Link href={linkUrl}>
-                                                    <HStack justifyContent="center" alignItems="center">
-                                                        <Text
-                                                            px={2}
-                                                            py={1}
-                                                            border="3px solid"
-                                                            borderRadius="15px"
-                                                            borderColor={
-                                                                isScoreZero
-                                                                    ? "transparent"
-                                                                    : mode === "users"
-                                                                      ? (item as UserData).signal
-                                                                          ? `scoreColor.${(item as UserData).signal}`
-                                                                          : "transparent"
-                                                                      : userData?.signal
-                                                                        ? `scoreColor.${userData.signal}`
-                                                                        : "transparent"
-                                                            }
-                                                            color={
-                                                                isScoreZero
-                                                                    ? "textColorMuted"
-                                                                    : mode === "users"
-                                                                      ? (item as UserData).signal
-                                                                          ? "textColor"
-                                                                          : "textColorMuted"
-                                                                      : userData?.signal
-                                                                        ? "textColor"
-                                                                        : "textColorMuted"
-                                                            }
-                                                            w="fit-content"
-                                                            fontSize="lg"
-                                                        >
-                                                            {isScoreZero
-                                                                ? "-"
-                                                                : mode === "users"
-                                                                  ? (item as UserData).score
-                                                                  : userData?.score || "0"}
-                                                        </Text>
-                                                    </HStack>
-                                                </Link>
-                                            </Table.Cell>
-                                            <Table.Cell
-                                                borderBottom="none"
-                                                py={0}
-                                                maxW={peakSignalsColumnWidth}
-                                                display={{
-                                                    base: "none",
-                                                    sm: project?.peakSignalsEnabled ? "table-cell" : "none",
-                                                }}
-                                            >
-                                                <Link href={linkUrl}>
-                                                    <HStack justify="center" gap={2}>
-                                                        {[
-                                                            ...(mode === "users"
-                                                                ? (item as UserData).peakSignals || []
-                                                                : userData?.peakSignals || []),
-                                                        ]
-                                                            .sort((a, b) => b.value - a.value)
-                                                            .slice(0, 5)
-                                                            .map((badge, index) => (
-                                                                <Tooltip
-                                                                    key={index}
-                                                                    openDelay={100}
-                                                                    closeDelay={0}
-                                                                    content={badge.displayName}
-                                                                    positioning={{
-                                                                        placement: "top",
-                                                                        offset: { mainAxis: 2 },
-                                                                    }}
-                                                                >
-                                                                    <Image
-                                                                        key={index}
-                                                                        src={badge.imageSrc}
-                                                                        alt={badge.imageAlt}
-                                                                        width={10}
-                                                                        height={10}
-                                                                        borderRadius="full"
-                                                                    />
-                                                                </Tooltip>
-                                                            ))}
-                                                    </HStack>
-                                                </Link>
-                                            </Table.Cell>
-                                        </>
-                                    )}
-                                </Table.Row>
-                            )
-                        })
+                                    item={item}
+                                    mode={mode}
+                                    project={project}
+                                    rankColumnWidth={rankColumnWidth}
+                                    displayNameColumnWidth={displayNameColumnWidth}
+                                    signalColumnWidth={signalColumnWidth}
+                                    scoreColumnWidth={scoreColumnWidth}
+                                    peakSignalsColumnWidth={peakSignalsColumnWidth}
+                                    isCurrentUser={
+                                        mode === "users" && (item as UserData).username === loggedInUser?.username
+                                    }
+                                    getUserDataForProject={getUserDataForProject}
+                                />
+                            ))}
+                        </>
                     )}
                 </Table.Body>
             </Table.Root>

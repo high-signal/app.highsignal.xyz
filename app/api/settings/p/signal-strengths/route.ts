@@ -70,7 +70,7 @@ export async function PATCH(request: NextRequest) {
         if (settings.enabled.new === false) {
             updateData.enabled = false
             updateData.max_value = 20
-            updateData.previous_days = 180
+            updateData.previous_days = 360
             updateData.url = null
             updateData.auth_types = isPrivyAuthType ? ["privy"] : null
             updateData.auth_parent_post_url = null

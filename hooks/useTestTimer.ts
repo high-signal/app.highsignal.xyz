@@ -5,6 +5,7 @@ import { APP_CONFIG } from "../config/constants"
 interface UseTestTimerProps {
     maxDuration?: number
     onTimeout?: (duration: number) => void
+    setTestError?: (error: string | null) => void
 }
 
 interface UseTestTimerReturn {
@@ -13,18 +14,16 @@ interface UseTestTimerReturn {
     setTestTimerStop: (time: number | null) => void
     testTimerDuration: number | null
     setTestTimerDuration: (duration: number | null) => void
-    testError: string | null
-    setTestError: (error: string | null) => void
 }
 
 export const useTestTimer = ({
     maxDuration = APP_CONFIG.TEST_TIMER_MAX_DURATION,
     onTimeout,
+    setTestError,
 }: UseTestTimerProps = {}): UseTestTimerReturn => {
     const [testTimerStart, setTestTimerStart] = useState<number | null>(null)
     const [testTimerStop, setTestTimerStop] = useState<number | null>(null)
     const [testTimerDuration, setTestTimerDuration] = useState<number | null>(null)
-    const [testError, setTestError] = useState<string | null>(null)
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout
@@ -37,7 +36,7 @@ export const useTestTimer = ({
                 if (currentDuration > maxDuration) {
                     setTestTimerStop(Date.now())
                     setTestTimerDuration(maxDuration)
-                    setTestError(
+                    setTestError?.(
                         `Test timed out after ${maxDuration / 1000}s. Try again and check the inputs are correct.`,
                     )
                     onTimeout?.(maxDuration)
@@ -64,7 +63,5 @@ export const useTestTimer = ({
         setTestTimerStop,
         testTimerDuration,
         setTestTimerDuration,
-        testError,
-        setTestError,
     }
 }

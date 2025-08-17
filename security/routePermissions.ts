@@ -14,15 +14,6 @@ export type RoutePermission = {
 
 export const routePermissions: RoutePermission[] = [
     {
-        path: "/api/access-code",
-        methods: {
-            // Public to check if access code is valid
-            GET: {
-                requiresAuth: false,
-            },
-        },
-    },
-    {
         path: "/api/data/",
         methods: {
             GET: {
@@ -150,6 +141,10 @@ export const routePermissions: RoutePermission[] = [
                 allowedAccess: ["superAdmin"],
             },
             PATCH: {
+                requiresAuth: true,
+                allowedAccess: ["superAdmin"],
+            },
+            DELETE: {
                 requiresAuth: true,
                 allowedAccess: ["superAdmin"],
             },

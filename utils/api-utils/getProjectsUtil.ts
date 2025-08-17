@@ -14,7 +14,6 @@ type ProjectSignalStrengths = {
         status: string
         available_auth_types?: string[]
         model?: string // Requires isSuperAdminRequesting is true
-        temperature?: number //Requires isSuperAdminRequesting is true
         max_chars?: number //Requires isSuperAdminRequesting is true
     }
 }
@@ -60,7 +59,6 @@ export async function getProjectsUtil(
                         display_name,
                         status,
                         model,
-                        temperature,
                         max_chars,
                         available_auth_types
                     )
@@ -116,7 +114,6 @@ export async function getProjectsUtil(
                             authParentPostUrl: ps.auth_parent_post_url,
                             previousDays: ps.previous_days,
                             ...(isSuperAdminRequesting ? { model: ps.signal_strengths?.model } : {}),
-                            ...(isSuperAdminRequesting ? { temperature: ps.signal_strengths?.temperature } : {}),
                             ...(isSuperAdminRequesting ? { maxChars: ps.signal_strengths?.max_chars } : {}),
                         })) || [],
                 }

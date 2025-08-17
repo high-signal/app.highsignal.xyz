@@ -1,7 +1,15 @@
 require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { DiscordRestApi } = require("./discordRestApi")
-const outOfCharacter = require("out-of-character")
+// Dynamic import for out-of-character based on environment
+let outOfCharacter
+if (process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    // Running in AWS Lambda
+    outOfCharacter = require("out-of-character")
+} else {
+    // Running locally
+    outOfCharacter = require("out-of-character").default
+}
 
 // ==========
 // Constants
@@ -82,15 +90,28 @@ async function runDiscordQueueItem({ queueItemId }) {
             let oldestMessageId = null
             let oldestMessageTimestamp = null
 
+            let totalMessagesProcessed = 0
+            let totalMessagesSkipped = 0
+            let totalMessagesStored = 0
+            let totalMessagesAlreadyStored = 0
+
             // Message fetch loop.
             for (let i = 0; i < MAX_PAGINATION_LOOPS; i++) {
                 console.log(`🔄 Loop ${i + 1} of ${MAX_PAGINATION_LOOPS}`)
+                console.log(`|  🔚 Oldest message timestamp: ${oldestMessageTimestamp}`)
 
                 // Fetch messages from the channel using REST API.
                 const messages = await discordApi.fetchMessages(channelId, {
                     limit: MAX_MESSAGES_TO_PROCESS,
                     before: newestMessageId,
                 })
+
+                console.log(`|  📬 Messages fetched: ${messages.length || 0}`)
+                totalMessagesProcessed += messages.length || 0
+
+                let messagesSkipped = 0
+                let messagesStored = 0
+                let messagesAlreadyStored = 0
 
                 // Check if there are any messages to process.
                 if (messages.length > 0) {
@@ -99,7 +120,7 @@ async function runDiscordQueueItem({ queueItemId }) {
                     if (!newestMessageId) {
                         newestMessageId = messages[0].id
 
-                        console.log(`📣 Head sync detected.`)
+                        console.log(`|  📣 Head sync detected.`)
 
                         // Set the newest_message_id to the newest message in the channel.
                         const { error: setNewestMessageIdError } = await supabase
@@ -126,9 +147,11 @@ async function runDiscordQueueItem({ queueItemId }) {
                     let messagesToInsert = []
                     messages.forEach((msg) => {
                         if (msg.content.length < MIN_MESSAGE_CHAR_LENGTH) {
-                            console.log(
-                                `⏭️ Skipping message: ${msg.id}. Shorter than ${MIN_MESSAGE_CHAR_LENGTH} characters`,
-                            )
+                            // console.log(
+                            //     `⏭️ Skipping message: ${msg.id}. Shorter than ${MIN_MESSAGE_CHAR_LENGTH} characters`,
+                            // )
+                            messagesSkipped++
+                            totalMessagesSkipped++
                             return
                         }
 
@@ -162,6 +185,8 @@ async function runDiscordQueueItem({ queueItemId }) {
                             messagesToInsert.every((m) => existingIdSet.has(m.message_id))
                         ) {
                             console.log(`⏹️ All messages in this loop already existed in DB. Breaking out of loop.`)
+                            messagesAlreadyStored = messagesToInsert.length
+                            totalMessagesAlreadyStored += messagesToInsert.length
                             break
                         }
 
@@ -190,11 +215,19 @@ async function runDiscordQueueItem({ queueItemId }) {
                         // Log for each message whether it was newly stored or already existed
                         messagesToInsert.forEach((msgObj) => {
                             if (existingIdSet.has(msgObj.message_id)) {
-                                console.log(`☑️ Message already stored in DB: ${msgObj.message_id}`)
+                                // console.log(`☑️ Message already stored in DB: ${msgObj.message_id}`)
+                                messagesAlreadyStored++
+                                totalMessagesAlreadyStored++
                             } else {
-                                console.log(`💾 Stored message: ${msgObj.message_id}`)
+                                // console.log(`💾 Stored message: ${msgObj.message_id}`)
+                                messagesStored++
+                                totalMessagesStored++
                             }
                         })
+
+                        console.log(`|  🧮 Messages skipped: ${messagesSkipped}`)
+                        console.log(`|  🧮 Messages stored: ${messagesStored}`)
+                        console.log(`|  🧮 Messages already stored: ${messagesAlreadyStored}`)
                     } else {
                         console.log("⏹️ No valid messages to insert in this loop.")
                         break
@@ -204,6 +237,11 @@ async function runDiscordQueueItem({ queueItemId }) {
                     break
                 }
             }
+
+            console.log(`🧮 Total messages processed: ${totalMessagesProcessed}`)
+            console.log(`🧮 Total messages skipped: ${totalMessagesSkipped}`)
+            console.log(`🧮 Total messages stored: ${totalMessagesStored}`)
+            console.log(`🧮 Total messages already stored: ${totalMessagesAlreadyStored}`)
 
             // Once the loop is complete, update the queue item to "completed"
             const { error: updatedQueueItemError } = await supabase

@@ -25,17 +25,23 @@ async function addSingleItemToAiQueue({ signalStrengthName, userId, projectId, s
         // Default to yesterday. Format: YYYY-MM-DD
         const dayDate = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]
 
+        let queueItemUniqueIdentifier = `${userId}_${projectId}_${signalStrengthId}_${dayDate}`
+        if (testingData) {
+            queueItemUniqueIdentifier = queueItemUniqueIdentifier + "_TEST_" + testingData.requestingUserId
+        }
+
         // NOTE: z_ must be used as the objects are ordered alphabetically in the function cache,
         // and since testing_data is conditional, it must be the last parameter so it does not
         // change the order of the other parameters.
         const { error: addSingleUserSignalStrengthToAiQueueError } = await supabase.rpc(
             "add_single_user_signal_strength_to_ai_queue",
             {
-                user_id: userId,
-                project_id: projectId,
-                signal_strength_id: signalStrengthId,
-                signal_strength_username: signalStrengthUsername,
-                day: dayDate,
+                p_queue_item_unique_identifier: queueItemUniqueIdentifier,
+                p_user_id: userId,
+                p_project_id: projectId,
+                p_signal_strength_id: signalStrengthId,
+                p_signal_strength_username: signalStrengthUsername,
+                p_day: dayDate,
                 z_testing_data: testingData,
             },
         )

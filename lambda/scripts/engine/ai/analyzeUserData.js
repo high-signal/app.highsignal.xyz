@@ -30,7 +30,13 @@ async function analyzeUserData({
 
     let calculatedSmartScore
     if (type === "smart") {
-        const smartScoreResult = calculateSmartScore(userData, previousDays, maxValue)
+        const smartScoreResult = calculateSmartScore({
+            signalStrengthName: signalStrengthData.name,
+            userData,
+            previousDays,
+            maxValue,
+        })
+
         calculatedSmartScore = smartScoreResult.smartScore
         const topBandDays = smartScoreResult.topBandDays
 
@@ -59,17 +65,6 @@ async function analyzeUserData({
     console.log(
         `🤖 Using model: ${model}. ${type === "smart" ? "Smart" : "Raw"} score for user: ${signalStrengthUsername} on ${dayDate}...`,
     )
-
-    let temperature
-    if (type === "raw" && rawTestingInputData?.testingTemperature) {
-        temperature = rawTestingInputData.testingTemperature
-    } else if (type === "smart" && smartTestingInputData?.testingTemperature) {
-        temperature = smartTestingInputData.testingTemperature
-    } else if (signalStrengthData.temperature) {
-        temperature = signalStrengthData.temperature
-    } else {
-        return { error: "No temperature set in DB" }
-    }
 
     let basePrompt
     if (type === "raw" && rawTestingInputData?.testingPrompt) {
@@ -150,7 +145,6 @@ async function analyzeUserData({
         const res = await openai.chat.completions.create({
             model: model,
             messages,
-            temperature: Number(temperature),
         })
 
         const analysisLogs = `${logs ? logs + "\n" : ""}userDataString.length: ${userDataString.length}
@@ -162,6 +156,10 @@ truncatedData.length: ${truncatedData.length}
         // Try to clean the response if it has markdown backticks
         const cleanResponse = response.replace(/^```json\n?|\n?```$/g, "").trim()
 
+        const analysisItems = userData.map((d) => ({
+            id: d.id.toString(),
+        }))
+
         try {
             // Add the prompt and model to the response
             const responseWithDataAdded = {
@@ -171,10 +169,10 @@ truncatedData.length: ${truncatedData.length}
                 completionTokens: res.usage.completion_tokens,
                 logs: analysisLogs,
                 model: model,
-                temperature: temperature,
                 promptId: promptId,
                 maxChars: maxChars,
                 previousDays: previousDays,
+                analysisItems: analysisItems,
                 ...JSON.parse(cleanResponse),
             }
 

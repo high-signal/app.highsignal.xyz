@@ -58,10 +58,11 @@ async function getDailyActivityData({
     const filteredActivityData = activityData.filter((activity) => {
         const activityDate = new Date(activity.created_at)
 
+        // Exclude auth post from the activity data
         return (
             activityDate > activityRangeOldest &&
             activityDate < activityRangeNewest &&
-            Number(activity.id) !== Number(userData.auth_post_id)
+            Number(activity.postId) !== Number(userData.auth_post_id)
         )
     })
 

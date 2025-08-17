@@ -12,7 +12,7 @@ export default function GeneralSettingsContainer() {
 
     return (
         <SettingsSectionContainer>
-            <VStack alignItems="start" w={"100%"}>
+            <VStack alignItems="start" w={"100%"} px={3}>
                 <Text fontSize="xl" fontWeight="bold">
                     Project Settings Links
                 </Text>

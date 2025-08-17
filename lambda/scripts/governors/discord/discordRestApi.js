@@ -18,16 +18,86 @@ class DiscordRestApi {
         }
 
         const timestamps = this.requestTimestamps.get(channelId)
-        const recentRequests = timestamps.filter((ts) => now - ts < 1000)
+        // Clean up old timestamps (older than 1 second)
+        const cutoffTime = now - 1000
+        const validTimestamps = timestamps.filter((ts) => ts > cutoffTime)
 
-        if (recentRequests.length >= MAX_REQUESTS_PER_SECOND_PER_CHANNEL) {
-            const waitTime = 1000 - (now - recentRequests[0])
-            console.log(`⏳ Rate limit hit for channel ${channelId}, waiting ${waitTime}ms...`)
+        // Update the map with cleaned timestamps
+        this.requestTimestamps.set(channelId, validTimestamps)
+
+        console.log(
+            `|  🐌 Rate limit check for channel ${channelId}: ${validTimestamps.length}/${MAX_REQUESTS_PER_SECOND_PER_CHANNEL} requests in last 1s (${new Date(now).toISOString()})`,
+        )
+
+        // Check if we're at the rate limit
+        if (validTimestamps.length >= MAX_REQUESTS_PER_SECOND_PER_CHANNEL) {
+            // Wait until the oldest request is more than 1 second old
+            const oldestRequest = Math.min(...validTimestamps)
+            const waitTime = 1000 - (now - oldestRequest) + 1 // Add 1ms buffer
+            console.log(
+                `⏳ Rate limit hit for channel ${channelId}, waiting ${waitTime}ms... (${new Date(now).toISOString()})`,
+            )
             await new Promise((resolve) => setTimeout(resolve, waitTime))
+            const afterWait = Date.now()
+            console.log(
+                `✅ Rate limit wait completed for channel ${channelId} (${new Date(afterWait).toISOString()}, actual wait: ${afterWait - now}ms)`,
+            )
         }
 
-        timestamps.push(Date.now())
-        this.requestTimestamps.set(channelId, timestamps)
+        // Add current timestamp
+        validTimestamps.push(Date.now())
+        this.requestTimestamps.set(channelId, validTimestamps)
+    }
+
+    // Reusable retry function for Discord API calls
+    async makeDiscordRequest(url, options = {}, retryCount = 0) {
+        const MAX_RETRIES = 3
+
+        const response = await fetch(url, {
+            headers: {
+                Authorization: `Bot ${this.token}`,
+                "Content-Type": "application/json",
+                ...options.headers,
+            },
+            ...options,
+        })
+
+        if (response.status === 429) {
+            // Handle Discord's rate limiting
+            const errorData = await response.json()
+            const retryAfter = errorData.retry_after * 1000 // Convert to milliseconds
+            const isGlobal = errorData.global || false
+
+            console.log(
+                `|  🚫 Discord rate limit hit: ${isGlobal ? "global" : "endpoint"} limit, waiting ${retryAfter}ms...`,
+            )
+            await new Promise((resolve) => setTimeout(resolve, retryAfter))
+
+            // Retry the request after waiting
+            console.log("|  🔄 Retrying Discord API call after rate limit wait...")
+            return await this.makeDiscordRequest(url, options, retryCount)
+        }
+
+        if (response.status >= 500 && response.status < 600) {
+            // Handle server errors (5xx)
+            if (retryCount < MAX_RETRIES) {
+                const waitTime = Math.pow(2, retryCount) * 1000 // Exponential backoff: 1s, 2s, 4s
+                console.log(
+                    `|  ⚠️ Server error ${response.status}, retrying in ${waitTime}ms... (attempt ${retryCount + 1}/${MAX_RETRIES})`,
+                )
+                await new Promise((resolve) => setTimeout(resolve, waitTime))
+                return await this.makeDiscordRequest(url, options, retryCount + 1)
+            } else {
+                console.log(`|  ❌ Max retries (${MAX_RETRIES}) reached for server error ${response.status}`)
+            }
+        }
+
+        if (!response.ok) {
+            const errorText = await response.text()
+            throw new Error(`Discord API error: ${response.status} ${response.statusText} - ${errorText}`)
+        }
+
+        return await response.json()
     }
 
     // Fetch messages from a channel
@@ -42,39 +112,15 @@ class DiscordRestApi {
 
         const url = `${this.baseUrl}/channels/${channelId}/messages?${params.toString()}`
 
-        console.log("📡 DISCORD API CALL: fetchMessages")
-        const response = await fetch(url, {
-            headers: {
-                Authorization: `Bot ${this.token}`,
-                "Content-Type": "application/json",
-            },
-        })
-
-        if (!response.ok) {
-            const errorText = await response.text()
-            throw new Error(`Discord API error: ${response.status} ${response.statusText} - ${errorText}`)
-        }
-
-        return await response.json()
+        console.log("|  📡 DISCORD API CALL: fetchMessages")
+        return await this.makeDiscordRequest(url)
     }
 
     // Get guild roles
     async getGuildRoles(guildId) {
         console.log("📡 DISCORD API CALL: Get all guild roles")
-        const response = await fetch(`${this.baseUrl}/guilds/${guildId}/roles`, {
-            headers: {
-                Authorization: `Bot ${this.token}`,
-                "Content-Type": "application/json",
-            },
-        })
-
-        if (!response.ok) {
-            const errorText = await response.text()
-            throw new Error(`Discord API error: ${response.status} ${response.statusText} - ${errorText}`)
-        }
-
-        const allGuildRoles = await response.json()
-        return allGuildRoles
+        const url = `${this.baseUrl}/guilds/${guildId}/roles`
+        return await this.makeDiscordRequest(url)
     }
 
     // Get accessible text channels in a guild
@@ -83,17 +129,8 @@ class DiscordRestApi {
 
         // Fetch all channels
         console.log("📡 DISCORD API CALL: Fetching all channels")
-        const channelsRes = await fetch(`${this.baseUrl}/guilds/${guildId}/channels`, {
-            headers: {
-                Authorization: `Bot ${this.token}`,
-                "Content-Type": "application/json",
-            },
-        })
-        if (!channelsRes.ok) {
-            const errorText = await channelsRes.text()
-            throw new Error(`Discord API error: ${channelsRes.status} ${channelsRes.statusText} - ${errorText}`)
-        }
-        const allChannels = await channelsRes.json()
+        const channelsUrl = `${this.baseUrl}/guilds/${guildId}/channels`
+        const allChannels = await this.makeDiscordRequest(channelsUrl)
 
         // Fetch all roles
         const roles = await this.getGuildRoles(guildId)
@@ -102,17 +139,8 @@ class DiscordRestApi {
         // Get bot user and their member roles
         const botUserId = process.env.DISCORD_BOT_USER_ID
         console.log("📡 DISCORD API CALL: Get bot member roles")
-        const memberRes = await fetch(`${this.baseUrl}/guilds/${guildId}/members/${botUserId}`, {
-            headers: {
-                Authorization: `Bot ${this.token}`,
-                "Content-Type": "application/json",
-            },
-        })
-        if (!memberRes.ok) {
-            const errorText = await memberRes.text()
-            throw new Error(`Discord API error: ${memberRes.status} ${memberRes.statusText} - ${errorText}`)
-        }
-        const botMember = await memberRes.json()
+        const memberUrl = `${this.baseUrl}/guilds/${guildId}/members/${botUserId}`
+        const botMember = await this.makeDiscordRequest(memberUrl)
         const botRoleIds = botMember.roles
 
         // Compute base permissions from @everyone + bot roles

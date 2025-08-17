@@ -77,7 +77,7 @@ export default function SignalStrengthPromptPicker({ prompts, onSelect }: Signal
                     zIndex={5}
                     maxH="200px"
                     overflowY="auto"
-                    w={{ base: "100%", sm: "230px" }}
+                    w={{ base: "100%", sm: "280px" }}
                 >
                     {prompts.map((prompt: Prompt) => (
                         <Box

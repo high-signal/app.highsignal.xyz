@@ -12,6 +12,7 @@ import { useUser } from "../../contexts/UserContext"
 import SettingsGroupContainer from "../ui/SettingsGroupContainer"
 import WalletAccountsContainer from "./wallet-settings/WalletAccountsContainer"
 import { getAccessToken } from "@privy-io/react-auth"
+import Divider from "../ui/Divider"
 
 export default function ConnectedAccountsContainer({ targetUser }: { targetUser: UserData }) {
     const { loggedInUser } = useUser()
@@ -58,10 +59,6 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
 
         // If the account is not found, return private
         return "private"
-    }
-
-    const Divider = () => {
-        return <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
     }
 
     return (

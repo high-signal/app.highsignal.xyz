@@ -46,15 +46,20 @@ async function runAiQueueItem({ queueItemId }) {
             console.log(`✅ Claimed queue item: ${queueItemId}`)
 
             // Run the AI engine.
-            await runEngine({
+            const engineError = await runEngine({
                 signalStrengthId: claimedQueueItem[0].signal_strength_id,
                 userId: claimedQueueItem[0].user_id,
                 projectId: claimedQueueItem[0].project_id,
                 signalStrengthUsername: claimedQueueItem[0].signal_strength_username,
                 dayDate: claimedQueueItem[0].day,
                 type: claimedQueueItem[0].type,
-                ...(claimedQueueItem[0].testing_data && { testingData: claimedQueueItem[0].testing_data }),
+                ...(claimedQueueItem[0].test_data && { testingData: claimedQueueItem[0].test_data }),
             })
+
+            if (engineError) {
+                console.log(engineError)
+                return
+            }
 
             // Once the engine is complete, update the queue item to "completed"
             const { error: updatedQueueItemError } = await supabase

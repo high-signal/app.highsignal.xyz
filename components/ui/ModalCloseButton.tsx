@@ -4,16 +4,16 @@ import { Box, Button } from "@chakra-ui/react"
 import { faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-export default function ModalCloseButton({ onClose }: { onClose: () => void }) {
+export default function ModalCloseButton({ onClose, noRadius }: { onClose: () => void; noRadius?: boolean }) {
     return (
         <Button
             closeButton
             position="absolute"
             right={0}
-            top="0px"
+            top={0}
             onClick={onClose}
             borderBottomLeftRadius={"50px"}
-            borderTopRightRadius={{ base: 0, md: "16px" }}
+            borderTopRightRadius={noRadius ? "0px" : { base: 0, md: "16px" }}
             borderTopLeftRadius={"0px"}
             borderBottomRightRadius={"0px"}
             color={"pageBackground"}

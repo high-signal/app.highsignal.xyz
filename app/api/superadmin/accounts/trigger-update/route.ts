@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Missing required parameter: functionType" }, { status: 400 })
         }
 
-        console.log(`Triggering ${functionType}`)
+        console.log(`🏁 Triggering ${functionType}`)
         await triggerLambda({ functionType })
 
         return NextResponse.json({ success: true, message: `Triggered ${functionType}.` })

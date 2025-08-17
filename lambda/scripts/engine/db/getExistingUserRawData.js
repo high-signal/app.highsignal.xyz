@@ -1,9 +1,16 @@
-async function getExistingUserRawData({ supabase, userId, projectId, signalStrengthId, dailyActivityData }) {
+async function getExistingUserRawData({
+    supabase,
+    userId,
+    projectId,
+    signalStrengthId,
+    dailyActivityData,
+    testingData,
+}) {
     // Create an array of all the days that have data in dailyActivityData
     const daysWithRawData = dailyActivityData.map((day) => day.date)
 
     // Fetch all the user_signal_strengths data for the days with data
-    const { data: existingUserRawData, error: existingUserRawDataError } = await supabase
+    let query = supabase
         .from("user_signal_strengths")
         .select("*")
         .in("day", daysWithRawData)
@@ -11,8 +18,14 @@ async function getExistingUserRawData({ supabase, userId, projectId, signalStren
         .eq("project_id", projectId)
         .eq("signal_strength_id", signalStrengthId)
         .not("raw_value", "is", null)
-        .is("test_requesting_user", null)
-        .order("id", { ascending: false })
+
+    if (testingData?.requestingUserId) {
+        query = query.eq("test_requesting_user", testingData.requestingUserId)
+    } else {
+        query = query.is("test_requesting_user", null)
+    }
+
+    const { data: existingUserRawData, error: existingUserRawDataError } = await query.order("id", { ascending: false })
 
     if (existingUserRawDataError) {
         console.error("Error fetching existing user_signal_strengths data:", existingUserRawDataError)

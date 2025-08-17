@@ -65,7 +65,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                     </Text>
                 )}
             </HStack>
-            <VStack align="stretch" gap={1} pb={8} w={"100%"} bg={"pageBackground"}>
+            <VStack align="stretch" gap={1} mb={8} w={"100%"} bg={"pageBackground"}>
                 <HStack gap={0} h={"30px"} w={"100%"}>
                     {["Low", "Mid", "High"].map((level) => (
                         <Text
@@ -108,6 +108,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                         opacity={0.8}
                         overflow="hidden"
                         position="relative"
+                        className={signalValue === 100 ? "pulse-shadow-animation" : ""}
                     >
                         <Box
                             position="relative"
@@ -124,7 +125,7 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                                 right: 0,
                                 bottom: 0,
                                 bg: `scoreColor.${signal}`,
-                                opacity: 0.6,
+                                opacity: 0.5,
                                 borderLeftRadius: "7px",
                             }}
                         />

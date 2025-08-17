@@ -24,7 +24,6 @@ export async function GET() {
                 displayName: signalStrength.display_name,
                 status: signalStrength?.status,
                 model: signalStrength?.model,
-                temperature: signalStrength?.temperature,
                 maxChars: signalStrength?.max_chars,
                 prompts: signalStrength?.prompts.sort(
                     (a: { created_at: string }, b: { created_at: string }) =>

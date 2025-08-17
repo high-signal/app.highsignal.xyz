@@ -36,11 +36,11 @@ async function updateUserData({
             logs: analysisResults.logs,
             ...(testingData?.requestingUserId && { test_requesting_user: testingData.requestingUserId }),
             model: analysisResults.model,
-            temperature: analysisResults.temperature,
             prompt_id: analysisResults.promptId || null,
             max_chars: analysisResults.maxChars,
             day: dayDate,
             previous_days: analysisResults.previousDays,
+            analysis_items: analysisResults.analysisItems?.map((item) => item.id) || [],
         })
 
         if (signalError) {
@@ -57,7 +57,7 @@ async function updateUserData({
         // This means that if there is a race condition, the latest row will always remain.
 
         // Get all duplicate rows
-        const { data: duplicateRows, error: duplicateError } = await supabase
+        let query = supabase
             .from("user_signal_strengths")
             .select("id")
             .eq("user_id", userId)
@@ -65,8 +65,12 @@ async function updateUserData({
             .eq("signal_strength_id", signalStrengthId)
             .eq("day", dayDate)
             .not(isRawScoreCalc ? "raw_value" : "value", "is", null)
-            .not(testingData?.requestingUserId ? "test_requesting_user" : "id", "is", null)
-            .order("id", { ascending: false })
+
+        if (testingData?.requestingUserId) {
+            query = query.eq("test_requesting_user", testingData.requestingUserId)
+        }
+
+        const { data: duplicateRows, error: duplicateError } = await query.order("id", { ascending: false })
 
         if (duplicateError) {
             const errorMessage = `Error getting duplicate rows for ${signalStrengthUsername}: ${duplicateError.message}`
