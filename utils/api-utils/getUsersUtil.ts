@@ -465,8 +465,8 @@ export async function getUsersUtil(
             // ========================
             // Get all users addresses
             // ========================
-            let allUsersSharedAddresses: { address: string; users: { id: string }[] }[] = []
             // Lookup all the addresses shared with the project, where the user_id is the same as the user_id in the user table
+            let allUsersSharedAddresses: { address: string; users: { id: string }[] }[] = []
             if (apiKeyProjectSlug) {
                 const { data: allUsersSharedAddressesData, error: allUsersSharedAddressesDataError } = await supabase
                     .from("user_addresses")
@@ -503,32 +503,37 @@ export async function getUsersUtil(
             }
 
             // Run a query to get all public addresses
-            const { data: allPublicAddresses, error: allPublicAddressesError } = await supabase
-                .from("user_addresses")
-                .select(
-                    `
+            let allPublicAddresses: { address: string; users: { id: string }[] }[] = []
+            if (!leaderboardOnly) {
+                const { data: allPublicAddressesData, error: allPublicAddressesError } = await supabase
+                    .from("user_addresses")
+                    .select(
+                        `
                     address,
                     users!inner(
                         id
                     )
                     `,
-                )
-                .eq("is_public", true)
-                .in(
-                    "users.username",
-                    userProjectScores.map((score) => score.username),
-                )
+                    )
+                    .eq("is_public", true)
+                    .in(
+                        "users.username",
+                        userProjectScores.map((score) => score.username),
+                    )
 
-            if (allPublicAddressesError) {
-                console.error("allPublicAddressesError", allPublicAddressesError)
-                return NextResponse.json({ error: "Error fetching public addresses" }, { status: 500 })
+                if (allPublicAddressesError) {
+                    console.error("allPublicAddressesError", allPublicAddressesError)
+                    return NextResponse.json({ error: "Error fetching public addresses" }, { status: 500 })
+                }
+
+                allPublicAddresses = allPublicAddressesData
             }
 
             // =======================
             // Get all users accounts
             // =======================
-            let allUsersSharedAccounts: { type: string; username: string; users: { id: string }[] }[] = []
             // Lookup all the accounts shared with the project, where the user_id is the same as the user_id in the user table
+            let allUsersSharedAccounts: { type: string; username: string; users: { id: string }[] }[] = []
             if (apiKeyProjectSlug) {
                 const { data: allUsersSharedAccountsData, error: allUsersSharedAccountsDataError } = await supabase
                     .from("user_accounts")
@@ -575,10 +580,12 @@ export async function getUsersUtil(
             }
 
             // Run a query to get all public accounts
-            const { data: allPublicAccounts, error: allPublicAccountsError } = await supabase
-                .from("user_accounts")
-                .select(
-                    `
+            let allPublicAccountsFormatted: { type: string; username: string; users: { id: string }[] }[] = []
+            if (!leaderboardOnly) {
+                const { data: allPublicAccounts, error: allPublicAccountsError } = await supabase
+                    .from("user_accounts")
+                    .select(
+                        `
                     type,
                     users!inner(
                         id,
@@ -588,29 +595,30 @@ export async function getUsersUtil(
                         farcaster_username
                     )
                     `,
-                )
-                .eq("is_public", true)
-                .in(
-                    "users.username",
-                    userProjectScores.map((score) => score.username),
-                )
+                    )
+                    .eq("is_public", true)
+                    .in(
+                        "users.username",
+                        userProjectScores.map((score) => score.username),
+                    )
 
-            if (allPublicAccountsError) {
-                console.error("allPublicAccountsError", allPublicAccountsError)
-                return NextResponse.json({ error: "Error fetching public accounts" }, { status: 500 })
+                if (allPublicAccountsError) {
+                    console.error("allPublicAccountsError", allPublicAccountsError)
+                    return NextResponse.json({ error: "Error fetching public accounts" }, { status: 500 })
+                }
+
+                allPublicAccountsFormatted =
+                    allPublicAccounts?.map((account) => {
+                        const userData = Array.isArray(account.users) ? account.users[0] : account.users
+                        // Dynamically access the username based on the type field
+                        const username = (userData as any)[account.type]
+                        return {
+                            type: account.type,
+                            username: username,
+                            users: account.users,
+                        }
+                    }) || []
             }
-
-            const allPublicAccountsFormatted =
-                allPublicAccounts?.map((account) => {
-                    const userData = Array.isArray(account.users) ? account.users[0] : account.users
-                    // Dynamically access the username based on the type field
-                    const username = (userData as any)[account.type]
-                    return {
-                        type: account.type,
-                        username: username,
-                        users: account.users,
-                    }
-                }) || []
 
             const formattedUsers = userProjectScores
                 .map((score) => {
