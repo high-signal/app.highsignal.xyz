@@ -9,15 +9,12 @@ import { faDiscord, faGithub, faGoogle, faXTwitter } from "@fortawesome/free-bra
 import { useUser } from "../../contexts/UserContext"
 import SettingsGroupContainer from "../ui/SettingsGroupContainer"
 import WalletAccountsContainer from "./wallet-settings/WalletAccountsContainer"
+import Divider from "../ui/Divider"
 
 export default function ConnectedAccountsContainer({ targetUser }: { targetUser: UserData }) {
     const { loggedInUser } = useUser()
 
     const isOwner = loggedInUser?.username === targetUser.username
-
-    const Divider = () => {
-        return <Box w={"100%"} h={"1px"} borderTop="5px dashed" borderColor="contentBorder" />
-    }
 
     return (
         <SettingsSectionContainer>

@@ -72,7 +72,7 @@ export default function BannersSettingsContainer() {
 
     return (
         <SettingsSectionContainer>
-            <VStack alignItems="start" w={"100%"} gap={1}>
+            <VStack alignItems="start" w={"100%"} gap={1} p={3} bg={"pageBackground"}>
                 <Text>- Closable is only on header banners and adds the (x) button.</Text>
                 <Text>
                     - Closed header banners will still come back every time you reload the page as it is not saving to

@@ -12,6 +12,7 @@ import SettingsInputField from "../ui/SettingsInputField"
 import ImageEditor from "../ui/ImageEditor"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import DeleteAccountContainer from "./DeleteAccountContainer"
+import Divider from "../ui/Divider"
 
 export default function GeneralSettingsContainer({ targetUser }: { targetUser: UserData }) {
     const { refreshUser } = useUser()
@@ -226,6 +227,8 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
                     Save Changes
                 </Button>
             </Box>
+            <Box h={4} />
+            <Divider />
             <DeleteAccountContainer targetUser={targetUser} />
         </SettingsSectionContainer>
     )
