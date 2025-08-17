@@ -282,135 +282,94 @@ export async function getUsersUtil(
                     userProjectsMap.get(score.user_id)?.push(score.project_id)
                 })
 
-                // Build optimized query to fetch all signal strength data at once
-                // Build select statement based on whether it's a superadmin request
-                const baseFields = `
-                    id,
-                    user_id,
-                    project_id,
-                    signal_strength_id,
-                    day,
-                    value,
-                    max_value,
-                    previous_days,
-                    summary,
-                    description,
-                    improvements,
-                    last_checked,
-                    signal_strengths (
-                        name
-                    )`
+                // Get signal strengths
+                const signalStrengthsResults = await Promise.all(
+                    // For each user
+                    Array.from(userProjectsMap.keys()).map(async (userId) => {
+                        const projectIds = userProjectsMap.get(userId) || []
 
-                const superadminFields = isSuperAdminRequesting
-                    ? `,
-                    prompts (
-                        prompt
-                    ),
-                    request_id,
-                    created,
-                    explained_reasoning,
-                    model,
-                    prompt_id,
-                    max_chars,
-                    logs,
-                    prompt_tokens,
-                    completion_tokens,
-                    raw_value,
-                    test_requesting_user`
-                    : ""
+                        const userSignalData = await Promise.all(
+                            // For each project of the user
+                            projectIds.map(async (projectId) => {
+                                const projectSignalData = await Promise.all(
+                                    // For each signal strength
+                                    signalStrengthIdValues.map(async (signalStrengthId) => {
+                                        let query = supabase
+                                            .from("user_signal_strengths")
+                                            .select(
+                                                `
+                                                id,
+                                                signal_strengths!inner (
+                                                    name
+                                                ),
+                                                prompts (
+                                                    prompt
+                                                ),
+                                                *
+                                                `,
+                                            )
+                                            .eq("user_id", userId)
+                                            .eq("project_id", projectId)
+                                            .eq("signal_strength_id", signalStrengthId)
 
-                const selectFields = baseFields + superadminFields
+                                        // Filter test data
+                                        if (isSuperAdminRequesting && showTestDataOnly && testRequestingUser) {
+                                            // Get testRequestingUser ID from the users table
+                                            const {
+                                                data: testRequestingUserDetails,
+                                                error: testRequestingUserDetailsError,
+                                            } = await supabase
+                                                .from("users")
+                                                .select("id")
+                                                .eq("username", testRequestingUser)
+                                                .single()
 
-                // OPTIMIZATION: Create specific user-project combinations instead of cartesian product
-                const userProjectCombinations: Array<{ user_id: string; project_id: string }> = []
-                userProjectScores.forEach((score) => {
-                    userProjectCombinations.push({
-                        user_id: score.user_id,
-                        project_id: score.project_id,
-                    })
-                })
+                                            if (testRequestingUserDetailsError) {
+                                                console.error(
+                                                    "testRequestingUserDetailsError",
+                                                    testRequestingUserDetailsError,
+                                                )
+                                            }
+                                            query = query.eq("test_requesting_user", testRequestingUserDetails?.id)
+                                        } else {
+                                            query = query.is("test_requesting_user", null)
+                                        }
 
-                console.log("userProjectCombinations", userProjectCombinations.length)
-                console.log("signalStrengthIdValues", signalStrengthIdValues.length)
+                                        // Filter raw score calc
+                                        if (isSuperAdminRequesting && showRawScoreCalcOnly) {
+                                            query = query.not("raw_value", "is", null)
+                                        } else {
+                                            query = query.is("raw_value", null)
+                                        }
 
-                // OPTIMIZATION: Use OR conditions for specific combinations instead of cartesian product
-                let signalStrengthsQuery = supabase
-                    .from("user_signal_strengths")
-                    .select(selectFields)
-                    .in("signal_strength_id", signalStrengthIdValues)
+                                        // TODO: Make this dynamic based on the previous_days value for the signal strength for the project
+                                        const { data, error } = await query
+                                            .order("day", { ascending: false })
+                                            .limit(360)
 
-                // Build OR conditions for user-project combinations
-                if (userProjectCombinations.length > 0) {
-                    const orConditions = userProjectCombinations
-                        .map((combo) => `and(user_id.eq.${combo.user_id},project_id.eq.${combo.project_id})`)
-                        .join(",")
+                                        if (error) {
+                                            console.error("signalStrengthsError", error)
+                                            return null
+                                        }
 
-                    signalStrengthsQuery = signalStrengthsQuery.or(orConditions)
-                }
+                                        return {
+                                            signalStrengthId,
+                                            data: data as SignalStrengthData[],
+                                        }
+                                    }),
+                                )
+                                return projectSignalData.filter(Boolean) as SignalStrengthGroup[]
+                            }),
+                        )
+                        return userSignalData.flat()
+                    }),
+                )
 
-                // Filter test data
-                if (isSuperAdminRequesting && showTestDataOnly && testRequestingUser) {
-                    // Get testRequestingUser ID from the users table
-                    const { data: testRequestingUserDetails, error: testRequestingUserDetailsError } = await supabase
-                        .from("users")
-                        .select("id")
-                        .eq("username", testRequestingUser)
-                        .single()
+                signalStrengths = signalStrengthsResults.flat()
 
-                    if (testRequestingUserDetailsError) {
-                        console.error("testRequestingUserDetailsError", testRequestingUserDetailsError)
-                    }
-                    signalStrengthsQuery = signalStrengthsQuery.eq(
-                        "test_requesting_user",
-                        testRequestingUserDetails?.id,
-                    )
-                } else {
-                    signalStrengthsQuery = signalStrengthsQuery.is("test_requesting_user", null)
-                }
-
-                // Filter raw score calc
-                if (isSuperAdminRequesting && showRawScoreCalcOnly) {
-                    signalStrengthsQuery = signalStrengthsQuery.not("raw_value", "is", null)
-                } else {
-                    signalStrengthsQuery = signalStrengthsQuery.is("raw_value", null)
-                }
-
-                // Fetch signal strength data from the last previousDays max
-                const signalStrengthsMap = new Map<string, SignalStrengthData[]>()
-
-                // Calculate the date previousDaysMax days ago
-                const previousDaysMax = new Date()
-                previousDaysMax.setDate(previousDaysMax.getDate() - APP_CONFIG.PREVIOUS_DAYS_MAX)
-                const previousDaysMaxString = previousDaysMax.toISOString().split("T")[0]
-
-                const { data: allSignalStrengthsData, error: signalStrengthsError } = await signalStrengthsQuery
-                    .gte("day", previousDaysMaxString)
-                    .order("day", { ascending: false })
-
-                if (signalStrengthsError) {
-                    console.error("signalStrengthsError", signalStrengthsError)
+                if (!signalStrengths) {
                     return NextResponse.json({ error: "Error fetching signal strengths" }, { status: 500 })
                 }
-
-                // Process the data - no need to limit since we're already filtering by date
-                if (allSignalStrengthsData) {
-                    allSignalStrengthsData.forEach((item: any) => {
-                        const key = `${item.user_id}_${item.project_id}_${item.signal_strength_id}`
-                        if (!signalStrengthsMap.has(key)) {
-                            signalStrengthsMap.set(key, [])
-                        }
-                        signalStrengthsMap.get(key)!.push(item as unknown as SignalStrengthData)
-                    })
-                }
-
-                // Convert to the expected format
-                signalStrengths = Array.from(signalStrengthsMap.entries()).map(([key, data]) => {
-                    const [userId, projectId, signalStrengthId] = key.split("_")
-                    return {
-                        signalStrengthId,
-                        data: data.sort((a, b) => new Date(b.day).getTime() - new Date(a.day).getTime()),
-                    }
-                })
             }
 
             let allUsersSharedAddresses: { address: string; users: { id: string }[] }[] = []
