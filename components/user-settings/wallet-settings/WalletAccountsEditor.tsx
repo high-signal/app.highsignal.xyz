@@ -273,7 +273,6 @@ export default function WalletAccountsEditor({
                     settings={settings}
                     setSettings={setSettings}
                     sharingValidationError={sharingValidationError}
-                    setSharingValidationError={setSharingValidationError}
                 />
             </VStack>
         </EditorModal>

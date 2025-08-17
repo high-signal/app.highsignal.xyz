@@ -93,7 +93,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                 privyLinkMethod: "discord_oauth",
                             }}
                             disabled={!isOwner}
-                            lozengeTypes={["comingSoon", checkSharingStatus("discord_username")]}
+                            lozengeTypes={[checkSharingStatus("discord_username")]}
                             sharingConfig={publicAndSharedUserAccounts.find(
                                 (account) => account.type === "discord_username",
                             )}

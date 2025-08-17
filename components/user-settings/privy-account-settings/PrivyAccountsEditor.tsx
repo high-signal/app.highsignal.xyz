@@ -56,8 +56,8 @@ export default function PrivyAccountsEditor({
     }
 
     // TODO: Remove after testing
-    // console.log("sharingConfig", sharingConfig)
-    // console.log("accountConfig", accountConfig)
+    console.log("sharingConfig", sharingConfig)
+    console.log("accountConfig", accountConfig)
 
     // If the accountConfig are not loaded, do not render anything
     if (!accountConfig) return null

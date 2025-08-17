@@ -9,15 +9,9 @@ interface SharingRadioGroupProps {
     settings: EditorSettingsState
     setSettings: (settings: EditorSettingsState | null) => void
     sharingValidationError: string | null
-    setSharingValidationError: (sharingValidationError: string | null) => void
 }
 
-const SharingRadioGroup = ({
-    settings,
-    setSettings,
-    sharingValidationError,
-    setSharingValidationError,
-}: SharingRadioGroupProps) => {
+const SharingRadioGroup = ({ settings, setSettings, sharingValidationError }: SharingRadioGroupProps) => {
     // Helper function to get the current list of projects to display
     const getCurrentProjectList = (): SharedProjectData[] => {
         if (!settings) return []
