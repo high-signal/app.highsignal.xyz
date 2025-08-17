@@ -77,7 +77,9 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                         }}
                         disabled={!isOwner}
                         lozengeTypes={["notifications", checkSharingStatus("email")]}
-                        sharingConfig={publicAndSharedUserAccounts.find((account) => account.type === "email")}
+                        sharingConfig={
+                            publicAndSharedUserAccounts.find((account) => account.type === "email") || { type: "email" }
+                        }
                     />
                     <Divider />
                     <ForumAccountsContainer targetUser={targetUser} disabled={!isOwner} />
@@ -94,9 +96,11 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                             }}
                             disabled={!isOwner}
                             lozengeTypes={[checkSharingStatus("discord_username")]}
-                            sharingConfig={publicAndSharedUserAccounts.find(
-                                (account) => account.type === "discord_username",
-                            )}
+                            sharingConfig={
+                                publicAndSharedUserAccounts.find((account) => account.type === "discord_username") || {
+                                    type: "discord_username",
+                                }
+                            }
                         />
                         <LinkPrivyAccountsContainer
                             targetUser={targetUser}
@@ -109,7 +113,11 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                             }}
                             disabled={!isOwner}
                             lozengeTypes={["comingSoon", checkSharingStatus("x_username")]}
-                            sharingConfig={publicAndSharedUserAccounts.find((account) => account.type === "x_username")}
+                            sharingConfig={
+                                publicAndSharedUserAccounts.find((account) => account.type === "x_username") || {
+                                    type: "x_username",
+                                }
+                            }
                         />
                         <LinkPrivyAccountsContainer
                             targetUser={targetUser}
@@ -122,9 +130,13 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                             }}
                             disabled={!isOwner}
                             lozengeTypes={["comingSoon", checkSharingStatus("farcaster_username")]}
-                            sharingConfig={publicAndSharedUserAccounts.find(
-                                (account) => account.type === "farcaster_username",
-                            )}
+                            sharingConfig={
+                                publicAndSharedUserAccounts.find(
+                                    (account) => account.type === "farcaster_username",
+                                ) || {
+                                    type: "farcaster_username",
+                                }
+                            }
                         />
                     </SettingsGroupContainer>
                     <Divider />
@@ -149,9 +161,11 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     }}
                                     loginOnly={true}
                                     lozengeTypes={[checkSharingStatus("github")]}
-                                    sharingConfig={publicAndSharedUserAccounts.find(
-                                        (account) => account.type === "github",
-                                    )}
+                                    sharingConfig={
+                                        publicAndSharedUserAccounts.find((account) => account.type === "github") || {
+                                            type: "github",
+                                        }
+                                    }
                                 />
                                 <LinkPrivyAccountsContainer
                                     targetUser={targetUser}
@@ -163,9 +177,11 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     }}
                                     loginOnly={true}
                                     lozengeTypes={[checkSharingStatus("google")]}
-                                    sharingConfig={publicAndSharedUserAccounts.find(
-                                        (account) => account.type === "google",
-                                    )}
+                                    sharingConfig={
+                                        publicAndSharedUserAccounts.find((account) => account.type === "google") || {
+                                            type: "google",
+                                        }
+                                    }
                                 />
                                 {/* TODO: This gives a 401 error when trying to log in and I have no idea why */}
                                 {/* <LinkPrivyAccountsContainer

@@ -46,15 +46,15 @@ interface EditorSettingsState {
 }
 
 interface UserPublicOrSharedAccount {
-    id: number
-    isPublic: boolean
+    id?: number
+    isPublic?: boolean
     type: string
-    userAccountsShared: {
+    userAccountsShared?: {
         projectId: number
         userAccountId: number
         project: SharedProjectData
     }[]
-    userId: number
+    userId?: number
 }
 interface ConnectedAccount {
     name: string
