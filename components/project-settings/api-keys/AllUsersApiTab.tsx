@@ -23,7 +23,7 @@ export default function AllUsersApiTab({ project }: { project: ProjectData }) {
                         borderRadius={"full"}
                     >{`${process.env.NEXT_PUBLIC_SITE_URL}/api/users`}</Text>
                 </VStack>
-                <VStack alignItems={"start"} gap={1}>
+                <VStack alignItems={"start"} gap={2}>
                     <Text fontWeight={"bold"}>URL Params</Text>
                     <Text bg={"pageBackground"} px={3} py={1} borderRadius={"full"}>{`apiKey=<YOUR_API_KEY>`}</Text>
                     <Text
@@ -40,7 +40,7 @@ export default function AllUsersApiTab({ project }: { project: ProjectData }) {
                         <Button
                             secondaryButton
                             px={3}
-                            py={1}
+                            py={2}
                             borderRadius={"16px"}
                             maxW={"500px"}
                             h="auto"

@@ -631,9 +631,8 @@ export async function getUsersUtil(
                         ...(score.total_score > 0 ? { rank: score.rank } : {}),
                         score: score.total_score,
                         signal: calculateSignalFromScore(score.total_score),
-                        ...(historicalScores.length > 0 ? { historicalScores: historicalScores } : {}),
                         ...(userSharedAddresses.length > 0
-                            ? { addresses: userSharedAddresses.map((address) => address.address) }
+                            ? { ethereumAddresses: userSharedAddresses.map((address) => address.address) }
                             : {}),
                         ...(userSharedAccounts.length > 0
                             ? {
@@ -653,6 +652,7 @@ export async function getUsersUtil(
                                   })),
                               }
                             : {}),
+                        ...(historicalScores.length > 0 ? { historicalScores: historicalScores } : {}),
                         signalStrengths: userSignalStrengths.map((uss) => ({
                             signalStrengthName: uss.data[0]?.signal_strengths?.name || uss.signalStrengthId,
                             data: uss.data.map((d, index) => ({
