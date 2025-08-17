@@ -282,41 +282,47 @@ export async function getUsersUtil(
                 })
 
                 // Build optimized query to fetch all signal strength data at once
+                // Build select statement based on whether it's a superadmin request
+                const baseFields = `
+                    id,
+                    user_id,
+                    project_id,
+                    signal_strength_id,
+                    day,
+                    value,
+                    max_value,
+                    previous_days,
+                    summary,
+                    description,
+                    improvements,
+                    last_checked,
+                    signal_strengths (
+                        name
+                    )`
+
+                const superadminFields = isSuperAdminRequesting
+                    ? `,
+                    prompts (
+                        prompt
+                    ),
+                    request_id,
+                    created,
+                    explained_reasoning,
+                    model,
+                    prompt_id,
+                    max_chars,
+                    logs,
+                    prompt_tokens,
+                    completion_tokens,
+                    raw_value,
+                    test_requesting_user`
+                    : ""
+
+                const selectFields = baseFields + superadminFields
+
                 let signalStrengthsQuery = supabase
                     .from("user_signal_strengths")
-                    .select(
-                        `
-                        id,
-                        user_id,
-                        project_id,
-                        signal_strength_id,
-                        day,
-                        value,
-                        max_value,
-                        previous_days,
-                        summary,
-                        description,
-                        improvements,
-                        last_checked,
-                        signal_strengths!inner (
-                            name
-                        ),
-                        prompts (
-                            prompt
-                        ),
-                        request_id,
-                        created,
-                        explained_reasoning,
-                        model,
-                        prompt_id,
-                        max_chars,
-                        logs,
-                        prompt_tokens,
-                        completion_tokens,
-                        raw_value,
-                        test_requesting_user
-                        `,
-                    )
+                    .select(selectFields)
                     .in("user_id", Array.from(userProjectsMap.keys()))
                     .in("project_id", Array.from(new Set(userProjectScores.map((score) => score.project_id))))
                     .in("signal_strength_id", signalStrengthIdValues)
