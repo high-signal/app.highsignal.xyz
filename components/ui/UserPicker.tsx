@@ -1,9 +1,10 @@
 "use client"
 
-import { HStack, Text, Box, Image, Spinner, VStack, Table } from "@chakra-ui/react"
+import { HStack, Text, Box, Image, Spinner, Table } from "@chakra-ui/react"
 import { useState, useRef, useEffect } from "react"
 import SingleLineTextInput from "./SingleLineTextInput"
 import { useGetUsers } from "../../hooks/useGetUsers"
+import { useDebounce } from "../../hooks/useDebounce"
 import { ASSETS } from "../../config/constants"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -72,9 +73,12 @@ export default function UserPicker({
     isSuperAdminRequesting = false,
 }: UserPickerProps) {
     const [searchTerm, setSearchTerm] = useState<string>("")
-    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null!)
+
+    // Use the proper debounce hook with a 300ms delay for better UX
+    const debouncedSearchTerm = useDebounce(searchTerm, 300)
+
     const { users, loading, error } = useGetUsers({
         project: projectUrlSlug,
         username: debouncedSearchTerm,
@@ -84,17 +88,9 @@ export default function UserPicker({
     })
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearchTerm(searchTerm)
-        }, 200)
-        return () => clearTimeout(timer)
-    }, [searchTerm])
-
-    useEffect(() => {
         if (disabled) {
             setIsFocused(false)
             setSearchTerm("")
-            setDebouncedSearchTerm("")
         }
     }, [disabled])
 
@@ -310,7 +306,7 @@ export default function UserPicker({
                             </Table.Body>
                         </Table.Root>
                     ) : loading ? (
-                        <HStack w={"100%"} h={"30px"} ml={2}>
+                        <HStack w={"100%"} h={"30px"} ml={2} mt={1} mb={"7px"}>
                             <Spinner />
                         </HStack>
                     ) : error ? (
