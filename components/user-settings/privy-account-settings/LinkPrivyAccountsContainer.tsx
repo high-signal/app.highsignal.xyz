@@ -332,7 +332,7 @@ export default function LinkPrivyAccountsContainer({
                 lozengeTypes={lozengeTypes}
                 loginOnly={loginOnly}
                 onEditButton={
-                    disabled || !isConnected
+                    disabled || !sharingConfig
                         ? undefined
                         : () => {
                               setIsEditModalOpen(true)

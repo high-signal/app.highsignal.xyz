@@ -174,22 +174,54 @@ export async function getUsersUtil(
 
             const userIds = userProjectScores.map((score) => score.user_id)
 
+            // Calculate the date previousDaysMax base on the smart score max history
+            const previousDaysMax = new Date()
+            let smartScoreMaxHistory: number = APP_CONFIG.SMART_SCORE_MAX_HISTORY_PROJECT_RESULTS
+            if (username && !fuzzy) {
+                smartScoreMaxHistory = APP_CONFIG.SMART_SCORE_MAX_HISTORY_SINGLE_USER_RESULTS
+            }
+            previousDaysMax.setDate(previousDaysMax.getDate() - smartScoreMaxHistory)
+            const previousDaysMaxString = previousDaysMax.toISOString().split("T")[0]
+
             // Get all historical total scores for the users
             let historicalTotalScores: { user_id: string; project_id: string; total_score: number; day: string }[] = []
             if (!leaderboardOnly) {
-                const { data: historicalTotalScoresData, error: historicalTotalScoresError } = await supabase
-                    .from("user_project_scores_history")
-                    .select("user_id, project_id, total_score, day")
-                    .in("user_id", userIds)
-                    .order("day", { ascending: false })
-                    .limit(APP_CONFIG.PREVIOUS_DAYS_MAX)
+                // Use pagination to fetch all historical data for the full date range
+                let allHistoricalData: { user_id: string; project_id: string; total_score: number; day: string }[] = []
+                let hasMoreData = true
+                let offset = 0
+                const batchSize = 1000 // Fetch in batches of 1000 records
+                let batchCount = 0
 
-                if (historicalTotalScoresError) {
-                    console.error("historicalTotalScoresError", historicalTotalScoresError)
-                    return NextResponse.json({ error: "Error fetching historical total scores" }, { status: 500 })
+                while (hasMoreData) {
+                    batchCount++
+                    const { data: historicalTotalScoresData, error: historicalTotalScoresError } = await supabase
+                        .from("user_project_scores_history")
+                        .select("user_id, project_id, total_score, day")
+                        .in("user_id", userIds)
+                        .gte("day", previousDaysMaxString)
+                        .order("day", { ascending: false })
+                        .range(offset, offset + batchSize - 1)
+
+                    if (historicalTotalScoresError) {
+                        console.error("historicalTotalScoresError", historicalTotalScoresError)
+                        return NextResponse.json({ error: "Error fetching historical total scores" }, { status: 500 })
+                    }
+
+                    if (!historicalTotalScoresData || historicalTotalScoresData.length === 0) {
+                        hasMoreData = false
+                    } else {
+                        allHistoricalData = allHistoricalData.concat(historicalTotalScoresData)
+                        offset += batchSize
+
+                        // If we got fewer records than the batch size, we've reached the end
+                        if (historicalTotalScoresData.length < batchSize) {
+                            hasMoreData = false
+                        }
+                    }
                 }
 
-                historicalTotalScores = historicalTotalScoresData
+                historicalTotalScores = allHistoricalData
             }
 
             // If superadmin is requesting, get all connected accounts for the user
@@ -377,18 +409,36 @@ export async function getUsersUtil(
                 // Fetch signal strength data from the last previousDays max
                 const signalStrengthsMap = new Map<string, SignalStrengthData[]>()
 
-                // Calculate the date previousDaysMax days ago
-                const previousDaysMax = new Date()
-                previousDaysMax.setDate(previousDaysMax.getDate() - APP_CONFIG.PREVIOUS_DAYS_MAX)
-                const previousDaysMaxString = previousDaysMax.toISOString().split("T")[0]
+                // Use pagination to fetch all signal strength data within the date range
+                let allSignalStrengthsData: any[] = []
+                let hasMoreSignalData = true
+                let signalOffset = 0
+                const signalBatchSize = 1000 // Fetch in batches of 1000 records
+                let signalBatchCount = 0
 
-                const { data: allSignalStrengthsData, error: signalStrengthsError } = await signalStrengthsQuery
-                    .gte("day", previousDaysMaxString)
-                    .order("day", { ascending: false })
+                while (hasMoreSignalData) {
+                    signalBatchCount++
+                    const { data: signalStrengthsBatch, error: signalStrengthsError } = await signalStrengthsQuery
+                        .gte("day", previousDaysMaxString)
+                        .order("day", { ascending: false })
+                        .range(signalOffset, signalOffset + signalBatchSize - 1)
 
-                if (signalStrengthsError) {
-                    console.error("signalStrengthsError", signalStrengthsError)
-                    return NextResponse.json({ error: "Error fetching signal strengths" }, { status: 500 })
+                    if (signalStrengthsError) {
+                        console.error("signalStrengthsError", signalStrengthsError)
+                        return NextResponse.json({ error: "Error fetching signal strengths" }, { status: 500 })
+                    }
+
+                    if (!signalStrengthsBatch || signalStrengthsBatch.length === 0) {
+                        hasMoreSignalData = false
+                    } else {
+                        allSignalStrengthsData = allSignalStrengthsData.concat(signalStrengthsBatch)
+                        signalOffset += signalBatchSize
+
+                        // If we got fewer records than the batch size, we've reached the end
+                        if (signalStrengthsBatch.length < signalBatchSize) {
+                            hasMoreSignalData = false
+                        }
+                    }
                 }
 
                 // Process the data - no need to limit since we're already filtering by date
@@ -415,8 +465,8 @@ export async function getUsersUtil(
             // ========================
             // Get all users addresses
             // ========================
-            let allUsersSharedAddresses: { address: string; users: { id: string }[] }[] = []
             // Lookup all the addresses shared with the project, where the user_id is the same as the user_id in the user table
+            let allUsersSharedAddresses: { address: string; users: { id: string }[] }[] = []
             if (apiKeyProjectSlug) {
                 const { data: allUsersSharedAddressesData, error: allUsersSharedAddressesDataError } = await supabase
                     .from("user_addresses")
@@ -453,32 +503,37 @@ export async function getUsersUtil(
             }
 
             // Run a query to get all public addresses
-            const { data: allPublicAddresses, error: allPublicAddressesError } = await supabase
-                .from("user_addresses")
-                .select(
-                    `
+            let allPublicAddresses: { address: string; users: { id: string }[] }[] = []
+            if (!leaderboardOnly) {
+                const { data: allPublicAddressesData, error: allPublicAddressesError } = await supabase
+                    .from("user_addresses")
+                    .select(
+                        `
                     address,
                     users!inner(
                         id
                     )
                     `,
-                )
-                .eq("is_public", true)
-                .in(
-                    "users.username",
-                    userProjectScores.map((score) => score.username),
-                )
+                    )
+                    .eq("is_public", true)
+                    .in(
+                        "users.username",
+                        userProjectScores.map((score) => score.username),
+                    )
 
-            if (allPublicAddressesError) {
-                console.error("allPublicAddressesError", allPublicAddressesError)
-                return NextResponse.json({ error: "Error fetching public addresses" }, { status: 500 })
+                if (allPublicAddressesError) {
+                    console.error("allPublicAddressesError", allPublicAddressesError)
+                    return NextResponse.json({ error: "Error fetching public addresses" }, { status: 500 })
+                }
+
+                allPublicAddresses = allPublicAddressesData
             }
 
             // =======================
             // Get all users accounts
             // =======================
-            let allUsersSharedAccounts: { type: string; username: string; users: { id: string }[] }[] = []
             // Lookup all the accounts shared with the project, where the user_id is the same as the user_id in the user table
+            let allUsersSharedAccounts: { type: string; username: string; users: { id: string }[] }[] = []
             if (apiKeyProjectSlug) {
                 const { data: allUsersSharedAccountsData, error: allUsersSharedAccountsDataError } = await supabase
                     .from("user_accounts")
@@ -525,10 +580,12 @@ export async function getUsersUtil(
             }
 
             // Run a query to get all public accounts
-            const { data: allPublicAccounts, error: allPublicAccountsError } = await supabase
-                .from("user_accounts")
-                .select(
-                    `
+            let allPublicAccountsFormatted: { type: string; username: string; users: { id: string }[] }[] = []
+            if (!leaderboardOnly) {
+                const { data: allPublicAccounts, error: allPublicAccountsError } = await supabase
+                    .from("user_accounts")
+                    .select(
+                        `
                     type,
                     users!inner(
                         id,
@@ -538,29 +595,30 @@ export async function getUsersUtil(
                         farcaster_username
                     )
                     `,
-                )
-                .eq("is_public", true)
-                .in(
-                    "users.username",
-                    userProjectScores.map((score) => score.username),
-                )
+                    )
+                    .eq("is_public", true)
+                    .in(
+                        "users.username",
+                        userProjectScores.map((score) => score.username),
+                    )
 
-            if (allPublicAccountsError) {
-                console.error("allPublicAccountsError", allPublicAccountsError)
-                return NextResponse.json({ error: "Error fetching public accounts" }, { status: 500 })
+                if (allPublicAccountsError) {
+                    console.error("allPublicAccountsError", allPublicAccountsError)
+                    return NextResponse.json({ error: "Error fetching public accounts" }, { status: 500 })
+                }
+
+                allPublicAccountsFormatted =
+                    allPublicAccounts?.map((account) => {
+                        const userData = Array.isArray(account.users) ? account.users[0] : account.users
+                        // Dynamically access the username based on the type field
+                        const username = (userData as any)[account.type]
+                        return {
+                            type: account.type,
+                            username: username,
+                            users: account.users,
+                        }
+                    }) || []
             }
-
-            const allPublicAccountsFormatted =
-                allPublicAccounts?.map((account) => {
-                    const userData = Array.isArray(account.users) ? account.users[0] : account.users
-                    // Dynamically access the username based on the type field
-                    const username = (userData as any)[account.type]
-                    return {
-                        type: account.type,
-                        username: username,
-                        users: account.users,
-                    }
-                }) || []
 
             const formattedUsers = userProjectScores
                 .map((score) => {
