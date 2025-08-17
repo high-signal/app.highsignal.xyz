@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
                 address: userAddress.address,
                 addressName: userAddress.address_name,
                 isPublic: userAddress.is_public,
-                userAddressesShared: userAddress.user_addresses_shared.map((userAddressShared: any) => ({
+                projectsSharedWith: userAddress.user_addresses_shared.map((userAddressShared: any) => ({
                     projectUrlSlug: userAddressShared.projects.url_slug,
                     projectDisplayName: userAddressShared.projects.display_name,
                     projectLogoUrl: userAddressShared.projects.project_logo_url,

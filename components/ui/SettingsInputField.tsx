@@ -59,6 +59,11 @@ export default function SettingsInputField({
                     <Text fontWeight="bold">{label}</Text>
                 </HStack>
                 <HStack>
+                    <Lozenges
+                        types={lozengeTypes.filter(
+                            (type) => !type.includes("private") && !type.includes("public") && !type.includes("shared"),
+                        )}
+                    />
                     {onEditButton && (
                         <Button
                             secondaryButton
@@ -75,7 +80,11 @@ export default function SettingsInputField({
                             </HStack>
                         </Button>
                     )}
-                    <Lozenges types={lozengeTypes} />
+                    <Lozenges
+                        types={lozengeTypes.filter(
+                            (type) => type.includes("private") || type.includes("public") || type.includes("shared"),
+                        )}
+                    />
                 </HStack>
             </HStack>
             <HStack w="100%" gap={0} bg={"pageBackground"} h={h}>

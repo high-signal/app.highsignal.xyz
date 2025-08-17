@@ -33,7 +33,7 @@ export default function SingleUserApiTab({ project }: { project: ProjectData }) 
                         borderRadius={"full"}
                     >{`${process.env.NEXT_PUBLIC_SITE_URL}/api/data/v1/user`}</Text>
                 </VStack>
-                <VStack alignItems={"start"} gap={1}>
+                <VStack alignItems={"start"} gap={2}>
                     <Text fontWeight={"bold"}>URL Params</Text>
                     <Text bg={"pageBackground"} px={3} py={1} borderRadius={"full"}>{`apiKey=<YOUR_API_KEY>`}</Text>
                     <Text
@@ -42,18 +42,74 @@ export default function SingleUserApiTab({ project }: { project: ProjectData }) 
                         py={1}
                         borderRadius={"full"}
                     >{`project=${project.urlSlug}`}</Text>
-                    <Text bg={"pageBackground"} px={3} py={1} borderRadius={"full"}>{`searchType=<SEARCH_TYPE>`}</Text>
-                    <Text
+                    <VStack
                         bg={"pageBackground"}
                         px={3}
-                        py={1}
-                        borderRadius={"full"}
-                    >{`searchValue=<SEARCH_VALUE>`}</Text>
-                    <Text bg={"pageBackground"} px={3} py={1} borderRadius={"full"}>{`startDate=YYYY-MM-DD`}</Text>
-                    <HStack>
-                        <Text bg={"pageBackground"} px={3} py={1} borderRadius={"full"}>{`endDate=YYYY-MM-DD`}</Text>
-                        <Text>(optional)</Text>
-                    </HStack>
+                        py={2}
+                        borderRadius={"16px"}
+                        alignItems={"start"}
+                        gap={1}
+                        color={"textColorMuted"}
+                    >
+                        <Text color={"textColor"}>{`searchType=<SEARCH_TYPE>`}</Text>
+                        <li>highSignalUsername</li>
+                        <li>ethereumAddress</li>
+                        <li>email</li>
+                        <li>discordUsername</li>
+                        <li>xUsername</li>
+                        <li>farcasterUsername</li>
+                    </VStack>
+                    <VStack
+                        bg={"pageBackground"}
+                        px={3}
+                        py={2}
+                        borderRadius={"16px"}
+                        alignItems={"start"}
+                        gap={1}
+                        color={"textColorMuted"}
+                    >
+                        <Text color={"textColor"}>{`searchValue=<SEARCH_VALUE>`}</Text>
+                        <ul style={{ margin: 0, paddingLeft: "1.5rem", listStyleType: "disc" }}>
+                            <li style={{ marginBottom: "0.25rem" }}>All search values are case sensitive.</li>
+                            <li style={{ marginBottom: "0.25rem" }}>Ethereum addresses must be checksum addresses.</li>
+                        </ul>
+                    </VStack>
+                    <VStack
+                        bg={"pageBackground"}
+                        px={3}
+                        py={2}
+                        borderRadius={"16px"}
+                        alignItems={"start"}
+                        gap={1}
+                        color={"textColorMuted"}
+                    >
+                        <Text color={"textColor"}>{`startDate=YYYY-MM-DD`}</Text>
+                        <ul style={{ margin: 0, paddingLeft: "1.5rem", listStyleType: "disc" }}>
+                            <li style={{ marginBottom: "0.25rem" }}>The oldest date to fetch data for.</li>
+                            <li style={{ marginBottom: "0.25rem" }}>
+                                If only the startDate is provided, results for only that date will be returned.
+                            </li>
+                        </ul>
+                    </VStack>
+                    <VStack
+                        bg={"pageBackground"}
+                        px={3}
+                        py={2}
+                        borderRadius={"16px"}
+                        alignItems={"start"}
+                        gap={1}
+                        color={"textColorMuted"}
+                    >
+                        <Text color={"textColor"}>{`endDate=YYYY-MM-DD`}</Text>
+                        <ul style={{ margin: 0, paddingLeft: "1.5rem", listStyleType: "disc" }}>
+                            <li style={{ marginBottom: "0.25rem" }}>Optional.</li>
+                            <li style={{ marginBottom: "0.25rem" }}>The newest date to fetch data for.</li>
+                            <li style={{ marginBottom: "0.25rem" }}>
+                                If the endDate is omitted, results from the startDate backwards to the maximum previous
+                                day will be returned.
+                            </li>
+                        </ul>
+                    </VStack>
                 </VStack>
                 <VStack alignItems={"start"} gap={1}>
                     <Text fontWeight={"bold"}>Example URL</Text>
@@ -61,7 +117,7 @@ export default function SingleUserApiTab({ project }: { project: ProjectData }) 
                         <Button
                             secondaryButton
                             px={3}
-                            py={1}
+                            py={2}
                             borderRadius={"16px"}
                             maxW={"500px"}
                             h="auto"
@@ -96,11 +152,24 @@ export default function SingleUserApiTab({ project }: { project: ProjectData }) 
                         {`{
   "username": "eridian",
   "displayName": "Eridian",
-  "addresses": [
-    "0x1234567890123456789012345678901234567890",
-    "0x1234567890123456789012345678901234567891"
+  "ethereumAddresses": [
+    "0xE3e34FA93575AF41BEF3476236E1A3CDb3F60B85",
+    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
   ],
-  "discordUsername": eridianalpha#0,
+  "accounts": [
+    {
+      "type": "x_username",
+      "username": "EridianAlpha"
+    },
+    {
+      "type": "discord_username",
+      "username": "eridianalpha#0"
+    },
+    {
+      "type": "farcaster_username",
+      "username": "eridian.eth"
+    }
+  ],
   "totalScores": [
     {
       "day": "${yesterdayString}",
@@ -110,7 +179,7 @@ export default function SingleUserApiTab({ project }: { project: ProjectData }) 
       "day": "${twoDaysAgoString}",
       "totalScore": 85
     }
-  ]
+  ],
   "signalStrengths": [
     {
       "signalStrengthName": "discourse_forum",
@@ -119,13 +188,30 @@ export default function SingleUserApiTab({ project }: { project: ProjectData }) 
           "day": "${yesterdayString}",
           "value": 90,
           "maxValue": 100,
-          "scoreCalculationPeriodPreviousDays": 360,
+          "scoreCalculationPeriodPreviousDays": 360
         },
         {
           "day": "${twoDaysAgoString}",
           "value": 85,
           "maxValue": 100,
-          "scoreCalculationPeriodPreviousDays": 360,
+          "scoreCalculationPeriodPreviousDays": 360
+        }
+      ]
+    },
+    {
+      "signalStrengthName": "discord",
+      "data": [
+        {
+          "day": "${yesterdayString}",
+          "value": 60,
+          "maxValue": 100,
+          "scoreCalculationPeriodPreviousDays": 360
+        },
+        {
+          "day": "${twoDaysAgoString}",
+          "value": 60,
+          "maxValue": 100,
+          "scoreCalculationPeriodPreviousDays": 360
         }
       ]
     }
