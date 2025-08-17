@@ -180,6 +180,7 @@ export async function getUsersUtil(
                     .select("user_id, project_id, total_score, day")
                     .in("user_id", userIds)
                     .order("day", { ascending: false })
+                    .limit(APP_CONFIG.PREVIOUS_DAYS_MAX)
 
                 if (historicalTotalScoresError) {
                     console.error("historicalTotalScoresError", historicalTotalScoresError)
@@ -320,12 +321,32 @@ export async function getUsersUtil(
 
                 const selectFields = baseFields + superadminFields
 
+                // OPTIMIZATION: Create specific user-project combinations instead of cartesian product
+                const userProjectCombinations: Array<{ user_id: string; project_id: string }> = []
+                userProjectScores.forEach((score) => {
+                    userProjectCombinations.push({
+                        user_id: score.user_id,
+                        project_id: score.project_id,
+                    })
+                })
+
+                console.log("userProjectCombinations", userProjectCombinations.length)
+                console.log("signalStrengthIdValues", signalStrengthIdValues.length)
+
+                // OPTIMIZATION: Use OR conditions for specific combinations instead of cartesian product
                 let signalStrengthsQuery = supabase
                     .from("user_signal_strengths")
                     .select(selectFields)
-                    .in("user_id", Array.from(userProjectsMap.keys()))
-                    .in("project_id", Array.from(new Set(userProjectScores.map((score) => score.project_id))))
                     .in("signal_strength_id", signalStrengthIdValues)
+
+                // Build OR conditions for user-project combinations
+                if (userProjectCombinations.length > 0) {
+                    const orConditions = userProjectCombinations
+                        .map((combo) => `and(user_id.eq.${combo.user_id},project_id.eq.${combo.project_id})`)
+                        .join(",")
+
+                    signalStrengthsQuery = signalStrengthsQuery.or(orConditions)
+                }
 
                 // Filter test data
                 if (isSuperAdminRequesting && showTestDataOnly && testRequestingUser) {
