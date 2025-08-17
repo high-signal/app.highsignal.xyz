@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
                 )
             }
 
-            if (changedFields.sharing === "shared" && changedFields.userAddressesShared?.length === 0) {
+            if (changedFields.sharing === "shared" && changedFields.projectsSharedWith?.length === 0) {
                 return NextResponse.json(
                     { error: "To use the 'Shared' option you must select at least one project" },
                     { status: 400 },
@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
         // ************************************************
         const sanitizedFields: Record<string, any> = {}
         if (changedFields.name !== undefined) sanitizedFields.name = sanitize(changedFields.name)
-        if (changedFields.userAddressesShared)
-            sanitizedFields.userAddressesShared = sanitize(changedFields.userAddressesShared)
+        if (changedFields.projectsSharedWith)
+            sanitizedFields.projectsSharedWith = sanitize(changedFields.projectsSharedWith)
 
         // Update data in the user address table
         const { error: updateUserAddressError } = await supabase
@@ -88,11 +88,11 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Error updating user" }, { status: 500 })
         }
 
-        // Get all the projectIds using the userAddressesShared array
+        // Get all the projectIds using the projectsSharedWith array
         const sharedProjectIds = await supabase
             .from("projects")
             .select("id")
-            .in("url_slug", sanitizedFields?.userAddressesShared?.split(",") || [])
+            .in("url_slug", sanitizedFields?.projectsSharedWith?.split(",") || [])
 
         if (sharedProjectIds.error) {
             console.error("Error fetching shared projects:", sharedProjectIds.error)
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
         }
 
         // In the user_addresses_shared table, delete any existing entries
-        // that no longer exist in the userAddressesShared array
+        // that no longer exist in the projectsSharedWith array
         const { error: deleteUserAddressesSharedError } = await supabase
             .from("user_addresses_shared")
             .delete()

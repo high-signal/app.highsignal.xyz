@@ -1,26 +1,32 @@
 "use client"
 
+import { VStack, Text, HStack, Image } from "@chakra-ui/react"
 import { useState, useEffect } from "react"
 import { usePrivy, useLinkAccount, getAccessToken, User } from "@privy-io/react-auth"
-import { useUser } from "../../contexts/UserContext"
-import { toaster } from "../ui/toaster"
+import { useUser } from "../../../contexts/UserContext"
+import { toaster } from "../../ui/toaster"
 import { FontAwesomeIconProps } from "@fortawesome/react-fontawesome"
 
-import AccountConnectionManager, { AccountConnectionConfig } from "./AccountConnectionManager"
-import GenericConfirmModal from "./DisconnectConfirmationModal"
+import AccountConnectionManager, { AccountConnectionConfig } from "../AccountConnectionManager"
+import GenericConfirmModal from "../DisconnectConfirmationModal"
+import PrivyAccountsEditor from "./PrivyAccountsEditor"
+import { ASSETS } from "../../../config/constants"
 
 export interface LinkPrivyAccountsContainerProps {
     targetUser: UserData
-    accountConfig: {
-        type: string
-        displayName: string
-        logoIcon: FontAwesomeIconProps["icon"]
-        confirmDelete?: boolean
-        privyLinkMethod: string
-    }
+    accountConfig: PrivyAccountConfig
     disabled?: boolean
     loginOnly?: boolean
     lozengeTypes?: LozengeType[]
+    sharingConfig?: UserPublicOrSharedAccount
+}
+
+export interface PrivyAccountConfig {
+    type: string
+    displayName: string
+    logoIcon: FontAwesomeIconProps["icon"]
+    confirmDelete?: boolean
+    privyLinkMethod: string
 }
 
 export default function LinkPrivyAccountsContainer({
@@ -29,6 +35,7 @@ export default function LinkPrivyAccountsContainer({
     disabled = false,
     loginOnly = false,
     lozengeTypes = [],
+    sharingConfig,
 }: LinkPrivyAccountsContainerProps) {
     // **********************************
     // ADD ADDITIONAL ACCOUNT TYPES HERE
@@ -98,6 +105,8 @@ export default function LinkPrivyAccountsContainer({
     const [accountUsername, setAccountUsername] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
     // Check if the user is connected to the account type
     useEffect(() => {
@@ -274,12 +283,69 @@ export default function LinkPrivyAccountsContainer({
                 onConnect={handleConnect}
                 onDisconnect={handleDisconnect}
                 getConnectionDescription={() => {
-                    return !isConnectedLoading && isConnected ? `Your ${accountConfig.displayName} account.` : ""
+                    if (sharingConfig?.userAccountsShared && sharingConfig?.userAccountsShared.length > 0) {
+                        return (
+                            <VStack w={"100%"} alignItems="start">
+                                <HStack fontSize="sm" pt={1} px={2} mt={2} flexWrap="wrap">
+                                    <Text fontWeight="bold">You have shared this account with:</Text>
+                                    <HStack flexWrap="wrap">
+                                        {sharingConfig.userAccountsShared
+                                            .sort((a, b) =>
+                                                a.project.projectDisplayName.localeCompare(
+                                                    b.project.projectDisplayName,
+                                                ),
+                                            )
+                                            .map((shared) => (
+                                                <HStack
+                                                    key={shared.project.projectUrlSlug}
+                                                    bg={"contentBackground"}
+                                                    pr={2}
+                                                    borderRadius="full"
+                                                    cursor="default"
+                                                >
+                                                    <Image
+                                                        src={
+                                                            !shared.project.projectLogoUrl ||
+                                                            shared.project.projectLogoUrl === ""
+                                                                ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                                                : shared.project.projectLogoUrl
+                                                        }
+                                                        alt={`${shared.project.projectDisplayName} Logo`}
+                                                        fit="cover"
+                                                        w="35px"
+                                                        borderRadius="full"
+                                                    />
+                                                    <Text>{shared.project.projectDisplayName}</Text>
+                                                </HStack>
+                                            ))}
+                                    </HStack>
+                                </HStack>
+                            </VStack>
+                        )
+                    } else {
+                        return !isConnectedLoading && isConnected
+                            ? `Your ${accountConfig.displayName} account username.`
+                            : ""
+                    }
                 }}
                 disabled={disabled}
                 lozengeTypes={lozengeTypes}
                 loginOnly={loginOnly}
-            />
+                onEditButton={
+                    disabled || !isConnected
+                        ? undefined
+                        : () => {
+                              setIsEditModalOpen(true)
+                          }
+                }
+            >
+                <PrivyAccountsEditor
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    accountConfig={accountConfig}
+                    sharingConfig={sharingConfig || null}
+                />
+            </AccountConnectionManager>
             {accountConfig.confirmDelete && (
                 <GenericConfirmModal
                     name={accountConfig.displayName}

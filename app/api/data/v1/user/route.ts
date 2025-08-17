@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
     if (
         searchType !== "highSignalUsername" &&
-        searchType !== "address" &&
+        searchType !== "ethereumAddress" &&
         searchType !== "email" &&
         searchType !== "discordUsername" &&
         searchType !== "xUsername" &&
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     ) {
         return NextResponse.json(
             {
-                error: "searchType must be either 'highSignalUsername', 'address', 'email', 'discordUsername', 'xUsername', or 'farcasterUsername'",
+                error: "searchType must be either 'highSignalUsername', 'ethereumAddress', 'email', 'discordUsername', 'xUsername', or 'farcasterUsername'",
             },
             { status: 400 },
         )
@@ -88,12 +88,7 @@ export async function GET(request: Request) {
         let userProjectScore: any = null
         let scoresError: any = null
 
-        if (searchType === "highSignalUsername") {
-            // Search by username
-            const { data, error } = await supabase
-                .from("user_project_scores")
-                .select(
-                    `
+        const userProjectScoresSelect = `
                     user_id,
                     username,
                     display_name,
@@ -103,15 +98,20 @@ export async function GET(request: Request) {
                         id,
                         url_slug
                     )
-                `,
-                )
+                `
+
+        if (searchType === "highSignalUsername") {
+            // Search by username
+            const { data, error } = await supabase
+                .from("user_project_scores")
+                .select(userProjectScoresSelect)
                 .eq("projects.url_slug", projectSlug)
                 .eq("username", searchValue)
                 .single()
 
             userProjectScore = data
             scoresError = error
-        } else if (searchType === "address") {
+        } else if (searchType === "ethereumAddress") {
             // Search by address - first find the user_id from user_addresses
             // We need to check both public addresses and shared addresses separately
             let foundUserId: string | null = null
@@ -136,7 +136,7 @@ export async function GET(request: Request) {
                 if (!apiKeyProjectSlug) {
                     return NextResponse.json(
                         {
-                            error: `Address '${searchValue}' not found or not accessible. API key required for shared addresses.`,
+                            error: `Ethereum address '${searchValue}' not found or not accessible. API key required to see addresses shared with a specific project.`,
                         },
                         { status: 404 },
                     )
@@ -167,25 +167,13 @@ export async function GET(request: Request) {
             }
 
             if (!foundUserId) {
-                return NextResponse.json({ error: `Address '${searchValue}' not found` }, { status: 404 })
+                return NextResponse.json({ error: `Ethereum Address '${searchValue}' not found` }, { status: 404 })
             }
 
             // Now get the user project score using the found user_id
             const { data, error } = await supabase
                 .from("user_project_scores")
-                .select(
-                    `
-                    user_id,
-                    username,
-                    display_name,
-                    project_id,
-                    total_score,
-                    projects!project_signal_strengths_project_id_fkey!inner (
-                        id,
-                        url_slug
-                    )
-                `,
-                )
+                .select(userProjectScoresSelect)
                 .eq("projects.url_slug", projectSlug)
                 .eq("user_id", foundUserId)
                 .single()
@@ -198,8 +186,101 @@ export async function GET(request: Request) {
             searchType === "xUsername" ||
             searchType === "farcasterUsername"
         ) {
-            // TODO: Implement search by email, discord username, x username, or farcaster username
-            return NextResponse.json({ error: "Not yet implemented" }, { status: 501 })
+            // Search by account - first find the user_id from user_accounts
+            // We need to check both public accounts and shared accounts separately
+            let foundUserId: string | null = null
+
+            // First, try to find public accounts (always accessible)
+            const { data: publicAccountData, error: publicAccountError } = await supabase
+                .from("user_accounts")
+                .select(
+                    `
+                    user_id,
+                    users!inner(
+                        email,
+                        discord_username,
+                        x_username,
+                        farcaster_username
+                    )
+                `,
+                )
+                .eq("is_public", true)
+                .eq(
+                    `users.${searchType === "email" ? "email" : searchType === "discordUsername" ? "discord_username" : searchType === "xUsername" ? "x_username" : "farcaster_username"}`,
+                    searchValue,
+                )
+                .single()
+
+            if (publicAccountData) {
+                foundUserId = publicAccountData.user_id
+            } else if (publicAccountError && publicAccountError.code !== "PGRST116") {
+                console.error("publicAccountError", publicAccountError)
+                return NextResponse.json({ error: "Error fetching account" }, { status: 500 })
+            }
+
+            // If not found in public accounts, check shared accounts (only if API key is provided)
+            if (!foundUserId) {
+                if (!apiKeyProjectSlug) {
+                    return NextResponse.json(
+                        {
+                            error: `${searchType === "email" ? "Email" : searchType === "discordUsername" ? "Discord username" : searchType === "xUsername" ? "X username" : "Farcaster username"} '${searchValue}' not found or not accessible. API key required to see accounts shared with a specific project.`,
+                        },
+                        { status: 404 },
+                    )
+                }
+
+                const { data: sharedAccountData, error: sharedAccountError } = await supabase
+                    .from("user_accounts")
+                    .select(
+                        `
+                        user_id,
+                        user_accounts_shared!inner(
+                            projects!inner(
+                                url_slug
+                            )
+                        ),
+                        users!inner(
+                            email,
+                            discord_username,
+                            x_username,
+                            farcaster_username
+                        )
+                    `,
+                    )
+                    .eq(
+                        `users.${searchType === "email" ? "email" : searchType === "discordUsername" ? "discord_username" : searchType === "xUsername" ? "x_username" : "farcaster_username"}`,
+                        searchValue,
+                    )
+                    .eq("user_accounts_shared.projects.url_slug", projectSlug)
+                    .single()
+
+                if (sharedAccountData) {
+                    foundUserId = sharedAccountData.user_id
+                } else if (sharedAccountError && sharedAccountError.code !== "PGRST116") {
+                    console.error("sharedAccountError", sharedAccountError)
+                    return NextResponse.json({ error: "Error fetching account" }, { status: 500 })
+                }
+            }
+
+            if (!foundUserId) {
+                return NextResponse.json(
+                    {
+                        error: `${searchType === "email" ? "Email" : searchType === "discordUsername" ? "Discord username" : searchType === "xUsername" ? "X username" : "Farcaster username"} '${searchValue}' not found`,
+                    },
+                    { status: 404 },
+                )
+            }
+
+            // Now get the user project score using the found user_id
+            const { data, error } = await supabase
+                .from("user_project_scores")
+                .select(userProjectScoresSelect)
+                .eq("projects.url_slug", projectSlug)
+                .eq("user_id", foundUserId)
+                .single()
+
+            userProjectScore = data
+            scoresError = error
         }
 
         if (scoresError) {
@@ -353,15 +434,86 @@ export async function GET(request: Request) {
         // ===================
         // Get other accounts
         // ===================
-        // TODO: First get public accounts
+        let accounts: any[] = []
+        // Get public accounts (always visible)
+        const { data: publicAccounts, error: publicAccountsError } = await supabase
+            .from("user_accounts")
+            .select(
+                `
+                type,
+                users!inner(
+                    email,
+                    discord_username,
+                    x_username,
+                    farcaster_username
+                )
+            `,
+            )
+            .eq("users.username", userProjectScore.username)
+            .eq("is_public", true)
 
-        // TODO: Get accounts that the user has shared with the selected project if API key is provided
+        if (publicAccountsError) {
+            console.error("publicAccountsError", publicAccountsError)
+        } else {
+            accounts.push(
+                ...(publicAccounts?.map((account) => {
+                    const userData = Array.isArray(account.users) ? account.users[0] : account.users
+                    // Dynamically access the username based on the type field
+                    const username = (userData as any)[account.type]
+                    return {
+                        type: account.type,
+                        username: username,
+                    }
+                }) || []),
+            )
+        }
+
+        // Get accounts that the user has shared with the selected project if API key is provided
+        if (apiKeyProjectSlug) {
+            const { data: sharedAccounts, error: sharedAccountsError } = await supabase
+                .from("user_accounts")
+                .select(
+                    `
+                    type,
+                    user_accounts_shared!inner(
+                        projects!inner(
+                            url_slug
+                        )
+                    ),
+                    users!inner(
+                        email,
+                        discord_username,
+                        x_username,
+                        farcaster_username
+                    )
+                `,
+                )
+                .eq("users.username", userProjectScore.username)
+                .eq("user_accounts_shared.projects.url_slug", projectSlug)
+
+            if (sharedAccountsError) {
+                console.error("sharedAccountsError", sharedAccountsError)
+            } else {
+                accounts.push(
+                    ...(sharedAccounts?.map((account) => {
+                        const userData = Array.isArray(account.users) ? account.users[0] : account.users
+                        // Dynamically access the username based on the type field
+                        const username = (userData as any)[account.type]
+                        return {
+                            type: account.type,
+                            username: username,
+                        }
+                    }) || []),
+                )
+            }
+        }
 
         // Format the response
         const response = {
             username: userProjectScore.username,
             displayName: userProjectScore.display_name,
-            ...(addresses.length > 0 ? { addresses } : {}),
+            ...(addresses.length > 0 ? { ethereumAddresses: addresses } : {}),
+            ...(accounts.length > 0 ? { accounts } : {}),
             totalScores:
                 historicalTotalScores?.map((score) => ({
                     day: score.day,

@@ -19,7 +19,7 @@ const typeConfig = {
         color: "blue.100",
         icon: faLock,
         text: "Private",
-        tip: "This information is private and is not visible to other users.",
+        tip: "This information is private and is not visible to other users or projects.",
     },
     public: {
         bgColor: "green.500",
@@ -28,15 +28,22 @@ const typeConfig = {
         text: "Public",
         tip: "This information is public and can be seen by anyone.",
     },
-    shared: {
+    shared_address: {
         bgColor: "teal.500",
         color: "white",
         icon: faShare,
         text: "Shared",
         tip: "You have chosen to share this address with the projects listed below. Only the address is shared, not any custom name you have set.",
     },
+    shared_account: {
+        bgColor: "teal.500",
+        color: "white",
+        icon: faShare,
+        text: "Shared",
+        tip: "You have chosen to share this account with the projects listed below. Only the account username is shared.",
+    },
     comingSoon: {
-        bgColor: "blue.500",
+        bgColor: "blue.700",
         color: "blue.100",
         icon: faHourglassHalf,
         text: "Coming Soon",

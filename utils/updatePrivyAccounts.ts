@@ -29,7 +29,6 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
             })
 
             if (privyResponse.ok) {
-                // Create DB client
                 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
                 const privyUser = await privyResponse.json()
@@ -82,7 +81,7 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
                                 }
                             }
 
-                            // Now update the current user with the new value
+                            // Update the current user with the new value
                             const { error: updateError } = await supabase
                                 .from("users")
                                 .update({ [dbColumn]: account[privyField] })
@@ -100,6 +99,29 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
 
                             if (deleteError) {
                                 console.error(`Error deleting user ${dbColumn}:`, deleteError)
+                            }
+
+                            // Get the user ID for the delete operation
+                            const { data: userForDelete, error: userForDeleteError } = await supabase
+                                .from("users")
+                                .select("id")
+                                .eq("privy_id", privyId)
+                                .single()
+
+                            if (userForDeleteError) {
+                                console.error("Error fetching user for delete:", userForDeleteError)
+                                continue
+                            }
+
+                            // Then delete the account from the user_accounts table
+                            const { error: deleteUserAccountsError } = await supabase
+                                .from("user_accounts")
+                                .delete()
+                                .eq("user_id", userForDelete?.id)
+                                .eq("type", dbColumn)
+
+                            if (deleteUserAccountsError) {
+                                console.error(`Error deleting user_accounts ${dbColumn}:`, deleteUserAccountsError)
                             }
                         }
                     }

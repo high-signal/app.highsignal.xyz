@@ -30,15 +30,32 @@ interface UserAddressConfig {
     address: string
     addressName?: string
     isPublic: boolean
-    userAddressesShared: UserAddressShared[]
+    projectsSharedWith: SharedProjectData[]
 }
 
-interface UserAddressShared {
+interface SharedProjectData {
     projectUrlSlug: string
     projectDisplayName: string
     projectLogoUrl?: string
 }
 
+interface EditorSettingsState {
+    name?: { current: string | null; new: string | null }
+    sharing: { current: "private" | "public" | "shared" | null; new: "private" | "public" | "shared" | null }
+    projectsSharedWith: { current: SharedProjectData[] | null; new: SharedProjectData[] | null }
+}
+
+interface UserPublicOrSharedAccount {
+    id?: number
+    isPublic?: boolean
+    type: string
+    userAccountsShared?: {
+        projectId: number
+        userAccountId: number
+        project: SharedProjectData
+    }[]
+    userId?: number
+}
 interface ConnectedAccount {
     name: string
     data: ForumUser[]
@@ -161,4 +178,12 @@ interface BannerProps {
     internal_name?: string
 }
 
-type LozengeType = "public" | "private" | "shared" | "comingSoon" | "notifications" | "score" | "calcInfo"
+type LozengeType =
+    | "public"
+    | "private"
+    | "shared_address"
+    | "shared_account"
+    | "comingSoon"
+    | "notifications"
+    | "score"
+    | "calcInfo"
