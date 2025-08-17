@@ -149,7 +149,9 @@ export async function getUsersUtil(
             if (username) {
                 // Fuzzy search only if and project slug is provided
                 if (fuzzy && projectSlug) {
-                    projectScoresQuery = projectScoresQuery.ilike("display_name", `%${username}%`)
+                    projectScoresQuery = projectScoresQuery.or(
+                        `display_name.ilike.%${username}%,username.ilike.%${username}%`,
+                    )
                 } else {
                     projectScoresQuery = projectScoresQuery.eq("username", username)
                 }
@@ -639,7 +641,7 @@ async function usersOnly(
         .order("display_name", { ascending: true })
 
     if (fuzzy) {
-        usersOnlyQuery = usersOnlyQuery.ilike("display_name", `%${username}%`)
+        usersOnlyQuery = usersOnlyQuery.or(`display_name.ilike.%${username}%,username.ilike.%${username}%`)
     } else if (username) {
         usersOnlyQuery = usersOnlyQuery.eq("username", username)
     }
