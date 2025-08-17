@@ -88,12 +88,7 @@ export async function GET(request: Request) {
         let userProjectScore: any = null
         let scoresError: any = null
 
-        if (searchType === "highSignalUsername") {
-            // Search by username
-            const { data, error } = await supabase
-                .from("user_project_scores")
-                .select(
-                    `
+        const userProjectScoresSelect = `
                     user_id,
                     username,
                     display_name,
@@ -103,8 +98,13 @@ export async function GET(request: Request) {
                         id,
                         url_slug
                     )
-                `,
-                )
+                `
+
+        if (searchType === "highSignalUsername") {
+            // Search by username
+            const { data, error } = await supabase
+                .from("user_project_scores")
+                .select(userProjectScoresSelect)
                 .eq("projects.url_slug", projectSlug)
                 .eq("username", searchValue)
                 .single()
@@ -173,19 +173,7 @@ export async function GET(request: Request) {
             // Now get the user project score using the found user_id
             const { data, error } = await supabase
                 .from("user_project_scores")
-                .select(
-                    `
-                    user_id,
-                    username,
-                    display_name,
-                    project_id,
-                    total_score,
-                    projects!project_signal_strengths_project_id_fkey!inner (
-                        id,
-                        url_slug
-                    )
-                `,
-                )
+                .select(userProjectScoresSelect)
                 .eq("projects.url_slug", projectSlug)
                 .eq("user_id", foundUserId)
                 .single()
@@ -353,15 +341,86 @@ export async function GET(request: Request) {
         // ===================
         // Get other accounts
         // ===================
-        // TODO: First get public accounts
+        let accounts: any[] = []
+        // Get public accounts (always visible)
+        const { data: publicAccounts, error: publicAccountsError } = await supabase
+            .from("user_accounts")
+            .select(
+                `
+                type,
+                users!inner(
+                    email,
+                    discord_username,
+                    x_username,
+                    farcaster_username
+                )
+            `,
+            )
+            .eq("users.username", userProjectScore.username)
+            .eq("is_public", true)
 
-        // TODO: Get accounts that the user has shared with the selected project if API key is provided
+        if (publicAccountsError) {
+            console.error("publicAccountsError", publicAccountsError)
+        } else {
+            accounts.push(
+                ...(publicAccounts?.map((account) => {
+                    const userData = Array.isArray(account.users) ? account.users[0] : account.users
+                    // Dynamically access the username based on the type field
+                    const username = (userData as any)[account.type]
+                    return {
+                        type: account.type,
+                        username: username,
+                    }
+                }) || []),
+            )
+        }
+
+        // Get accounts that the user has shared with the selected project if API key is provided
+        if (apiKeyProjectSlug) {
+            const { data: sharedAccounts, error: sharedAccountsError } = await supabase
+                .from("user_accounts")
+                .select(
+                    `
+                    type,
+                    user_accounts_shared!inner(
+                        projects!inner(
+                            url_slug
+                        )
+                    ),
+                    users!inner(
+                        email,
+                        discord_username,
+                        x_username,
+                        farcaster_username
+                    )
+                `,
+                )
+                .eq("users.username", userProjectScore.username)
+                .eq("user_accounts_shared.projects.url_slug", projectSlug)
+
+            if (sharedAccountsError) {
+                console.error("sharedAccountsError", sharedAccountsError)
+            } else {
+                accounts.push(
+                    ...(sharedAccounts?.map((account) => {
+                        const userData = Array.isArray(account.users) ? account.users[0] : account.users
+                        // Dynamically access the username based on the type field
+                        const username = (userData as any)[account.type]
+                        return {
+                            type: account.type,
+                            username: username,
+                        }
+                    }) || []),
+                )
+            }
+        }
 
         // Format the response
         const response = {
             username: userProjectScore.username,
             displayName: userProjectScore.display_name,
             ...(addresses.length > 0 ? { addresses } : {}),
+            ...(accounts.length > 0 ? { accounts } : {}),
             totalScores:
                 historicalTotalScores?.map((score) => ({
                     day: score.day,

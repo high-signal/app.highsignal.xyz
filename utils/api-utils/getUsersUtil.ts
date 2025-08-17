@@ -412,6 +412,9 @@ export async function getUsersUtil(
                 })
             }
 
+            // ========================
+            // Get all users addresses
+            // ========================
             let allUsersSharedAddresses: { address: string; users: { id: string }[] }[] = []
             // Lookup all the addresses shared with the project, where the user_id is the same as the user_id in the user table
             if (apiKeyProjectSlug) {
@@ -449,7 +452,7 @@ export async function getUsersUtil(
                 }))
             }
 
-            // Run another query to get all public addresses
+            // Run a query to get all public addresses
             const { data: allPublicAddresses, error: allPublicAddressesError } = await supabase
                 .from("user_addresses")
                 .select(
@@ -471,6 +474,94 @@ export async function getUsersUtil(
                 return NextResponse.json({ error: "Error fetching public addresses" }, { status: 500 })
             }
 
+            // =======================
+            // Get all users accounts
+            // =======================
+            let allUsersSharedAccounts: { type: string; username: string; users: { id: string }[] }[] = []
+            // Lookup all the accounts shared with the project, where the user_id is the same as the user_id in the user table
+            if (apiKeyProjectSlug) {
+                const { data: allUsersSharedAccountsData, error: allUsersSharedAccountsDataError } = await supabase
+                    .from("user_accounts")
+                    .select(
+                        `
+                        type,
+                        user_accounts_shared!inner(
+                            projects!inner(
+                                id,
+                                url_slug
+                            )
+                        ),
+                        users!inner(
+                            id,
+                            username,
+                            email,
+                            discord_username,
+                            x_username,
+                            farcaster_username
+                        )
+                    `,
+                    )
+                    .in(
+                        "users.username",
+                        userProjectScores.map((score) => score.username),
+                    )
+                    .eq("user_accounts_shared.projects.url_slug", projectSlug)
+
+                if (allUsersSharedAccountsDataError) {
+                    console.error("allUsersSharedAccountsDataError", allUsersSharedAccountsDataError)
+                    return NextResponse.json({ error: "Error fetching user shared accounts" }, { status: 500 })
+                }
+
+                allUsersSharedAccounts = allUsersSharedAccountsData.map((account) => {
+                    const userData = Array.isArray(account.users) ? account.users[0] : account.users
+                    // Dynamically access the username based on the type field
+                    const username = (userData as any)[account.type]
+                    return {
+                        type: account.type,
+                        username: username,
+                        users: account.users,
+                    }
+                })
+            }
+
+            // Run a query to get all public accounts
+            const { data: allPublicAccounts, error: allPublicAccountsError } = await supabase
+                .from("user_accounts")
+                .select(
+                    `
+                    type,
+                    users!inner(
+                        id,
+                        email,
+                        discord_username,
+                        x_username,
+                        farcaster_username
+                    )
+                    `,
+                )
+                .eq("is_public", true)
+                .in(
+                    "users.username",
+                    userProjectScores.map((score) => score.username),
+                )
+
+            if (allPublicAccountsError) {
+                console.error("allPublicAccountsError", allPublicAccountsError)
+                return NextResponse.json({ error: "Error fetching public accounts" }, { status: 500 })
+            }
+
+            const allPublicAccountsFormatted =
+                allPublicAccounts?.map((account) => {
+                    const userData = Array.isArray(account.users) ? account.users[0] : account.users
+                    // Dynamically access the username based on the type field
+                    const username = (userData as any)[account.type]
+                    return {
+                        type: account.type,
+                        username: username,
+                        users: account.users,
+                    }
+                }) || []
+
             const formattedUsers = userProjectScores
                 .map((score) => {
                     const user = score
@@ -485,6 +576,19 @@ export async function getUsersUtil(
                             ) || []),
                             ...(allPublicAddresses?.filter((address) => (address.users as any).id === user.user_id) ||
                                 []),
+                        ]
+                    }
+
+                    // Display any shared accounts for the user
+                    let userSharedAccounts: { type: string; username: string }[] = []
+                    if (allUsersSharedAccounts.length > 0 || allPublicAccountsFormatted.length > 0) {
+                        userSharedAccounts = [
+                            ...(allUsersSharedAccounts?.filter(
+                                (account) => (account.users as any).id === user.user_id,
+                            ) || []),
+                            ...(allPublicAccountsFormatted?.filter(
+                                (account) => (account.users as any).id === user.user_id,
+                            ) || []),
                         ]
                     }
 
@@ -526,11 +630,19 @@ export async function getUsersUtil(
                             : {}),
                         ...(score.total_score > 0 ? { rank: score.rank } : {}),
                         score: score.total_score,
+                        signal: calculateSignalFromScore(score.total_score),
                         ...(historicalScores.length > 0 ? { historicalScores: historicalScores } : {}),
                         ...(userSharedAddresses.length > 0
                             ? { addresses: userSharedAddresses.map((address) => address.address) }
                             : {}),
-                        signal: calculateSignalFromScore(score.total_score),
+                        ...(userSharedAccounts.length > 0
+                            ? {
+                                  accounts: userSharedAccounts.map((account) => ({
+                                      type: account.type,
+                                      username: account.username,
+                                  })),
+                              }
+                            : {}),
                         ...(isSuperAdminRequesting
                             ? {
                                   connectedAccounts: connectedAccounts.map((account) => ({
