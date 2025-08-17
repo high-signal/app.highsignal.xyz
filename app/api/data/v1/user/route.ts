@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
+import { APP_CONFIG } from "../../../../../config/constants"
 
 // Simplified user data API endpoint
 export async function GET(request: Request) {
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
     const endDate = searchParams.get("endDate")
     const apiKey = searchParams.get("apiKey")
 
-    const MAX_DAYS_TO_FETCH = 360
+    const MAX_DAYS_TO_FETCH = APP_CONFIG.SMART_SCORE_MAX_HISTORY_SINGLE_USER_RESULTS
 
     if (!projectSlug) {
         return NextResponse.json({ error: "Project is required" }, { status: 400 })

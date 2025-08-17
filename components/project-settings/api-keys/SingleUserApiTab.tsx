@@ -104,10 +104,6 @@ export default function SingleUserApiTab({ project }: { project: ProjectData }) 
                         <ul style={{ margin: 0, paddingLeft: "1.5rem", listStyleType: "disc" }}>
                             <li style={{ marginBottom: "0.25rem" }}>Optional.</li>
                             <li style={{ marginBottom: "0.25rem" }}>The newest date to fetch data for.</li>
-                            <li style={{ marginBottom: "0.25rem" }}>
-                                If the endDate is omitted, results from the startDate backwards to the maximum previous
-                                day will be returned.
-                            </li>
                         </ul>
                     </VStack>
                 </VStack>
