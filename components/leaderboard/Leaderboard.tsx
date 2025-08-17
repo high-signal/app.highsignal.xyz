@@ -366,9 +366,10 @@ export default function Leaderboard({
         isSuperAdminRequesting: false,
         isRawData: false,
         page: resultsPage,
+        leaderboardOnly: true,
     })
 
-    // Separate call to get current user's data when in users mode
+    // Separate call to get current user data when in users mode
     const {
         users: currentUserData,
         loading: currentUserLoading,

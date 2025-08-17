@@ -69,11 +69,12 @@ export async function getUsersUtil(
     const { searchParams } = new URL(request.url)
     const projectSlug = searchParams.get("project")
     const username = searchParams.get("username")
-    const fuzzy = searchParams.get("fuzzy") === "true"
+    const fuzzy = searchParams.get("fuzzy") === "true" || false
     const showTestDataOnly = searchParams.get("showTestDataOnly") === "true" || false
     const showRawScoreCalcOnly = searchParams.get("showRawScoreCalcOnly") === "true" || false
     const apiKey = searchParams.get("apiKey")
     const testRequestingUser = searchParams.get("testRequestingUser")
+    const leaderboardOnly = searchParams.get("leaderboardOnly") === "true" || false
 
     // Pagination
     const page = parseInt(searchParams.get("page") || "1")
@@ -124,6 +125,7 @@ export async function getUsersUtil(
                     user_id,
                     username,
                     display_name,
+                    profile_image_url,
                     project_id,
                     rank,
                     total_score,
@@ -170,47 +172,21 @@ export async function getUsersUtil(
 
             const userIds = userProjectScores.map((score) => score.user_id)
 
-            // Get user details
-            let userDetailsQuery = supabase
-                .from("users")
-                .select(
-                    `
-                    id,
-                    username,
-                    display_name,
-                    profile_image_url,
-                    user_peak_signals (
-                    peak_signal_id,
-                    peak_signals!inner (
-                        name,
-                        display_name,
-                        image_src,
-                        image_alt,
-                        value,
-                        project_id
-                    )
-                    )
-                `,
-                )
-                .in("id", userIds)
-
-            const { data: userDetails, error: usersError } = await userDetailsQuery
-
-            if (usersError) {
-                console.error("usersError", usersError)
-                return NextResponse.json({ error: "Error fetching users" }, { status: 500 })
-            }
-
             // Get all historical total scores for the users
-            const { data: historicalTotalScores, error: historicalTotalScoresError } = await supabase
-                .from("user_project_scores_history")
-                .select("user_id, project_id, total_score, day")
-                .in("user_id", userIds)
-                .order("day", { ascending: false })
+            let historicalTotalScores: { user_id: string; project_id: string; total_score: number; day: string }[] = []
+            if (!leaderboardOnly) {
+                const { data: historicalTotalScoresData, error: historicalTotalScoresError } = await supabase
+                    .from("user_project_scores_history")
+                    .select("user_id, project_id, total_score, day")
+                    .in("user_id", userIds)
+                    .order("day", { ascending: false })
 
-            if (historicalTotalScoresError) {
-                console.error("historicalTotalScoresError", historicalTotalScoresError)
-                return NextResponse.json({ error: "Error fetching historical total scores" }, { status: 500 })
+                if (historicalTotalScoresError) {
+                    console.error("historicalTotalScoresError", historicalTotalScoresError)
+                    return NextResponse.json({ error: "Error fetching historical total scores" }, { status: 500 })
+                }
+
+                historicalTotalScores = historicalTotalScoresData
             }
 
             // If superadmin is requesting, get all connected accounts for the user
@@ -281,30 +257,30 @@ export async function getUsersUtil(
                 }
             }
 
-            // Get all available signal strengths
-            const { data: signalStrengthIds, error: signalStrengthIdsError } = await supabase
-                .from("signal_strengths")
-                .select("id")
-
-            if (signalStrengthIdsError) {
-                console.error("signalStrengthIdsError", signalStrengthIdsError)
-                return NextResponse.json({ error: "Error fetching signal strength ids" }, { status: 500 })
-            }
-
-            const signalStrengthIdValues = signalStrengthIds?.map((item) => item.id) || []
-
-            // Create a map of user_id to project_ids
-            const userProjectsMap = new Map<string, string[]>()
-            userProjectScores.forEach((score) => {
-                if (!userProjectsMap.has(score.user_id)) {
-                    userProjectsMap.set(score.user_id, [])
-                }
-                userProjectsMap.get(score.user_id)?.push(score.project_id)
-            })
-
             // Only fetch signal strengths if we have filters applied (username or project)
             let signalStrengths: SignalStrengthGroup[] = []
-            if (username || projectSlug) {
+            if ((username || projectSlug) && !leaderboardOnly) {
+                // Get all available signal strengths
+                const { data: signalStrengthIds, error: signalStrengthIdsError } = await supabase
+                    .from("signal_strengths")
+                    .select("id")
+
+                if (signalStrengthIdsError) {
+                    console.error("signalStrengthIdsError", signalStrengthIdsError)
+                    return NextResponse.json({ error: "Error fetching signal strength ids" }, { status: 500 })
+                }
+
+                const signalStrengthIdValues = signalStrengthIds?.map((item) => item.id) || []
+
+                // Create a map of user_id to project_ids
+                const userProjectsMap = new Map<string, string[]>()
+                userProjectScores.forEach((score) => {
+                    if (!userProjectsMap.has(score.user_id)) {
+                        userProjectsMap.set(score.user_id, [])
+                    }
+                    userProjectsMap.get(score.user_id)?.push(score.project_id)
+                })
+
                 // Get signal strengths
                 const signalStrengthsResults = await Promise.all(
                     // For each user
@@ -456,23 +432,25 @@ export async function getUsersUtil(
 
             const formattedUsers = userProjectScores
                 .map((score) => {
-                    const user = (userDetails as unknown as User[])?.find((u) => u.id === score.user_id)
+                    const user = score
                     if (!user) return null
 
                     // Display any shared addresses for the user
                     let userSharedAddresses: { address: string }[] = []
                     if (allUsersSharedAddresses.length > 0 || (allPublicAddresses && allPublicAddresses.length > 0)) {
                         userSharedAddresses = [
-                            ...(allUsersSharedAddresses?.filter((address) => (address.users as any).id === user.id) ||
+                            ...(allUsersSharedAddresses?.filter(
+                                (address) => (address.users as any).id === user.user_id,
+                            ) || []),
+                            ...(allPublicAddresses?.filter((address) => (address.users as any).id === user.user_id) ||
                                 []),
-                            ...(allPublicAddresses?.filter((address) => (address.users as any).id === user.id) || []),
                         ]
                     }
 
                     // If no username or project filter is applied, return only basic user info
                     if (!username && !projectSlug) {
                         return {
-                            ...(isSuperAdminRequesting ? { id: user.id } : {}),
+                            ...(isSuperAdminRequesting ? { id: user.user_id } : {}),
                             username: user.username,
                             displayName: user.display_name,
                             profileImageUrl: user.profile_image_url,
@@ -482,7 +460,8 @@ export async function getUsersUtil(
                     // For filtered requests, return full data with project-specific information
                     const userSignalStrengths =
                         signalStrengths?.filter(
-                            (ss) => ss?.data[0]?.user_id === user.id && ss?.data[0]?.project_id === score.project_id,
+                            (ss) =>
+                                ss?.data[0]?.user_id === user.user_id && ss?.data[0]?.project_id === score.project_id,
                         ) || []
 
                     const historicalScores = historicalTotalScores
@@ -497,7 +476,7 @@ export async function getUsersUtil(
                         }))
 
                     return {
-                        ...(isSuperAdminRequesting ? { id: user.id } : {}),
+                        ...(isSuperAdminRequesting ? { id: user.user_id } : {}),
                         username: user.username,
                         displayName: user.display_name,
                         profileImageUrl: user.profile_image_url,
@@ -516,7 +495,7 @@ export async function getUsersUtil(
                                   connectedAccounts: connectedAccounts.map((account) => ({
                                       name: account.name,
                                       data: account.data
-                                          .filter((item) => item.userId === user.id)
+                                          .filter((item) => item.userId === user.user_id)
                                           .map(({ userId, ...rest }) => rest),
                                   })),
                               }
