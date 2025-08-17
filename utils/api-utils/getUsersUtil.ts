@@ -318,6 +318,7 @@ export async function getUsersUtil(
                         `,
                     )
                     .in("user_id", Array.from(userProjectsMap.keys()))
+                    .in("project_id", Array.from(new Set(userProjectScores.map((score) => score.project_id))))
                     .in("signal_strength_id", signalStrengthIdValues)
 
                 // Filter test data
