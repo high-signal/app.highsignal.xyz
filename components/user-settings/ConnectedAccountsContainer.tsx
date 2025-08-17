@@ -161,11 +161,11 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     }}
                                     loginOnly={true}
                                     lozengeTypes={[checkSharingStatus("github")]}
-                                    sharingConfig={
-                                        publicAndSharedUserAccounts.find((account) => account.type === "github") || {
-                                            type: "github",
-                                        }
-                                    }
+                                    // sharingConfig={
+                                    //     publicAndSharedUserAccounts.find((account) => account.type === "github") || {
+                                    //         type: "github",
+                                    //     }
+                                    // }
                                 />
                                 <LinkPrivyAccountsContainer
                                     targetUser={targetUser}
@@ -177,11 +177,11 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     }}
                                     loginOnly={true}
                                     lozengeTypes={[checkSharingStatus("google")]}
-                                    sharingConfig={
-                                        publicAndSharedUserAccounts.find((account) => account.type === "google") || {
-                                            type: "google",
-                                        }
-                                    }
+                                    // sharingConfig={
+                                    //     publicAndSharedUserAccounts.find((account) => account.type === "google") || {
+                                    //         type: "google",
+                                    //     }
+                                    // }
                                 />
                                 {/* TODO: This gives a 401 error when trying to log in and I have no idea why */}
                                 {/* <LinkPrivyAccountsContainer
