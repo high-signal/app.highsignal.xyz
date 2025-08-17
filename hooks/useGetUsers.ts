@@ -87,7 +87,7 @@ export const useGetUsers = ({
                 setLoading(false)
             }
         },
-        [project, username, fuzzy, page, isUserDataVisible],
+        [project, username, fuzzy, page, isUserDataVisible, isSuperAdminRequesting, isRawData, leaderboardOnly],
     )
 
     useEffect(() => {
@@ -98,7 +98,7 @@ export const useGetUsers = ({
             setLoading(false)
             setError(null)
         }
-    }, [fetchData, shouldFetch])
+    }, [shouldFetch, fetchData])
 
     const refreshUserData = useCallback(() => {
         fetchData(true)
