@@ -8,9 +8,10 @@ import { useUser } from "../../contexts/UserContext"
 import { usePrivy } from "@privy-io/react-auth"
 
 import ContentContainer from "../layout/ContentContainer"
+import SettingsTabbedContent from "../ui/SettingsTabbedContent"
 import GeneralSettingsContainer from "./GeneralSettingsContainer"
 import SignalStrengthSettingsContainer from "./signal-strength-settings/SignalStrengthSettingsContainer"
-import SettingsTabbedContent from "../ui/SettingsTabbedContent"
+import BannersSettingsContainer from "./banner-settings/BannersSettingsContainer"
 
 export default function ProjectSettingsContainer() {
     const { loggedInUser, loggedInUserLoading } = useUser()
@@ -119,13 +120,18 @@ export default function ProjectSettingsContainer() {
                 tabs={[
                     {
                         value: "general",
-                        label: "General",
+                        label: "⚙️ General",
                         content: <GeneralSettingsContainer />,
                     },
                     {
                         value: "signalStrengths",
-                        label: "Signal Strengths",
+                        label: "💯 Signal Strengths",
                         content: <SignalStrengthSettingsContainer signalStrengths={signalStrengths} />,
+                    },
+                    {
+                        value: "banners",
+                        label: "🪧 Banners",
+                        content: <BannersSettingsContainer />,
                     },
                 ]}
             />
