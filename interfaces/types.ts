@@ -25,6 +25,7 @@ interface UserData {
     farcasterUsername?: string
     userAddresses?: UserAddressConfig[]
     timestamp?: number
+    lastChecked?: number
 }
 
 interface UserAddressConfig {

@@ -620,6 +620,37 @@ export async function getUsersUtil(
                     }) || []
             }
 
+            // Run a single query to check if any of the users have a last_updated value and it is a leaderboard only request
+            // This is so they can be shown as "updating" on the leaderboard while their score is being calculated
+            let usersWithLastChecked: { user_id: string; last_checked: number }[] = []
+            if (projectSlug && userProjectScores && userProjectScores.length > 0 && leaderboardOnly) {
+                const { data: usersWithLastCheckedData, error: usersWithLastCheckedDataError } = await supabase
+                    .from("user_signal_strengths")
+                    .select("user_id, last_checked")
+                    .eq("project_id", userProjectScores[0].project_id)
+                    .in(
+                        "user_id",
+                        userProjectScores.map((score) => score.user_id),
+                    )
+                    .not("last_checked", "is", null)
+
+                if (usersWithLastCheckedDataError) {
+                    console.error("usersWithLastCheckedDataError", usersWithLastCheckedDataError)
+                    return NextResponse.json({ error: "Error fetching users with last updated" }, { status: 500 })
+                }
+
+                usersWithLastChecked = usersWithLastCheckedData.reduce<{ user_id: string; last_checked: number }[]>(
+                    (acc, current) => {
+                        const existing = acc.find((item) => item.user_id === current.user_id)
+                        if (!existing || current.last_checked < existing.last_checked) {
+                            return acc.filter((item) => item.user_id !== current.user_id).concat(current)
+                        }
+                        return acc
+                    },
+                    [],
+                )
+            }
+
             const formattedUsers = userProjectScores
                 .map((score) => {
                     const user = score
@@ -711,6 +742,12 @@ export async function getUsersUtil(
                               }
                             : {}),
                         ...(historicalScores.length > 0 ? { historicalScores: historicalScores } : {}),
+                        ...(usersWithLastChecked.length > 0
+                            ? {
+                                  lastChecked: usersWithLastChecked.find((u) => u.user_id === user.user_id)
+                                      ?.last_checked,
+                              }
+                            : {}),
                         signalStrengths: userSignalStrengths.map((uss) => ({
                             signalStrengthName: uss.data[0]?.signal_strengths?.name || uss.signalStrengthId,
                             data: uss.data.map((d, index) => ({
