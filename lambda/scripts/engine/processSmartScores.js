@@ -1,5 +1,6 @@
 const { analyzeUserData } = require("./ai/analyzeUserData")
 const { updateUserData } = require("./db/updateUserData")
+const { clearLastChecked } = require("./utils/lastCheckedUtils")
 
 async function processSmartScores({
     supabase,

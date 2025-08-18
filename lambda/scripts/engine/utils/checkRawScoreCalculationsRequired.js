@@ -45,7 +45,7 @@ async function checkRawScoreCalculationsRequired({
                 if (addQueueItemError) {
                     if (addQueueItemError.code === "23505") {
                         // 23505 = unique_violation in Postgres
-                        console.warn(`Queue item already exists for identifier ${queueItemUniqueIdentifier}`)
+                        console.warn(`⚠️ Queue item already exists for identifier ${queueItemUniqueIdentifier}`)
                         // No throw — continue to next day
                         continue
                     } else {

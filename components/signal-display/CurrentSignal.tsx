@@ -5,23 +5,15 @@ import { calculateSignalPercentageFromName, calculateSignalThresholdFromName } f
 import { useEffect, useState } from "react"
 import { APP_CONFIG } from "../../config/constants"
 
-export default function CurrentSignal({ currentUser }: { currentUser: UserData }) {
-    const [isSignalStrengthLoading, setIsSignalStrengthLoading] = useState(false)
-
+export default function CurrentSignal({
+    currentUser,
+    isSignalStrengthLoading,
+}: {
+    currentUser: UserData
+    isSignalStrengthLoading: boolean
+}) {
     const signal = currentUser.signal
     const signalValue = currentUser.score
-
-    // If lastChecked for any of the signal strengths is less than X seconds ago, set isSignalStrengthLoading to true
-    useEffect(() => {
-        const isSignalStrengthLoading = (currentUser.signalStrengths || []).some((signalStrength) => {
-            if (!signalStrength.data[0].lastChecked) return false
-            const now = Date.now()
-            const lastCheckedTime = signalStrength.data[0].lastChecked * 1000 // Convert to milliseconds
-            const timeElapsed = now - lastCheckedTime
-            return timeElapsed < APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
-        })
-        setIsSignalStrengthLoading(isSignalStrengthLoading)
-    }, [currentUser])
 
     return (
         <VStack w="100%" maxW="600px" gap={1}>
@@ -94,7 +86,6 @@ export default function CurrentSignal({ currentUser }: { currentUser: UserData }
                         <Text fontWeight={"bold"} color="white" textAlign={"center"} fontSize={"md"}>
                             Update in progress...
                         </Text>
-                        <Spinner />
                     </HStack>
                 ) : (
                     <HStack
