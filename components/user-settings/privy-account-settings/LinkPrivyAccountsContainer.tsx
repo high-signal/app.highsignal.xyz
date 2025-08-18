@@ -43,8 +43,6 @@ export default function LinkPrivyAccountsContainer({
     const { linkEmail, linkDiscord, linkTwitter, linkFarcaster, linkGithub, linkGoogle, linkTelegram, linkPasskey } =
         useLinkAccount({
             onSuccess: async ({ linkMethod }) => {
-                console.log("linkMethod", linkMethod)
-                console.log("accountConfig.privyLinkMethod", accountConfig.privyLinkMethod)
                 if (
                     linkMethod === accountConfig.privyLinkMethod ||
                     (accountConfig.privyLinkMethod === "discord_oauth" && linkMethod === "discord") // TODO: Make generic
@@ -66,8 +64,6 @@ export default function LinkPrivyAccountsContainer({
                     setIsSubmitting(false)
                     setIsConnected(true)
                     setIsConnectedLoading(false)
-
-                    console.log("TOASTING")
 
                     toaster.create({
                         title: `✅ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account ownership confirmed`,
