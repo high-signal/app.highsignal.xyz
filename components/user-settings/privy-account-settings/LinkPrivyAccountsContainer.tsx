@@ -11,6 +11,7 @@ import AccountConnectionManager, { AccountConnectionConfig } from "../AccountCon
 import GenericConfirmModal from "../DisconnectConfirmationModal"
 import PrivyAccountsEditor from "./PrivyAccountsEditor"
 import { ASSETS } from "../../../config/constants"
+import { useRouter } from "next/navigation"
 
 export interface LinkPrivyAccountsContainerProps {
     targetUser: UserData
@@ -40,13 +41,12 @@ export default function LinkPrivyAccountsContainer({
     // **********************************
     // ADD ADDITIONAL ACCOUNT TYPES HERE
     // **********************************
+    const router = useRouter()
+
     const { linkEmail, linkDiscord, linkTwitter, linkFarcaster, linkGithub, linkGoogle, linkTelegram, linkPasskey } =
         useLinkAccount({
             onSuccess: async ({ linkMethod }) => {
-                if (
-                    linkMethod === accountConfig.privyLinkMethod ||
-                    (accountConfig.privyLinkMethod === "discord_oauth" && linkMethod === "discord") // TODO: Make generic
-                ) {
+                if (linkMethod === accountConfig.privyLinkMethod.split("_")[0]) {
                     // Call the API to update the Privy accounts
                     const token = await getAccessToken()
                     await fetch(`/api/settings/u/accounts/privy-accounts?username=${targetUser.username}`, {
@@ -70,6 +70,27 @@ export default function LinkPrivyAccountsContainer({
                         description: `You have successfully confirmed ownership of your ${accountConfig.displayName} account.`,
                         type: "success",
                     })
+
+                    // TODO: Add other signal strengths scoring accounts here when enabled
+                    if (linkMethod === "discord") {
+                        const token = await getAccessToken()
+                        await fetch(`/api/settings/u/accounts/privy-accounts?username=${targetUser.username}`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                        })
+
+                        toaster.create({
+                            title: `⏳ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account processing started.`,
+                            type: "success",
+                            action: {
+                                label: `View your Signal Scores here`,
+                                onClick: () => router.push(`/u/${targetUser?.username}`),
+                            },
+                        })
+                    }
                 }
             },
             onError: (error) => {
