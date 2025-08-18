@@ -1,3 +1,5 @@
+const { clearLastChecked } = require("../../engine/utils/lastCheckedUtils")
+
 const checkQueueForStaleItems = async ({ supabase, queueDbTable, MAX_ATTEMPTS, TIMEOUT_SECONDS }) => {
     // ============================
     // Check queue for stale items
@@ -28,6 +30,13 @@ const checkQueueForStaleItems = async ({ supabase, queueDbTable, MAX_ATTEMPTS, T
                 console.error(
                     `‼️ ERROR LIMIT REACHED for queue item ${runningQueueItem.id}. Setting to status "error".`,
                 )
+                await clearLastChecked({
+                    supabase,
+                    userId: runningQueueItem.user_id,
+                    projectId: runningQueueItem.project_id,
+                    signalStrengthId: runningQueueItem.signal_strength_id,
+                })
+
                 const { error: updatedQueueItemError } = await supabase
                     .from(queueDbTable)
                     .update({ status: "error" })
