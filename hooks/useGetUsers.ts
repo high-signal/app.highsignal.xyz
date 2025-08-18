@@ -79,6 +79,13 @@ export const useGetUsers = ({
                 }
                 const dataJson = await response.json()
                 const data = dataJson.data
+
+                // Add a timestamp to every data object
+                // To track when the user data was last updated
+                data.forEach((user: UserData) => {
+                    user.timestamp = Math.floor(Date.now())
+                })
+
                 setUsers(data)
                 setMaxPage(dataJson.maxPage)
             } catch (err) {

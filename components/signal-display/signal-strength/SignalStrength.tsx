@@ -35,12 +35,14 @@ const SignalStrengthLozenge = ({ children }: { children: React.ReactNode }) => (
 export default function SignalStrength({
     username,
     userData,
+    timestamp,
     projectData,
     signalStrengthProjectData,
     refreshUserData,
 }: {
     username: string
     userData: SignalStrengthUserData
+    timestamp: number
     projectData: ProjectData
     signalStrengthProjectData: SignalStrengthProjectData
     refreshUserData: () => void
@@ -72,18 +74,20 @@ export default function SignalStrength({
             ? true
             : false
 
+    // When timestamp changes, stop the spinner
     useEffect(() => {
-        if (userDataRefreshTriggered) {
-            // Add small delay so the spinner is visible
-            setTimeout(() => {
-                setUserDataRefreshTriggered(false)
-            }, 2000)
-        }
-    }, [userDataRefreshTriggered, userData])
+        // Add small delay so the spinner is visible
+        setTimeout(() => {
+            setUserDataRefreshTriggered(false)
+        }, 2000)
+    }, [timestamp])
 
     // Calculate countdown timer
     useEffect(() => {
-        if (!userData.lastChecked) return
+        if (!userData.lastChecked) {
+            setCountdown(null)
+            return
+        }
 
         const lastCheckedTime = userData.lastChecked * 1000
         const now = Date.now()
@@ -91,7 +95,8 @@ export default function SignalStrength({
         const timeRemaining = countdownDuration - timeElapsed
 
         if (timeRemaining <= 0) {
-            setCountdown(null)
+            setCountdown(-2)
+            setCountdownText("Calculating score...")
             return
         }
 
@@ -112,9 +117,11 @@ export default function SignalStrength({
                 setCountdownText("Calculating score...")
             }
 
+            // Set countdown to -1 when the countdown is complete
+            // and trigger a refresh of the user data
             if (updatedTimeRemaining <= 0) {
                 refreshUserData()
-                setCountdown(null)
+                setCountdown(-1)
                 clearInterval(timer)
                 setUserDataRefreshTriggered(true)
             } else {
@@ -123,7 +130,7 @@ export default function SignalStrength({
         }, 1000)
 
         return () => clearInterval(timer)
-    }, [userData.lastChecked, countdownDuration, refreshUserData])
+    }, [userData.lastChecked, countdownDuration, refreshUserData, timestamp])
 
     // Scroll to the project name when the element is loaded if the hash matches the project name
     useEffect(() => {
@@ -244,10 +251,16 @@ export default function SignalStrength({
                             ) : countdown !== null ? (
                                 <Text fontWeight={"bold"} color="white" w={"100%"} textAlign={"center"} fontSize={"md"}>
                                     {countdownText}{" "}
-                                    <Text as="span" fontFamily={"monospace"}>
-                                        {countdown}
-                                    </Text>
-                                    s
+                                    {countdown > 0 && (
+                                        <>
+                                            <Text as="span" fontFamily={"monospace"}>
+                                                {countdown}
+                                            </Text>
+                                            <Text as="span" fontFamily={"monospace"}>
+                                                s
+                                            </Text>
+                                        </>
+                                    )}
                                 </Text>
                             ) : (
                                 <Box
@@ -266,6 +279,15 @@ export default function SignalStrength({
                         <Text fontFamily={"monospace"}>{signalStrengthProjectData.maxValue}</Text>
                     </HStack>
                 )}
+            {!userDataRefreshTriggered && countdown === -2 && (
+                <VStack w="100%" gap={2} px={2} textAlign={"center"} color="textColorMuted">
+                    <Text>
+                        {`It's taking longer than expected to calculate your score, probably because you have a lot of
+                        activity!`}
+                    </Text>
+                    <Text>Come back later to see your calculated Signal Score.</Text>
+                </VStack>
+            )}
             {signalStrengthProjectData.enabled && userContentAvailable && !countdown && !userDataRefreshTriggered && (
                 <VStack w="100%" gap={0} alignItems={"start"}>
                     <HStack

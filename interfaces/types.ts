@@ -24,6 +24,7 @@ interface UserData {
     xUsername?: string
     farcasterUsername?: string
     userAddresses?: UserAddressConfig[]
+    timestamp?: number
 }
 
 interface UserAddressConfig {

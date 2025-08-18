@@ -56,7 +56,7 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
         // =================
         // Set last checked as soon as it is known that
         // the signal strength is enabled for the project.
-        if (!testingData) {
+        if (!testingData && type !== "raw_score") {
             setLastChecked({ supabase, userId, projectId, signalStrengthId })
         }
 
@@ -247,8 +247,6 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
             console.error("🚨 Error in runEngine:", error)
         }
         throw error
-    } finally {
-        clearLastChecked({ supabase, userId, projectId, signalStrengthId })
     }
 }
 
