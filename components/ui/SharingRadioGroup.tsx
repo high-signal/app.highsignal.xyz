@@ -101,7 +101,7 @@ const SharingRadioGroup = ({ settings, setSettings, sharingValidationError }: Sh
                                 borderColor: "transparent",
                                 textColor: "blue.100",
                                 itemBackground: "contentBackground",
-                                tip: "Private addresses are not visible to other users or projects.",
+                                tip: "Not visible to other users or projects.",
                             },
                             {
                                 selected:
@@ -113,7 +113,7 @@ const SharingRadioGroup = ({ settings, setSettings, sharingValidationError }: Sh
                                 borderColor: "transparent",
                                 textColor: "white",
                                 itemBackground: "contentBackground",
-                                tip: "Public addresses are visible to everyone.",
+                                tip: "Visible to everyone.",
                             },
                             {
                                 selected:
@@ -125,7 +125,7 @@ const SharingRadioGroup = ({ settings, setSettings, sharingValidationError }: Sh
                                 borderColor: "transparent",
                                 textColor: "white",
                                 itemBackground: "contentBackground",
-                                tip: "Share this address with selected projects.",
+                                tip: "Shared with selected projects.",
                             },
                         ].map((option) => (
                             <HStack key={option.value} gap={4} alignItems={{ base: "start", sm: "center" }}>

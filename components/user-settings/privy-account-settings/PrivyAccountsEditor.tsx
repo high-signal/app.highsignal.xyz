@@ -177,9 +177,6 @@ export default function PrivyAccountsEditor({
             disabled={!hasChanges || isSaving || !!sharingValidationError}
         >
             <VStack w={"100%"} alignItems={"start"} gap={3}>
-                <Text fontWeight={"bold"} fontSize={"md"} pl={1}>
-                    Sharing settings
-                </Text>
                 <SharingRadioGroup
                     settings={settings}
                     setSettings={setSettings}

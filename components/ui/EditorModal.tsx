@@ -15,6 +15,7 @@ interface EditorModalProps {
     isSaving?: boolean
     handleSave?: () => void
     disabled?: boolean
+    maxWidth?: string
 }
 
 export default function EditorModal({
@@ -27,10 +28,11 @@ export default function EditorModal({
     isSaving,
     handleSave,
     disabled,
+    maxWidth = "600px",
 }: EditorModalProps) {
     return (
         <Modal open={isOpen} close={handleClose} closeOnInteractOutside={!hasChanges}>
-            <Dialog.Content borderRadius={{ base: "0px", sm: "16px" }} p={0} bg={"pageBackground"} maxW={"900px"}>
+            <Dialog.Content borderRadius={{ base: "0px", sm: "16px" }} p={0} bg={"pageBackground"} maxW={maxWidth}>
                 <Dialog.Header>
                     <Dialog.Title maxW={"100%"}>
                         <HStack flexWrap="wrap" pr={5}>
