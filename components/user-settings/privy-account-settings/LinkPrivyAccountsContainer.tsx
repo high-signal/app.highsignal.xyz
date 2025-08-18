@@ -20,6 +20,7 @@ export interface LinkPrivyAccountsContainerProps {
     loginOnly?: boolean
     lozengeTypes?: LozengeType[]
     sharingConfig?: UserPublicOrSharedAccount
+    privyCallbackLinkMethod: string | null
 }
 
 export interface PrivyAccountConfig {
@@ -37,75 +38,13 @@ export default function LinkPrivyAccountsContainer({
     loginOnly = false,
     lozengeTypes = [],
     sharingConfig,
+    privyCallbackLinkMethod,
 }: LinkPrivyAccountsContainerProps) {
     // **********************************
     // ADD ADDITIONAL ACCOUNT TYPES HERE
     // **********************************
-    const router = useRouter()
-
     const { linkEmail, linkDiscord, linkTwitter, linkFarcaster, linkGithub, linkGoogle, linkTelegram, linkPasskey } =
-        useLinkAccount({
-            onSuccess: async ({ linkMethod }) => {
-                if (linkMethod === accountConfig.privyLinkMethod.split("_")[0]) {
-                    // Call the API to update the Privy accounts
-                    const token = await getAccessToken()
-                    await fetch(`/api/settings/u/accounts/privy-accounts?username=${targetUser.username}`, {
-                        method: "PATCH",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                    })
-
-                    // Refresh the user data to update the targetUser state
-                    await refreshUser()
-
-                    // Reset the connection state
-                    setIsSubmitting(false)
-                    setIsConnected(true)
-                    setIsConnectedLoading(false)
-
-                    toaster.create({
-                        title: `✅ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account ownership confirmed`,
-                        description: `You have successfully confirmed ownership of your ${accountConfig.displayName} account.`,
-                        type: "success",
-                    })
-
-                    // TODO: Add other signal strengths scoring accounts here when enabled
-                    if (linkMethod === "discord") {
-                        const token = await getAccessToken()
-                        await fetch(`/api/settings/u/accounts/privy-accounts?username=${targetUser.username}`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                        })
-
-                        toaster.create({
-                            title: `⏳ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account processing started.`,
-                            type: "success",
-                            action: {
-                                label: `View your Signal Scores here`,
-                                onClick: () => router.push(`/u/${targetUser?.username}`),
-                            },
-                        })
-                    }
-                }
-            },
-            onError: (error) => {
-                // Passkey seems to throw an error even when it succeeds
-                if (isSubmitting && accountConfig.type !== "passkey") {
-                    console.error(`Failed to link ${accountConfig.type}:`, error)
-                    toaster.create({
-                        title: `❌ Error confirming ${accountConfig.displayName} account`,
-                        description: `Failed to confirm ownership of your ${accountConfig.displayName} account. Please try again.`,
-                        type: "error",
-                    })
-                }
-                setIsSubmitting(false)
-            },
-        })
+        useLinkAccount()
 
     // **********************************
     // ADD ADDITIONAL ACCOUNT TYPES HERE
@@ -123,14 +62,81 @@ export default function LinkPrivyAccountsContainer({
     } = usePrivy()
 
     const { refreshUser } = useUser()
+    const router = useRouter()
 
     const [isConnected, setIsConnected] = useState(false)
     const [isConnectedLoading, setIsConnectedLoading] = useState(true)
     const [accountUsername, setAccountUsername] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [showConfirmDelete, setShowConfirmDelete] = useState(false)
-
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+
+    const [hasCallbackBeenHandled, setHasCallbackBeenHandled] = useState(false)
+
+    // Handle Privy callback
+    useEffect(() => {
+        const handleCallback = async () => {
+            // Call the API to update the Privy accounts
+            const token = await getAccessToken()
+            await fetch(`/api/settings/u/accounts/privy-accounts?username=${targetUser.username}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+
+            // Refresh the user data to update the targetUser state
+            await refreshUser()
+
+            // Reset the connection state
+            setIsSubmitting(false)
+            setIsConnected(true)
+            setIsConnectedLoading(false)
+
+            toaster.create({
+                title: `✅ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account ownership confirmed`,
+                description: `You have successfully confirmed ownership of your ${accountConfig.displayName} account.`,
+                type: "success",
+            })
+
+            // **********************************
+            // ADD ADDITIONAL ACCOUNT TYPES HERE
+            // **********************************
+            if (privyCallbackLinkMethod === "discord") {
+                const token = await getAccessToken()
+                await fetch(`/api/settings/u/accounts/privy-accounts?username=${targetUser.username}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                })
+
+                toaster.create({
+                    title: `⏳ ${accountConfig.displayName.charAt(0).toUpperCase() + accountConfig.displayName.slice(1)} account processing started.`,
+                    type: "success",
+                    action: {
+                        label: `View your Signal Scores here`,
+                        onClick: () => router.push(`/u/${targetUser?.username}`),
+                    },
+                })
+            }
+        }
+
+        if (!hasCallbackBeenHandled && privyCallbackLinkMethod === accountConfig.privyLinkMethod.split("_")[0]) {
+            handleCallback()
+            setHasCallbackBeenHandled(true)
+        }
+    }, [
+        privyCallbackLinkMethod,
+        accountConfig,
+        isSubmitting,
+        refreshUser,
+        targetUser.username,
+        router,
+        hasCallbackBeenHandled,
+    ])
 
     // Check if the user is connected to the account type
     useEffect(() => {

@@ -14,7 +14,13 @@ import WalletAccountsContainer from "./wallet-settings/WalletAccountsContainer"
 import { getAccessToken } from "@privy-io/react-auth"
 import Divider from "../ui/Divider"
 
-export default function ConnectedAccountsContainer({ targetUser }: { targetUser: UserData }) {
+export default function ConnectedAccountsContainer({
+    targetUser,
+    privyCallbackLinkMethod,
+}: {
+    targetUser: UserData
+    privyCallbackLinkMethod: string | null
+}) {
     const { loggedInUser } = useUser()
 
     const isOwner = loggedInUser?.username === targetUser.username
@@ -80,6 +86,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                         sharingConfig={
                             publicAndSharedUserAccounts.find((account) => account.type === "email") || { type: "email" }
                         }
+                        privyCallbackLinkMethod={privyCallbackLinkMethod}
                     />
                     <Divider />
                     <ForumAccountsContainer targetUser={targetUser} disabled={!isOwner} />
@@ -101,6 +108,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     type: "discord_username",
                                 }
                             }
+                            privyCallbackLinkMethod={privyCallbackLinkMethod}
                         />
                         <LinkPrivyAccountsContainer
                             targetUser={targetUser}
@@ -118,6 +126,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     type: "x_username",
                                 }
                             }
+                            privyCallbackLinkMethod={privyCallbackLinkMethod}
                         />
                         <LinkPrivyAccountsContainer
                             targetUser={targetUser}
@@ -137,6 +146,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     type: "farcaster_username",
                                 }
                             }
+                            privyCallbackLinkMethod={privyCallbackLinkMethod}
                         />
                     </SettingsGroupContainer>
                     <Divider />
@@ -166,6 +176,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     //         type: "github",
                                     //     }
                                     // }
+                                    privyCallbackLinkMethod={privyCallbackLinkMethod}
                                 />
                                 <LinkPrivyAccountsContainer
                                     targetUser={targetUser}
@@ -182,6 +193,7 @@ export default function ConnectedAccountsContainer({ targetUser }: { targetUser:
                                     //         type: "google",
                                     //     }
                                     // }
+                                    privyCallbackLinkMethod={privyCallbackLinkMethod}
                                 />
                                 {/* TODO: This gives a 401 error when trying to log in and I have no idea why */}
                                 {/* <LinkPrivyAccountsContainer
