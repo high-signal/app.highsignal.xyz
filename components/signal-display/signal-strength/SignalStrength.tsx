@@ -281,11 +281,16 @@ export default function SignalStrength({
                 )}
             {!userDataRefreshTriggered && countdown === -2 && (
                 <VStack w="100%" gap={2} px={2} textAlign={"center"} color="textColorMuted">
-                    <Text>
-                        {`It's taking longer than expected to calculate your score, probably because you have a lot of
+                    {loggedInUser?.username === username && (
+                        <Text>
+                            {`It's taking longer than expected to calculate your score, probably because you have a lot of
                         activity!`}
+                        </Text>
+                    )}
+                    <Text>
+                        Check back later to see {loggedInUser?.username === username ? "your" : "the"} calculated Signal
+                        Score.
                     </Text>
-                    <Text>Come back later to see your calculated Signal Score.</Text>
                 </VStack>
             )}
             {signalStrengthProjectData.enabled && userContentAvailable && !countdown && !userDataRefreshTriggered && (
