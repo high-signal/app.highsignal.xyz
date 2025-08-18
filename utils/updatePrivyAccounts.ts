@@ -33,9 +33,9 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
 
                 const privyUser = await privyResponse.json()
 
-                // ******************************************************
+                // *******************************************************
                 // Process each auth type mapping for users table columns
-                // ******************************************************
+                // *******************************************************
                 for (const [authType, mappings] of Object.entries(AUTH_TYPE_MAPPING)) {
                     for (const { dbColumn, privyField } of mappings) {
                         // Find the account from linked_accounts
@@ -127,10 +127,10 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
                     }
                 }
 
-                // ***************************************************************************
-                // Handle wallet address even if there are no connected addresses as it needs
+                // ****************************************************************************
+                // Handle wallet address even if there are not connected addresses as it needs
                 // to try to delete any that might have been removed from the Privy user
-                // ***************************************************************************
+                // ****************************************************************************
 
                 // Get the target user from the users table
                 const { data: targetUser, error: targetUserError } = await supabase

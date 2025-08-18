@@ -24,6 +24,7 @@ interface UserData {
     xUsername?: string
     farcasterUsername?: string
     userAddresses?: UserAddressConfig[]
+    timestamp?: number
 }
 
 interface UserAddressConfig {
@@ -101,6 +102,7 @@ interface SignalStrengthUserData {
     rawValue?: number
     testRequestingUser?: number
     scoreCalculationPeriodPreviousDays?: number // Usually previousDays but made more verbose for the public API
+    timestamp?: number
 }
 
 interface ProjectData {

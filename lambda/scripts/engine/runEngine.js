@@ -3,7 +3,7 @@ const { getSignalStrengthData } = require("./db/getSignalStrengthData")
 const { getSignalStrengthConfig } = require("./db/getSignalStrengthConfig")
 const { getExistingUserRawData } = require("./db/getExistingUserRawData")
 
-const { setLastChecked, clearLastChecked } = require("./utils/lastCheckedUtils")
+const { setLastChecked } = require("./utils/lastCheckedUtils")
 const { getRawActivityCombinedData } = require("./utils/getRawActivityCombinedData")
 const { checkProjectSignalStrengthEnabled } = require("./utils/checkProjectSignalStrengthEnabled")
 const { checkRawScoreCalculationsRequired } = require("./utils/checkRawScoreCalculationsRequired")
@@ -56,8 +56,8 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
         // =================
         // Set last checked as soon as it is known that
         // the signal strength is enabled for the project.
-        if (!testingData) {
-            setLastChecked({ supabase, userId, projectId, signalStrengthId })
+        if (!testingData && type !== "raw_score") {
+            setLastChecked({ supabase, userId, projectId, signalStrengthId, dayDate })
         }
 
         // ====================================
@@ -247,8 +247,6 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
             console.error("🚨 Error in runEngine:", error)
         }
         throw error
-    } finally {
-        clearLastChecked({ supabase, userId, projectId, signalStrengthId })
     }
 }
 

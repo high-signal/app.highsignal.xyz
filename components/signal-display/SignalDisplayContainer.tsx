@@ -25,6 +25,20 @@ export default function SignalDisplayContainer({ project, username }: { project:
     const [noUsersFound, setNoUsersFound] = useState(false)
     const [noProjectsFound, setNoProjectsFound] = useState(false)
 
+    const [isSignalStrengthLoading, setIsSignalStrengthLoading] = useState(false)
+
+    // If lastChecked for any of the signal strengths is less than X seconds ago, set isSignalStrengthLoading to true
+    useEffect(() => {
+        const isSignalStrengthLoading = (currentUser?.signalStrengths || []).some((signalStrength) => {
+            if (signalStrength.data[0].lastChecked) {
+                return true
+            } else {
+                return false
+            }
+        })
+        setIsSignalStrengthLoading(isSignalStrengthLoading)
+    }, [currentUser])
+
     // Check if the logged in user has access to the target user data
     useEffect(() => {
         if (!loggedInUserLoading) {
@@ -144,8 +158,10 @@ export default function SignalDisplayContainer({ project, username }: { project:
                         username={currentUser.username || ""}
                     />
                     <Box w="100%" h={{ base: "30px", sm: "20px" }} />
-                    <CurrentSignal currentUser={currentUser} />
-                    <SignalScoreDescription currentUser={currentUser} projectData={currentProject} />
+                    <CurrentSignal currentUser={currentUser} isSignalStrengthLoading={isSignalStrengthLoading} />
+                    {!isSignalStrengthLoading && (
+                        <SignalScoreDescription currentUser={currentUser} projectData={currentProject} />
+                    )}
                 </VStack>
                 {currentProject.peakSignalsEnabled && (
                     <PeakSignalsContainer

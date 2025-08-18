@@ -1,5 +1,6 @@
 const { analyzeUserData } = require("./ai/analyzeUserData")
 const { updateUserData } = require("./db/updateUserData")
+const { clearLastChecked } = require("./utils/lastCheckedUtils")
 
 async function processSmartScores({
     supabase,
@@ -60,17 +61,14 @@ async function processSmartScores({
         logs,
     })
 
-    // === Validity check on maxValue ===
     if (analysisResults && !analysisResults.error) {
-        // TODO: Check that this is working for both smart and raw scores
+        // === Validity check on maxValue ===
         if (analysisResults[signalStrengthUsername].value > maxValue) {
             console.log(`User ${signalStrengthUsername} has a score greater than ${maxValue}. Setting to ${maxValue}.`)
             analysisResults[signalStrengthUsername].value = maxValue
         }
-    }
 
-    // === Store the analysis results in the database ===
-    if (analysisResults && !analysisResults.error) {
+        // === Store the analysis results in the database ===
         await updateUserData({
             supabase,
             projectId,
@@ -83,6 +81,9 @@ async function processSmartScores({
             isRawScoreCalc: false,
             dayDate: dayDate,
         })
+
+        // Clear last_checked value when smart score is complete
+        clearLastChecked({ supabase, userId, projectId, signalStrengthId })
     } else {
         console.error(`Analysis failed for ${signalStrengthUsername}:`, analysisResults?.error || "Unknown error")
     }

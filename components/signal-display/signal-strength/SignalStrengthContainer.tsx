@@ -82,6 +82,7 @@ export default function SignalStrengthContainer({
                                 improvements: "",
                             }
                         }
+                        timestamp={currentUser.timestamp || 0}
                         projectData={projectData}
                         signalStrengthProjectData={signalStrengthProjectData}
                         refreshUserData={refreshUserData}

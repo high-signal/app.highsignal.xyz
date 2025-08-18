@@ -1,4 +1,4 @@
-async function setLastChecked({ supabase, userId, projectId, signalStrengthId }) {
+async function setLastChecked({ supabase, userId, projectId, signalStrengthId, dayDate }) {
     // Set the last_checked value so that the user profile page shows the loading animation
     // even when this update is triggered automatically each day
 
@@ -9,6 +9,7 @@ async function setLastChecked({ supabase, userId, projectId, signalStrengthId })
                 project_id: projectId,
                 signal_strength_id: signalStrengthId,
                 last_checked: Math.floor(Date.now() / 1000),
+                day: dayDate,
                 request_id: `last_checked_${userId}_${projectId}_${signalStrengthId}`,
                 created: 99999999999999,
             },
