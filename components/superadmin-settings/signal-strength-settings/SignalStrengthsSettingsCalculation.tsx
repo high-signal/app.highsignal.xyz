@@ -436,6 +436,7 @@ export default function SignalStrengthsSettingsCalculation({
                                         maxValue: 0,
                                     }
                                 }
+                                timestamp={selectedSignalStrengthViewer.timestamp || 0}
                                 projectData={project}
                                 signalStrengthProjectData={
                                     project.signalStrengths?.find((s) => s.name === signalStrength.name)!
@@ -522,6 +523,7 @@ export default function SignalStrengthsSettingsCalculation({
                                         maxValue: 0,
                                     }
                                 }
+                                timestamp={selectedTestSignalStrengthViewer?.timestamp || 0}
                                 projectData={project!}
                                 signalStrengthProjectData={
                                     project?.signalStrengths?.find((s) => s.name === signalStrength.name)!
