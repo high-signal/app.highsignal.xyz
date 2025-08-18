@@ -17,7 +17,7 @@ export default function WalletAccountsContainer({ targetUser, disabled }: { targ
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const { linkWallet } = useLinkAccount({
-        onSuccess: async () => {
+        onSuccess: async ({ linkMethod }) => {
             // Call the API to update the Privy accounts
             const token = await getAccessToken()
             await fetch(`/api/settings/u/accounts/privy-accounts?username=${targetUser.username}`, {
@@ -34,11 +34,15 @@ export default function WalletAccountsContainer({ targetUser, disabled }: { targ
             // Reset the submitting state
             setIsSubmitting(false)
 
-            toaster.create({
-                title: `✅ Address confirmed`,
-                description: `You have successfully confirmed ownership of your address.`,
-                type: "success",
-            })
+            // siwe is the linkMethod for the wallet address
+            // TODO: There could be others, this is from MetaMask
+            if (linkMethod === "siwe") {
+                toaster.create({
+                    title: `✅ Address confirmed`,
+                    description: `You have successfully confirmed ownership of your address.`,
+                    type: "success",
+                })
+            }
         },
         onError: (error) => {
             console.error(`Failed to link address:`, error)
