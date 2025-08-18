@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { VStack, Text, Spinner } from "@chakra-ui/react"
 
 import { useUser } from "../../contexts/UserContext"
-import { usePrivy } from "@privy-io/react-auth"
+import { useLinkAccount, usePrivy } from "@privy-io/react-auth"
 
 import ContentContainer from "../layout/ContentContainer"
 import ConnectedAccountsContainer from "./ConnectedAccountsContainer"
@@ -20,6 +20,22 @@ export default function UserSettingsContainer() {
     const [targetUser, setTargetUser] = useState<UserData | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+
+    const [privyCallbackLinkMethod, setPrivyCallbackLinkMethod] = useState<string | null>(null)
+
+    // Catch Privy callback at the top level component
+    // as the loading state blocks the components using it fast enough
+    useLinkAccount({
+        onSuccess: async ({ linkMethod }) => {
+            setPrivyCallbackLinkMethod(linkMethod)
+        },
+        onError: () => {
+            // Passkey seems to throw an error even when it succeeds
+            if (!privyCallbackLinkMethod) {
+                console.error(`Failed to link account`)
+            }
+        },
+    })
 
     // Get user data
     useEffect(() => {
@@ -110,7 +126,12 @@ export default function UserSettingsContainer() {
                     {
                         value: "accounts",
                         label: "Accounts",
-                        content: <ConnectedAccountsContainer targetUser={targetUser} />,
+                        content: (
+                            <ConnectedAccountsContainer
+                                targetUser={targetUser}
+                                privyCallbackLinkMethod={privyCallbackLinkMethod}
+                            />
+                        ),
                     },
                 ]}
             />
