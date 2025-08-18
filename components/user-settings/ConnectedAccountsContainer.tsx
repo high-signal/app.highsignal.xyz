@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 
-import { Spinner, VStack, Text, Box } from "@chakra-ui/react"
+import { Spinner, VStack, Text } from "@chakra-ui/react"
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import ForumAccountsContainer from "./forum-settings/ForumAccountsContainer"
 import LinkPrivyAccountsContainer from "./privy-account-settings/LinkPrivyAccountsContainer"

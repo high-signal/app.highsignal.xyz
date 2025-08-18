@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js"
 import { updatePrivyAccounts } from "../../../../../../utils/updatePrivyAccounts"
 import { sanitize } from "../../../../../../utils/sanitize"
 import { NextRequest, NextResponse } from "next/server"
+import { triggerLambda } from "../../../../../../utils/lambda-utils/triggerLambda"
 
 // This function is used to get the public and shared user accounts for a user
 export async function GET(request: NextRequest) {
@@ -296,4 +297,40 @@ export async function DELETE(request: NextRequest) {
     console.log(`⚠️ High Signal user account deleted: ${targetUsername}`)
 
     return NextResponse.json({ message: `User account deleted: ${targetUsername}` })
+}
+
+// This function is used to trigger initial data processing for a user
+export async function POST(request: NextRequest) {
+    const targetUsername = request.nextUrl.searchParams.get("username")
+    if (!targetUsername) {
+        return NextResponse.json({ error: "Username is required" }, { status: 400 })
+    }
+
+    const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+    // TODO: Add other signal strengths here
+    const { error: addSingleUserDiscordAllProjectsToAiQueueError } = await supabase.rpc(
+        "add_single_user_discord_all_projects_to_ai_queue",
+        {
+            p_username: targetUsername,
+        },
+    )
+
+    if (addSingleUserDiscordAllProjectsToAiQueueError) {
+        const errorMessage = `Failed to add single user Discord all projects to AI queue: ${addSingleUserDiscordAllProjectsToAiQueueError.message}`
+        console.error(errorMessage)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+
+    const runAiGovernorResponse = await triggerLambda({
+        functionType: "runAiGovernor",
+    })
+
+    if (!runAiGovernorResponse.success) {
+        const errorMessage = `Failed to run AI governor: ${runAiGovernorResponse.message}`
+        console.error(errorMessage)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+
+    return NextResponse.json({ message: "Analysis started", success: true, status: 200 })
 }
