@@ -47,10 +47,12 @@ export async function connectAccountLambdaTrigger({
         projectId,
         signalStrengthUsername: signalStrengthUsername,
     })
+
     if (!analysisResponse.success) {
         console.error("Failed to start analysis:", analysisResponse.message)
         throw new Error(analysisResponse.message)
     }
+
     // Trigger the runAiGovernor lambda to run the engine.
     console.log("runAiGovernor for:", signalStrengthUsername)
     const runAiGovernorResponse = await triggerLambda({
