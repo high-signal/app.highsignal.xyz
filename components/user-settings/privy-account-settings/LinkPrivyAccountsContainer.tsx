@@ -43,7 +43,10 @@ export default function LinkPrivyAccountsContainer({
     const { linkEmail, linkDiscord, linkTwitter, linkFarcaster, linkGithub, linkGoogle, linkTelegram, linkPasskey } =
         useLinkAccount({
             onSuccess: async ({ linkMethod }) => {
-                if (linkMethod === accountConfig.privyLinkMethod) {
+                if (
+                    linkMethod === accountConfig.privyLinkMethod ||
+                    (accountConfig.privyLinkMethod === "discord_oauth" && linkMethod === "discord") // TODO: Make generic
+                ) {
                     // Call the API to update the Privy accounts
                     const token = await getAccessToken()
                     await fetch(`/api/settings/u/accounts/privy-accounts?username=${targetUser.username}`, {
@@ -332,7 +335,7 @@ export default function LinkPrivyAccountsContainer({
                 lozengeTypes={lozengeTypes}
                 loginOnly={loginOnly}
                 onEditButton={
-                    disabled || !sharingConfig
+                    disabled || !isConnected || !sharingConfig
                         ? undefined
                         : () => {
                               setIsEditModalOpen(true)
