@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, Text, Button } from "@chakra-ui/react"
+import { VStack, Text, Button, Box } from "@chakra-ui/react"
 
 import { useUser } from "../../../contexts/UserContext"
 import { toaster } from "../../ui/toaster"
@@ -64,23 +64,25 @@ export default function WalletAccountsContainer({ targetUser, disabled }: { targ
                     users.
                 </Text>
             </VStack>
-            <Button
-                primaryButton
-                h={"35px"}
-                w={"100%"}
-                borderRadius="full"
-                onClick={() => {
-                    setIsSubmitting(true)
-                    linkWallet()
-                }}
-                fontWeight="bold"
-                disabled={disabled}
-                loading={isSubmitting}
-            >
-                Confirm a
-                {targetUser && targetUser?.userAddresses && targetUser?.userAddresses?.length > 0 ? "nother" : "n"}{" "}
-                address
-            </Button>
+            <Box px={3} w="100%">
+                <Button
+                    primaryButton
+                    h={"35px"}
+                    w={"100%"}
+                    borderRadius="full"
+                    onClick={() => {
+                        setIsSubmitting(true)
+                        linkWallet()
+                    }}
+                    fontWeight="bold"
+                    disabled={disabled}
+                    loading={isSubmitting}
+                >
+                    Confirm a
+                    {targetUser && targetUser?.userAddresses && targetUser?.userAddresses?.length > 0 ? "nother" : "n"}{" "}
+                    address
+                </Button>
+            </Box>
             {targetUser.userAddresses
                 ?.sort((a, b) => {
                     // If both have addressName, sort alphabetically

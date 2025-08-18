@@ -146,7 +146,7 @@ const LeaderboardRow = ({
             <Table.Cell
                 borderBottom="none"
                 py={"6px"}
-                pr={0}
+                pr={"2px"}
                 maxW={displayNameColumnWidth}
                 borderLeftRadius={mode === "projects" ? "full" : "none"}
             >
