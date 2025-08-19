@@ -1,6 +1,6 @@
 "use client"
 
-import { HStack, Text, Box, Image, Spinner, Table } from "@chakra-ui/react"
+import { HStack, VStack, Text, Box, Image, Spinner, Table } from "@chakra-ui/react"
 import { useState, useRef, useEffect } from "react"
 import SingleLineTextInput from "./SingleLineTextInput"
 import { useGetUsers } from "../../hooks/useGetUsers"
@@ -228,7 +228,7 @@ export default function UserPicker({
                                                 onUserSelect(user)
                                             }}
                                         >
-                                            <Table.Cell minW={"100px"} maxW={"100px"} overflow={"hidden"} py={2}>
+                                            <Table.Cell minW={"100px"} maxW={"100px"} overflow={"hidden"} py={"1px"}>
                                                 <HStack>
                                                     <Image
                                                         src={
@@ -242,9 +242,18 @@ export default function UserPicker({
                                                         w="25px"
                                                         borderRadius="full"
                                                     />
-                                                    <Text wordBreak="break-all" overflowWrap="break-word">
-                                                        {user.username}
-                                                    </Text>
+                                                    <VStack gap={0} alignItems={"flex-start"}>
+                                                        <Text wordBreak="break-all" overflowWrap="break-word">
+                                                            {user.displayName}
+                                                        </Text>
+                                                        <Text
+                                                            wordBreak="break-all"
+                                                            overflowWrap="break-word"
+                                                            color="textColorMuted"
+                                                        >
+                                                            {user.username}
+                                                        </Text>
+                                                    </VStack>
                                                 </HStack>
                                             </Table.Cell>
                                             {signalStrengths.map((signalStrength) => (
@@ -314,11 +323,12 @@ export default function UserPicker({
                             Error loading users
                         </Text>
                     ) : users && users.length === 0 && searchTerm.length >= 1 ? (
-                        <Text p={2}>No users found</Text>
+                        <Text px={2} py={"8.5px"}>
+                            No users found
+                        </Text>
                     ) : (
                         users &&
                         users
-                            .sort((a, b) => (a.username || "").localeCompare(b.username || ""))
                             .filter(
                                 (user, index, self) => index === self.findIndex((u) => u.username === user.username),
                             )
