@@ -193,7 +193,7 @@ export default function GeneralSettingsContainer({ project }: { project: Project
                     }
                 }}
             />
-            <Box bg={"pageBackground"} w="100%" h={"fit-content"}>
+            <Box bg={"pageBackground"} w="100%" h={"fit-content"} px={3}>
                 <Button
                     primaryButton
                     onClick={saveChanges}

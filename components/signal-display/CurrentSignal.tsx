@@ -1,9 +1,7 @@
 "use client"
 
-import { VStack, HStack, Text, Box, Span, Spinner, Skeleton } from "@chakra-ui/react"
+import { VStack, HStack, Text, Box, Span, Skeleton } from "@chakra-ui/react"
 import { calculateSignalPercentageFromName, calculateSignalThresholdFromName } from "../../utils/calculateSignal"
-import { useEffect, useState } from "react"
-import { APP_CONFIG } from "../../config/constants"
 
 export default function CurrentSignal({
     currentUser,

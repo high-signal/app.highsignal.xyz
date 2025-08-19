@@ -100,7 +100,7 @@ async function analyzeUserData({
         return { error: "No max_chars set in DB" }
     }
 
-    // If filteredActivityData is empty, return null
+    // If userData is empty, return a zero score
     if (userData.length === 0) {
         console.log(`⚠️ No activity in the past ${previousDays} days`)
         return {

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
+import { faDiscord, faXTwitter, faDiscourse } from "@fortawesome/free-brands-svg-icons"
 import { useState, useEffect } from "react"
 
 import { useUser } from "../../../contexts/UserContext"
@@ -13,6 +14,14 @@ import { usePrivy } from "@privy-io/react-auth"
 import { APP_CONFIG } from "../../../config/constants"
 import { useRouter } from "next/navigation"
 import { Lozenges } from "../../ui/Lozenges"
+
+// Define signalStrengthIcons
+const signalStrengthIcons = {
+    discourse_forum: faDiscourse,
+    discord: faDiscord,
+    x_twitter: faXTwitter,
+} as const
+type SignalStrengthName = keyof typeof signalStrengthIcons
 
 const SignalStrengthLozenge = ({ children }: { children: React.ReactNode }) => (
     <HStack flexGrow={1} justifyContent={{ base: "center", sm: "end" }}>
@@ -146,6 +155,9 @@ export default function SignalStrength({
         }
     }, [signalStrengthProjectData.name])
 
+    // Get the icon based on signalStrengthProjectData.name
+    const icon = signalStrengthIcons[signalStrengthProjectData.name as SignalStrengthName]
+
     return (
         <VStack
             alignItems={"center"}
@@ -158,7 +170,7 @@ export default function SignalStrength({
             borderRadius={{ base: 0, sm: "16px" }}
         >
             <HStack
-                alignItems={userDataRefreshTriggered ? "center" : "baseline"}
+                alignItems={"center"}
                 py={2}
                 px={4}
                 justifyContent={{ base: "center", sm: !signalStrengthProjectData.enabled ? "space-between" : "center" }}
@@ -166,18 +178,21 @@ export default function SignalStrength({
                 borderColor={"pageBackground"}
                 borderRadius={"12px"}
                 columnGap={3}
-                rowGap={1}
+                rowGap={2}
                 w="100%"
                 flexWrap={"wrap"}
             >
-                <Text
-                    as="a"
-                    id={signalStrengthProjectData.name}
-                    fontSize="xl"
-                    color={!signalStrengthProjectData.enabled ? "textColorMuted" : undefined}
-                >
-                    {signalStrengthProjectData.displayName}
-                </Text>
+                <HStack gap={3} alignItems={"center"} justifyContent={"center"} w={{ base: "100%", sm: "auto" }}>
+                    {icon && <FontAwesomeIcon icon={icon} size="lg" />}
+                    <Text
+                        as="a"
+                        id={signalStrengthProjectData.name}
+                        fontSize="xl"
+                        color={!signalStrengthProjectData.enabled ? "textColorMuted" : undefined}
+                    >
+                        {signalStrengthProjectData.displayName}
+                    </Text>
+                </HStack>
                 {!countdown &&
                     !userDataRefreshTriggered &&
                     signalStrengthProjectData.status === "active" &&
@@ -281,11 +296,16 @@ export default function SignalStrength({
                 )}
             {!userDataRefreshTriggered && countdown === -2 && (
                 <VStack w="100%" gap={2} px={2} textAlign={"center"} color="textColorMuted">
-                    <Text>
-                        {`It's taking longer than expected to calculate your score, probably because you have a lot of
+                    {loggedInUser?.username === username && (
+                        <Text>
+                            {`It's taking longer than expected to calculate your score, probably because you have a lot of
                         activity!`}
+                        </Text>
+                    )}
+                    <Text>
+                        Check back later to see {loggedInUser?.username === username ? "your" : "the"} calculated Signal
+                        Score.
                     </Text>
-                    <Text>Come back later to see your calculated Signal Score.</Text>
                 </VStack>
             )}
             {signalStrengthProjectData.enabled && userContentAvailable && !countdown && !userDataRefreshTriggered && (

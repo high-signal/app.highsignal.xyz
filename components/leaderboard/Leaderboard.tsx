@@ -12,7 +12,7 @@ import { useUser } from "../../contexts/UserContext"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { useGetProjects } from "../../hooks/useGetProjects"
 
-import { ASSETS, APP_CONFIG } from "../../config/constants"
+import { ASSETS } from "../../config/constants"
 
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import LeaderboardPagination from "./LeaderboardPagination"
@@ -80,16 +80,18 @@ const LeaderboardRow = ({
     const userData = mode === "projects" ? getUserDataForProject((item as ProjectData).urlSlug) : null
 
     const scoreData = mode === "users" ? (item as UserData) : (userData as UserData)
+
     const isScoreCalculating =
         scoreData?.signalStrengths?.some((strength) =>
             strength.data?.some((dataPoint) => {
-                if (!dataPoint.lastChecked) return false
-                const now = Date.now()
-                const lastCheckedTime = dataPoint.lastChecked * 1000 // Convert to ms
-                const timeElapsed = now - lastCheckedTime
-                return timeElapsed < APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
+                if (dataPoint.lastChecked) {
+                    return true
+                }
+                return false
             }),
-        ) || false
+        ) ||
+        scoreData?.lastChecked ||
+        false
 
     const isScoreZero = mode === "users" ? ((item as UserData).score ?? 0) === 0 : (userData?.score ?? 0) === 0
 
@@ -146,7 +148,7 @@ const LeaderboardRow = ({
             <Table.Cell
                 borderBottom="none"
                 py={"6px"}
-                pr={0}
+                pr={"2px"}
                 maxW={displayNameColumnWidth}
                 borderLeftRadius={mode === "projects" ? "full" : "none"}
             >

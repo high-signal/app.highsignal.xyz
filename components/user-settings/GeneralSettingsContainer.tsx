@@ -214,7 +214,7 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
                     }
                 }}
             />
-            <Box bg={"pageBackground"} w="100%" h={"fit-content"}>
+            <Box bg={"pageBackground"} w="100%" h={"fit-content"} px={3}>
                 <Button
                     primaryButton
                     onClick={saveChanges}
@@ -229,7 +229,9 @@ export default function GeneralSettingsContainer({ targetUser }: { targetUser: U
             </Box>
             <Box h={4} />
             <Divider />
-            <DeleteAccountContainer targetUser={targetUser} />
+            <Box px={3} w="100%">
+                <DeleteAccountContainer targetUser={targetUser} />
+            </Box>
         </SettingsSectionContainer>
     )
 }
