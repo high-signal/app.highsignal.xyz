@@ -5,7 +5,6 @@ require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { DiscordRestApi } = require("./discordRestApi")
 const { handleTriggerDiscordQueueItem } = require("./handleTriggerDiscordQueueItem")
-const { clearLastChecked } = require("../../engine/utils/lastCheckedUtils")
 
 // ==========
 // Constants
@@ -247,12 +246,6 @@ async function runDiscordGovernor() {
                     } else {
                         // If the number of attempts is MAX_ATTEMPTS or more, skip it.
                         console.error(`‼️ ERROR LIMIT REACHED for queue item ${currentQueueItem[0].id}. Skipping.`)
-                        await clearLastChecked({
-                            supabase,
-                            userId: currentQueueItem[0].user_id,
-                            projectId: currentQueueItem[0].project_id,
-                            signalStrengthId: currentQueueItem[0].signal_strength_id,
-                        })
                         continue
                     }
                 }
