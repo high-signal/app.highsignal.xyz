@@ -83,7 +83,7 @@ async function processSmartScores({
         })
 
         // Clear last_checked value when smart score is complete
-        clearLastChecked({ supabase, userId, projectId, signalStrengthId })
+        await clearLastChecked({ supabase, userId, projectId, signalStrengthId })
     } else {
         console.error(`Analysis failed for ${signalStrengthUsername}:`, analysisResults?.error || "Unknown error")
     }

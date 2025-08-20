@@ -107,7 +107,7 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
             // The console error is handled in the adapter.
             // This just exits the function as there is nothing to do,
             // but it still counts as a "completed" queue item.
-            clearLastChecked({ supabase, userId, projectId, signalStrengthId })
+            await clearLastChecked({ supabase, userId, projectId, signalStrengthId })
             return
         }
 
