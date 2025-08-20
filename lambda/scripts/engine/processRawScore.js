@@ -22,7 +22,7 @@ async function processRawScore({
     if (!dayData || dayData.data.length === 0) {
         // This should not happen as this raw_score queue item should not be created if there is no activity data.
         const errorMessage = `No activity data found for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate}`
-        console.error(errorMessage)
+        console.log(errorMessage)
         throw new Error(errorMessage)
     }
 

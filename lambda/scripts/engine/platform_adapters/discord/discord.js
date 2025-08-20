@@ -61,7 +61,7 @@ async function getDailyActivityData({
 
     // If no activity data is found, return an empty array and adapter logs.
     if (!activityData || activityData.length === 0) {
-        console.error(`⚠️ No activity data found for ${userDisplayName} (Discord username: ${discordUsername})`)
+        console.log(`📭 No activity data found for ${userDisplayName} (Discord username: ${discordUsername})`)
         return { dailyActivityData: [], adapterLogs }
     }
 

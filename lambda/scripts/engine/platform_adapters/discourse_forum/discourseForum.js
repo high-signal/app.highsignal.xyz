@@ -45,7 +45,7 @@ async function getDailyActivityData({
     adapterLogs += `\nTotal API activities:  ${activityData?.length || 0}`
 
     if (!activityData || activityData.length === 0) {
-        console.error(`No activity data found for ${userDisplayName} (forum username: ${forum_username})`)
+        console.log(`📭 No activity data found for ${userDisplayName} (forum username: ${forum_username})`)
         return
     }
 
