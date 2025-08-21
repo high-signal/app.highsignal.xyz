@@ -12,6 +12,8 @@ import { calculateRings } from "../../utils/bubble-utils/ringCalculations"
 import { useZoom } from "../../utils/bubble-utils/handleZoom"
 import { useDebounce } from "../../hooks/useDebounce"
 
+import { useUser } from "../../contexts/UserContext"
+
 function useWindowSize() {
     const [windowSize, setWindowSize] = useState({
         width: typeof window !== "undefined" ? window.innerWidth : 600,
@@ -52,8 +54,12 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
 
     const [isCanvasLoading, setIsCanvasLoading] = useState(true)
 
+    const { loggedInUser } = useUser()
+
     const { users, loading, error } = useGetUsers({
         project: project.urlSlug,
+        leaderboardOnly: true,
+        pageSize: 1000,
     })
     const { zoom, transformOrigin, isZooming, handleWheel, containerRef } = useZoom({
         initialZoom,
@@ -204,6 +210,8 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                 const x = center.x + radius * Math.cos(angle)
                 const y = center.y + radius * Math.sin(angle)
 
+                const isCurrentUser = user.username === loggedInUser?.username
+
                 // Create a custom HTML element for the circle
                 const element = document.createElement("div")
                 element.style.width = `${circleRadius * 2 - 2}px`
@@ -214,7 +222,7 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                 element.style.position = "absolute"
                 element.style.transform = "translate(-50%, -50%)"
                 element.style.border = `${borderWidth}px solid`
-                element.style.borderColor = scoreColors[user.signal as SignalType]
+                element.style.borderColor = isCurrentUser ? "gold" : scoreColors[user.signal as SignalType]
 
                 // Add the image using a sprite
                 const img = document.createElement("div")
@@ -462,7 +470,7 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
             <HStack
                 boxSize={`${boxSize}px`}
                 border={"5px solid"}
-                borderColor="gray.800"
+                borderColor="contentBorder"
                 borderRadius="100%"
                 overflow="hidden"
                 justifyContent="center"
