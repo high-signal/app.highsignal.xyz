@@ -20,6 +20,15 @@ const pulseShadow = keyframes`
   }
 `
 
+const borderColorAnimation = keyframes`
+  0% { border-color: pink; }
+  20% { border-color: purple; }
+  40% { border-color: blue; }
+  60% { border-color: red; }
+  80% { border-color: blue; }
+  100% { border-color: pink; }
+`
+
 // Run this command when adding a new variant to fix the type error:
 // npx @chakra-ui/cli typegen ./styles/theme.ts
 
@@ -300,6 +309,9 @@ export const customConfig = defineConfig({
             backgroundSize: "1000% 1000% !important",
             textShadow: "0px 0px 5px black !important",
             animation: `${rainbowAnimation} 20s linear infinite !important`,
+        },
+        ".rainbow-border-animation": {
+            animation: `${borderColorAnimation} 10s linear infinite`,
         },
         ".pulse-shadow-animation": {
             animation: `${pulseShadow} 2s ease-in-out infinite !important`,

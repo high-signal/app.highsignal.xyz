@@ -57,6 +57,16 @@ export default function GeneralSettingsContainer() {
                         </Link>
                     ))}
             </VStack>
+            <VStack alignItems="start" w={"100%"} px={3}>
+                <Text fontSize="xl" fontWeight="bold">
+                    Other Links
+                </Text>
+                <Link href={`/testing`}>
+                    <Button secondaryButton px={3} py={1} borderRadius="full" fontWeight="bold">
+                        Bubble Display
+                    </Button>
+                </Link>
+            </VStack>
         </SettingsSectionContainer>
     )
 }
