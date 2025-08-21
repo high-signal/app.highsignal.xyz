@@ -3,7 +3,18 @@
 
 "use client"
 
-import { HStack, Text, Box, Spinner, useBreakpointValue, useToken, Slider } from "@chakra-ui/react"
+import {
+    HStack,
+    VStack,
+    Text,
+    Box,
+    Image,
+    useBreakpointValue,
+    useToken,
+    Slider,
+    Skeleton,
+    Span,
+} from "@chakra-ui/react"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { ASSETS, APP_CONFIG } from "../../config/constants"
@@ -11,6 +22,9 @@ import Matter from "matter-js"
 import { calculateRings } from "../../utils/bubble-utils/ringCalculations"
 import { useZoom } from "../../utils/bubble-utils/handleZoom"
 import { useDebounce } from "../../hooks/useDebounce"
+
+import { useUser } from "../../contexts/UserContext"
+import { useRouter } from "next/navigation"
 
 function useWindowSize() {
     const [windowSize, setWindowSize] = useState({
@@ -37,11 +51,32 @@ interface BodyWithElement extends Matter.Body {
     element: HTMLDivElement
 }
 
-export default function BubbleDisplay({ project, isSlider = false }: { project: ProjectData; isSlider: boolean }) {
+export default function BubbleDisplay({ project }: { project: ProjectData }) {
+    const [hoveredUser, setHoveredUser] = useState<UserData | null>(null)
+    const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null)
+    const router = useRouter()
+
+    // Function to update mouse position
+    const updateMousePosition = (event: MouseEvent) => {
+        setMousePosition({ x: event.clientX, y: event.clientY })
+    }
+
+    useEffect(() => {
+        if (hoveredUser) {
+            window.addEventListener("mousemove", updateMousePosition)
+        } else {
+            setMousePosition(null)
+        }
+
+        return () => {
+            window.removeEventListener("mousemove", updateMousePosition)
+        }
+    }, [hoveredUser])
+
     const initialZoom = 1
     const physicsDuration = 8000 // TODO: Make this dynamic based on the number of circles
-    const { width: windowWidth } = useWindowSize()
-    const boxSize = Math.min(windowWidth - 40, 600)
+    const { width: windowWidth, height: windowHeight } = useWindowSize()
+    const boxSize = Math.min(windowWidth - 40, windowHeight * 0.7)
     const minSpacing = useBreakpointValue({ base: 15, sm: 25 }) || 25
 
     const [userMultiplier, setUserMultiplier] = useState(1)
@@ -52,8 +87,14 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
 
     const [isCanvasLoading, setIsCanvasLoading] = useState(true)
 
+    const wallRadius = Math.round(Math.max(boxSize / 12, 50))
+
+    const { loggedInUser, loggedInUserLoading } = useUser()
+
     const { users, loading, error } = useGetUsers({
         project: project.urlSlug,
+        leaderboardOnly: true,
+        pageSize: 1000,
     })
     const { zoom, transformOrigin, isZooming, handleWheel, containerRef } = useZoom({
         initialZoom,
@@ -92,11 +133,13 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
 
     useEffect(() => {
         const loadSpriteCss = async () => {
+            // TODO: Increment version ID when a profile image is updated
+            const versionId = 12
+
             try {
-                const spriteUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/sprite/w_${profileImageWidth},h_${profileImageWidth},c_fit/profile_image`
+                const spriteUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/sprite/w_${profileImageWidth},h_${profileImageWidth},c_fit/v${versionId}/profile_image`
 
                 const cssUrl = `${spriteUrl}.css`
-                console.log("Loading sprite CSS from:", cssUrl)
                 const response = await fetch(cssUrl)
                 if (response.ok) {
                     const cssText = await response.text()
@@ -113,9 +156,9 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                         existingStyle.remove()
                     }
                     document.head.appendChild(style)
-                    console.log("Sprite CSS loaded successfully")
                 } else {
                     console.error("Failed to load sprite CSS:", response.status, response.statusText)
+                    setSpriteCssText("ERROR")
                 }
             } catch (error) {
                 console.error("Failed to load sprite CSS:", error)
@@ -154,7 +197,8 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
             containerRef.current.addEventListener("wheel", handleWheel, { passive: false })
 
             // Create user circles
-            const duplicatedUsers = Array(debouncedMultiplier).fill(users).flat()
+            const filteredUsers = users.filter((user) => user.score !== 0 || user.username === loggedInUser?.username)
+            const duplicatedUsers = Array(debouncedMultiplier).fill(filteredUsers).flat()
 
             // Sort users by signal type
             const sortedUsers = [...duplicatedUsers].sort((a, b) => {
@@ -200,8 +244,12 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                 const x = center.x + radius * Math.cos(angle)
                 const y = center.y + radius * Math.sin(angle)
 
+                const isCurrentUser = user.username === loggedInUser?.username
+
                 // Create a custom HTML element for the circle
                 const element = document.createElement("div")
+                element.addEventListener("mouseenter", () => setHoveredUser(user))
+                element.addEventListener("mouseleave", () => setHoveredUser(null))
                 element.style.width = `${circleRadius * 2 - 2}px`
                 element.style.height = `${circleRadius * 2 - 2}px`
                 element.style.borderRadius = "50%"
@@ -210,27 +258,33 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                 element.style.position = "absolute"
                 element.style.transform = "translate(-50%, -50%)"
                 element.style.border = `${borderWidth}px solid`
-                element.style.borderColor = scoreColors[user.signal as SignalType]
 
+                if (user.lastChecked) {
+                    element.className = "rainbow-border-animation"
+                } else {
+                    element.style.borderColor = isCurrentUser ? "gold" : scoreColors[user.signal as SignalType]
+                }
                 // Add the image using a sprite
                 const img = document.createElement("div")
                 if (user.profileImageUrl && user.profileImageUrl != ASSETS.DEFAULT_PROFILE_IMAGE) {
                     // Extract the public ID from the profile image URL
                     const publicId = user.profileImageUrl.split("/").pop()?.split(".")[0]
-                    const cssId = `profile-images-${user.username}-${publicId}`
 
                     // Check if the classId exists in the css on the document
-                    // TODO: See if this check is happening before the sprite is loaded
-                    // as sometimes it looks like it is using the default profile image
-                    // when the sprite does contain the classId
-                    if (!spriteCssText.includes(cssId)) {
+                    if (!spriteCssText.includes(publicId)) {
                         // TODO: Refactor this duplicated code (PART 1)
                         img.style.backgroundImage = `url(${ASSETS.DEFAULT_PROFILE_IMAGE})`
                         img.style.backgroundSize = "cover"
                         img.style.width = "100%"
                         img.style.height = "100%"
+                        img.style.opacity = "0.4"
                         element.appendChild(img)
                     } else {
+                        // Find the css class for the publicId
+                        const cssClass =
+                            spriteCssText.match(new RegExp(`\\.profile-images-\\d+-${publicId}\\b`))?.[0]?.slice(1) ||
+                            ""
+
                         // Create a wrapper div for scaling
                         const wrapper = document.createElement("div")
                         wrapper.style.width = `${spriteWidth}px`
@@ -239,7 +293,7 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                         wrapper.style.position = "relative"
 
                         // Set up the sprite image
-                        img.className = cssId
+                        img.className = cssClass
                         img.style.position = "absolute"
                         img.style.transform = `scale(${spriteWidth / profileImageWidth})`
                         img.style.transformOrigin = "0 0"
@@ -253,12 +307,13 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                     img.style.backgroundSize = "cover"
                     img.style.width = "100%"
                     img.style.height = "100%"
+                    img.style.opacity = "0.4"
                     element.appendChild(img)
                 }
 
-                // Add click handler
+                // Add click handler using next/link
                 element.addEventListener("click", () => {
-                    window.location.href = `/u/${user.username}`
+                    router.push(`/p/${project?.urlSlug}/${user.username}${window.location.search}`)
                 })
 
                 // Add the element to the scene
@@ -280,8 +335,6 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
 
             // Add all bodies to the world
             Matter.World.add(engine.world, bodies)
-
-            const wallRadius = Math.round(Math.max(boxSize / 12, 50))
 
             // Create a custom HTML element for the wall
             const element = document.createElement("div")
@@ -407,15 +460,108 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
             }
         }
 
-        setupPhysics()
-    }, [users, debouncedMultiplier, cleanupPhysics, boxSize])
+        if (spriteCssText && !loggedInUserLoading) {
+            setupPhysics()
+        }
 
-    if (loading) return <Spinner />
+        // Reset the hovered user when any of the dependencies change
+        setHoveredUser(null)
+    }, [users, debouncedMultiplier, cleanupPhysics, boxSize, spriteCssText, loggedInUserLoading])
+
+    if (loading)
+        return (
+            <VStack justifyContent="center" alignItems="center" h={boxSize}>
+                <Skeleton defaultSkeleton height={wallRadius * 2} width={wallRadius * 2} borderRadius="full" />
+            </VStack>
+        )
     if (error) return <Text color="red.500">Error loading users</Text>
 
     return (
         <Box>
-            {isSlider && (
+            {/* Display hovered username near the mouse pointer */}
+            {hoveredUser && mousePosition && (
+                <VStack
+                    position="fixed"
+                    left={`${mousePosition.x}px`}
+                    top={`${mousePosition.y - 10}px`}
+                    bg="contentBackground"
+                    px={4}
+                    py={3}
+                    borderRadius="30px"
+                    border="5px solid"
+                    borderColor="contentBorder"
+                    pointerEvents="none"
+                    transform="translateX(-50%) translateY(-100%)"
+                    // TODO: The header covers this tooltip
+                    zIndex={10}
+                    gap={2}
+                >
+                    <HStack>
+                        <Box boxSize="50px" minW="50px" borderRadius="full" overflow="hidden" flexGrow={0}>
+                            <Image
+                                src={
+                                    !hoveredUser.profileImageUrl || hoveredUser.profileImageUrl === ""
+                                        ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                        : hoveredUser.profileImageUrl
+                                }
+                                alt={`User ${hoveredUser.displayName} Profile Image`}
+                                fit="cover"
+                            />
+                        </Box>
+                        <Text fontWeight={"bold"} fontSize={"xl"}>
+                            {hoveredUser.displayName}
+                        </Text>
+                    </HStack>
+                    {hoveredUser.lastChecked ? (
+                        <HStack
+                            gap={3}
+                            py={1}
+                            px={3}
+                            w={"100%"}
+                            maxW={"150px"}
+                            border={"3px solid"}
+                            borderRadius={"10px"}
+                            borderColor={"contentBorder"}
+                            justifyContent={"center"}
+                            className="rainbow-animation"
+                        >
+                            <Text fontWeight={"bold"} color="white" textAlign={"center"} fontSize={"md"}>
+                                Updating...
+                            </Text>
+                        </HStack>
+                    ) : (
+                        <VStack
+                            justifyContent={"center"}
+                            alignItems={"center"}
+                            gap={3}
+                            fontWeight="bold"
+                            pb={2}
+                            w={"100%"}
+                            flexWrap={"wrap"}
+                            fontSize={"2xl"}
+                        >
+                            <Text textAlign={"center"}>
+                                <Span color={`scoreColor.${hoveredUser.signal || "gray.500"}`}>
+                                    {(hoveredUser.signal || "").charAt(0).toUpperCase() +
+                                        (hoveredUser.signal || "").slice(1)}
+                                </Span>{" "}
+                                Signal
+                            </Text>
+                            <Text
+                                px={4}
+                                py={1}
+                                bg={"pageBackground"}
+                                border={"5px solid"}
+                                borderRadius="25px"
+                                borderColor={`scoreColor.${hoveredUser.signal}`}
+                            >
+                                {hoveredUser.score}
+                            </Text>
+                        </VStack>
+                    )}
+                </VStack>
+            )}
+            {false && (
                 <>
                     <Box h={"20px"} />
                     <Slider.Root
@@ -455,14 +601,18 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
             <HStack
                 boxSize={`${boxSize}px`}
                 border={"5px solid"}
-                borderColor="gray.800"
+                borderColor="contentBorder"
                 borderRadius="100%"
                 overflow="hidden"
                 justifyContent="center"
                 alignItems="center"
                 position="relative"
             >
-                {isCanvasLoading && <Spinner zIndex={10} position={"absolute"} />}
+                {/* {isCanvasLoading && (
+                    <VStack justifyContent="center" alignItems="center" h={boxSize}>
+                        <Skeleton defaultSkeleton height={wallRadius * 2} width={wallRadius * 2} borderRadius="full" />
+                    </VStack>
+                )} */}
                 <Box
                     ref={containerRef}
                     boxSize={`${boxSize}px`}

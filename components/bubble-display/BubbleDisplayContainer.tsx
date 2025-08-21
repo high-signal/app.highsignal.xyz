@@ -30,7 +30,7 @@ export default function TestingContainer() {
                                 boxSize="50px"
                                 borderRadius="full"
                             />
-                            <Text fontWeight="bold">{currentProject?.displayName} </Text>
+                            <Text fontWeight="bold">{currentProject?.displayName} Signal Scores</Text>
                         </HStack>
                     </>
                 ) : (
@@ -43,7 +43,7 @@ export default function TestingContainer() {
                     </HStack>
                 )}
             </VStack>
-            {currentProject && <BubbleDisplay project={currentProject} isSlider={true} />}
+            {currentProject && <BubbleDisplay project={currentProject} />}
         </VStack>
     )
 }

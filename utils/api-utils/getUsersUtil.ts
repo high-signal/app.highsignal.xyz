@@ -75,10 +75,24 @@ export async function getUsersUtil(
     const apiKey = searchParams.get("apiKey")
     const testRequestingUser = searchParams.get("testRequestingUser")
     const leaderboardOnly = searchParams.get("leaderboardOnly") === "true" || false
+    const pageSize = parseInt(searchParams.get("pageSize") || "0")
 
     // Pagination
+    let resultsPerPage
+    if (!pageSize) {
+        resultsPerPage = APP_CONFIG.PAGINATION_LIMIT_DEFAULT
+    } else {
+        // Page size must be a number greater than or equal to APP_CONFIG.PAGINATION_LIMIT_DEFAULT and less than or equal to APP_CONFIG.PAGINATION_LIMIT_MAX
+        // Else, set it to the default value
+        if (pageSize < APP_CONFIG.PAGINATION_LIMIT_DEFAULT) {
+            resultsPerPage = APP_CONFIG.PAGINATION_LIMIT_DEFAULT
+        } else if (pageSize > APP_CONFIG.PAGINATION_LIMIT_MAX) {
+            resultsPerPage = APP_CONFIG.PAGINATION_LIMIT_MAX
+        } else {
+            resultsPerPage = pageSize
+        }
+    }
     const page = parseInt(searchParams.get("page") || "1")
-    const resultsPerPage = APP_CONFIG.DEFAULT_PAGINATION_LIMIT
     const from = (page - 1) * resultsPerPage
     const to = from + resultsPerPage - 1
 

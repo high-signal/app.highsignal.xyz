@@ -11,6 +11,7 @@ interface UseGetUsersOptions {
     page?: number
     isUserDataVisible?: boolean
     leaderboardOnly?: boolean
+    pageSize?: number
 }
 
 export const useGetUsers = ({
@@ -23,6 +24,7 @@ export const useGetUsers = ({
     page = 1,
     isUserDataVisible = false,
     leaderboardOnly = false,
+    pageSize,
 }: UseGetUsersOptions = {}) => {
     const [users, setUsers] = useState<UserData[] | null>(null)
     const [maxPage, setMaxPage] = useState(1)
@@ -53,6 +55,10 @@ export const useGetUsers = ({
 
                 if (leaderboardOnly) {
                     url.searchParams.append("leaderboardOnly", "true")
+                }
+
+                if (pageSize) {
+                    url.searchParams.append("pageSize", pageSize.toString())
                 }
 
                 if (username) {
