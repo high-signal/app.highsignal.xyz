@@ -92,8 +92,11 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
 
     useEffect(() => {
         const loadSpriteCss = async () => {
+            // TODO: Increment version ID when a profile image is updated
+            const versionId = 12
+
             try {
-                const spriteUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/sprite/w_${profileImageWidth},h_${profileImageWidth},c_fit/profile_image`
+                const spriteUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/sprite/w_${profileImageWidth},h_${profileImageWidth},c_fit/v${versionId}/profile_image`
 
                 const cssUrl = `${spriteUrl}.css`
                 console.log("Loading sprite CSS from:", cssUrl)
@@ -116,6 +119,7 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                     console.log("Sprite CSS loaded successfully")
                 } else {
                     console.error("Failed to load sprite CSS:", response.status, response.statusText)
+                    setSpriteCssText("ERROR")
                 }
             } catch (error) {
                 console.error("Failed to load sprite CSS:", error)
@@ -217,13 +221,9 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                 if (user.profileImageUrl && user.profileImageUrl != ASSETS.DEFAULT_PROFILE_IMAGE) {
                     // Extract the public ID from the profile image URL
                     const publicId = user.profileImageUrl.split("/").pop()?.split(".")[0]
-                    const cssId = `profile-images-${user.username}-${publicId}`
 
                     // Check if the classId exists in the css on the document
-                    // TODO: See if this check is happening before the sprite is loaded
-                    // as sometimes it looks like it is using the default profile image
-                    // when the sprite does contain the classId
-                    if (!spriteCssText.includes(cssId)) {
+                    if (!spriteCssText.includes(publicId)) {
                         // TODO: Refactor this duplicated code (PART 1)
                         img.style.backgroundImage = `url(${ASSETS.DEFAULT_PROFILE_IMAGE})`
                         img.style.backgroundSize = "cover"
@@ -231,6 +231,11 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                         img.style.height = "100%"
                         element.appendChild(img)
                     } else {
+                        // Find the css class for the publicId
+                        const cssClass =
+                            spriteCssText.match(new RegExp(`\\.profile-images-\\d+-${publicId}\\b`))?.[0]?.slice(1) ||
+                            ""
+
                         // Create a wrapper div for scaling
                         const wrapper = document.createElement("div")
                         wrapper.style.width = `${spriteWidth}px`
@@ -239,7 +244,7 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
                         wrapper.style.position = "relative"
 
                         // Set up the sprite image
-                        img.className = cssId
+                        img.className = cssClass
                         img.style.position = "absolute"
                         img.style.transform = `scale(${spriteWidth / profileImageWidth})`
                         img.style.transformOrigin = "0 0"
@@ -407,8 +412,10 @@ export default function BubbleDisplay({ project, isSlider = false }: { project: 
             }
         }
 
-        setupPhysics()
-    }, [users, debouncedMultiplier, cleanupPhysics, boxSize])
+        if (spriteCssText) {
+            setupPhysics()
+        }
+    }, [users, debouncedMultiplier, cleanupPhysics, boxSize, spriteCssText])
 
     if (loading) return <Spinner />
     if (error) return <Text color="red.500">Error loading users</Text>
