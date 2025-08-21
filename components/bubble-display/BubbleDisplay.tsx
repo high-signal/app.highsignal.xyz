@@ -24,6 +24,7 @@ import { useZoom } from "../../utils/bubble-utils/handleZoom"
 import { useDebounce } from "../../hooks/useDebounce"
 
 import { useUser } from "../../contexts/UserContext"
+import { useRouter } from "next/navigation"
 
 function useWindowSize() {
     const [windowSize, setWindowSize] = useState({
@@ -53,6 +54,7 @@ interface BodyWithElement extends Matter.Body {
 export default function BubbleDisplay({ project }: { project: ProjectData }) {
     const [hoveredUser, setHoveredUser] = useState<UserData | null>(null)
     const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null)
+    const router = useRouter()
 
     // Function to update mouse position
     const updateMousePosition = (event: MouseEvent) => {
@@ -309,9 +311,9 @@ export default function BubbleDisplay({ project }: { project: ProjectData }) {
                     element.appendChild(img)
                 }
 
-                // Add click handler
+                // Add click handler using next/link
                 element.addEventListener("click", () => {
-                    window.open(`/p/${project?.urlSlug}/${user.username}${window.location.search}`, "_blank")
+                    router.push(`/p/${project?.urlSlug}/${user.username}${window.location.search}`)
                 })
 
                 // Add the element to the scene
