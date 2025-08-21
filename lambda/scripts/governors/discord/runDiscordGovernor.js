@@ -171,9 +171,25 @@ async function runDiscordGovernor() {
                 `🔍 Found ${accessibleTextChannels.length} accessible text channels in Discord: ${project.projects.display_name} (${project.projects.url_slug}). Guild ID: ${guildId}`,
             )
 
+            // Fetch all visible active threads in the guild
+            const visibleActiveThreads = await discordApi.getVisibleActiveThreads(guildId)
+
+            // Filter out threads that are not accessible
+            const accessibleChannelIds = new Set(accessibleTextChannels.map((channel) => channel.id))
+            const accessibleThreads = visibleActiveThreads.threads.filter((thread) =>
+                accessibleChannelIds.has(thread.parent_id),
+            )
+
+            console.log(
+                `🔍 Found ${accessibleThreads.length} accessible active threads in Discord: ${project.projects.display_name} (${project.projects.url_slug}). Guild ID: ${guildId}`,
+            )
+
+            // Combine accessible text channels and accessible threads
+            const accessibleChannels = [...accessibleTextChannels, ...accessibleThreads]
+
             // Shuffle channels to avoid always processing the same ones first.
             // Useful in case of ratel-imit issues that only allow the first X channels to be processed.
-            const shuffledChannels = [...accessibleTextChannels].sort(() => Math.random() - 0.5)
+            const shuffledChannels = [...accessibleChannels].sort(() => Math.random() - 0.5)
 
             // ====================================================
             // For each channel, check queue and trigger if needed
