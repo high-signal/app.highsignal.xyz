@@ -15,7 +15,7 @@ async function fetchUserActivity({ pendingQueueItem, projectSignalStrengthConfig
         const response = await axios.get(fullUrl)
 
         if (!response.data || !Array.isArray(response.data)) {
-            console.log(`📭 No activity data found for user ${username}`)
+            console.log(`📭 No activity data found for ${username}`)
         } else {
             forumActivity = response.data.map((action) => ({
                 id: action.id,
@@ -24,7 +24,12 @@ async function fetchUserActivity({ pendingQueueItem, projectSignalStrengthConfig
             }))
         }
     } catch (error) {
-        console.error(`⚠️ Error fetching forum activity from ${fullUrl}: ${error.message}`)
+        const errorMessage = `⚠️ Error fetching forum activity from ${fullUrl}: ${error.message}`
+        if (error.response && error.response.status === 404) {
+            console.log(errorMessage)
+        } else {
+            console.error(errorMessage)
+        }
         errorFetchingUserActivity = true
     }
 

@@ -177,6 +177,13 @@ class DiscordRestApi {
 
         return readable
     }
+
+    // Get visible active threads
+    async getVisibleActiveThreads(guildId) {
+        console.log("📡 DISCORD API CALL: Get all visible active threads")
+        const url = `${this.baseUrl}/guilds/${guildId}/threads/active`
+        return await this.makeDiscordRequest(url)
+    }
 }
 
 module.exports = { DiscordRestApi }
