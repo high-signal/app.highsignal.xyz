@@ -16,28 +16,35 @@ export async function connectAccountLambdaTrigger({
     signalStrengthName: string
     signalStrengthUsername: string
 }) {
+    // TODO: This seemed to be causing erroneous last_checked rows to be added to the DB.
+    //       Commenting out for now. Need to investigate.
+
     // Before starting the analysis, add the last_checked date to the user_signal_strengths table.
     // This is to give the best UX experience when the user is updating their forum username
     // so that when they navigate to their profile page, it shows the loading animation immediately.
     // Use unix timestamp to avoid timezone issues.
-    const { error: lastCheckError } = await supabase.from("user_signal_strengths").upsert(
-        {
-            user_id: targetUserId,
-            project_id: projectId,
-            signal_strength_id: signalStrengthId,
-            last_checked: Math.floor(Date.now() / 1000),
-            request_id: `last_checked_${targetUserId}_${projectId}_${signalStrengthId}`,
-            created: 99999999999999, // This is needed so that it is always the top result
-        },
-        {
-            onConflict: "request_id",
-        },
-    )
-    if (lastCheckError) {
-        console.error(`Error updating last_checked for ${signalStrengthUsername}:`, lastCheckError.message)
-    } else {
-        console.log(`Successfully updated last_checked for ${signalStrengthUsername}`)
-    }
+    // const dayDate = new Date().toISOString().split("T")[0]
+
+    // const { error: lastCheckError } = await supabase.from("user_signal_strengths").upsert(
+    //     {
+    //         user_id: targetUserId,
+    //         project_id: projectId,
+    //         signal_strength_id: signalStrengthId,
+    //         last_checked: Math.floor(Date.now() / 1000),
+    //         day: dayDate,
+    //         request_id: `last_checked_${targetUserId}_${projectId}_${signalStrengthId}`,
+    //         created: 99999999999999, // This is needed so that it is always the top result
+    //     },
+    //     {
+    //         onConflict: "request_id",
+    //     },
+    // )
+    // if (lastCheckError) {
+    //     console.error(`Error updating last_checked for ${signalStrengthUsername}:`, lastCheckError.message)
+    // } else {
+    //     console.log(`Successfully updated last_checked for ${signalStrengthUsername}`)
+    // }
+
     // Trigger analysis and wait for initial response
     console.log("addSingleItemToAiQueue for:", signalStrengthUsername)
     const analysisResponse = await triggerLambda({
