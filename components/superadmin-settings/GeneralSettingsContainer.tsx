@@ -6,12 +6,68 @@ import Link from "next/link"
 
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
 import { useGetProjects } from "../../hooks/useGetProjects"
+import { useEffect, useState } from "react"
+import { usePrivy } from "@privy-io/react-auth"
+
+interface StatsData {
+    totalUsers: number
+    missingDays: number
+    aiRawScoreErrors: number
+    lastCheckedNotNull: number
+}
 
 export default function GeneralSettingsContainer() {
     const { projects, loading, error } = useGetProjects(undefined, false, true)
 
+    const { getAccessToken } = usePrivy()
+
+    // Get stats from the database
+    const [stats, setStats] = useState<StatsData | null>(null)
+    const [isStatsLoading, setIsStatsLoading] = useState(true)
+    const [statsError, setStatsError] = useState<string | null>(null)
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            const token = await getAccessToken()
+            const response = await fetch("/api/settings/superadmin/stats", {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            const data = await response.json()
+
+            if (data.status === "success") {
+                console.log("data.data", data.data)
+                setStats(data.data)
+                setStatsError(null)
+            } else {
+                console.error(data.error)
+                setStatsError("Error fetching stats: " + data.error)
+            }
+            setIsStatsLoading(false)
+        }
+        fetchStats()
+    }, [getAccessToken])
+
     return (
         <SettingsSectionContainer>
+            <VStack alignItems="start" w={"100%"} px={3}>
+                <Text fontSize="xl" fontWeight="bold">
+                    Stats
+                </Text>
+                {statsError && <Text color="red.500">{statsError}</Text>}
+                {isStatsLoading ? (
+                    <Spinner />
+                ) : (
+                    <VStack alignItems="start" w={"100%"} color={"textColorMuted"}>
+                        <Text>Total Users: {stats?.totalUsers}</Text>
+                        <Text>Missing Days: {stats?.missingDays} --- (hopefully 0)</Text>
+                        <Text>AI Raw Score Errors: {stats?.aiRawScoreErrors} --- (hopefully 0)</Text>
+                        <Text>Last Checked Not Null: {stats?.lastCheckedNotNull} --- (hopefully 0)</Text>
+                    </VStack>
+                )}
+            </VStack>
             <VStack alignItems="start" w={"100%"} px={3}>
                 <Text fontSize="xl" fontWeight="bold">
                     Project Settings Links
