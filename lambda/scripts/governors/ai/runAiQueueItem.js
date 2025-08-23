@@ -1,6 +1,7 @@
 require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { runEngine } = require("../../engine/runEngine")
+const { clearLastChecked } = require("../../engine/utils/lastCheckedUtils")
 
 // ==========
 // Constants
@@ -76,7 +77,7 @@ async function runAiQueueItem({ queueItemId }) {
                 throw updatedQueueItemError
             } else {
                 // Clear last_checked value when smart score is complete
-                if (claimedQueueItem[0].type === "smart") {
+                if (claimedQueueItem[0].type !== "raw_score") {
                     await clearLastChecked({
                         supabase,
                         userId: claimedQueueItem[0].user_id,
