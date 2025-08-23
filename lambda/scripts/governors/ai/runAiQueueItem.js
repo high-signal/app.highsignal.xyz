@@ -75,6 +75,15 @@ async function runAiQueueItem({ queueItemId }) {
                 console.error("Error updating queue item:", updatedQueueItemError)
                 throw updatedQueueItemError
             } else {
+                // Clear last_checked value when smart score is complete
+                if (claimedQueueItem[0].type === "smart") {
+                    await clearLastChecked({
+                        supabase,
+                        userId: claimedQueueItem[0].user_id,
+                        projectId: claimedQueueItem[0].project_id,
+                        signalStrengthId: claimedQueueItem[0].signal_strength_id,
+                    })
+                }
                 console.log(`💾 Updated queue item: ${queueItemId}`)
             }
             return
