@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import { APP_CONFIG } from "../../../../../config/constants"
+import { ethers } from "ethers"
 
 // Simplified user data API endpoint
 export async function GET(request: Request) {
@@ -117,11 +118,18 @@ export async function GET(request: Request) {
             // We need to check both public addresses and shared addresses separately
             let foundUserId: string | null = null
 
+            if (!ethers.isAddress(searchValue.toLowerCase())) {
+                return NextResponse.json({ error: "Invalid Ethereum address used in searchValue" }, { status: 400 })
+            }
+
+            // Convert address to checksum address
+            const checksumAddress = ethers.getAddress(searchValue.toLowerCase())
+
             // First, try to find public addresses (always accessible)
             const { data: publicAddressData, error: publicAddressError } = await supabase
                 .from("user_addresses")
                 .select("user_id")
-                .eq("address", searchValue)
+                .eq("address", checksumAddress)
                 .eq("is_public", true)
                 .single()
 
@@ -155,7 +163,7 @@ export async function GET(request: Request) {
                         )
                     `,
                     )
-                    .eq("address", searchValue)
+                    .eq("address", checksumAddress)
                     .eq("user_addresses_shared.projects.url_slug", projectSlug)
                     .single()
 
