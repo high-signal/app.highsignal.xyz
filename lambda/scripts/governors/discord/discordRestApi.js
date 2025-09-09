@@ -94,7 +94,9 @@ class DiscordRestApi {
 
         if (!response.ok) {
             const errorText = await response.text()
-            throw new Error(`Discord API error: ${response.status} ${response.statusText} - ${errorText}`)
+            throw new Error(
+                `Discord API error for URL ${url}: ${response.status} ${response.statusText} - ${errorText}`,
+            )
         }
 
         return await response.json()
