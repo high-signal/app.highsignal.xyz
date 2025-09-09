@@ -5,9 +5,11 @@ import { Text, Spinner, VStack, Button, Image, HStack } from "@chakra-ui/react"
 import Link from "next/link"
 
 import SettingsSectionContainer from "../ui/SettingsSectionContainer"
+import CreateNewProjectModal from "./CreateNewProjectModal"
 import { useGetProjects } from "../../hooks/useGetProjects"
 import { useEffect, useState } from "react"
 import { usePrivy } from "@privy-io/react-auth"
+import { ASSETS } from "../../config/constants"
 
 interface StatsData {
     totalUsers: number
@@ -50,79 +52,102 @@ export default function GeneralSettingsContainer() {
         fetchStats()
     }, [getAccessToken])
 
+    // Create new project modal
+    const [isCreateNewProjectModalOpen, setIsCreateNewProjectModalOpen] = useState(false)
+
     return (
-        <SettingsSectionContainer>
-            <VStack alignItems="start" w={"100%"} px={3}>
-                <Text fontSize="xl" fontWeight="bold">
-                    Stats
-                </Text>
-                {statsError && <Text color="red.500">{statsError}</Text>}
-                {isStatsLoading ? (
-                    <Spinner />
-                ) : (
-                    <VStack alignItems="start" w={"100%"} color={"textColorMuted"}>
-                        <Text>Total Users: {stats?.totalUsers}</Text>
-                        <Text>Missing Days: {stats?.missingDays} --- (hopefully 0)</Text>
-                        <Text>AI Raw Score Errors: {stats?.aiRawScoreErrors} --- (hopefully 0)</Text>
-                        <Text>Last Checked Not Null: {stats?.lastCheckedNotNull} --- (hopefully 0)</Text>
-                    </VStack>
-                )}
-            </VStack>
-            <VStack alignItems="start" w={"100%"} px={3}>
-                <Text fontSize="xl" fontWeight="bold">
-                    Project Settings Links
-                </Text>
-                {loading && <Spinner />}
-                {error && <Text>Error loading projects</Text>}
-                {!loading &&
-                    projects &&
-                    projects.length > 0 &&
-                    projects.map((project: ProjectData) => (
-                        <Link href={`/settings/p/${project.urlSlug}`} key={project.urlSlug} style={{ width: "100%" }}>
-                            <Button
-                                secondaryButton
-                                p={2}
-                                pr={3}
-                                borderRadius="full"
-                                bg="pageBackground"
-                                border="3px solid"
-                                borderColor="contentBorder"
-                                justifyContent="start"
-                                _hover={{
-                                    bg: "button.secondary.default",
-                                }}
-                                w={"100%"}
-                            >
-                                <HStack w={"100%"} justifyContent="space-between" flexWrap="wrap">
-                                    <HStack>
-                                        <Image
-                                            src={project.projectLogoUrl}
-                                            alt={project.displayName}
-                                            boxSize="25px"
-                                            borderRadius="full"
-                                        />
-                                        <Text fontSize="lg">{project.displayName}</Text>
-                                    </HStack>
-                                    {project.signalStrengths.length === 0 && (
-                                        <Text color="red.500" fontSize="sm" ml={1}>
-                                            (No Signals Strengths enabled)
-                                        </Text>
-                                    )}
-                                </HStack>
-                            </Button>
-                        </Link>
-                    ))}
-            </VStack>
-            <VStack alignItems="start" w={"100%"} px={3}>
-                <Text fontSize="xl" fontWeight="bold">
-                    Other Links
-                </Text>
-                <Link href={`/testing`}>
-                    <Button secondaryButton px={3} py={1} borderRadius="full" fontWeight="bold">
-                        Bubble Display
+        <>
+            <SettingsSectionContainer>
+                <VStack alignItems="start" w={"100%"} px={3}>
+                    <Text fontSize="xl" fontWeight="bold">
+                        Stats
+                    </Text>
+                    {statsError && <Text color="red.500">{statsError}</Text>}
+                    {isStatsLoading ? (
+                        <Spinner />
+                    ) : (
+                        <VStack alignItems="start" w={"100%"} color={"textColorMuted"}>
+                            <Text>Total Users: {stats?.totalUsers}</Text>
+                            <Text>Missing Days: {stats?.missingDays} --- (hopefully 0)</Text>
+                            <Text>AI Raw Score Errors: {stats?.aiRawScoreErrors} --- (hopefully 0)</Text>
+                            <Text>Last Checked Not Null: {stats?.lastCheckedNotNull} --- (hopefully 0)</Text>
+                        </VStack>
+                    )}
+                </VStack>
+                <VStack alignItems="start" w={"100%"} px={3}>
+                    <Text fontSize="xl" fontWeight="bold">
+                        Project Settings Links
+                    </Text>
+                    <Button
+                        primaryButton
+                        px={3}
+                        py={1}
+                        borderRadius="full"
+                        fontWeight="bold"
+                        onClick={() => setIsCreateNewProjectModalOpen(true)}
+                    >
+                        Create New Project
                     </Button>
-                </Link>
-            </VStack>
-        </SettingsSectionContainer>
+                    {loading && <Spinner />}
+                    {error && <Text>Error loading projects</Text>}
+                    {!loading &&
+                        projects &&
+                        projects.length > 0 &&
+                        projects.map((project: ProjectData) => (
+                            <Link
+                                href={`/settings/p/${project.urlSlug}`}
+                                key={project.urlSlug}
+                                style={{ width: "100%" }}
+                            >
+                                <Button
+                                    secondaryButton
+                                    p={2}
+                                    pr={3}
+                                    borderRadius="full"
+                                    bg="pageBackground"
+                                    border="3px solid"
+                                    borderColor="contentBorder"
+                                    justifyContent="start"
+                                    _hover={{
+                                        bg: "button.secondary.default",
+                                    }}
+                                    w={"100%"}
+                                >
+                                    <HStack w={"100%"} justifyContent="space-between" flexWrap="wrap">
+                                        <HStack>
+                                            <Image
+                                                src={project.projectLogoUrl || ASSETS.DEFAULT_PROJECT_IMAGE}
+                                                alt={project.displayName}
+                                                boxSize="25px"
+                                                borderRadius="full"
+                                            />
+                                            <Text fontSize="lg">{project.displayName}</Text>
+                                        </HStack>
+                                        {project.signalStrengths.length === 0 && (
+                                            <Text color="red.500" fontSize="sm" ml={1}>
+                                                (No Signals Strengths enabled)
+                                            </Text>
+                                        )}
+                                    </HStack>
+                                </Button>
+                            </Link>
+                        ))}
+                </VStack>
+                <VStack alignItems="start" w={"100%"} px={3}>
+                    <Text fontSize="xl" fontWeight="bold">
+                        Other Links
+                    </Text>
+                    <Link href={`/testing`}>
+                        <Button secondaryButton px={3} py={1} borderRadius="full" fontWeight="bold">
+                            Bubble Display
+                        </Button>
+                    </Link>
+                </VStack>
+            </SettingsSectionContainer>
+            <CreateNewProjectModal
+                isOpen={isCreateNewProjectModalOpen}
+                onClose={() => setIsCreateNewProjectModalOpen(false)}
+            />
+        </>
     )
 }
