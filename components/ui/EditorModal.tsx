@@ -16,6 +16,7 @@ interface EditorModalProps {
     handleSave?: () => void
     disabled?: boolean
     maxWidth?: string
+    saveButtonText?: string
 }
 
 export default function EditorModal({
@@ -29,6 +30,7 @@ export default function EditorModal({
     handleSave,
     disabled,
     maxWidth = "600px",
+    saveButtonText = "Save changes",
 }: EditorModalProps) {
     return (
         <Modal open={isOpen} close={handleClose} closeOnInteractOutside={!hasChanges}>
@@ -61,7 +63,7 @@ export default function EditorModal({
                             onClick={handleSave}
                             loading={isSaving}
                         >
-                            <Text>Save changes</Text>
+                            <Text>{saveButtonText}</Text>
                         </Button>
                     </HStack>
                 </Dialog.Footer>
