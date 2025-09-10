@@ -41,7 +41,6 @@ export default function GeneralSettingsContainer() {
             const data = await response.json()
 
             if (data.status === "success") {
-                console.log("data.data", data.data)
                 setStats(data.data)
                 setStatsError(null)
             } else {
