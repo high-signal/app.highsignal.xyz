@@ -1,6 +1,6 @@
 "use client"
 
-import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts"
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts"
 import { Text, VStack, Box, useToken } from "@chakra-ui/react"
 import { useColorMode } from "../../color-mode/ColorModeProvider"
 import { customConfig } from "../../../styles/theme"
@@ -64,7 +64,6 @@ export default function HistoricalDataChart({
         if (payload.currentDay) {
             return (
                 <foreignObject x={cx - 8} y={cy - 8} width={16} height={16}>
-                    {/* <Spinner size="xs" color="blue.500" /> */}
                     <Box className="rainbow-animation" w={"16px"} h={"16px"} borderRadius={"full"} zIndex={1000} />
                 </foreignObject>
             )
@@ -74,7 +73,7 @@ export default function HistoricalDataChart({
 
     return (
         <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={extendedData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
+            <AreaChart data={extendedData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
                 <XAxis
                     dataKey="day"
                     interval={0} // show all ticks (this is overridden later with ticks[])
@@ -123,29 +122,18 @@ export default function HistoricalDataChart({
                     labelFormatter={(label) => formatDate(label)}
                     formatter={(value: number, name: string) => [value, name === "value" ? "Value" : "Max"]}
                 />
-                {/* main value line */}
-                <Line
+                <Area
                     type="monotone"
                     dataKey="value"
                     stroke="#029E03"
                     strokeWidth={5}
+                    fill="#002E00"
                     dot={<CustomDot />}
                     strokeLinecap="round"
                     isAnimationActive={true}
                     name="value"
                 />
-                {/* maxValue line */}
-                {/* <Line
-                    type="monotone"
-                    dataKey="maxValue"
-                    stroke="red"
-                    strokeWidth={2}
-                    dot={{ r: 2 }}
-                    strokeDasharray="4 4"
-                    isAnimationActive={false}
-                    name="maxValue"
-                /> */}
-            </LineChart>
+            </AreaChart>
         </ResponsiveContainer>
     )
 }
