@@ -262,7 +262,7 @@ async function runDiscordGovernor() {
                             continue
                         } else {
                             // If the number of attempts is MAX_ATTEMPTS or more, skip it.
-                            console.error(`‼️ ERROR LIMIT REACHED for queue item ${currentQueueItem[0].id}. Skipping.`)
+                            // console.error(`‼️ ERROR LIMIT REACHED for queue item ${currentQueueItem[0].id}. Skipping.`)
                             continue
                         }
                     }

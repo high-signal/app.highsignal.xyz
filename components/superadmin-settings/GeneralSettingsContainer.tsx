@@ -16,6 +16,7 @@ interface StatsData {
     missingDays: number
     aiRawScoreErrors: number
     lastCheckedNotNull: number
+    discordRequestQueueErrors: number
 }
 
 export default function GeneralSettingsContainer() {
@@ -55,6 +56,19 @@ export default function GeneralSettingsContainer() {
     // Create new project modal
     const [isCreateNewProjectModalOpen, setIsCreateNewProjectModalOpen] = useState(false)
 
+    const StatsRow = ({ label, value, shouldBeZero }: { label: string; value: number; shouldBeZero?: boolean }) => {
+        const isError = value > 0 && shouldBeZero
+
+        return (
+            <HStack>
+                <Text>{label}:</Text>
+                <Text fontWeight={isError ? "bold" : "normal"} color={isError ? "red.500" : "textColorMuted"}>
+                    {value}
+                </Text>
+            </HStack>
+        )
+    }
+
     return (
         <>
             <SettingsSectionContainer>
@@ -66,11 +80,20 @@ export default function GeneralSettingsContainer() {
                     {isStatsLoading ? (
                         <Spinner />
                     ) : (
-                        <VStack alignItems="start" w={"100%"} color={"textColorMuted"}>
-                            <Text>Total Users: {stats?.totalUsers}</Text>
-                            <Text>Missing Days: {stats?.missingDays} --- (hopefully 0)</Text>
-                            <Text>AI Raw Score Errors: {stats?.aiRawScoreErrors} --- (hopefully 0)</Text>
-                            <Text>Last Checked Not Null: {stats?.lastCheckedNotNull} --- (hopefully 0)</Text>
+                        <VStack alignItems="start" w={"100%"} color={"textColorMuted"} gap={0}>
+                            <StatsRow label="Total Users" value={stats?.totalUsers ?? 0} />
+                            <StatsRow label="Missing Days" value={stats?.missingDays ?? 0} shouldBeZero />
+                            <StatsRow label="AI Raw Score Errors" value={stats?.aiRawScoreErrors ?? 0} shouldBeZero />
+                            <StatsRow
+                                label="Last Checked Not Null"
+                                value={stats?.lastCheckedNotNull ?? 0}
+                                shouldBeZero
+                            />
+                            <StatsRow
+                                label="Discord Request Queue Errors"
+                                value={stats?.discordRequestQueueErrors ?? 0}
+                                shouldBeZero
+                            />
                         </VStack>
                     )}
                 </VStack>

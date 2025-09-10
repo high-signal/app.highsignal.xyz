@@ -53,6 +53,20 @@ export async function GET() {
         return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
     }
 
+    // Get discord request queue errors
+    const { count: discordRequestQueueErrors, error: discordRequestQueueErrorsError } = await supabase
+        .from("discord_request_queue")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "error")
+
+    if (discordRequestQueueErrorsError) {
+        const errorMessage =
+            "Error fetching discord request queue errors: " +
+            (discordRequestQueueErrorsError.message || "Unknown error")
+        console.error(errorMessage)
+        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+    }
+
     return NextResponse.json({
         status: "success",
         statusCode: 200,
@@ -61,6 +75,7 @@ export async function GET() {
             missingDays,
             aiRawScoreErrors,
             lastCheckedNotNull,
+            discordRequestQueueErrors,
         },
     })
 }
