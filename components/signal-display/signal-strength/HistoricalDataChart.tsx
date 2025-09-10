@@ -26,9 +26,9 @@ export default function HistoricalDataChart({
         _light: string
         _dark: string
     }
-    const colorTokenRef = colorMode === "dark" ? textColorMutedToken._dark : textColorMutedToken._light
-    const colorToken = colorTokenRef.replace("{colors.", "").replace("}", "")
-    const [textColorMutedHex] = useToken("colors", [colorToken])
+    const textColorMutedColorTokenRef = colorMode === "dark" ? textColorMutedToken._dark : textColorMutedToken._light
+    const textColorMutedColorToken = textColorMutedColorTokenRef.replace("{colors.", "").replace("}", "")
+    const [textColorMutedHex] = useToken("colors", [textColorMutedColorToken])
 
     // Reverse the data so it displays correctly on the chart
     const dataReversed = [...data].reverse()
@@ -74,12 +74,12 @@ export default function HistoricalDataChart({
 
     return (
         <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={extendedData} margin={{ top: 10, right: 30, left: -20, bottom: 0 }}>
-                {/* <CartesianGrid strokeDasharray="8 8" horizontal={true} vertical={false} /> */}
+            <LineChart data={extendedData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
                 <XAxis
                     dataKey="day"
                     interval={0} // show all ticks (this is overridden later with ticks[])
                     ticks={[extendedData[0].day, extendedData[extendedData.length - 1].day]} // only oldest & newest
+                    stroke={textColorMutedHex}
                     tick={(props) => {
                         const { x, y, payload, index } = props
                         const isFirst = index === 0
@@ -100,7 +100,25 @@ export default function HistoricalDataChart({
                         )
                     }}
                 />
-                <YAxis domain={[0, maxY]} />
+                <YAxis
+                    domain={[0, maxY]}
+                    stroke={textColorMutedHex}
+                    tick={(props) => {
+                        const { x, y, payload } = props
+                        return (
+                            <text
+                                x={x}
+                                y={y + 6}
+                                textAnchor="end"
+                                fontSize={12}
+                                fontFamily="monospace"
+                                fill={textColorMutedHex}
+                            >
+                                {payload.value}
+                            </text>
+                        )
+                    }}
+                />
                 <Tooltip
                     labelFormatter={(label) => formatDate(label)}
                     formatter={(value: number, name: string) => [value, name === "value" ? "Value" : "Max"]}
@@ -112,6 +130,7 @@ export default function HistoricalDataChart({
                     stroke="#029E03"
                     strokeWidth={5}
                     dot={<CustomDot />}
+                    strokeLinecap="round"
                     isAnimationActive={true}
                     name="value"
                 />
