@@ -104,6 +104,7 @@ interface SignalStrengthUserData {
     testRequestingUser?: number
     scoreCalculationPeriodPreviousDays?: number // Usually previousDays but made more verbose for the public API
     timestamp?: number
+    currentDay?: boolean
 }
 
 interface ProjectData {

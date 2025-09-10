@@ -8,6 +8,8 @@ import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
 import { faDiscord, faXTwitter, faDiscourse } from "@fortawesome/free-brands-svg-icons"
 import { useState, useEffect } from "react"
 
+import HistoricalDataChart from "./HistoricalDataChart"
+
 import { useUser } from "../../../contexts/UserContext"
 import { usePrivy } from "@privy-io/react-auth"
 
@@ -44,6 +46,7 @@ const SignalStrengthLozenge = ({ children }: { children: React.ReactNode }) => (
 export default function SignalStrength({
     username,
     userData,
+    historicalData,
     timestamp,
     projectData,
     signalStrengthProjectData,
@@ -51,6 +54,7 @@ export default function SignalStrength({
 }: {
     username: string
     userData: SignalStrengthUserData
+    historicalData?: SignalStrengthUserData[]
     timestamp: number
     projectData: ProjectData
     signalStrengthProjectData: SignalStrengthProjectData
@@ -157,6 +161,9 @@ export default function SignalStrength({
 
     // Get the icon based on signalStrengthProjectData.name
     const icon = signalStrengthIcons[signalStrengthProjectData.name as SignalStrengthName]
+
+    const dataAvailable =
+        signalStrengthProjectData.enabled && userContentAvailable && !countdown && !userDataRefreshTriggered
 
     return (
         <VStack
@@ -308,7 +315,10 @@ export default function SignalStrength({
                     </Text>
                 </VStack>
             )}
-            {signalStrengthProjectData.enabled && userContentAvailable && !countdown && !userDataRefreshTriggered && (
+            {dataAvailable && historicalData && (
+                <HistoricalDataChart data={historicalData} signalStrengthProjectData={signalStrengthProjectData} />
+            )}
+            {dataAvailable && (
                 <VStack w="100%" gap={0} alignItems={"start"}>
                     <HStack
                         alignItems={"center"}

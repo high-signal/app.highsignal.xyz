@@ -82,6 +82,11 @@ export default function SignalStrengthContainer({
                                 improvements: "",
                             }
                         }
+                        historicalData={
+                            currentUser.signalStrengths?.find(
+                                (s) => s.signalStrengthName === signalStrengthProjectData.name,
+                            )?.data || []
+                        }
                         timestamp={currentUser.timestamp || 0}
                         projectData={projectData}
                         signalStrengthProjectData={signalStrengthProjectData}
