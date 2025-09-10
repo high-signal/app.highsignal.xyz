@@ -5,6 +5,7 @@ import { ASSETS } from "../../../config/constants"
 import { usePrivy } from "@privy-io/react-auth"
 import { useUser } from "../../../contexts/UserContext"
 import { useBanner } from "../../../contexts/BannerContext"
+import Markdown from "../../ui/Markdown"
 
 export default function FullPageBanner({ banner }: { banner: BannerProps }) {
     const { login, authenticated } = usePrivy()
@@ -50,7 +51,9 @@ export default function FullPageBanner({ banner }: { banner: BannerProps }) {
                 <Text fontSize="2xl" fontWeight="bold">
                     {banner.title}
                 </Text>
-                <Text>{banner.content}</Text>
+                <VStack px={3}>
+                    <Markdown content={banner.content ?? ""} />
+                </VStack>
             </VStack>
             {/* Note: This is not a secure banner. It is only a "soft" banner 
             that can be closed by anyone who knows how to change state. */}
