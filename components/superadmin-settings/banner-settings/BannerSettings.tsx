@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Text, VStack, Button, HStack } from "@chakra-ui/react"
+import { Text, VStack, Button, HStack, Textarea } from "@chakra-ui/react"
 
 import SingleLineTextInput from "../../ui/SingleLineTextInput"
 import { usePrivy } from "@privy-io/react-auth"
@@ -99,10 +99,10 @@ export default function BannerSettings({
         { option: "title", /* note: "Banner title", */ value: localBanner.title, editable: true, editorType: "text" },
         {
             option: "content",
-            note: "All on one line, new lines do not work",
+            note: "Supports markdown",
             value: localBanner.content,
             editable: true,
-            editorType: "text",
+            editorType: "textArea",
         },
     ]
 
@@ -128,38 +128,67 @@ export default function BannerSettings({
                                 {option.note}
                             </Text>
                         </HStack>
-                        <SingleLineTextInput
-                            placeholder={"-"}
-                            value={(() => {
-                                const value = localBanner[option.option as keyof BannerProps]
-                                if (option.editorType === "boolean") {
-                                    if (value === true) return "true"
-                                    if (value === false || value === undefined || value === null) return "false"
-                                    return String(value) // Allow any other string value to display as-is
-                                }
-                                return String(value || "")
-                            })()}
-                            onChange={(e) => {
-                                const value = e.target.value
-                                let processedValue: string | boolean = value
-
-                                // Convert boolean strings back to actual booleans
-                                if (option.editorType === "boolean") {
-                                    if (value === "true") {
-                                        processedValue = true
-                                    } else if (value === "false") {
-                                        processedValue = false
-                                    } else {
-                                        // For invalid boolean values, keep as string to trigger validation error
-                                        processedValue = value
+                        {option.editorType === "textArea" ? (
+                            <Textarea
+                                placeholder={"Enter content here..."}
+                                value={localBanner[option.option as keyof BannerProps] as string}
+                                onChange={(e) => {
+                                    setLocalBanner({ ...localBanner, [option.option]: e.target.value })
+                                }}
+                                bg="pageBackground"
+                                borderRadius={"16px"}
+                                minH={"100px"}
+                                fontSize="md"
+                                border={"3px solid"}
+                                borderColor={"transparent"}
+                                _focus={{
+                                    borderColor: "input.border",
+                                    boxShadow: "none",
+                                    outline: "none",
+                                    _hover: {
+                                        borderColor: "input.border",
+                                    },
+                                }}
+                                _hover={{
+                                    borderColor: "input.borderHover",
+                                    boxShadow: "none",
+                                    outline: "none",
+                                }}
+                            />
+                        ) : (
+                            <SingleLineTextInput
+                                placeholder={"-"}
+                                value={(() => {
+                                    const value = localBanner[option.option as keyof BannerProps]
+                                    if (option.editorType === "boolean") {
+                                        if (value === true) return "true"
+                                        if (value === false || value === undefined || value === null) return "false"
+                                        return String(value) // Allow any other string value to display as-is
                                     }
-                                }
+                                    return String(value || "")
+                                })()}
+                                onChange={(e) => {
+                                    const value = e.target.value
+                                    let processedValue: string | boolean = value
 
-                                setLocalBanner({ ...localBanner, [option.option]: processedValue })
-                            }}
-                            isEditable={option.editable}
-                            bg={option.editable ? "pageBackground" : "contentBackgroundHover"}
-                        />
+                                    // Convert boolean strings back to actual booleans
+                                    if (option.editorType === "boolean") {
+                                        if (value === "true") {
+                                            processedValue = true
+                                        } else if (value === "false") {
+                                            processedValue = false
+                                        } else {
+                                            // For invalid boolean values, keep as string to trigger validation error
+                                            processedValue = value
+                                        }
+                                    }
+
+                                    setLocalBanner({ ...localBanner, [option.option]: processedValue })
+                                }}
+                                isEditable={option.editable}
+                                bg={option.editable ? "pageBackground" : "contentBackgroundHover"}
+                            />
+                        )}
                         {/* If it is a boolean and the value is not true or false, show an error */}
                         {option.editorType === "boolean" &&
                             localBanner[option.option as keyof BannerProps] !== true &&

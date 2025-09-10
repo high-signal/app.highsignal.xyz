@@ -1,6 +1,7 @@
 "use client"
 
 import { VStack, Text } from "@chakra-ui/react"
+import Markdown from "../../ui/Markdown"
 import ModalCloseButton from "../ModalCloseButton"
 import { useBanner } from "../../../contexts/BannerContext"
 
@@ -30,7 +31,9 @@ export default function HeaderBanner({ banner, index }: { banner: BannerProps; i
             <Text fontSize="2xl" fontWeight="bold" px={isClosable ? 10 : 3}>
                 {banner.title}
             </Text>
-            <Text px={3}>{banner.content}</Text>
+            <VStack px={3}>
+                <Markdown content={banner.content ?? ""} />
+            </VStack>
             {isClosable && <ModalCloseButton onClose={handleClose} noRadius />}
         </VStack>
     )
