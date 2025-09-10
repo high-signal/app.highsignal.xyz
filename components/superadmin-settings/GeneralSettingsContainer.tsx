@@ -61,7 +61,10 @@ export default function GeneralSettingsContainer() {
         return (
             <HStack>
                 <Text>{label}:</Text>
-                <Text fontWeight={isError ? "bold" : "normal"} color={isError ? "red.500" : "textColorMuted"}>
+                <Text
+                    fontWeight={isError || !shouldBeZero ? "bold" : "normal"}
+                    color={isError ? "red.500" : !shouldBeZero ? "green.500" : "textColorMuted"}
+                >
                     {value}
                 </Text>
             </HStack>
@@ -81,6 +84,8 @@ export default function GeneralSettingsContainer() {
                     ) : (
                         <VStack alignItems="start" w={"100%"} color={"textColorMuted"} gap={0}>
                             <StatsRow label="Total Users" value={stats?.totalUsers ?? 0} />
+                            <StatsRow label="Total Projects" value={projects?.length ?? 0} />
+                            <Text>--------------------------</Text>
                             <StatsRow label="Missing Days" value={stats?.missingDays ?? 0} shouldBeZero />
                             <StatsRow label="AI Raw Score Errors" value={stats?.aiRawScoreErrors ?? 0} shouldBeZero />
                             <StatsRow
@@ -147,9 +152,15 @@ export default function GeneralSettingsContainer() {
                                         </HStack>
                                         {project.signalStrengths.length === 0 && (
                                             <Text color="red.500" fontSize="sm" ml={1}>
-                                                (No Signals Strengths enabled)
+                                                (No Signals Strengths configured in DB)
                                             </Text>
                                         )}
+                                        {project?.signalStrengths?.length > 0 &&
+                                            !project?.signalStrengths?.some((ss) => ss.enabled === true) && (
+                                                <Text color="red.500" fontSize="sm" ml={1}>
+                                                    (No Signal Strengths enabled)
+                                                </Text>
+                                            )}
                                     </HStack>
                                 </Button>
                             </Link>
