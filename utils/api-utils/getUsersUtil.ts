@@ -786,7 +786,8 @@ export async function getUsersUtil(
                                 ...(isSuperAdminRequesting || (isUserDataVisible && index === 0)
                                     ? {
                                           description: d.description,
-                                          improvements: d.improvements,
+                                          // TODO: Enable improvements when they are better
+                                          //   improvements: d.improvements,
                                       }
                                     : {}),
                                 ...(isSuperAdminRequesting
