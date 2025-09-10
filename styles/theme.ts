@@ -305,8 +305,7 @@ export const customConfig = defineConfig({
             backgroundColor: "{colors.selectionColor}",
         },
         ".rainbow-animation": {
-            backgroundImage:
-                "linear-gradient(270deg, {colors.gold.500}, {colors.teal.500}, {colors.blue.700}, {colors.red.500}, {colors.blue.500}, {colors.teal.500}, {colors.gold.500}) !important",
+            backgroundImage: "linear-gradient(270deg, pink, purple, blue, red, blue, purple, pink) !important",
             backgroundSize: "1000% 1000% !important",
             textShadow: "0px 0px 5px black !important",
             animation: `${rainbowAnimation} 20s linear infinite !important`,
