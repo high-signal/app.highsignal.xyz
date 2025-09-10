@@ -1,7 +1,9 @@
 "use client"
 
 import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts"
-import { Text, VStack, Spinner, Box } from "@chakra-ui/react"
+import { Text, VStack, Box, useToken } from "@chakra-ui/react"
+import { useColorMode } from "../../color-mode/ColorModeProvider"
+import { customConfig } from "../../../styles/theme"
 
 export default function HistoricalDataChart({
     data,
@@ -18,6 +20,17 @@ export default function HistoricalDataChart({
         )
     }
 
+    // Extract the color token reference based on current color mode
+    const { colorMode } = useColorMode()
+    const textColorMutedToken = customConfig.theme?.semanticTokens?.colors?.textColorMuted?.value as {
+        _light: string
+        _dark: string
+    }
+    const colorTokenRef = colorMode === "dark" ? textColorMutedToken._dark : textColorMutedToken._light
+    const colorToken = colorTokenRef.replace("{colors.", "").replace("}", "")
+    const [textColorMutedHex] = useToken("colors", [colorToken])
+
+    // Reverse the data so it displays correctly on the chart
     const dataReversed = [...data].reverse()
 
     // Format date
@@ -60,15 +73,32 @@ export default function HistoricalDataChart({
     }
 
     return (
-        <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={extendedData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+        <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={extendedData} margin={{ top: 10, right: 30, left: -20, bottom: 0 }}>
                 {/* <CartesianGrid strokeDasharray="8 8" horizontal={true} vertical={false} /> */}
                 <XAxis
                     dataKey="day"
-                    angle={-45}
-                    textAnchor="end"
-                    tickFormatter={formatDate}
-                    interval="preserveStartEnd"
+                    interval={0} // show all ticks (this is overridden later with ticks[])
+                    ticks={[extendedData[0].day, extendedData[extendedData.length - 1].day]} // only oldest & newest
+                    tick={(props) => {
+                        const { x, y, payload, index } = props
+                        const isFirst = index === 0
+                        const isLast = index === 1 // we only have 2 ticks
+                        const anchor = isFirst ? "start" : isLast ? "end" : "middle"
+
+                        return (
+                            <text
+                                x={x}
+                                y={y + 20}
+                                textAnchor={anchor}
+                                fontSize={12}
+                                fontFamily="monospace"
+                                fill={textColorMutedHex}
+                            >
+                                {formatDate(payload.value)}
+                            </text>
+                        )
+                    }}
                 />
                 <YAxis domain={[0, maxY]} />
                 <Tooltip
