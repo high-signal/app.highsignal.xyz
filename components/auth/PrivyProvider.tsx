@@ -18,7 +18,7 @@ export default function PrivyProvider({ children }: PrivyProviderProps) {
                 appearance: {
                     logo: `${ASSETS.LOGO_BASE_URL}/w_300,h_300,c_fill,q_auto,f_webp/${ASSETS.LOGO_ID}`,
                     landingHeader: "High Signal",
-                    loginMessage: "Sign in or create an account",
+                    loginMessage: "Log in or create an account",
                     theme: "#012F52",
                     accentColor: "#89d5e0",
                     walletChainType: "ethereum-only",
