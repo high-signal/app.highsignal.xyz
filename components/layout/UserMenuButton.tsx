@@ -193,13 +193,14 @@ export default function UserMenuButton() {
         <Button
             primaryButton
             {...userButtonStyles}
-            w="70px"
+            w="fit-content"
+            px={4}
             h="35px"
             onClick={() => {
                 login()
             }}
         >
-            <Text fontWeight={"bold"}>Log in</Text>
+            <Text fontWeight={"bold"}>Log in or create an account</Text>
         </Button>
     )
 }

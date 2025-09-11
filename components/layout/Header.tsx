@@ -11,6 +11,7 @@ import UserMenuButton from "./UserMenuButton"
 
 import { ASSETS, EXTERNAL_LINKS } from "../../config/constants"
 import { useParticles } from "../../contexts/ParticleContext"
+import { useUser } from "../../contexts/UserContext"
 import ProjectPicker from "../ui/ProjectPicker"
 import UserPicker from "../ui/UserPicker"
 
@@ -54,6 +55,7 @@ const environmentName =
 export default function Header({}) {
     const { showParticles } = useParticles()
     const router = useRouter()
+    const { loggedInUser } = useUser()
 
     return (
         <VStack
@@ -113,16 +115,18 @@ export default function Header({}) {
                         </Box>
                     </Link>
                     <HStack flexGrow={{ base: 1, md: 0 }} justifyContent={"center"} gap={2}>
-                        <ProjectPicker
-                            onProjectSelect={(project) => {
-                                if (project?.urlSlug) {
-                                    router.push(`/p/${project.urlSlug}`)
-                                }
-                            }}
-                            selectorText={"Leaderboards..."}
-                            placeholder={"Search..."}
-                        />
-                        <Box display={{ base: "none", md: "block" }}>
+                        <Box display={{ base: loggedInUser ? "block" : "none", md: "block" }}>
+                            <ProjectPicker
+                                onProjectSelect={(project) => {
+                                    if (project?.urlSlug) {
+                                        router.push(`/p/${project.urlSlug}`)
+                                    }
+                                }}
+                                selectorText={"Leaderboards..."}
+                                placeholder={"Search..."}
+                            />
+                        </Box>
+                        <Box display={{ base: "none", lg: "block" }}>
                             <UserPicker
                                 projectUrlSlug={""}
                                 selectorText={"Users..."}
