@@ -406,7 +406,7 @@ export default function SignalStrength({
                                                         login()
                                                     }}
                                                 >
-                                                    <Text fontWeight={"bold"}>Logging in</Text>
+                                                    <Text fontWeight={"bold"}>Logging in or creating an account</Text>
                                                 </Button>
                                             </>
                                         )}
