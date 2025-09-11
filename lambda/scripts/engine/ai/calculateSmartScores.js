@@ -94,7 +94,11 @@ function calculateSmartScore({ signalStrengthName, userData, previousDays, maxVa
         frequencyMultiplier = 1.0
     }
 
-    const smartScore = Math.round(topBandNormalizedAverage * maxValue * frequencyMultiplier)
+    // Ensure the smart score is between 1 and maxValue as upper and lower bounds
+    const smartScore = Math.min(
+        maxValue,
+        Math.max(1, Math.round(topBandNormalizedAverage * maxValue * frequencyMultiplier)),
+    )
 
     // Extract the days that were in the top band
     const topBandDays = topBand.map((d) => d.day)
