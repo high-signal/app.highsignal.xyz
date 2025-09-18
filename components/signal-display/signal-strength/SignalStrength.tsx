@@ -47,7 +47,7 @@ const SignalStrengthLozenge = ({ children }: { children: React.ReactNode }) => (
 export default function SignalStrength({
     username,
     userData,
-    historicalData,
+    dailyData,
     timestamp,
     projectData,
     signalStrengthProjectData,
@@ -55,7 +55,7 @@ export default function SignalStrength({
 }: {
     username: string
     userData: SignalStrengthUserData
-    historicalData?: SignalStrengthUserData[]
+    dailyData?: SignalStrengthUserData[]
     timestamp: number
     projectData: ProjectData
     signalStrengthProjectData: SignalStrengthProjectData
@@ -249,7 +249,7 @@ export default function SignalStrength({
                         <Text w="100%" fontWeight={"bold"} textAlign={"center"}>
                             Smart Score
                         </Text>
-                        <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"}>
+                        <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
                             Your Smart Score is calculated based on your activity and engagement with the{" "}
                             {projectData.displayName} community over the past 360 days.
                         </Text>
@@ -473,16 +473,21 @@ export default function SignalStrength({
                 </VStack>
             )}
             {dataAvailable && <Divider />}
-            {dataAvailable && historicalData && (
+            {dataAvailable && dailyData && (
                 <VStack w="100%" gap={2} alignItems={"start"}>
                     <Text w="100%" fontWeight={"bold"} textAlign={"center"}>
                         Daily Engagement Scores
                     </Text>
-                    <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"}>
+                    <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
                         The chart shows your daily engagement scores for each day you have been active in the{" "}
                         {projectData.displayName} community over the past {signalStrengthProjectData.previousDays} days.
                     </Text>
-                    <HistoricalDataChart data={historicalData} signalStrengthProjectData={signalStrengthProjectData} />
+                    <HistoricalDataChart data={dailyData} signalStrengthProjectData={signalStrengthProjectData} />
+                    <Text>What is this chart showing?</Text>
+                    <Text>
+                        Very short posts are not shown on the chart as they do not provide enough information to
+                        calculate a score.
+                    </Text>
                 </VStack>
             )}
 

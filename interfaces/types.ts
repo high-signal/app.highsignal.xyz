@@ -14,6 +14,7 @@ interface UserData {
     signalStrengths?: {
         signalStrengthName: string
         data: SignalStrengthUserData[]
+        dailyData?: SignalStrengthUserData[]
     }[]
     forumUsers?: ForumUser[]
     isSuperAdmin?: boolean
