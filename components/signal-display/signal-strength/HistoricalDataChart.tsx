@@ -141,7 +141,7 @@ export default function HistoricalDataChart({
                         <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart
                                 data={dataWithTimestamps}
-                                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                                margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
                             >
                                 <CartesianGrid stroke="none" fill={"#001B36"} fillOpacity={1} />
                                 <XAxis
@@ -150,19 +150,22 @@ export default function HistoricalDataChart({
                                     scale="time"
                                     domain={[pastDate.getTime(), yesterday.getTime()]}
                                     stroke={textColorMutedHex}
-                                    tick={false} // disable auto ticks
+                                    ticks={[pastDate.getTime(), yesterday.getTime()]} // Force only start + end ticks
+                                    tickLine={true} // Show tick lines
+                                    tickFormatter={() => ""} // Hide default text
                                 >
+                                    {/* Custom tick labels */}
                                     <Label
                                         value={formatLocalDate(pastDate)}
                                         position="insideBottomLeft"
-                                        offset={8}
+                                        offset={7}
                                         dx={-8}
                                         style={{ fontSize: 16, fontFamily: "monospace", fill: textColorMutedHex }}
                                     />
                                     <Label
                                         value={formatLocalDate(yesterday)}
                                         position="insideBottomRight"
-                                        offset={8}
+                                        offset={7}
                                         dx={8}
                                         style={{ fontSize: 16, fontFamily: "monospace", fill: textColorMutedHex }}
                                     />
