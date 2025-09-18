@@ -43,7 +43,8 @@ export default function SignalDisplayContainer({ project, username }: { project:
         if (!loggedInUserLoading) {
             if (
                 loggedInUser?.username === username ||
-                loggedInUser?.projectAdmins?.some((adminProject) => adminProject?.urlSlug === project) ||
+                // TODO: Remove when confirmed that project admins should not see see target user specific data
+                // loggedInUser?.projectAdmins?.some((adminProject) => adminProject?.urlSlug === project) ||
                 loggedInUser?.isSuperAdmin
             ) {
                 setIsUserDataVisible(true)

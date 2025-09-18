@@ -53,7 +53,7 @@ export const routePermissions: RoutePermission[] = [
         methods: {
             GET: {
                 requiresAuth: true,
-                allowedAccess: ["targetUser", "projectAdmin", "superAdmin"],
+                allowedAccess: ["targetUser", "superAdmin"],
             },
         },
     },
