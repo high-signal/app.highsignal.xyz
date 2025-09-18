@@ -1,6 +1,7 @@
 "use client"
 
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts"
+import React from "react"
+import { ResponsiveContainer, ComposedChart, Scatter, Line, XAxis, YAxis, Tooltip } from "recharts"
 import { Text, VStack, Box, useToken, HStack } from "@chakra-ui/react"
 import { useColorMode } from "../../color-mode/ColorModeProvider"
 import { customConfig } from "../../../styles/theme"
@@ -12,14 +13,6 @@ export default function HistoricalDataChart({
     data: SignalStrengthUserData[]
     signalStrengthProjectData: SignalStrengthProjectData
 }) {
-    if (!data || data.length === 0) {
-        return (
-            <VStack align="center" justify="center" h="100%" w="100%">
-                <Text fontSize="lg">No data available</Text>
-            </VStack>
-        )
-    }
-
     // Extract the color token reference based on current color mode
     const { colorMode } = useColorMode()
     const textColorMutedToken = customConfig.theme?.semanticTokens?.colors?.textColorMuted?.value as {
@@ -29,6 +22,14 @@ export default function HistoricalDataChart({
     const textColorMutedColorTokenRef = colorMode === "dark" ? textColorMutedToken._dark : textColorMutedToken._light
     const textColorMutedColorToken = textColorMutedColorTokenRef.replace("{colors.", "").replace("}", "")
     const [textColorMutedHex] = useToken("colors", [textColorMutedColorToken])
+
+    if (!data || data.length === 0) {
+        return (
+            <VStack align="center" justify="center" h="100%" w="100%">
+                <Text fontSize="lg">No data available</Text>
+            </VStack>
+        )
+    }
 
     // Reverse the data so it displays correctly on the chart
     const dataReversed = [...data].reverse()
@@ -56,19 +57,6 @@ export default function HistoricalDataChart({
             maxValue: signalStrengthProjectData.maxValue,
             currentDay: true,
         })
-    }
-
-    // Custom dot renderer for "value" line
-    const CustomDot = (props: any) => {
-        const { cx, cy, payload } = props
-        if (payload.currentDay) {
-            return (
-                <foreignObject x={cx - 8} y={cy - 8} width={16} height={16}>
-                    <Box className="rainbow-animation" w={"16px"} h={"16px"} borderRadius={"full"} zIndex={1000} />
-                </foreignObject>
-            )
-        }
-        return <circle cx={cx} cy={cy} r={0} fill="#029E03" />
     }
 
     const ChartTooltip = ({ payload, label }: { payload: any[]; label: string }) => {
@@ -113,7 +101,7 @@ export default function HistoricalDataChart({
 
     return (
         <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={extendedData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
+            <ComposedChart data={extendedData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
                 <XAxis
                     dataKey="day"
                     interval={0} // show all ticks (this is overridden later with ticks[])
@@ -158,19 +146,22 @@ export default function HistoricalDataChart({
                         )
                     }}
                 />
-                <Tooltip content={<ChartTooltip payload={[]} label={""} />} isAnimationActive={false} />
-                <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#029E03"
-                    strokeWidth={5}
-                    fill="#002E00"
-                    dot={<CustomDot />}
-                    strokeLinecap="round"
-                    isAnimationActive={true}
-                    name="value"
+                <Tooltip
+                    content={<ChartTooltip payload={[]} label={""} />}
+                    isAnimationActive={false}
+                    cursor={{ stroke: textColorMutedHex, strokeWidth: 2 }}
                 />
-            </AreaChart>
+                <Line
+                    name="value"
+                    data={extendedData}
+                    dataKey="value"
+                    strokeWidth={0}
+                    strokeOpacity={0}
+                    isAnimationActive={true}
+                    fill="#029E03"
+                    activeDot={{ r: 5, fill: "#FFCC00", stroke: "#FFFFFF", strokeWidth: 2 }}
+                />
+            </ComposedChart>
         </ResponsiveContainer>
     )
 }
