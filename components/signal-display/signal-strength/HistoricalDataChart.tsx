@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { ResponsiveContainer, ComposedChart, Scatter, Line, XAxis, YAxis, Tooltip } from "recharts"
+import { ResponsiveContainer, ComposedChart, Line, XAxis, YAxis, Tooltip } from "recharts"
 import { Text, VStack, Box, useToken, HStack } from "@chakra-ui/react"
 import { useColorMode } from "../../color-mode/ColorModeProvider"
 import { customConfig } from "../../../styles/theme"
@@ -99,6 +99,25 @@ export default function HistoricalDataChart({
         )
     }
 
+    const AnimatedDot = ({ cx, cy, r, index, total }: any) => {
+        const totalDuration = 2 // total animation duration in seconds
+        const perDotDelay = total > 1 ? totalDuration / total : 0
+
+        return (
+            <circle cx={cx} cy={cy} r={0} fill={"#029E03"} opacity={0}>
+                <animate attributeName="r" from="0" to={r} dur="0.3s" begin={`${index * perDotDelay}s`} fill="freeze" />
+                <animate
+                    attributeName="opacity"
+                    from="0"
+                    to="1"
+                    dur="0.3s"
+                    begin={`${index * perDotDelay}s`}
+                    fill="freeze"
+                />
+            </circle>
+        )
+    }
+
     return (
         <ResponsiveContainer width="100%" height={300}>
             <ComposedChart data={extendedData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
@@ -157,9 +176,18 @@ export default function HistoricalDataChart({
                     dataKey="value"
                     strokeWidth={0}
                     strokeOpacity={0}
-                    isAnimationActive={true}
-                    fill="#029E03"
-                    activeDot={{ r: 5, fill: "#FFCC00", stroke: "#FFFFFF", strokeWidth: 2 }}
+                    isAnimationActive={false}
+                    stroke="#029E03"
+                    dot={(props) => {
+                        const { key, ...rest } = props
+                        return <AnimatedDot key={key} {...rest} total={extendedData.length} />
+                    }}
+                    activeDot={{
+                        r: 6,
+                        fill: "#029E03",
+                        stroke: textColorMutedHex,
+                        strokeWidth: 0,
+                    }}
                 />
             </ComposedChart>
         </ResponsiveContainer>
