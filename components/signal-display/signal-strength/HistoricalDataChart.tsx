@@ -40,25 +40,6 @@ export default function HistoricalDataChart({
     // Find largest maxValue
     const maxY = Math.max(...dataReversed.map((d) => d.maxValue))
 
-    // Clone data and add "today" point
-    const extendedData = [...dataReversed]
-    const firstPoint = dataReversed[dataReversed.length - 1]
-    if (firstPoint) {
-        const tomorrow = new Date(firstPoint.day)
-        tomorrow.setDate(tomorrow.getDate() + 1)
-
-        extendedData.push({
-            day: tomorrow.toISOString().split("T")[0],
-            name: "",
-            summary: "",
-            description: "",
-            improvements: "",
-            value: firstPoint.value,
-            maxValue: signalStrengthProjectData.maxValue,
-            currentDay: true,
-        })
-    }
-
     const ChartTooltip = ({ payload, label }: { payload: any[]; label: string }) => {
         if (!payload || payload.length === 0) return null
 
@@ -120,11 +101,11 @@ export default function HistoricalDataChart({
 
     return (
         <ResponsiveContainer width="100%" height={300}>
-            <ComposedChart data={extendedData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
+            <ComposedChart data={dataReversed} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
                 <XAxis
                     dataKey="day"
                     interval={0} // show all ticks (this is overridden later with ticks[])
-                    ticks={[extendedData[0].day, extendedData[extendedData.length - 1].day]} // only oldest & newest
+                    ticks={[dataReversed[0].day, dataReversed[dataReversed.length - 1].day]} // only oldest & newest
                     stroke={textColorMutedHex}
                     tick={(props) => {
                         const { x, y, payload, index } = props
@@ -172,7 +153,7 @@ export default function HistoricalDataChart({
                 />
                 <Line
                     name="value"
-                    data={extendedData}
+                    data={dataReversed}
                     dataKey="value"
                     strokeWidth={0}
                     strokeOpacity={0}
@@ -180,7 +161,7 @@ export default function HistoricalDataChart({
                     stroke="#029E03"
                     dot={(props) => {
                         const { key, ...rest } = props
-                        return <AnimatedDot key={key} {...rest} total={extendedData.length} />
+                        return <AnimatedDot key={key} {...rest} total={dataReversed.length} />
                     }}
                     activeDot={{
                         r: 6,
