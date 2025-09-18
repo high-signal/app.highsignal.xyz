@@ -2,17 +2,7 @@
 
 import React from "react"
 import { useInView } from "react-intersection-observer"
-import {
-    ResponsiveContainer,
-    ComposedChart,
-    Line,
-    XAxis,
-    YAxis,
-    Tooltip,
-    Label,
-    ReferenceArea,
-    CartesianGrid,
-} from "recharts"
+import { ResponsiveContainer, ComposedChart, Line, XAxis, YAxis, Tooltip, Label, CartesianGrid } from "recharts"
 import { HStack, Text, VStack, useToken, Box } from "@chakra-ui/react"
 import { useColorMode } from "../../color-mode/ColorModeProvider"
 import { customConfig } from "../../../styles/theme"
@@ -33,6 +23,14 @@ export default function HistoricalDataChart({
     const textColorMutedColorTokenRef = colorMode === "dark" ? textColorMutedToken._dark : textColorMutedToken._light
     const textColorMutedColorToken = textColorMutedColorTokenRef.replace("{colors.", "").replace("}", "")
     const [textColorMutedHex] = useToken("colors", [textColorMutedColorToken])
+
+    const pageBackgroundToken = customConfig.theme?.semanticTokens?.colors?.pageBackground?.value as {
+        _light: string
+        _dark: string
+    }
+    const pageBackgroundColorTokenRef = colorMode === "dark" ? pageBackgroundToken._dark : pageBackgroundToken._light
+    const pageBackgroundColorToken = pageBackgroundColorTokenRef.replace("{colors.", "").replace("}", "")
+    const [pageBackgroundColorHex] = useToken("colors", [pageBackgroundColorToken])
 
     if (!data || data.length === 0) {
         return (
@@ -143,7 +141,7 @@ export default function HistoricalDataChart({
                                 data={dataWithTimestamps}
                                 margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
                             >
-                                <CartesianGrid stroke="none" fill={"#001B36"} fillOpacity={1} />
+                                <CartesianGrid stroke="none" fill={pageBackgroundColorHex} fillOpacity={1} />
                                 <XAxis
                                     dataKey="day"
                                     type="number"
