@@ -16,6 +16,7 @@ import { usePrivy } from "@privy-io/react-auth"
 import { APP_CONFIG } from "../../../config/constants"
 import { useRouter } from "next/navigation"
 import { Lozenges } from "../../ui/Lozenges"
+import Divider from "../../ui/Divider"
 
 // Define signalStrengthIcons
 const signalStrengthIcons = {
@@ -244,80 +245,78 @@ export default function SignalStrength({
             {userContentAvailable &&
                 signalStrengthProjectData.status !== "dev" &&
                 signalStrengthProjectData.enabled && (
-                    <HStack
-                        w="100%"
-                        justifyContent={"space-between"}
-                        alignItems={"center"}
-                        fontSize={"lg"}
-                        color={"textColorMuted"}
-                        px={1}
-                    >
-                        <Text fontFamily={"monospace"}>0</Text>
+                    <VStack w="100%" gap={2} alignItems={"start"}>
+                        <Text w="100%" fontWeight={"bold"} textAlign={"center"}>
+                            Smart Score
+                        </Text>
+                        <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"}>
+                            Your Smart Score is calculated based on your activity and engagement with the{" "}
+                            {projectData.displayName} community over the past 360 days.
+                        </Text>
                         <HStack
                             w="100%"
-                            h="30px"
-                            bg="lozenge.background.disabled"
-                            borderRadius="md"
-                            overflow="hidden"
-                            className={userDataRefreshTriggered || countdown ? "rainbow-animation" : ""}
-                            border="3px solid"
-                            borderColor={completedBarWidth === "100%" ? "lozenge.border.active" : "pageBackground"}
+                            justifyContent={"space-between"}
+                            alignItems={"center"}
+                            fontSize={"lg"}
+                            color={"textColorMuted"}
+                            px={1}
                         >
-                            {userDataRefreshTriggered ? (
-                                <HStack w={"100%"} justifyContent={"center"}>
-                                    <Text fontWeight={"bold"} color="white" textAlign={"center"} fontSize={"md"}>
-                                        Loading score...
+                            <Text fontFamily={"monospace"}>0</Text>
+                            <HStack
+                                w="100%"
+                                h="30px"
+                                bg="lozenge.background.disabled"
+                                borderRadius="md"
+                                overflow="hidden"
+                                className={userDataRefreshTriggered || countdown ? "rainbow-animation" : ""}
+                                border="3px solid"
+                                borderColor={completedBarWidth === "100%" ? "lozenge.border.active" : "pageBackground"}
+                            >
+                                {userDataRefreshTriggered ? (
+                                    <HStack w={"100%"} justifyContent={"center"}>
+                                        <Text fontWeight={"bold"} color="white" textAlign={"center"} fontSize={"md"}>
+                                            Loading score...
+                                        </Text>
+                                        <Spinner size="sm" />
+                                    </HStack>
+                                ) : countdown !== null ? (
+                                    <Text
+                                        fontWeight={"bold"}
+                                        color="white"
+                                        w={"100%"}
+                                        textAlign={"center"}
+                                        fontSize={"md"}
+                                    >
+                                        {countdownText}{" "}
+                                        {countdown > 0 && (
+                                            <>
+                                                <Text as="span" fontFamily={"monospace"}>
+                                                    {countdown}
+                                                </Text>
+                                                <Text as="span" fontFamily={"monospace"}>
+                                                    s
+                                                </Text>
+                                            </>
+                                        )}
                                     </Text>
-                                    <Spinner size="sm" />
-                                </HStack>
-                            ) : countdown !== null ? (
-                                <Text fontWeight={"bold"} color="white" w={"100%"} textAlign={"center"} fontSize={"md"}>
-                                    {countdownText}{" "}
-                                    {countdown > 0 && (
-                                        <>
-                                            <Text as="span" fontFamily={"monospace"}>
-                                                {countdown}
-                                            </Text>
-                                            <Text as="span" fontFamily={"monospace"}>
-                                                s
-                                            </Text>
-                                        </>
-                                    )}
-                                </Text>
-                            ) : (
-                                <Box
-                                    w={completedBarWidth}
-                                    h="100%"
-                                    bg="lozenge.background.active"
-                                    borderRight={
-                                        completedBarWidth === "100%" || completedBarWidth === "0%"
-                                            ? "none"
-                                            : "3px solid"
-                                    }
-                                    borderColor={"lozenge.border.active"}
-                                />
-                            )}
+                                ) : (
+                                    <Box
+                                        w={completedBarWidth}
+                                        h="100%"
+                                        bg="lozenge.background.active"
+                                        borderRight={
+                                            completedBarWidth === "100%" || completedBarWidth === "0%"
+                                                ? "none"
+                                                : "3px solid"
+                                        }
+                                        borderColor={"lozenge.border.active"}
+                                    />
+                                )}
+                            </HStack>
+                            <Text fontFamily={"monospace"}>{signalStrengthProjectData.maxValue}</Text>
                         </HStack>
-                        <Text fontFamily={"monospace"}>{signalStrengthProjectData.maxValue}</Text>
-                    </HStack>
+                    </VStack>
                 )}
-            {!userDataRefreshTriggered && countdown === -2 && (
-                <VStack w="100%" gap={2} px={2} textAlign={"center"} color="textColorMuted">
-                    {loggedInUser?.username === username && (
-                        <Text>
-                            {`It's taking longer than expected to calculate your score, probably because you have a lot of
-                        activity!`}
-                        </Text>
-                    )}
-                    <Text>
-                        Check back later to see {loggedInUser?.username === username ? "your" : "the"} calculated Signal
-                        Score.
-                    </Text>
-                </VStack>
-            )}
-            {dataAvailable && historicalData && (
-                <HistoricalDataChart data={historicalData} signalStrengthProjectData={signalStrengthProjectData} />
-            )}
             {dataAvailable && (
                 <VStack w="100%" gap={0} alignItems={"start"}>
                     <HStack
@@ -459,6 +458,34 @@ export default function SignalStrength({
                     )}
                 </VStack>
             )}
+            {!userDataRefreshTriggered && countdown === -2 && (
+                <VStack w="100%" gap={2} px={2} textAlign={"center"} color="textColorMuted">
+                    {loggedInUser?.username === username && (
+                        <Text>
+                            {`It's taking longer than expected to calculate your score, probably because you have a lot of
+                        activity!`}
+                        </Text>
+                    )}
+                    <Text>
+                        Check back later to see {loggedInUser?.username === username ? "your" : "the"} calculated Signal
+                        Score.
+                    </Text>
+                </VStack>
+            )}
+            {dataAvailable && <Divider />}
+            {dataAvailable && historicalData && (
+                <VStack w="100%" gap={2} alignItems={"start"}>
+                    <Text w="100%" fontWeight={"bold"} textAlign={"center"}>
+                        Daily Engagement Scores
+                    </Text>
+                    <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"}>
+                        The chart shows your daily engagement scores for each day you have been active in the{" "}
+                        {projectData.displayName} community over the past {signalStrengthProjectData.previousDays} days.
+                    </Text>
+                    <HistoricalDataChart data={historicalData} signalStrengthProjectData={signalStrengthProjectData} />
+                </VStack>
+            )}
+
             {signalStrengthProjectData.status === "active" &&
                 signalStrengthProjectData.enabled &&
                 !userContentAvailable &&
