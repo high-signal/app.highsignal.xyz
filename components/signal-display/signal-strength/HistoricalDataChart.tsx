@@ -1,7 +1,7 @@
 "use client"
 
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts"
-import { Text, VStack, Box, useToken } from "@chakra-ui/react"
+import { Text, VStack, Box, useToken, HStack } from "@chakra-ui/react"
 import { useColorMode } from "../../color-mode/ColorModeProvider"
 import { customConfig } from "../../../styles/theme"
 
@@ -71,6 +71,46 @@ export default function HistoricalDataChart({
         return <circle cx={cx} cy={cy} r={0} fill="#029E03" />
     }
 
+    const ChartTooltip = ({ payload, label }: { payload: any[]; label: string }) => {
+        if (!payload || payload.length === 0) return null
+
+        // Recharts provides the current datum on payload[0].payload
+        const point = payload[0]?.payload as SignalStrengthUserData | undefined
+        const dateLabel = label ? formatDate(label) : point ? formatDate(point.day as unknown as string) : ""
+
+        return (
+            <VStack
+                alignItems={"start"}
+                gap={3}
+                px={3}
+                py={1}
+                bg={"pageBackground"}
+                borderRadius={"12px"}
+                border={"3px solid"}
+                borderColor={"contentBorder"}
+            >
+                <Text fontSize={"lg"} fontWeight={"bold"}>
+                    {dateLabel}
+                </Text>
+                {point && (
+                    <VStack alignItems={"start"}>
+                        <HStack
+                            alignItems={"center"}
+                            w={"100%"}
+                            justifyContent={"space-between"}
+                            gap={5}
+                            fontSize={"md"}
+                        >
+                            <Text pt={"2px"} fontFamily={"monospace"} fontSize={"md"}>
+                                {point.value}/{point.maxValue}
+                            </Text>
+                        </HStack>
+                    </VStack>
+                )}
+            </VStack>
+        )
+    }
+
     return (
         <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={extendedData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
@@ -118,10 +158,7 @@ export default function HistoricalDataChart({
                         )
                     }}
                 />
-                <Tooltip
-                    labelFormatter={(label) => formatDate(label)}
-                    formatter={(value: number, name: string) => [value, name === "value" ? "Value" : "Max"]}
-                />
+                <Tooltip content={<ChartTooltip payload={[]} label={""} />} isAnimationActive={false} />
                 <Area
                     type="monotone"
                     dataKey="value"
