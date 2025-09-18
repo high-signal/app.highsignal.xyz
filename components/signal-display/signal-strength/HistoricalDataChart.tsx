@@ -141,7 +141,30 @@ export default function HistoricalDataChart({
                                 data={dataWithTimestamps}
                                 margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
                             >
+                                <defs>
+                                    <pattern
+                                        id="graphPaperPattern"
+                                        width="20"
+                                        height="20"
+                                        patternUnits="userSpaceOnUse"
+                                    >
+                                        <rect
+                                            width="20"
+                                            height="20"
+                                            fill="none"
+                                            stroke={textColorMutedHex}
+                                            strokeWidth="0.5"
+                                            strokeOpacity="0.2"
+                                        />
+                                    </pattern>
+                                </defs>
+
+                                {/* Background color */}
                                 <CartesianGrid stroke="none" fill={pageBackgroundColorHex} fillOpacity={1} />
+
+                                {/* Graph paper pattern — clipped automatically */}
+                                <CartesianGrid stroke="none" fill="url(#graphPaperPattern)" fillOpacity={1} />
+
                                 <XAxis
                                     dataKey="day"
                                     type="number"
