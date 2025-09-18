@@ -2,7 +2,17 @@
 
 import React from "react"
 import { useInView } from "react-intersection-observer"
-import { ResponsiveContainer, ComposedChart, Line, XAxis, YAxis, Tooltip, Label } from "recharts"
+import {
+    ResponsiveContainer,
+    ComposedChart,
+    Line,
+    XAxis,
+    YAxis,
+    Tooltip,
+    Label,
+    ReferenceArea,
+    CartesianGrid,
+} from "recharts"
 import { HStack, Text, VStack, useToken, Box } from "@chakra-ui/react"
 import { useColorMode } from "../../color-mode/ColorModeProvider"
 import { customConfig } from "../../../styles/theme"
@@ -127,88 +137,97 @@ export default function HistoricalDataChart({
         <HStack ref={ref} w="100%" h="300px" opacity={inView ? 1 : 0} transition="opacity 0.5s ease-in-out" gap={0}>
             {inView && (
                 <>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={dataWithTimestamps} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                            <XAxis
-                                dataKey="day"
-                                type="number"
-                                scale="time"
-                                domain={[pastDate.getTime(), yesterday.getTime()]}
-                                stroke={textColorMutedHex}
-                                tick={false} // disable auto ticks
-                            >
-                                <Label
-                                    value={formatLocalDate(pastDate)}
-                                    position="insideBottomLeft"
-                                    offset={8}
-                                    dx={-8}
-                                    style={{ fontSize: 16, fontFamily: "monospace", fill: textColorMutedHex }}
-                                />
-                                <Label
-                                    value={formatLocalDate(yesterday)}
-                                    position="insideBottomRight"
-                                    offset={8}
-                                    dx={8}
-                                    style={{ fontSize: 16, fontFamily: "monospace", fill: textColorMutedHex }}
-                                />
-                            </XAxis>
-                            <YAxis
-                                domain={[0, maxY]}
-                                stroke={textColorMutedHex}
-                                tick={(props) => {
-                                    const { x, y, payload } = props
-                                    return (
-                                        <text
-                                            x={x}
-                                            y={y + 6}
-                                            textAnchor="end"
-                                            fontSize={12}
-                                            fontFamily="monospace"
-                                            fill={textColorMutedHex}
-                                        >
-                                            {payload.value}
-                                        </text>
-                                    )
-                                }}
-                            />
-                            <Tooltip
-                                content={<ChartTooltip payload={[]} label={""} />}
-                                isAnimationActive={false}
-                                cursor={{ stroke: textColorMutedHex, strokeWidth: 2 }}
-                            />
-                            <Line
-                                name="value"
+                    <Box w="100%" h="100%" zIndex={5} overflow="visible">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart
                                 data={dataWithTimestamps}
-                                dataKey="value"
-                                strokeWidth={0}
-                                strokeOpacity={0}
-                                isAnimationActive={false}
-                                stroke="#029E03"
-                                dot={(props) => {
-                                    const { key, ...rest } = props
-                                    return <AnimatedDot key={key} {...rest} total={dataWithTimestamps.length} />
-                                }}
-                                activeDot={{
-                                    r: 6,
-                                    fill: "#029E03",
-                                    stroke: textColorMutedHex,
-                                    strokeWidth: 0,
-                                }}
-                            />
-                        </ComposedChart>
-                    </ResponsiveContainer>
-                    <Box w="10px" h="5px" position="relative" mb={"25px"}>
-                        <Box
-                            className="rainbow-animation"
-                            position="absolute"
-                            top={"1px"}
-                            left={"-3px"}
-                            w="100%"
-                            h="100%"
-                            transform="rotate(90deg) scaleX(calc(26))"
-                            transformOrigin="center"
-                        />
+                                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                            >
+                                <CartesianGrid stroke="none" fill={"#001B36"} fillOpacity={1} />
+                                <XAxis
+                                    dataKey="day"
+                                    type="number"
+                                    scale="time"
+                                    domain={[pastDate.getTime(), yesterday.getTime()]}
+                                    stroke={textColorMutedHex}
+                                    tick={false} // disable auto ticks
+                                >
+                                    <Label
+                                        value={formatLocalDate(pastDate)}
+                                        position="insideBottomLeft"
+                                        offset={8}
+                                        dx={-8}
+                                        style={{ fontSize: 16, fontFamily: "monospace", fill: textColorMutedHex }}
+                                    />
+                                    <Label
+                                        value={formatLocalDate(yesterday)}
+                                        position="insideBottomRight"
+                                        offset={8}
+                                        dx={8}
+                                        style={{ fontSize: 16, fontFamily: "monospace", fill: textColorMutedHex }}
+                                    />
+                                </XAxis>
+                                <YAxis
+                                    domain={[0, maxY]}
+                                    stroke={textColorMutedHex}
+                                    tick={(props) => {
+                                        const { x, y, payload } = props
+                                        return (
+                                            <text
+                                                x={x}
+                                                y={y + 6}
+                                                textAnchor="end"
+                                                fontSize={12}
+                                                fontFamily="monospace"
+                                                fill={textColorMutedHex}
+                                            >
+                                                {payload.value}
+                                            </text>
+                                        )
+                                    }}
+                                />
+                                <Tooltip
+                                    content={<ChartTooltip payload={[]} label={""} />}
+                                    isAnimationActive={false}
+                                    cursor={{ stroke: textColorMutedHex, strokeWidth: 2 }}
+                                />
+                                <Line
+                                    name="value"
+                                    data={dataWithTimestamps}
+                                    dataKey="value"
+                                    strokeWidth={0}
+                                    strokeOpacity={0}
+                                    isAnimationActive={false}
+                                    stroke="#029E03"
+                                    dot={(props) => {
+                                        const { key, ...rest } = props
+                                        return <AnimatedDot key={key} {...rest} total={dataWithTimestamps.length} />
+                                    }}
+                                    activeDot={{
+                                        r: 6,
+                                        fill: "#029E03",
+                                        stroke: textColorMutedHex,
+                                        strokeWidth: 0,
+                                    }}
+                                />
+                            </ComposedChart>
+                        </ResponsiveContainer>
                     </Box>
+                    <HStack w="fit-content" h="5px" gap={0} zIndex={2}>
+                        <Box w="15px" h="260px" mb={"20px"} ml={"-10px"} bg={"pageBackground"} />
+                        <Box w="10px" h="6px" position="relative" mb={"25px"}>
+                            <Box
+                                className="rainbow-animation"
+                                position="absolute"
+                                top={"2px"}
+                                left={"-8px"}
+                                w="100%"
+                                h="100%"
+                                transform="rotate(90deg) scaleX(calc(26))"
+                                transformOrigin="center"
+                            />
+                        </Box>
+                    </HStack>
                 </>
             )}
         </HStack>

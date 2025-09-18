@@ -329,6 +329,9 @@ export const customConfig = defineConfig({
             outline: "none !important",
             boxShadow: "none !important",
         },
+        ".recharts-surface:focus": {
+            outline: "none !important",
+        },
     },
 })
 
