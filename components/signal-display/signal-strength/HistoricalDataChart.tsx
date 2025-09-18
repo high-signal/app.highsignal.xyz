@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { ResponsiveContainer, ComposedChart, Line, XAxis, YAxis, Tooltip } from "recharts"
+import { ResponsiveContainer, ComposedChart, Line, XAxis, YAxis, Tooltip, Label } from "recharts"
 import { Text, VStack, Box, useToken, HStack } from "@chakra-ui/react"
 import { useColorMode } from "../../color-mode/ColorModeProvider"
 import { customConfig } from "../../../styles/theme"
@@ -31,6 +31,13 @@ export default function HistoricalDataChart({
         )
     }
 
+    const formatLocalDate = (date: Date) => {
+        const day = date.getDate().toString().padStart(2, "0")
+        const month = new Intl.DateTimeFormat(undefined, { month: "short" }).format(date) // localized short month
+        const year = date.getFullYear()
+        return `${day} ${month} ${year}`
+    }
+
     // Reverse the data so it displays correctly on the chart
     const dataReversed = [...data].reverse()
 
@@ -39,6 +46,21 @@ export default function HistoricalDataChart({
 
     // Find largest maxValue
     const maxY = Math.max(...dataReversed.map((d) => d.maxValue))
+
+    // Yesterday
+    const yesterday = new Date()
+    yesterday.setHours(0, 0, 0, 0)
+    yesterday.setDate(yesterday.getDate() - 1)
+
+    // 360 days ago
+    const pastDate = new Date(yesterday)
+    pastDate.setDate(pastDate.getDate() - 360)
+
+    // Convert your data day field into timestamps
+    const dataWithTimestamps = dataReversed.map((d) => ({
+        ...d,
+        day: new Date(d.day).getTime(), // numeric timestamp
+    }))
 
     const ChartTooltip = ({ payload, label }: { payload: any[]; label: string }) => {
         if (!payload || payload.length === 0) return null
@@ -49,8 +71,8 @@ export default function HistoricalDataChart({
 
         return (
             <VStack
-                alignItems={"start"}
-                gap={3}
+                alignItems={"center"}
+                gap={2}
                 px={3}
                 py={1}
                 bg={"pageBackground"}
@@ -58,22 +80,18 @@ export default function HistoricalDataChart({
                 border={"3px solid"}
                 borderColor={"contentBorder"}
             >
-                <Text fontSize={"lg"} fontWeight={"bold"}>
-                    {dateLabel}
+                <Text fontWeight={"bold"} wordSpacing={"5px"}>
+                    {formatLocalDate(new Date(dateLabel))}
                 </Text>
                 {point && (
-                    <VStack alignItems={"start"}>
-                        <HStack
-                            alignItems={"center"}
-                            w={"100%"}
-                            justifyContent={"space-between"}
-                            gap={5}
-                            fontSize={"md"}
-                        >
-                            <Text pt={"2px"} fontFamily={"monospace"} fontSize={"md"}>
-                                {point.value}/{point.maxValue}
-                            </Text>
-                        </HStack>
+                    <VStack alignItems={"center"} w={"100%"} justifyContent={"space-between"} gap={1}>
+                        <Text>
+                            {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} Daily Engagement
+                            Score
+                        </Text>
+                        <Text fontFamily={"monospace"} fontSize={"md"} fontWeight={"bold"}>
+                            {point.value}/{point.maxValue}
+                        </Text>
                     </VStack>
                 )}
             </VStack>
@@ -101,32 +119,30 @@ export default function HistoricalDataChart({
 
     return (
         <ResponsiveContainer width="100%" height={300}>
-            <ComposedChart data={dataReversed} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
+            <ComposedChart data={dataWithTimestamps} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
                 <XAxis
                     dataKey="day"
-                    interval={0} // show all ticks (this is overridden later with ticks[])
-                    ticks={[dataReversed[0].day, dataReversed[dataReversed.length - 1].day]} // only oldest & newest
+                    type="number"
+                    scale="time"
+                    domain={[pastDate.getTime(), yesterday.getTime()]}
                     stroke={textColorMutedHex}
-                    tick={(props) => {
-                        const { x, y, payload, index } = props
-                        const isFirst = index === 0
-                        const isLast = index === 1 // we only have 2 ticks
-                        const anchor = isFirst ? "start" : isLast ? "end" : "middle"
-
-                        return (
-                            <text
-                                x={x}
-                                y={y + 20}
-                                textAnchor={anchor}
-                                fontSize={12}
-                                fontFamily="monospace"
-                                fill={textColorMutedHex}
-                            >
-                                {formatDate(payload.value)}
-                            </text>
-                        )
-                    }}
-                />
+                    tick={false} // disable auto ticks
+                >
+                    <Label
+                        value={formatLocalDate(pastDate)}
+                        position="insideBottomLeft"
+                        offset={8}
+                        dx={-8}
+                        style={{ fontSize: 16, fontFamily: "monospace", fill: textColorMutedHex }}
+                    />
+                    <Label
+                        value={formatLocalDate(yesterday)}
+                        position="insideBottomRight"
+                        offset={8}
+                        dx={8}
+                        style={{ fontSize: 16, fontFamily: "monospace", fill: textColorMutedHex }}
+                    />
+                </XAxis>
                 <YAxis
                     domain={[0, maxY]}
                     stroke={textColorMutedHex}
@@ -153,7 +169,7 @@ export default function HistoricalDataChart({
                 />
                 <Line
                     name="value"
-                    data={dataReversed}
+                    data={dataWithTimestamps}
                     dataKey="value"
                     strokeWidth={0}
                     strokeOpacity={0}
@@ -161,7 +177,7 @@ export default function HistoricalDataChart({
                     stroke="#029E03"
                     dot={(props) => {
                         const { key, ...rest } = props
-                        return <AnimatedDot key={key} {...rest} total={dataReversed.length} />
+                        return <AnimatedDot key={key} {...rest} total={dataWithTimestamps.length} />
                     }}
                     activeDot={{
                         r: 6,
