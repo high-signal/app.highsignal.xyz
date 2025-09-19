@@ -63,6 +63,7 @@ const typeConfig = {
         text: "Signal Score",
         tip: "When confirmed, your activity on these accounts will contribute to your Signal Score.",
     },
+    // TODO: Remove this lozenge
     calcInfo: {
         bgColor: "blue.500",
         color: "blue.100",
