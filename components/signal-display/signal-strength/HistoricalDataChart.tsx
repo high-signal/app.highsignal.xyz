@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 import { useInView } from "react-intersection-observer"
 import { ResponsiveContainer, ComposedChart, Line, XAxis, YAxis, Tooltip, Label, CartesianGrid } from "recharts"
 import { HStack, Text, VStack, useToken, Box } from "@chakra-ui/react"
@@ -19,6 +19,7 @@ export default function HistoricalDataChart({
     projectData: ProjectData
 }) {
     const [dummyData, setDummyData] = useState<SignalStrengthUserData[]>([])
+    const hasGeneratedDummyData = useRef(false)
 
     // Extract the color token reference based on current color mode
     const { colorMode } = useColorMode()
@@ -39,13 +40,19 @@ export default function HistoricalDataChart({
     const [pageBackgroundColorHex] = useToken("colors", [pageBackgroundColorToken])
 
     // Yesterday
-    const yesterday = new Date()
-    yesterday.setHours(0, 0, 0, 0)
-    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterday = useMemo(() => {
+        const date = new Date()
+        date.setHours(0, 0, 0, 0)
+        date.setDate(date.getDate() - 1)
+        return date
+    }, [])
 
     // 360 days ago
-    const pastDate = new Date(yesterday)
-    pastDate.setDate(pastDate.getDate() - 360)
+    const pastDate = useMemo(() => {
+        const date = new Date(yesterday)
+        date.setDate(date.getDate() - 360)
+        return date
+    }, [yesterday])
 
     // Helper to generate dummy historical points
     const generateDummyData = (
@@ -99,7 +106,7 @@ export default function HistoricalDataChart({
 
     // Generate dummy data when the component mounts
     useEffect(() => {
-        if (!data || data.length === 0) {
+        if (!hasGeneratedDummyData.current && (!data || data.length === 0)) {
             const startForDummy = new Date(pastDate)
             startForDummy.setDate(startForDummy.getDate() + 5)
             const endForDummy = new Date(yesterday)
@@ -114,8 +121,9 @@ export default function HistoricalDataChart({
                     signalStrengthProjectData.name,
                 ),
             )
+            hasGeneratedDummyData.current = true
         }
-    }, [])
+    }, [data, pastDate, yesterday, signalStrengthProjectData.maxValue, signalStrengthProjectData.name])
 
     const { ref, inView } = useInView({
         triggerOnce: true, // only trigger the first time
