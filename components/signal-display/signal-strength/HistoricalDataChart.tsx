@@ -165,42 +165,28 @@ export default function HistoricalDataChart({
         const dateLabel = label ? formatDate(label) : point ? formatDate(point.day as unknown as string) : ""
 
         return (
-            <VStack
+            <HStack
                 alignItems={"center"}
                 gap={2}
-                px={3}
-                py={2}
                 bg={"pageBackground"}
                 borderRadius={"16px"}
-                border={"3px solid"}
-                borderColor={"contentBorder"}
+                border={"4px solid"}
+                borderColor={getSignalColorHex(payload[0].payload.value, payload[0].payload.maxValue)}
+                wrap={"wrap"}
+                fontSize={"sm"}
             >
-                <Text fontWeight={"bold"} wordSpacing={"5px"}>
+                <Text fontWeight={"bold"} wordSpacing={"5px"} color={"textColorMuted"} pl={2} py={1}>
                     {formatLocalDate(new Date(dateLabel))}
                 </Text>
-                {point && (
-                    <VStack alignItems={"center"} w={"100%"} justifyContent={"space-between"} gap={1}>
-                        <Text>
-                            {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} Daily Activity
-                            Score
-                        </Text>
-                        <Text
-                            fontFamily={"monospace"}
-                            fontSize={"md"}
-                            fontWeight={"bold"}
-                            border={"6px solid"}
-                            borderColor={getSignalColorHex(payload[0].payload.value, payload[0].payload.maxValue)}
-                            px={3}
-                            py={2}
-                            mt={2}
-                            mb={1}
-                            borderRadius={"16px"}
-                        >
-                            {point.value}/{point.maxValue}
-                        </Text>
-                    </VStack>
-                )}
-            </VStack>
+                <Box
+                    w={"4px"}
+                    h={"30px"}
+                    bg={getSignalColorHex(payload[0].payload.value, payload[0].payload.maxValue)}
+                />
+                <Text fontWeight={"bold"} borderRadius={"16px"} pr={2} py={1}>
+                    {point?.value}/{point?.maxValue}
+                </Text>
+            </HStack>
         )
     }
 
