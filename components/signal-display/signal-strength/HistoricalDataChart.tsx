@@ -3,9 +3,10 @@
 import { useEffect, useState, useRef, useMemo } from "react"
 import { useInView } from "react-intersection-observer"
 import { ResponsiveContainer, ComposedChart, Line, XAxis, YAxis, Tooltip, Label, CartesianGrid } from "recharts"
-import { HStack, Text, VStack, useToken, Box } from "@chakra-ui/react"
-import { useColorMode } from "../../color-mode/ColorModeProvider"
-import { customConfig } from "../../../styles/theme"
+import { HStack, Text, VStack, Box } from "@chakra-ui/react"
+import { useThemeColor } from "../../../utils/theme-utils/getThemeColor"
+
+import { calculateSignalFromScore } from "../../../utils/calculateSignal"
 
 import LoginToSeeInsights from "../../ui/LoginToSeeInsights"
 
@@ -21,23 +22,27 @@ export default function HistoricalDataChart({
     const [dummyData, setDummyData] = useState<SignalStrengthUserData[]>([])
     const hasGeneratedDummyData = useRef(false)
 
-    // Extract the color token reference based on current color mode
-    const { colorMode } = useColorMode()
-    const textColorMutedToken = customConfig.theme?.semanticTokens?.colors?.textColorMuted?.value as {
-        _light: string
-        _dark: string
-    }
-    const textColorMutedColorTokenRef = colorMode === "dark" ? textColorMutedToken._dark : textColorMutedToken._light
-    const textColorMutedColorToken = textColorMutedColorTokenRef.replace("{colors.", "").replace("}", "")
-    const [textColorMutedHex] = useToken("colors", [textColorMutedColorToken])
+    // Get theme colors using the utility function
+    const textColorMutedHex = useThemeColor("textColorMuted")
+    const pageBackgroundColorHex = useThemeColor("pageBackground")
+    const highSignalColorHex = useThemeColor("scoreColor.high")
+    const midSignalColorHex = useThemeColor("scoreColor.mid")
+    const lowSignalColorHex = useThemeColor("scoreColor.low")
 
-    const pageBackgroundToken = customConfig.theme?.semanticTokens?.colors?.pageBackground?.value as {
-        _light: string
-        _dark: string
+    const getSignalColorHex = (value: number, maxValue: number) => {
+        const percentage = maxValue ? (value / maxValue) * 100 : 0
+        const signal = calculateSignalFromScore(percentage)
+        switch (signal) {
+            case "high":
+                return highSignalColorHex
+            case "mid":
+                return midSignalColorHex
+            case "low":
+                return lowSignalColorHex
+            default:
+                return lowSignalColorHex
+        }
     }
-    const pageBackgroundColorTokenRef = colorMode === "dark" ? pageBackgroundToken._dark : pageBackgroundToken._light
-    const pageBackgroundColorToken = pageBackgroundColorTokenRef.replace("{colors.", "").replace("}", "")
-    const [pageBackgroundColorHex] = useToken("colors", [pageBackgroundColorToken])
 
     // Yesterday
     const yesterday = useMemo(() => {
@@ -164,9 +169,9 @@ export default function HistoricalDataChart({
                 alignItems={"center"}
                 gap={2}
                 px={3}
-                py={1}
+                py={2}
                 bg={"pageBackground"}
-                borderRadius={"12px"}
+                borderRadius={"16px"}
                 border={"3px solid"}
                 borderColor={"contentBorder"}
             >
@@ -179,7 +184,18 @@ export default function HistoricalDataChart({
                             {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} Daily Activity
                             Score
                         </Text>
-                        <Text fontFamily={"monospace"} fontSize={"md"} fontWeight={"bold"}>
+                        <Text
+                            fontFamily={"monospace"}
+                            fontSize={"md"}
+                            fontWeight={"bold"}
+                            border={"6px solid"}
+                            borderColor={getSignalColorHex(payload[0].payload.value, payload[0].payload.maxValue)}
+                            px={3}
+                            py={2}
+                            mt={2}
+                            mb={1}
+                            borderRadius={"16px"}
+                        >
                             {point.value}/{point.maxValue}
                         </Text>
                     </VStack>
@@ -188,12 +204,18 @@ export default function HistoricalDataChart({
         )
     }
 
-    const AnimatedDot = ({ cx, cy, r, index, total }: any) => {
+    const AnimatedDot = ({ cx, cy, r, index, total, props }: any) => {
         const totalDuration = 2 // total animation duration in seconds
         const perDotDelay = total > 1 ? totalDuration / total : 0
 
         return (
-            <circle cx={cx} cy={cy} r={0} fill={"#029E03"} opacity={0}>
+            <circle
+                cx={cx}
+                cy={cy}
+                r={0}
+                fill={getSignalColorHex(props?.payload?.value, props?.payload?.maxValue)}
+                opacity={0}
+            >
                 <animate attributeName="r" from="0" to={r} dur="0.3s" begin={`${index * perDotDelay}s`} fill="freeze" />
                 <animate
                     attributeName="opacity"
@@ -306,16 +328,29 @@ export default function HistoricalDataChart({
                                     strokeWidth={0}
                                     strokeOpacity={0}
                                     isAnimationActive={false}
-                                    stroke="#029E03"
                                     dot={(props) => {
                                         const { key, ...rest } = props
-                                        return <AnimatedDot key={key} {...rest} total={dataWithTimestamps.length} />
+                                        return (
+                                            <AnimatedDot
+                                                key={key}
+                                                {...rest}
+                                                total={dataWithTimestamps.length}
+                                                props={props}
+                                            />
+                                        )
                                     }}
-                                    activeDot={{
-                                        r: 6,
-                                        fill: "#029E03",
-                                        stroke: textColorMutedHex,
-                                        strokeWidth: 0,
+                                    activeDot={(props) => {
+                                        const { payload, cx, cy } = props
+                                        return (
+                                            <circle
+                                                cx={cx}
+                                                cy={cy}
+                                                r={6}
+                                                fill={getSignalColorHex(payload?.value, payload?.maxValue)}
+                                                stroke={textColorMutedHex}
+                                                strokeWidth={0}
+                                            />
+                                        )
                                     }}
                                 />
                             </ComposedChart>
