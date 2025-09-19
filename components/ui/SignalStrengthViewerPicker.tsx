@@ -16,7 +16,7 @@ export default function SignalStrengthViewerPicker({ userSignalStrengths, onSele
     const [isFocused, setIsFocused] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null!)
 
-    // On first render, set the search term to the first day of the user signal strengths
+    // On first render, set the search term to the first day of the user signals
     useEffect(() => {
         if (!searchTerm && userSignalStrengths.length > 0) {
             setSearchTerm(userSignalStrengths[0].day)

@@ -34,7 +34,7 @@ export async function GET() {
 
         return NextResponse.json({ success: true, signalStrengths: formattedSignalStrengths }, { status: 200 })
     } catch (error) {
-        console.error("Error fetching signal strengths:", error)
+        console.error("Error fetching signals:", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }

@@ -554,7 +554,7 @@ export default function SignalStrengthsSettingsCalculation({
                                                 <Text>Run test analysis</Text>
                                                 <Text>
                                                     {project?.displayName} - {selectedUser.username} -{" "}
-                                                    {signalStrength.displayName.replace(" Engagement", "")}
+                                                    {signalStrength.displayName.replace(" Signal", "")}
                                                 </Text>
                                             </>
                                         )}

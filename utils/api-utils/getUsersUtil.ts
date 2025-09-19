@@ -332,7 +332,7 @@ export async function getUsersUtil(
 
                 // Build optimized query to fetch all signal strength data at once
                 // Build select statement based on whether it's a superadmin request
-                const baseFields = `
+                let baseFields = `
                     id,
                     user_id,
                     project_id,
@@ -348,6 +348,11 @@ export async function getUsersUtil(
                     signal_strengths (
                         name
                     )`
+
+                if (isUserDataVisible) {
+                    baseFields += `,
+                    raw_value`
+                }
 
                 const superadminFields = isSuperAdminRequesting
                     ? `,
@@ -413,11 +418,10 @@ export async function getUsersUtil(
                     signalStrengthsQuery = signalStrengthsQuery.is("test_requesting_user", null)
                 }
 
-                // Filter raw score calc
+                // Filter to only show raw scores if showRawScoreCalcOnly is requested by superadmin
+                // This is a legacy requirement needed for the tests in the superadmin settings
                 if (isSuperAdminRequesting && showRawScoreCalcOnly) {
                     signalStrengthsQuery = signalStrengthsQuery.not("raw_value", "is", null)
-                } else {
-                    signalStrengthsQuery = signalStrengthsQuery.is("raw_value", null)
                 }
 
                 // Fetch signal strength data from the last previousDays max
@@ -439,7 +443,7 @@ export async function getUsersUtil(
 
                     if (signalStrengthsError) {
                         console.error("signalStrengthsError", signalStrengthsError)
-                        return NextResponse.json({ error: "Error fetching signal strengths" }, { status: 500 })
+                        return NextResponse.json({ error: "Error fetching signals" }, { status: 500 })
                     }
 
                     if (!signalStrengthsBatch || signalStrengthsBatch.length === 0) {
@@ -764,52 +768,66 @@ export async function getUsersUtil(
                             : {}),
                         signalStrengths: userSignalStrengths.map((uss) => ({
                             signalStrengthName: uss.data[0]?.signal_strengths?.name || uss.signalStrengthId,
-                            data: uss.data.map((d, index) => ({
-                                ...(d.last_checked ? { lastChecked: d.last_checked } : {}),
-                                // These are always available to the user for every result for historical charts
-                                day: d.day,
-                                value: d.value,
-                                maxValue: d.max_value,
-                                scoreCalculationPeriodPreviousDays: d.previous_days,
-                                // Only show summary for the latest result, if it is not `No activity in the past` but to anyone
-                                // Super admin can see all summaries for all results
-                                ...(isSuperAdminRequesting ||
-                                (isUserDataVisible && index === 0) ||
-                                (index === 0 && !d.summary?.includes("No activity in the past"))
-                                    ? {
-                                          summary: d.summary,
-                                      }
-                                    : {}),
+                            data: uss.data
+                                .filter((d) => showRawScoreCalcOnly || d.raw_value == null)
+                                .map((d, index) => ({
+                                    ...(d.last_checked ? { lastChecked: d.last_checked } : {}),
+                                    // These are always available to the user for every result for historical charts
+                                    day: d.day,
+                                    value: d.value,
+                                    maxValue: d.max_value,
+                                    scoreCalculationPeriodPreviousDays: d.previous_days,
+                                    // Only show summary for the latest result, if it is not `No activity in the past` but to anyone
+                                    // Super admin can see all summaries for all results
+                                    ...(isSuperAdminRequesting ||
+                                    (isUserDataVisible && index === 0) ||
+                                    (index === 0 && !d.summary?.includes("No activity in the past"))
+                                        ? {
+                                              summary: d.summary,
+                                          }
+                                        : {}),
 
-                                // Only show details for the latest result to the user or project admin
-                                // Super admin can see all details for all results
-                                ...(isSuperAdminRequesting || (isUserDataVisible && index === 0)
-                                    ? {
-                                          description: d.description,
-                                          improvements: d.improvements,
-                                      }
-                                    : {}),
-                                ...(isSuperAdminRequesting
-                                    ? {
-                                          id: d.id,
-                                          requestId: d.request_id,
-                                          created: d.created,
-                                          user_id: d.user_id,
-                                          project_id: d.project_id,
-                                          signal_strength_id: d.signal_strength_id,
-                                          explainedReasoning: d.explained_reasoning,
-                                          model: d.model,
-                                          promptId: d.prompt_id,
-                                          prompt: d.prompts?.prompt,
-                                          maxChars: d.max_chars,
-                                          logs: d.logs,
-                                          promptTokens: d.prompt_tokens,
-                                          completionTokens: d.completion_tokens,
-                                          rawValue: d.raw_value,
-                                          testRequestingUser: d.test_requesting_user,
-                                      }
-                                    : {}),
-                            })),
+                                    // Only show details for the latest result to the user or project admin
+                                    // Super admin can see all details for all results
+                                    ...(isSuperAdminRequesting || (isUserDataVisible && index === 0)
+                                        ? {
+                                              description: d.description,
+                                              // TODO: Enable improvements when they are better
+                                              //   improvements: d.improvements,
+                                          }
+                                        : {}),
+                                    ...(isSuperAdminRequesting
+                                        ? {
+                                              id: d.id,
+                                              requestId: d.request_id,
+                                              created: d.created,
+                                              user_id: d.user_id,
+                                              project_id: d.project_id,
+                                              signal_strength_id: d.signal_strength_id,
+                                              explainedReasoning: d.explained_reasoning,
+                                              model: d.model,
+                                              promptId: d.prompt_id,
+                                              prompt: d.prompts?.prompt,
+                                              maxChars: d.max_chars,
+                                              logs: d.logs,
+                                              promptTokens: d.prompt_tokens,
+                                              completionTokens: d.completion_tokens,
+                                              rawValue: d.raw_value,
+                                              testRequestingUser: d.test_requesting_user,
+                                          }
+                                        : {}),
+                                })),
+                            ...(isSuperAdminRequesting || isUserDataVisible
+                                ? {
+                                      dailyData: uss.data
+                                          .filter((d) => d.value == null)
+                                          .map((d) => ({
+                                              day: d.day,
+                                              value: d.raw_value,
+                                              maxValue: d.max_value,
+                                          })),
+                                  }
+                                : {}),
                         })),
                     }
                 })

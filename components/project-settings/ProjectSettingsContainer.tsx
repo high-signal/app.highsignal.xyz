@@ -116,8 +116,8 @@ export default function ProjectSettingsContainer() {
                         label:
                             project?.signalStrengths?.length > 0 &&
                             !project?.signalStrengths?.some((ss) => ss.enabled === true)
-                                ? "⚠️ Signal Strengths ⚠️"
-                                : "Signal Strengths",
+                                ? "⚠️ Signals ⚠️"
+                                : "Signals",
                         content: (
                             <SignalStrengthSettingsContainer
                                 project={project}
