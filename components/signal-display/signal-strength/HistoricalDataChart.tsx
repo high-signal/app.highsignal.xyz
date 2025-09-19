@@ -1,19 +1,25 @@
 "use client"
 
-import React from "react"
+import { useEffect, useState } from "react"
 import { useInView } from "react-intersection-observer"
 import { ResponsiveContainer, ComposedChart, Line, XAxis, YAxis, Tooltip, Label, CartesianGrid } from "recharts"
 import { HStack, Text, VStack, useToken, Box } from "@chakra-ui/react"
 import { useColorMode } from "../../color-mode/ColorModeProvider"
 import { customConfig } from "../../../styles/theme"
 
+import LoginToSeeInsights from "../../ui/LoginToSeeInsights"
+
 export default function HistoricalDataChart({
     data,
     signalStrengthProjectData,
+    projectData,
 }: {
     data: SignalStrengthUserData[]
     signalStrengthProjectData: SignalStrengthProjectData
+    projectData: ProjectData
 }) {
+    const [dummyData, setDummyData] = useState<SignalStrengthUserData[]>([])
+
     // Extract the color token reference based on current color mode
     const { colorMode } = useColorMode()
     const textColorMutedToken = customConfig.theme?.semanticTokens?.colors?.textColorMuted?.value as {
@@ -91,21 +97,25 @@ export default function HistoricalDataChart({
         return points
     }
 
-    let dummyData: SignalStrengthUserData[] = []
-    if (!data || data.length === 0) {
-        const startForDummy = new Date(pastDate)
-        startForDummy.setDate(startForDummy.getDate() + 5)
-        const endForDummy = new Date(yesterday)
-        endForDummy.setDate(endForDummy.getDate() - 5)
+    // Generate dummy data when the component mounts
+    useEffect(() => {
+        if (!data || data.length === 0) {
+            const startForDummy = new Date(pastDate)
+            startForDummy.setDate(startForDummy.getDate() + 5)
+            const endForDummy = new Date(yesterday)
+            endForDummy.setDate(endForDummy.getDate() - 5)
 
-        dummyData = generateDummyData(
-            30,
-            startForDummy,
-            endForDummy,
-            signalStrengthProjectData.maxValue,
-            signalStrengthProjectData.name,
-        )
-    }
+            setDummyData(
+                generateDummyData(
+                    30,
+                    startForDummy,
+                    endForDummy,
+                    signalStrengthProjectData.maxValue,
+                    signalStrengthProjectData.name,
+                ),
+            )
+        }
+    }, [])
 
     const { ref, inView } = useInView({
         triggerOnce: true, // only trigger the first time
@@ -311,12 +321,13 @@ export default function HistoricalDataChart({
                                 right="2px"
                                 bottom="31px"
                                 zIndex={100}
-                                backdropFilter="blur(6px)"
+                                backdropFilter="blur(5px)"
                                 display="flex"
                                 justifyContent="center"
                                 alignItems="center"
+                                pointerEvents="auto"
                             >
-                                <button>Log in to see data</button>
+                                <LoginToSeeInsights projectData={projectData} />
                             </Box>
                         )}
                     </Box>

@@ -11,10 +11,9 @@ import { useState, useEffect } from "react"
 import HistoricalDataChart from "./HistoricalDataChart"
 
 import { useUser } from "../../../contexts/UserContext"
-import { usePrivy } from "@privy-io/react-auth"
 
+import LoginToSeeInsights from "../../ui/LoginToSeeInsights"
 import { APP_CONFIG } from "../../../config/constants"
-import { useRouter } from "next/navigation"
 import { Lozenges } from "../../ui/Lozenges"
 import Divider from "../../ui/Divider"
 
@@ -62,8 +61,6 @@ export default function SignalStrength({
     refreshUserData: () => void
 }) {
     const { loggedInUser } = useUser()
-    const { login, authenticated } = usePrivy()
-    const router = useRouter()
 
     const displayValue = userData.value || userData.rawValue || 0
 
@@ -363,53 +360,7 @@ export default function SignalStrength({
                                 </Text>
                             ) : (
                                 <HStack position={"relative"} w={"100%"} justifyContent={"center"}>
-                                    <HStack
-                                        position={"absolute"}
-                                        bg={"pageBackground"}
-                                        justifyContent={"center"}
-                                        zIndex={1}
-                                        px={5}
-                                        py={3}
-                                        borderRadius={"16px"}
-                                        border={"3px solid"}
-                                        borderColor={"contentBorder"}
-                                        boxShadow={"lg"}
-                                        flexWrap={"wrap"}
-                                    >
-                                        {authenticated ? (
-                                            <VStack>
-                                                <Text>You can only view your own insights</Text>
-                                                <Button
-                                                    secondaryButton
-                                                    px={3}
-                                                    py={1}
-                                                    borderRadius={"full"}
-                                                    onClick={() =>
-                                                        router.push(
-                                                            `/p/${projectData.urlSlug}/${loggedInUser?.username}`,
-                                                        )
-                                                    }
-                                                >
-                                                    <Text fontWeight={"bold"}>View your own insights</Text>
-                                                </Button>
-                                            </VStack>
-                                        ) : (
-                                            <>
-                                                <Text>View your own insights by</Text>
-                                                <Button
-                                                    primaryButton
-                                                    px={3}
-                                                    py={1}
-                                                    borderRadius={"full"}
-                                                    onClick={() => {
-                                                        login()
-                                                    }}
-                                                >
-                                                    <Text fontWeight={"bold"}>Logging in or creating an account</Text>
-                                                </Button>
-                                            </>
-                                        )}
-                                    </HStack>
+                                    <LoginToSeeInsights projectData={projectData} />
                                     <Text
                                         filter={"blur(5px)"}
                                         cursor={"default"}
@@ -476,13 +427,19 @@ export default function SignalStrength({
             {dataAvailable && dailyData && (
                 <VStack w="100%" gap={2} alignItems={"start"}>
                     <Text w="100%" fontWeight={"bold"} textAlign={"center"}>
-                        Daily Engagement Scores
+                        Daily Activity Tracker
                     </Text>
                     <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
-                        The chart shows your daily engagement scores for each day you have been active in the{" "}
-                        {projectData.displayName} community over the past {signalStrengthProjectData.previousDays} days.
+                        This chart shows your daily engagement scores for each day you have been active in the{" "}
+                        {projectData.displayName}{" "}
+                        {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
+                        {signalStrengthProjectData.previousDays} days.
                     </Text>
-                    <HistoricalDataChart data={dailyData} signalStrengthProjectData={signalStrengthProjectData} />
+                    <HistoricalDataChart
+                        data={dailyData}
+                        signalStrengthProjectData={signalStrengthProjectData}
+                        projectData={projectData}
+                    />
                     <Text>What is this chart showing?</Text>
                     <Text>
                         Very short posts are not shown on the chart as they do not provide enough information to
