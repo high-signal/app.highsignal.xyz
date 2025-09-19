@@ -29,34 +29,27 @@ export default function SignalStrengthContainer({
         }
     })
 
-    // Sort matched signal strengths first by status (active first), then by user data value, then by project data maxValue, then alphabetically
-    const sortedMatchedSignalStrengths = [...matchedSignalStrengths].sort((a, b) => {
-        // First sort by status - active comes first
-        if (a.signalStrengthProjectData.status === "active" && b.signalStrengthProjectData.status !== "active")
-            return -1
-        if (a.signalStrengthProjectData.status !== "active" && b.signalStrengthProjectData.status === "active") return 1
+    // Keep only "active" and enabled items, then sort
+    const sortedMatchedSignalStrengths = matchedSignalStrengths
+        .filter((s) => s.signalStrengthProjectData.status === "active" && s.signalStrengthProjectData.enabled)
+        .sort((a, b) => {
+            // Get user values, defaulting to "0" if not available
+            const userValueA = a.userData ? parseFloat(a.userData.value) : 0
+            const userValueB = b.userData ? parseFloat(b.userData.value) : 0
 
-        // Then sort by enabled - enabled comes first
-        if (a.signalStrengthProjectData.enabled && !b.signalStrengthProjectData.enabled) return -1
-        if (!a.signalStrengthProjectData.enabled && b.signalStrengthProjectData.enabled) return 1
+            // If user values are different, sort by user value (descending)
+            if (userValueA !== userValueB) {
+                return userValueB - userValueA
+            }
 
-        // Get user values, defaulting to "0" if not available
-        const userValueA = a.userData ? parseFloat(a.userData.value) : 0
-        const userValueB = b.userData ? parseFloat(b.userData.value) : 0
+            // If user values are the same, sort by project maxValue (descending)
+            if (b.signalStrengthProjectData.maxValue !== a.signalStrengthProjectData.maxValue) {
+                return b.signalStrengthProjectData.maxValue - a.signalStrengthProjectData.maxValue
+            }
 
-        // If user values are different, sort by user value (descending)
-        if (userValueA !== userValueB) {
-            return userValueB - userValueA
-        }
-
-        // If user values are the same, sort by project maxValue (descending)
-        if (b.signalStrengthProjectData.maxValue !== a.signalStrengthProjectData.maxValue) {
-            return b.signalStrengthProjectData.maxValue - a.signalStrengthProjectData.maxValue
-        }
-
-        // If maxValues are the same, sort alphabetically by name
-        return a.signalStrengthProjectData.name.localeCompare(b.signalStrengthProjectData.name)
-    })
+            // If maxValues are the same, sort alphabetically by name
+            return a.signalStrengthProjectData.name.localeCompare(b.signalStrengthProjectData.name)
+        })
 
     return (
         <VStack gap={3} px={{ base: 0, sm: 3 }} w="100%" maxW="600px" alignItems={"center"} pb={"50px"}>
