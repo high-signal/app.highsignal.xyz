@@ -32,11 +32,78 @@ export default function HistoricalDataChart({
     const pageBackgroundColorToken = pageBackgroundColorTokenRef.replace("{colors.", "").replace("}", "")
     const [pageBackgroundColorHex] = useToken("colors", [pageBackgroundColorToken])
 
+    // Yesterday
+    const yesterday = new Date()
+    yesterday.setHours(0, 0, 0, 0)
+    yesterday.setDate(yesterday.getDate() - 1)
+
+    // 360 days ago
+    const pastDate = new Date(yesterday)
+    pastDate.setDate(pastDate.getDate() - 360)
+
+    // Helper to generate dummy historical points
+    const generateDummyData = (
+        count: number,
+        startDate: Date,
+        endDate: Date,
+        maxValue: number,
+        signalName: string,
+    ): SignalStrengthUserData[] => {
+        // Normalize to midnight for both bounds
+        const start = new Date(startDate)
+        start.setHours(0, 0, 0, 0)
+        const end = new Date(endDate)
+        end.setHours(0, 0, 0, 0)
+
+        const dayMs = 24 * 60 * 60 * 1000
+        const totalDays = Math.floor((end.getTime() - start.getTime()) / dayMs) + 1
+        const numPoints = Math.max(0, Math.min(count, totalDays))
+
+        // Sample unique day indices without replacement
+        const indices = Array.from({ length: totalDays }, (_, i) => i)
+        for (let i = indices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1))
+            const tmp = indices[i]
+            indices[i] = indices[j]
+            indices[j] = tmp
+        }
+        const selected = indices.slice(0, numPoints).sort((a, b) => a - b)
+
+        const points: SignalStrengthUserData[] = []
+        const minValue = Math.max(0, Math.floor(maxValue * 0.05))
+        const maxValueCap = Math.max(minValue, Math.floor(maxValue * 0.95))
+
+        for (const dayIndex of selected) {
+            const d = new Date(start.getTime() + dayIndex * dayMs)
+            d.setHours(0, 0, 0, 0)
+            const value = Math.floor(Math.random() * (maxValueCap - minValue + 1)) + minValue
+            points.push({
+                day: d.toISOString(),
+                name: signalName,
+                value: String(value),
+                maxValue: maxValue,
+                summary: "Dummy data",
+                description: "",
+                improvements: "",
+            })
+        }
+
+        return points
+    }
+
+    let dummyData: SignalStrengthUserData[] = []
     if (!data || data.length === 0) {
-        return (
-            <VStack align="center" justify="center" h="100%" w="100%">
-                <Text fontSize="lg">No data available</Text>
-            </VStack>
+        const startForDummy = new Date(pastDate)
+        startForDummy.setDate(startForDummy.getDate() + 5)
+        const endForDummy = new Date(yesterday)
+        endForDummy.setDate(endForDummy.getDate() - 5)
+
+        dummyData = generateDummyData(
+            30,
+            startForDummy,
+            endForDummy,
+            signalStrengthProjectData.maxValue,
+            signalStrengthProjectData.name,
         )
     }
 
@@ -53,22 +120,13 @@ export default function HistoricalDataChart({
     }
 
     // Reverse the data so it displays correctly on the chart
-    const dataReversed = [...data].reverse()
+    const dataReversed = dummyData.length > 0 ? dummyData : [...data].reverse()
 
     // Format date
     const formatDate = (day: string) => new Date(day).toISOString().split("T")[0]
 
     // Find largest maxValue
     const maxY = Math.max(...dataReversed.map((d) => d.maxValue))
-
-    // Yesterday
-    const yesterday = new Date()
-    yesterday.setHours(0, 0, 0, 0)
-    yesterday.setDate(yesterday.getDate() - 1)
-
-    // 360 days ago
-    const pastDate = new Date(yesterday)
-    pastDate.setDate(pastDate.getDate() - 360)
 
     // Convert your data day field into timestamps
     const dataWithTimestamps = dataReversed.map((d) => ({
@@ -132,10 +190,18 @@ export default function HistoricalDataChart({
     }
 
     return (
-        <HStack ref={ref} w="100%" h="300px" opacity={inView ? 1 : 0} transition="opacity 0.5s ease-in-out" gap={0}>
+        <HStack
+            ref={ref}
+            w="100%"
+            h="300px"
+            opacity={inView ? 1 : 0}
+            transition="opacity 0.5s ease-in-out"
+            gap={0}
+            pointerEvents={dummyData.length > 0 ? "none" : "auto"}
+        >
             {inView && (
                 <>
-                    <Box w="100%" h="100%" zIndex={5} overflow="visible">
+                    <Box w="100%" h="100%" zIndex={5} overflow="visible" position="relative">
                         <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart
                                 data={dataWithTimestamps}
@@ -236,6 +302,23 @@ export default function HistoricalDataChart({
                                 />
                             </ComposedChart>
                         </ResponsiveContainer>
+                        {/* Blur overlay when dummy data is present */}
+                        {dummyData.length > 0 && (
+                            <Box
+                                position="absolute"
+                                top="10px"
+                                left="36px"
+                                right="2px"
+                                bottom="31px"
+                                zIndex={100}
+                                backdropFilter="blur(6px)"
+                                display="flex"
+                                justifyContent="center"
+                                alignItems="center"
+                            >
+                                <button>Log in to see data</button>
+                            </Box>
+                        )}
                     </Box>
                     <HStack w="fit-content" h="5px" gap={0} zIndex={2}>
                         <Box w="15px" h="260px" mb={"20px"} ml={"-10px"} bg={"pageBackground"} />
@@ -243,7 +326,7 @@ export default function HistoricalDataChart({
                             <Box
                                 className="rainbow-animation"
                                 position="absolute"
-                                top={"2px"}
+                                top={"2.5px"}
                                 left={"-8px"}
                                 w="100%"
                                 h="100%"
