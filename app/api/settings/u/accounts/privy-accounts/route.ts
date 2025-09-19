@@ -308,7 +308,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-    // TODO: Add other signal strengths here
+    // TODO: Add other signals here
     const { error: addSingleUserDiscordAllProjectsToAiQueueError } = await supabase.rpc(
         "add_single_user_discord_all_projects_to_ai_queue",
         {

@@ -443,7 +443,7 @@ export async function getUsersUtil(
 
                     if (signalStrengthsError) {
                         console.error("signalStrengthsError", signalStrengthsError)
-                        return NextResponse.json({ error: "Error fetching signal strengths" }, { status: 500 })
+                        return NextResponse.json({ error: "Error fetching signals" }, { status: 500 })
                     }
 
                     if (!signalStrengthsBatch || signalStrengthsBatch.length === 0) {

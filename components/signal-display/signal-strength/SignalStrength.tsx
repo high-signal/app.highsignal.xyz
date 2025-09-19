@@ -68,7 +68,7 @@ export default function SignalStrength({
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
     const [isOpen, setIsOpen] = useState(userData.description ? true : false)
     const [countdown, setCountdown] = useState<number | null>(null)
-    const [countdownText, setCountdownText] = useState<string | null>("Analyzing engagement...")
+    const [countdownText, setCountdownText] = useState<string | null>("Analyzing activity...")
     const [userDataRefreshTriggered, setUserDataRefreshTriggered] = useState(false)
 
     const countdownDuration = APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
@@ -121,7 +121,7 @@ export default function SignalStrength({
             const updatedTimeRemaining = countdownDuration - updatedTimeElapsed
 
             if (updatedTimeRemaining > countdownDuration * 0.6) {
-                setCountdownText("Analyzing engagement...")
+                setCountdownText("Analyzing activity...")
             } else if (updatedTimeRemaining > countdownDuration * 0.3) {
                 setCountdownText("Checking criteria...")
             } else if (updatedTimeRemaining > countdownDuration * 0.15) {
@@ -243,11 +243,8 @@ export default function SignalStrength({
                 signalStrengthProjectData.status !== "dev" &&
                 signalStrengthProjectData.enabled && (
                     <VStack w="100%" gap={2} alignItems={"start"}>
-                        <Text w="100%" fontWeight={"bold"} textAlign={"center"}>
-                            Smart Score
-                        </Text>
                         <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
-                            Your Smart Score is calculated based on your activity and engagement with the{" "}
+                            Your score is calculated based on your activity and engagement with the{" "}
                             {projectData.displayName} community over the past 360 days.
                         </Text>
                         <HStack
@@ -418,8 +415,7 @@ export default function SignalStrength({
                         </Text>
                     )}
                     <Text>
-                        Check back later to see {loggedInUser?.username === username ? "your" : "the"} calculated Signal
-                        Score.
+                        Check back later to see {loggedInUser?.username === username ? "your" : "the"} updated score.
                     </Text>
                 </VStack>
             )}

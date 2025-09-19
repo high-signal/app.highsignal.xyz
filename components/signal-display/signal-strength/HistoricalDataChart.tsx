@@ -168,7 +168,7 @@ export default function HistoricalDataChart({
                 {point && (
                     <VStack alignItems={"center"} w={"100%"} justifyContent={"space-between"} gap={1}>
                         <Text>
-                            {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} Daily Engagement
+                            {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} Daily Activity
                             Score
                         </Text>
                         <Text fontFamily={"monospace"} fontSize={"md"} fontWeight={"bold"}>

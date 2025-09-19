@@ -33,7 +33,10 @@ export default function GenericConfirmModal({
                 <Dialog.Body>
                     <VStack gap={2} alignItems={"start"}>
                         <Text>Are you sure you want to remove your {name} account?</Text>
-                        <Text>This will remove all your {name} engagement data and reduce your High Signal Score.</Text>
+                        <Text>
+                            This will remove all your {name} engagement and activity data and reduce your High Signal
+                            Score.
+                        </Text>
                         {refreshConnectionOption && (
                             <Text>
                                 If you want to update your or change the connection method, you can use the{" "}

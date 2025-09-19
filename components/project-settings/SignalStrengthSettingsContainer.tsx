@@ -29,7 +29,7 @@ export default function SignalStrengthSettingsContainer({
         <SettingsSectionContainer maxWidth="800px">
             {project?.signalStrengths?.length > 0 && !project?.signalStrengths?.some((ss) => ss.enabled === true) && (
                 <VStack color="orange.500" textAlign="center" px={3}>
-                    <Text>You have not enabled any Signal Strengths so your project will not be visible to users.</Text>
+                    <Text>You have not enabled any Signals so your project will not be visible to users.</Text>
                     <Text>Enable them below to get started.</Text>
                 </VStack>
             )}

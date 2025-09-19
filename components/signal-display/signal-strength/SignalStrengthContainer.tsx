@@ -54,10 +54,10 @@ export default function SignalStrengthContainer({
     return (
         <VStack gap={3} px={{ base: 0, sm: 3 }} w="100%" maxW="600px" alignItems={"center"} pb={"50px"}>
             <Text fontSize="2xl" fontWeight={"bold"} px={3}>
-                📡 Signal Strengths
+                📡 Signals
             </Text>
             <Text color="textColorMuted" textAlign={"center"} px={3}>
-                Signal strengths are live measures of engagement in the {projectData.displayName} community.
+                Signals are live measures of activity and engagement in the {projectData.displayName} community.
             </Text>
             <VStack gap={10} alignItems={"start"} w={"100%"}>
                 {sortedMatchedSignalStrengths.map(({ signalStrengthProjectData, userData }, index) => (

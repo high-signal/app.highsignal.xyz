@@ -27,7 +27,7 @@ export default function SignalDisplayContainer({ project, username }: { project:
 
     const [isSignalStrengthLoading, setIsSignalStrengthLoading] = useState<number | null>(null)
 
-    // If lastChecked for any of the signal strengths is less than X seconds ago, set isSignalStrengthLoading to true
+    // If lastChecked for any of the signals is less than X seconds ago, set isSignalStrengthLoading to true
     useEffect(() => {
         const isSignalStrengthLoading = (currentUser?.signalStrengths || [])
             .map((signalStrength) => signalStrength.data[0].lastChecked)
