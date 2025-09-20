@@ -63,29 +63,6 @@ const typeConfig = {
         text: "Signal Score",
         tip: "When confirmed, your activity on these accounts will contribute to your Signal Score.",
     },
-    // TODO: Remove this lozenge
-    calcInfo: {
-        bgColor: "blue.500",
-        color: "blue.100",
-        icon: faInfoCircle,
-        text: "",
-        tip: (
-            <VStack p={1} textAlign="center" gap={5} fontSize="md">
-                <Text>
-                    Scores are updated daily and use activity from yesterday, as well as a number of previous days.
-                </Text>
-                <HStack w="100%" justifyContent="space-around">
-                    <Text>🗓️</Text>
-                    <Text>⏳</Text>
-                    <Text>🗓️</Text>
-                    <Text>⏳</Text>
-                    <Text>🗓️</Text>
-                    <Text>⏳</Text>
-                </HStack>
-                <Text>If the score has not yet been updated, come back tomorrow to see the new daily score.</Text>
-            </VStack>
-        ),
-    },
 }
 
 interface LozengeProps {

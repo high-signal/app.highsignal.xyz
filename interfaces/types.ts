@@ -183,12 +183,4 @@ interface BannerProps {
     internal_name?: string
 }
 
-type LozengeType =
-    | "public"
-    | "private"
-    | "shared_address"
-    | "shared_account"
-    | "comingSoon"
-    | "notifications"
-    | "score"
-    | "calcInfo"
+type LozengeType = "public" | "private" | "shared_address" | "shared_account" | "comingSoon" | "notifications" | "score"
