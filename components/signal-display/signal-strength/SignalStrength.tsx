@@ -1,6 +1,6 @@
 "use client"
 
-import { HStack, VStack, Box, Text, Spinner, Button } from "@chakra-ui/react"
+import { HStack, VStack, Box, Text, Spinner, Button, Span } from "@chakra-ui/react"
 import Link from "next/link"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
@@ -42,24 +42,36 @@ const SignalStrengthLozenge = ({ children }: { children: React.ReactNode }) => (
     </HStack>
 )
 
-const ShowMoreDetailsButton = () => (
+const ShowMoreDetailsButton = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (isOpen: boolean) => void }) => (
     <Button
         as={"span"}
         secondaryButton
-        borderRadius={"full"}
+        borderTopRadius={"10px"}
+        borderBottomRadius={isOpen ? "0px" : "10px"}
         opacity={0.9}
         minW={"45px"}
         maxW={"45px"}
         w={"45px"}
         ml={2}
-        mb={"1px"}
+        mb={"-1px"}
         py={"2px"}
-        gap={0}
-        pr={"2px"}
+        gap={"2px"}
+        role={"button"}
+        tabIndex={0}
+        onClick={() => setIsOpen(!isOpen)}
+        transition="all 0s"
     >
-        <FontAwesomeIcon icon={faChevronRight} />
+        <Span mb={"-2px"} rotate={isOpen ? "90deg" : "0deg"} transition="all 0.2s">
+            <FontAwesomeIcon icon={faChevronRight} />
+        </Span>
         <FontAwesomeIcon icon={faInfoCircle} size="lg" />
     </Button>
+)
+
+const MoreDetailsContainer = ({ children }: { children: React.ReactNode }) => (
+    <VStack w="100%" gap={2} alignItems={"start"} bg={"#02456B"} borderRadius={"10px"} p={3} position={"relative"}>
+        {children}
+    </VStack>
 )
 
 export default function SignalStrength({
@@ -89,6 +101,11 @@ export default function SignalStrength({
     const [countdown, setCountdown] = useState<number | null>(null)
     const [countdownText, setCountdownText] = useState<string | null>("Analyzing activity...")
     const [userDataRefreshTriggered, setUserDataRefreshTriggered] = useState(false)
+
+    // More details states
+    const [isSignalScoreMoreDetailsOpen, setIsSignalScoreMoreDetailsOpen] = useState(false)
+    const [isSignalSummaryMoreDetailsOpen, setIsSignalSummaryMoreDetailsOpen] = useState(false)
+    const [isSignalDailyActivityMoreDetailsOpen, setIsSignalDailyActivityMoreDetailsOpen] = useState(false)
 
     const countdownDuration = APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
 
@@ -195,7 +212,8 @@ export default function SignalStrength({
         >
             <VStack
                 alignItems={"center"}
-                py={2}
+                pt={2}
+                pb={3}
                 px={2}
                 border={"5px solid"}
                 borderColor={"pageBackground"}
@@ -256,7 +274,7 @@ export default function SignalStrength({
                 {userContentAvailable &&
                     signalStrengthProjectData.status !== "dev" &&
                     signalStrengthProjectData.enabled && (
-                        <VStack w="100%" gap={2} alignItems={"start"}>
+                        <VStack w="100%" gap={0} alignItems={"start"}>
                             <HStack
                                 w="100%"
                                 justifyContent={"space-between"}
@@ -326,10 +344,23 @@ export default function SignalStrength({
                                 </HStack>
                                 <Text fontFamily={"monospace"}>{signalStrengthProjectData.maxValue}</Text>
                             </HStack>
+                            <Box h={2} />
                             <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
                                 Your score is calculated based on your activity and engagement with the{" "}
-                                {projectData.displayName} community over the past 360 days. <ShowMoreDetailsButton />
+                                {projectData.displayName} community over the past 360 days.{" "}
+                                <ShowMoreDetailsButton
+                                    isOpen={isSignalScoreMoreDetailsOpen}
+                                    setIsOpen={setIsSignalScoreMoreDetailsOpen}
+                                />
                             </Text>
+                            {isSignalScoreMoreDetailsOpen && (
+                                <MoreDetailsContainer>
+                                    <Text w="100%" textAlign={"center"} fontSize={"sm"} px={3}>
+                                        Your score is calculated based on your activity and engagement with the{" "}
+                                        {projectData.displayName} community over the past 360 days.{" "}
+                                    </Text>
+                                </MoreDetailsContainer>
+                            )}
                         </VStack>
                     )}
             </VStack>
@@ -339,15 +370,29 @@ export default function SignalStrength({
                     <Text fontWeight={"bold"} cursor={"default"} mb={2}>
                         {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} Activity Summary
                     </Text>
-                    <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3} mb={2}>
+                    <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
                         This summary... {projectData.displayName}{" "}
                         {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
-                        {signalStrengthProjectData.previousDays} days. <ShowMoreDetailsButton />
+                        {signalStrengthProjectData.previousDays} days.{" "}
+                        <ShowMoreDetailsButton
+                            isOpen={isSignalSummaryMoreDetailsOpen}
+                            setIsOpen={setIsSignalSummaryMoreDetailsOpen}
+                        />
                     </Text>
+                    {isSignalSummaryMoreDetailsOpen && (
+                        <MoreDetailsContainer>
+                            <Text w="100%" textAlign={"center"} fontSize={"sm"} px={3}>
+                                This summary... {projectData.displayName}{" "}
+                                {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
+                                {signalStrengthProjectData.previousDays} days.
+                            </Text>
+                        </MoreDetailsContainer>
+                    )}
                     <HStack
                         alignItems={"center"}
                         justifyContent={"start"}
                         cursor={expandableContent ? "pointer" : "default"}
+                        mt={3}
                         py={2}
                         pl={3}
                         pr={4}
@@ -452,16 +497,31 @@ export default function SignalStrength({
             )}
             {dataAvailable && <Divider />}
             {dataAvailable && dailyData && (
-                <VStack w="100%" gap={2} alignItems={"start"} mb={2}>
-                    <Text w="100%" fontWeight={"bold"} textAlign={"center"}>
+                <VStack w="100%" gap={0} alignItems={"start"} mb={2}>
+                    <Text w="100%" fontWeight={"bold"} textAlign={"center"} mb={2}>
                         {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} Daily Activity Tracker
                     </Text>
                     <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
                         This chart shows your daily engagement scores for each day you have been active in the{" "}
                         {projectData.displayName}{" "}
                         {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
-                        {signalStrengthProjectData.previousDays} days. <ShowMoreDetailsButton />
+                        {signalStrengthProjectData.previousDays} days.{" "}
+                        <ShowMoreDetailsButton
+                            isOpen={isSignalDailyActivityMoreDetailsOpen}
+                            setIsOpen={setIsSignalDailyActivityMoreDetailsOpen}
+                        />
                     </Text>
+                    {isSignalDailyActivityMoreDetailsOpen && (
+                        <MoreDetailsContainer>
+                            <Text w="100%" textAlign={"center"} fontSize={"sm"} px={3}>
+                                This chart shows your daily engagement scores for each day you have been active in the{" "}
+                                {projectData.displayName}{" "}
+                                {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
+                                {signalStrengthProjectData.previousDays} days.
+                            </Text>
+                        </MoreDetailsContainer>
+                    )}
+                    <Box h={2} />
                     <HistoricalDataChart
                         data={dailyData}
                         signalStrengthProjectData={signalStrengthProjectData}
