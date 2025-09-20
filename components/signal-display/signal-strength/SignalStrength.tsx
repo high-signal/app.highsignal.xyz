@@ -79,8 +79,7 @@ const MoreDetailsContainer = ({ children }: { children: React.ReactNode }) => (
         bg={"button.secondary.default"}
         borderRadius={"10px"}
         py={3}
-        pl={3}
-        pr={2}
+        px={3}
         position={"relative"}
     >
         {children}
@@ -95,6 +94,8 @@ const MoreDetailsBullet = ({ children }: { children: React.ReactNode }) => (
             boxSize={"20px"}
             minW={"20px"}
             borderRadius="full"
+            userSelect="none"
+            draggable="false"
         />
         <Text w="100%" fontSize={"sm"}>
             {children}
@@ -262,7 +263,7 @@ export default function SignalStrength({
                     {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")}
                 </Text>
             </HStack>
-            <VStack alignItems={"center"} pt={2} px={2}>
+            <VStack alignItems={"center"} pt={2} px={2} gap={0}>
                 <HStack justifyContent={"center"} w="100%" flexWrap={"wrap"}>
                     <HStack gap={3} alignItems={"center"} justifyContent={"center"}>
                         <Text
@@ -315,6 +316,7 @@ export default function SignalStrength({
                         </HStack>
                     )}
                 </HStack>
+                <Box h={2} />
                 {userContentAvailable &&
                     signalStrengthProjectData.status !== "dev" &&
                     signalStrengthProjectData.enabled && (
@@ -388,25 +390,45 @@ export default function SignalStrength({
                                 </HStack>
                                 <Text fontFamily={"monospace"}>{signalStrengthProjectData.maxValue}</Text>
                             </HStack>
-                            <Box h={2} />
-                            <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
-                                Your score is calculated based on your activity and engagement with the{" "}
-                                {projectData.displayName} community over the past 360 days.{" "}
-                                <ShowMoreDetailsButton
-                                    isOpen={isSignalScoreMoreDetailsOpen}
-                                    setIsOpen={setIsSignalScoreMoreDetailsOpen}
-                                />
-                            </Text>
-                            {isSignalScoreMoreDetailsOpen && (
-                                <MoreDetailsContainer>
-                                    <MoreDetailsBullet>
-                                        Your score is calculated based on your activity and engagement with the{" "}
-                                        {projectData.displayName} community over the past 360 days.
-                                    </MoreDetailsBullet>
-                                </MoreDetailsContainer>
-                            )}
                         </VStack>
                     )}
+                <Box h={2} />
+                <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
+                    {loggedInUser?.username === username ? "Your signal" : "Signal"} score
+                    {loggedInUser?.username === username ? " is" : "s are"} calculated using{" "}
+                    {loggedInUser?.username === username && "your"} activity and engagement with the{" "}
+                    {projectData.displayName} community over the past 360 days.{" "}
+                    <ShowMoreDetailsButton
+                        isOpen={isSignalScoreMoreDetailsOpen}
+                        setIsOpen={setIsSignalScoreMoreDetailsOpen}
+                    />
+                </Text>
+                {isSignalScoreMoreDetailsOpen && (
+                    <MoreDetailsContainer>
+                        <MoreDetailsBullet>
+                            Scores are updated daily and analyze {loggedInUser?.username === username ? "your" : "the"}{" "}
+                            activity from yesterday and the past {signalStrengthProjectData.previousDays} days.
+                        </MoreDetailsBullet>
+                        <MoreDetailsBullet>
+                            Only {loggedInUser?.username === username ? "your" : "the"} highest signal activity
+                            contributes to {loggedInUser?.username === username ? "your" : "the"} score. This means{" "}
+                            {loggedInUser?.username === username ? "your" : "the"} score may not change even if{" "}
+                            {loggedInUser?.username === username ? "you posted recently" : "there was recent activity"}.
+                        </MoreDetailsBullet>
+                        <MoreDetailsBullet>
+                            There is a decay function, which means older activity contributes less to{" "}
+                            {loggedInUser?.username === username ? "your" : "the"} score than new posts. So,{" "}
+                            {loggedInUser?.username === username && "if you want"} to maintain a High Signal,{" "}
+                            {loggedInUser?.username === username && "you need to"} keep up{" "}
+                            {loggedInUser?.username === username ? "your" : "the"} level of engagement!
+                        </MoreDetailsBullet>
+                        <MoreDetailsBullet>
+                            If {loggedInUser?.username === username ? "your" : "the"} score has not yet been updated,
+                            come back tomorrow to see {loggedInUser?.username === username ? "your" : "the"} new daily
+                            score.
+                        </MoreDetailsBullet>
+                    </MoreDetailsContainer>
+                )}
             </VStack>
             {dataAvailable && <Divider borderWidth={3} my={6} />}
             {dataAvailable && (
