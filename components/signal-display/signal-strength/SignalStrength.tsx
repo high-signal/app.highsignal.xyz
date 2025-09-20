@@ -129,7 +129,7 @@ export default function SignalStrength({
     signalStrengthProjectData,
     refreshUserData,
 }: {
-    userDisplayName: string
+    userDisplayName?: string
     username: string
     userData: SignalStrengthUserData
     dailyData?: SignalStrengthUserData[]
@@ -475,7 +475,8 @@ export default function SignalStrength({
                                 {signalStrengthProjectData.previousDays} days.
                             </MoreDetailsBullet>
                             <MoreDetailsBullet>
-                                It's a helpful way to understand {loggedInUser?.username === username && "your"} style
+                                It&apos;s a helpful way to understand {loggedInUser?.username === username && "your"}{" "}
+                                style
                                 {loggedInUser?.username !== username && "s"} of interaction with the{" "}
                                 {projectData.displayName} community and learn how{" "}
                                 {loggedInUser?.username === username
