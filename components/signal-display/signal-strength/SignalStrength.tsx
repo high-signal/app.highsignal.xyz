@@ -1,12 +1,13 @@
 "use client"
 
-import { HStack, VStack, Box, Text, Spinner, Button, Span } from "@chakra-ui/react"
+import { HStack, VStack, Box, Text, Spinner, Button, Span, Image } from "@chakra-ui/react"
 import Link from "next/link"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
 import { faDiscord, faXTwitter, faDiscourse } from "@fortawesome/free-brands-svg-icons"
 import { useState, useEffect } from "react"
+import { ASSETS } from "../../../config/constants"
 
 import HistoricalDataChart from "./HistoricalDataChart"
 
@@ -49,17 +50,19 @@ const ShowMoreDetailsButton = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOp
         borderTopRadius={"10px"}
         borderBottomRadius={isOpen ? "0px" : "10px"}
         opacity={0.9}
-        minW={"45px"}
-        maxW={"45px"}
-        w={"45px"}
+        minW={"50px"}
+        maxW={"50px"}
+        w={"50px"}
         ml={2}
-        mb={"-1px"}
-        py={"2px"}
-        gap={"2px"}
+        mt={"1px"}
+        pt={"2px"}
+        pb={isOpen ? "5px" : "2px"}
+        gap={"3px"}
         role={"button"}
         tabIndex={0}
         onClick={() => setIsOpen(!isOpen)}
         transition="all 0s"
+        verticalAlign="top"
     >
         <Span mb={"-2px"} rotate={isOpen ? "90deg" : "0deg"} transition="all 0.2s">
             <FontAwesomeIcon icon={faChevronRight} />
@@ -69,9 +72,34 @@ const ShowMoreDetailsButton = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOp
 )
 
 const MoreDetailsContainer = ({ children }: { children: React.ReactNode }) => (
-    <VStack w="100%" gap={2} alignItems={"start"} bg={"#02456B"} borderRadius={"10px"} p={3} position={"relative"}>
+    <VStack
+        w="100%"
+        gap={2}
+        alignItems={"start"}
+        bg={"button.secondary.default"}
+        borderRadius={"10px"}
+        py={3}
+        pl={3}
+        pr={2}
+        position={"relative"}
+    >
         {children}
     </VStack>
+)
+
+const MoreDetailsBullet = ({ children }: { children: React.ReactNode }) => (
+    <HStack w="100%" justifyContent={"start"} alignItems={"start"} gap={3}>
+        <Image
+            src={`${ASSETS.LOGO_BASE_URL}/w_300,h_300,c_fill,q_auto,f_webp/${ASSETS.LOGO_ID}`}
+            alt="Logo"
+            boxSize={"20px"}
+            minW={"20px"}
+            borderRadius="full"
+        />
+        <Text w="100%" fontSize={"sm"}>
+            {children}
+        </Text>
+    </HStack>
 )
 
 export default function SignalStrength({
@@ -355,10 +383,10 @@ export default function SignalStrength({
                             </Text>
                             {isSignalScoreMoreDetailsOpen && (
                                 <MoreDetailsContainer>
-                                    <Text w="100%" textAlign={"center"} fontSize={"sm"} px={3}>
+                                    <MoreDetailsBullet>
                                         Your score is calculated based on your activity and engagement with the{" "}
-                                        {projectData.displayName} community over the past 360 days.{" "}
-                                    </Text>
+                                        {projectData.displayName} community over the past 360 days.
+                                    </MoreDetailsBullet>
                                 </MoreDetailsContainer>
                             )}
                         </VStack>
@@ -381,11 +409,11 @@ export default function SignalStrength({
                     </Text>
                     {isSignalSummaryMoreDetailsOpen && (
                         <MoreDetailsContainer>
-                            <Text w="100%" textAlign={"center"} fontSize={"sm"} px={3}>
+                            <MoreDetailsBullet>
                                 This summary... {projectData.displayName}{" "}
                                 {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
                                 {signalStrengthProjectData.previousDays} days.
-                            </Text>
+                            </MoreDetailsBullet>
                         </MoreDetailsContainer>
                     )}
                     <HStack
@@ -513,12 +541,12 @@ export default function SignalStrength({
                     </Text>
                     {isSignalDailyActivityMoreDetailsOpen && (
                         <MoreDetailsContainer>
-                            <Text w="100%" textAlign={"center"} fontSize={"sm"} px={3}>
+                            <MoreDetailsBullet>
                                 This chart shows your daily engagement scores for each day you have been active in the{" "}
                                 {projectData.displayName}{" "}
                                 {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
                                 {signalStrengthProjectData.previousDays} days.
-                            </Text>
+                            </MoreDetailsBullet>
                         </MoreDetailsContainer>
                     )}
                     <Box h={2} />
