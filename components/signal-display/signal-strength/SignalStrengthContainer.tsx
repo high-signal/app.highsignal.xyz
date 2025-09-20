@@ -56,7 +56,7 @@ export default function SignalStrengthContainer({
             <Text fontSize="2xl" fontWeight={"bold"} px={3}>
                 📡 Signals
             </Text>
-            <Text color="textColorMuted" textAlign={"center"} px={3}>
+            <Text color="textColorMuted" textAlign={"center"} px={{ base: 3, sm: 0 }}>
                 Signals are live measures of activity and engagement in the {projectData.displayName} community.
             </Text>
             <VStack gap={10} alignItems={"start"} w={"100%"}>

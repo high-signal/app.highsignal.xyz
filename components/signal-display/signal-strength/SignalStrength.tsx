@@ -201,17 +201,8 @@ export default function SignalStrength({
                 borderColor={"pageBackground"}
                 borderRadius={"12px"}
             >
-                <HStack
-                    justifyContent={{
-                        base: "center",
-                        sm: !signalStrengthProjectData.enabled ? "space-between" : "center",
-                    }}
-                    columnGap={3}
-                    rowGap={2}
-                    w="100%"
-                    flexWrap={"wrap"}
-                >
-                    <HStack gap={3} alignItems={"center"} justifyContent={"center"} w={{ base: "100%", sm: "auto" }}>
+                <HStack justifyContent={"center"} w="100%" flexWrap={"wrap"}>
+                    <HStack gap={3} alignItems={"center"} justifyContent={"center"}>
                         {icon && <FontAwesomeIcon icon={icon} size="lg" />}
                         <Text
                             as="a"
