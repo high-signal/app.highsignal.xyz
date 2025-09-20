@@ -230,7 +230,7 @@ export default function SignalStrength({
     return (
         <VStack
             alignItems={"center"}
-            gap={6}
+            gap={0}
             w={"100%"}
             maxW={"600px"}
             bg="contentBackground"
@@ -238,25 +238,41 @@ export default function SignalStrength({
             px={3}
             borderRadius={{ base: 0, sm: "16px" }}
         >
-            <VStack
+            <HStack
+                gap={3}
                 alignItems={"center"}
+                justifyContent={"center"}
+                fontWeight={"bold"}
                 pt={2}
                 pb={3}
                 px={2}
+                mb={2}
+                w={"100%"}
                 border={"5px solid"}
                 borderColor={"pageBackground"}
                 borderRadius={"12px"}
             >
+                {icon && <FontAwesomeIcon icon={icon} size="lg" />}
+                <Text
+                    as="a"
+                    id={signalStrengthProjectData.name}
+                    fontSize="xl"
+                    color={!signalStrengthProjectData.enabled ? "textColorMuted" : undefined}
+                >
+                    {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")}
+                </Text>
+            </HStack>
+            <VStack alignItems={"center"} pt={2} px={2}>
                 <HStack justifyContent={"center"} w="100%" flexWrap={"wrap"}>
                     <HStack gap={3} alignItems={"center"} justifyContent={"center"}>
-                        {icon && <FontAwesomeIcon icon={icon} size="lg" />}
                         <Text
                             as="a"
                             id={signalStrengthProjectData.name}
-                            fontSize="xl"
+                            fontSize="lg"
                             color={!signalStrengthProjectData.enabled ? "textColorMuted" : undefined}
+                            fontWeight={"bold"}
                         >
-                            {signalStrengthProjectData.displayName}
+                            Signal Score
                         </Text>
                     </HStack>
                     {!countdown &&
@@ -392,11 +408,11 @@ export default function SignalStrength({
                         </VStack>
                     )}
             </VStack>
-            {dataAvailable && <Divider />}
+            {dataAvailable && <Divider borderWidth={3} my={6} />}
             {dataAvailable && (
                 <VStack w="100%" gap={0} alignItems={"center"}>
-                    <Text fontWeight={"bold"} cursor={"default"} mb={2}>
-                        {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} Activity Summary
+                    <Text fontSize="lg" fontWeight={"bold"} cursor={"default"} mb={2}>
+                        Activity Summary
                     </Text>
                     <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
                         This summary... {projectData.displayName}{" "}
@@ -523,11 +539,11 @@ export default function SignalStrength({
                     </Text>
                 </VStack>
             )}
-            {dataAvailable && <Divider />}
+            {dataAvailable && <Divider borderWidth={3} my={6} />}
             {dataAvailable && dailyData && (
                 <VStack w="100%" gap={0} alignItems={"start"} mb={2}>
-                    <Text w="100%" fontWeight={"bold"} textAlign={"center"} mb={2}>
-                        {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} Daily Activity Tracker
+                    <Text w="100%" fontSize="lg" fontWeight={"bold"} textAlign={"center"} mb={2}>
+                        Daily Activity Tracker
                     </Text>
                     <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
                         This chart shows your daily engagement scores for each day you have been active in the{" "}
