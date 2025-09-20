@@ -63,6 +63,7 @@ export default function SignalStrengthContainer({
                 {sortedMatchedSignalStrengths.map(({ signalStrengthProjectData, userData }, index) => (
                     <SignalStrength
                         key={index}
+                        userDisplayName={currentUser.displayName || ""}
                         username={currentUser.username || ""}
                         userData={
                             userData || {

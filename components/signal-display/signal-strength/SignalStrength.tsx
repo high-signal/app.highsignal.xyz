@@ -56,7 +56,7 @@ const ShowMoreDetailsButton = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOp
         ml={2}
         mt={"1px"}
         pt={"2px"}
-        pb={isOpen ? "5px" : "2px"}
+        pb={isOpen ? "10px" : "2px"}
         gap={"3px"}
         role={"button"}
         tabIndex={0}
@@ -104,6 +104,7 @@ const MoreDetailsBullet = ({ children }: { children: React.ReactNode }) => (
 )
 
 export default function SignalStrength({
+    userDisplayName,
     username,
     userData,
     dailyData,
@@ -112,6 +113,7 @@ export default function SignalStrength({
     signalStrengthProjectData,
     refreshUserData,
 }: {
+    userDisplayName: string
     username: string
     userData: SignalStrengthUserData
     dailyData?: SignalStrengthUserData[]
@@ -397,7 +399,7 @@ export default function SignalStrength({
                     {loggedInUser?.username === username ? "Your signal" : "Signal"} score
                     {loggedInUser?.username === username ? " is" : "s are"} calculated using{" "}
                     {loggedInUser?.username === username && "your"} activity and engagement with the{" "}
-                    {projectData.displayName} community over the past 360 days.{" "}
+                    {projectData.displayName} community.
                     <ShowMoreDetailsButton
                         isOpen={isSignalScoreMoreDetailsOpen}
                         setIsOpen={setIsSignalScoreMoreDetailsOpen}
@@ -437,9 +439,8 @@ export default function SignalStrength({
                         Activity Summary
                     </Text>
                     <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
-                        This summary... {projectData.displayName}{" "}
-                        {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
-                        {signalStrengthProjectData.previousDays} days.{" "}
+                        Highlights of {loggedInUser?.username === username ? "your" : "the"} engagement with the{" "}
+                        {projectData.displayName} community.
                         <ShowMoreDetailsButton
                             isOpen={isSignalSummaryMoreDetailsOpen}
                             setIsOpen={setIsSignalSummaryMoreDetailsOpen}
@@ -448,9 +449,34 @@ export default function SignalStrength({
                     {isSignalSummaryMoreDetailsOpen && (
                         <MoreDetailsContainer>
                             <MoreDetailsBullet>
-                                This summary... {projectData.displayName}{" "}
-                                {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
+                                {loggedInUser?.username === username ? "Your" : "The"} activity summary takes into
+                                account {loggedInUser?.username === username && "your"} activity and engagement with the{" "}
+                                {projectData.displayName} community over the past{" "}
                                 {signalStrengthProjectData.previousDays} days.
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet>
+                                It's a helpful way to understand {loggedInUser?.username === username && "your"} style
+                                {loggedInUser?.username !== username && "s"} of interaction with the{" "}
+                                {projectData.displayName} community and learn how{" "}
+                                {loggedInUser?.username === username
+                                    ? "you could improve your score"
+                                    : "scores could be improved"}
+                                .
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet>
+                                {loggedInUser?.username === username ? "Your" : "The"} summary is updated daily along
+                                with {loggedInUser?.username === username ? "your" : "the"} score, so if{" "}
+                                {loggedInUser?.username === username
+                                    ? "you don't see any changes yet"
+                                    : "there are no changes yet"}
+                                , come back tomorrow to see {loggedInUser?.username === username ? "your" : "the"}{" "}
+                                updated summary.
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet>
+                                {loggedInUser?.username === username ? "Your" : "This"} full summary is private and can
+                                only be seen by {loggedInUser?.username === username ? "you" : `${userDisplayName}`} and
+                                the {projectData.displayName} team. Only the heading &quot;
+                                {userData.summary}&quot; is public.
                             </MoreDetailsBullet>
                         </MoreDetailsContainer>
                     )}
