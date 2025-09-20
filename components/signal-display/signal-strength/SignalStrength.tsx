@@ -86,17 +86,33 @@ const MoreDetailsContainer = ({ children }: { children: React.ReactNode }) => (
     </VStack>
 )
 
-const MoreDetailsBullet = ({ children }: { children: React.ReactNode }) => (
+const MoreDetailsBullet = ({ children, icon }: { children: React.ReactNode; icon?: string }) => (
     <HStack w="100%" justifyContent={"start"} alignItems={"start"} gap={3}>
-        <Image
-            src={`${ASSETS.LOGO_BASE_URL}/w_300,h_300,c_fill,q_auto,f_webp/${ASSETS.LOGO_ID}`}
-            alt="Logo"
-            boxSize={"20px"}
-            minW={"20px"}
-            borderRadius="full"
-            userSelect="none"
-            draggable="false"
-        />
+        {icon && (
+            <Text
+                w={"20px"}
+                h={"20px"}
+                display={"flex"}
+                alignItems={"center"}
+                justifyContent={"center"}
+                fontSize={"xl"}
+                userSelect="none"
+                draggable="false"
+            >
+                {icon}
+            </Text>
+        )}
+        {!icon && (
+            <Image
+                src={`${ASSETS.LOGO_BASE_URL}/w_300,h_300,c_fill,q_auto,f_webp/${ASSETS.LOGO_ID}`}
+                alt="Logo"
+                boxSize={"20px"}
+                minW={"20px"}
+                borderRadius="full"
+                userSelect="none"
+                draggable="false"
+            />
+        )}
         <Text w="100%" fontSize={"sm"}>
             {children}
         </Text>
@@ -396,10 +412,10 @@ export default function SignalStrength({
                     )}
                 <Box h={2} />
                 <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
-                    {loggedInUser?.username === username ? "Your signal" : "Signal"} score
-                    {loggedInUser?.username === username ? " is" : "s are"} calculated using{" "}
-                    {loggedInUser?.username === username && "your"} activity and engagement with the{" "}
-                    {projectData.displayName} community.
+                    {loggedInUser?.username === username ? "Your" : "This"} signal score
+                    {loggedInUser?.username !== username && ` for ${userDisplayName}`} is calculated using{" "}
+                    {loggedInUser?.username === username ? "your" : "their"} activity with the {projectData.displayName}{" "}
+                    community.
                     <ShowMoreDetailsButton
                         isOpen={isSignalScoreMoreDetailsOpen}
                         setIsOpen={setIsSignalScoreMoreDetailsOpen}
@@ -408,23 +424,26 @@ export default function SignalStrength({
                 {isSignalScoreMoreDetailsOpen && (
                     <MoreDetailsContainer>
                         <MoreDetailsBullet>
-                            Scores are updated daily and analyze {loggedInUser?.username === username ? "your" : "the"}{" "}
+                            Scores are updated daily, analyzing {loggedInUser?.username === username ? "your" : "the"}{" "}
                             activity from yesterday and the past {signalStrengthProjectData.previousDays} days.
                         </MoreDetailsBullet>
                         <MoreDetailsBullet>
                             Only {loggedInUser?.username === username ? "your" : "the"} highest signal activity
                             contributes to {loggedInUser?.username === username ? "your" : "the"} score. This means{" "}
                             {loggedInUser?.username === username ? "your" : "the"} score may not change even if{" "}
-                            {loggedInUser?.username === username ? "you posted recently" : "there was recent activity"}.
+                            {loggedInUser?.username === username
+                                ? "you have posted recently"
+                                : "there has been recent activity"}
+                            .
                         </MoreDetailsBullet>
                         <MoreDetailsBullet>
                             There is a decay function, which means older activity contributes less to{" "}
-                            {loggedInUser?.username === username ? "your" : "the"} score than new posts. So,{" "}
+                            {loggedInUser?.username === username ? "your" : "the"} score than newer posts. So,{" "}
                             {loggedInUser?.username === username && "if you want"} to maintain a High Signal,{" "}
                             {loggedInUser?.username === username && "you need to"} keep up{" "}
                             {loggedInUser?.username === username ? "your" : "the"} level of engagement!
                         </MoreDetailsBullet>
-                        <MoreDetailsBullet>
+                        <MoreDetailsBullet icon={"⏳"}>
                             If {loggedInUser?.username === username ? "your" : "the"} score has not yet been updated,
                             come back tomorrow to see {loggedInUser?.username === username ? "your" : "the"} new daily
                             score.
@@ -439,7 +458,8 @@ export default function SignalStrength({
                         Activity Summary
                     </Text>
                     <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
-                        Highlights of {loggedInUser?.username === username ? "your" : "the"} engagement with the{" "}
+                        Highlights of {loggedInUser?.username === username && "your"} engagement{" "}
+                        {loggedInUser?.username !== username && ` for ${userDisplayName}`} with the{" "}
                         {projectData.displayName} community.
                         <ShowMoreDetailsButton
                             isOpen={isSignalSummaryMoreDetailsOpen}
@@ -472,7 +492,7 @@ export default function SignalStrength({
                                 , come back tomorrow to see {loggedInUser?.username === username ? "your" : "the"}{" "}
                                 updated summary.
                             </MoreDetailsBullet>
-                            <MoreDetailsBullet>
+                            <MoreDetailsBullet icon={"🔒"}>
                                 {loggedInUser?.username === username ? "Your" : "This"} full summary is private and can
                                 only be seen by {loggedInUser?.username === username ? "you" : `${userDisplayName}`} and
                                 the {projectData.displayName} team. Only the heading &quot;
@@ -594,7 +614,9 @@ export default function SignalStrength({
                         Daily Activity Tracker
                     </Text>
                     <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
-                        This chart shows your daily engagement scores for each day you have been active in the{" "}
+                        This chart shows {loggedInUser?.username === username ? "your" : "the"} daily engagement scores
+                        for each day {loggedInUser?.username === username ? "you" : `${userDisplayName}`}{" "}
+                        {loggedInUser?.username === username ? "have" : "has"} been active in the{" "}
                         {projectData.displayName}{" "}
                         {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
                         {signalStrengthProjectData.previousDays} days.{" "}
@@ -606,10 +628,28 @@ export default function SignalStrength({
                     {isSignalDailyActivityMoreDetailsOpen && (
                         <MoreDetailsContainer>
                             <MoreDetailsBullet>
-                                This chart shows your daily engagement scores for each day you have been active in the{" "}
-                                {projectData.displayName}{" "}
-                                {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
-                                {signalStrengthProjectData.previousDays} days.
+                                Every day {loggedInUser?.username === username ? "you" : `${userDisplayName}`} engaged
+                                with the {projectData.displayName} community on their{" "}
+                                {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")},{" "}
+                                {loggedInUser?.username === username ? "you will see" : "there will be"} a calculated
+                                daily engagement score. The most recent day shown on the chart is yesterday.
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet>
+                                These daily engagement scores are used as part of the algorithm to calculate{" "}
+                                {loggedInUser?.username === username ? "your" : "the"} overall Signal Score.
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet>
+                                Only available data can be analyzed. If posts were made in a private thread or channel,
+                                they will not be included in the daily engagement scores and will not count toward{" "}
+                                {loggedInUser?.username === username ? "your" : "the"} overall Signal Score.
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet icon={"🏗️"}>
+                                Very short posts may not be visible on the chart, but are planned to be supported soon.
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet icon={"🔒"}>
+                                This chart is private and can only be seen by{" "}
+                                {loggedInUser?.username === username ? "you" : `${userDisplayName}`} and the{" "}
+                                {projectData.displayName} team.
                             </MoreDetailsBullet>
                         </MoreDetailsContainer>
                     )}
