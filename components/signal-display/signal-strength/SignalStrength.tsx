@@ -412,10 +412,10 @@ export default function SignalStrength({
                     )}
                 <Box h={2} />
                 <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
-                    {loggedInUser?.username === username ? "Your" : "This"} signal score
+                    {loggedInUser?.username === username ? "Your" : "This"} Signal Score
                     {loggedInUser?.username !== username && ` for ${userDisplayName}`} is calculated using{" "}
-                    {loggedInUser?.username === username ? "your" : "their"} activity with the {projectData.displayName}{" "}
-                    community.
+                    {loggedInUser?.username === username ? "your" : "their"} activity and engagement on the{" "}
+                    {projectData.displayName} {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")}.
                     <ShowMoreDetailsButton
                         isOpen={isSignalScoreMoreDetailsOpen}
                         setIsOpen={setIsSignalScoreMoreDetailsOpen}

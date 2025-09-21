@@ -119,10 +119,10 @@ export default function ConnectTypeSelectorModal({
             // Show success message
             toaster.create({
                 title: `✅ ${config.projectDisplayName} forum ownership confirmed`,
-                description: `Your ${config.projectDisplayName} forum account ownership has been confirmed. View your ${config.projectDisplayName} signal score to see the calculation in progress.`,
+                description: `Your ${config.projectDisplayName} forum account ownership has been confirmed. View your ${config.projectDisplayName} Signal Score to see the calculation in progress.`,
                 type: "success",
                 action: {
-                    label: `View your ${config.projectDisplayName} signal score`,
+                    label: `View your ${config.projectDisplayName} Signal Score`,
                     onClick: () =>
                         router.push(`/p/${config.projectUrlSlug}/${targetUser?.username}#${signalStrengthName}`),
                 },
