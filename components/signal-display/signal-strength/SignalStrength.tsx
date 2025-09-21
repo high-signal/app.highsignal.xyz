@@ -655,37 +655,50 @@ export default function SignalStrength({
                         </MoreDetailsContainer>
                     )}
                     <Box h={2} />
-                    <HistoricalDataChart
-                        data={dailyData}
-                        signalStrengthProjectData={signalStrengthProjectData}
-                        projectData={projectData}
-                    />
+                    {userContentAvailable ? (
+                        <HistoricalDataChart
+                            data={dailyData}
+                            signalStrengthProjectData={signalStrengthProjectData}
+                            projectData={projectData}
+                        />
+                    ) : (
+                        <HistoricalDataChart
+                            data={[]}
+                            signalStrengthProjectData={signalStrengthProjectData}
+                            projectData={projectData}
+                        />
+                    )}
                 </VStack>
             )}
             {signalStrengthProjectData.status === "active" &&
                 signalStrengthProjectData.enabled &&
                 !userContentAvailable &&
                 loggedInUser?.username === username && (
-                    <VStack w={"100%"} gap={2} alignItems={"center"}>
-                        <Text textAlign={"center"} fontSize={"sm"} color={"textColorMuted"}>
-                            Confirm ownership of this account so it can be used to calculate your score.
-                        </Text>
-                        <HStack w={"100%"} justifyContent={"center"}>
-                            <Link href={`/settings/u/${username}?tab=accounts`}>
-                                <Button
-                                    primaryButton
-                                    justifyContent={"start"}
-                                    fontWeight={"bold"}
-                                    fontSize={"sm"}
-                                    borderRadius={"full"}
-                                    px={3}
-                                    py={1}
-                                >
-                                    Confirm ownership
-                                </Button>
-                            </Link>
-                        </HStack>
-                    </VStack>
+                    <>
+                        <Divider borderWidth={3} my={6} />
+                        <VStack w={"100%"} gap={2} alignItems={"center"} px={3} pb={3}>
+                            <Text textAlign={"center"} fontSize={"sm"} color={"textColorMuted"}>
+                                Confirm ownership of your {projectData.displayName}{" "}
+                                {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} account so
+                                your activity can be used to calculate your score.
+                            </Text>
+                            <HStack w={"100%"} justifyContent={"center"}>
+                                <Link href={`/settings/u/${username}?tab=accounts`}>
+                                    <Button
+                                        primaryButton
+                                        justifyContent={"start"}
+                                        fontWeight={"bold"}
+                                        fontSize={"sm"}
+                                        borderRadius={"full"}
+                                        px={3}
+                                        py={1}
+                                    >
+                                        Confirm ownership
+                                    </Button>
+                                </Link>
+                            </HStack>
+                        </VStack>
+                    </>
                 )}
         </VStack>
     )

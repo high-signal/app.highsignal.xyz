@@ -3,12 +3,14 @@
 import { useEffect, useState, useRef, useMemo } from "react"
 import { useInView } from "react-intersection-observer"
 import { ResponsiveContainer, ComposedChart, Line, XAxis, YAxis, Tooltip, Label, CartesianGrid } from "recharts"
-import { HStack, Text, VStack, Box } from "@chakra-ui/react"
+import { HStack, Text, Box } from "@chakra-ui/react"
 import { useThemeColor } from "../../../utils/theme-utils/getThemeColor"
 
 import { calculateSignalFromScore } from "../../../utils/calculateSignal"
 
 import LoginToSeeInsights from "../../ui/LoginToSeeInsights"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 
 export default function HistoricalDataChart({
     data,
@@ -117,16 +119,18 @@ export default function HistoricalDataChart({
             const endForDummy = new Date(yesterday)
             endForDummy.setDate(endForDummy.getDate() - 5)
 
-            setDummyData(
-                generateDummyData(
-                    30,
-                    startForDummy,
-                    endForDummy,
-                    signalStrengthProjectData.maxValue,
-                    signalStrengthProjectData.name,
-                ),
-            )
-            hasGeneratedDummyData.current = true
+            if (data.length > 0) {
+                setDummyData(
+                    generateDummyData(
+                        30,
+                        startForDummy,
+                        endForDummy,
+                        signalStrengthProjectData.maxValue,
+                        signalStrengthProjectData.name,
+                    ),
+                )
+                hasGeneratedDummyData.current = true
+            }
         }
     }, [data, pastDate, yesterday, signalStrengthProjectData.maxValue, signalStrengthProjectData.name])
 
@@ -342,7 +346,7 @@ export default function HistoricalDataChart({
                             </ComposedChart>
                         </ResponsiveContainer>
                         {/* Blur overlay when dummy data is present */}
-                        {dummyData.length > 0 && (
+                        {data.length === 0 && (
                             <Box
                                 position="absolute"
                                 top="10px"
@@ -356,7 +360,18 @@ export default function HistoricalDataChart({
                                 alignItems="center"
                                 pointerEvents="auto"
                             >
-                                <LoginToSeeInsights projectData={projectData} />
+                                {dummyData.length > 0 ? (
+                                    <LoginToSeeInsights projectData={projectData} />
+                                ) : (
+                                    <HStack>
+                                        <Box color={"textColorMuted"}>
+                                            <FontAwesomeIcon icon={faInfoCircle} size="lg" />
+                                        </Box>
+                                        <Text>
+                                            No activity in the past {signalStrengthProjectData.previousDays} days
+                                        </Text>
+                                    </HStack>
+                                )}
                             </Box>
                         )}
                     </Box>
