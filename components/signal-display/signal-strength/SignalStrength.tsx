@@ -629,11 +629,12 @@ export default function SignalStrength({
                     {isSignalDailyActivityMoreDetailsOpen && (
                         <MoreDetailsContainer>
                             <MoreDetailsBullet>
-                                Every day {loggedInUser?.username === username ? "you" : `${userDisplayName}`} engaged
-                                with the {projectData.displayName} community on their{" "}
+                                For each day {loggedInUser?.username === username ? "you" : `${userDisplayName}`}{" "}
+                                engaged with the {projectData.displayName} community on their{" "}
                                 {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")},{" "}
                                 {loggedInUser?.username === username ? "you will see" : "there will be"} a calculated
-                                daily engagement score. The most recent day shown on the chart is yesterday.
+                                daily engagement score shown on the chart. The score for today is still being calculated
+                                so yesterday is the most recent day shown on the chart.
                             </MoreDetailsBullet>
                             <MoreDetailsBullet>
                                 These daily engagement scores are used as part of the algorithm to calculate{" "}
