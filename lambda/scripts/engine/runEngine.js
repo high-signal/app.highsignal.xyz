@@ -99,18 +99,6 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
             dayDate,
         })
 
-        // TODO: This might not work well e.g. if the user has no activity at all
-        //       as it will show "Confirm ownership" on their profile page.
-        //       It is an edge case, but should be considered.
-        // TODO: This is where the data integrity check should be considered.
-        if (!dailyActivityData || dailyActivityData.length === 0) {
-            // The console error is handled in the adapter.
-            // This just exits the function as there is nothing to do,
-            // but it still counts as a "completed" queue item.
-            await clearLastChecked({ supabase, userId, projectId, signalStrengthId })
-            return
-        }
-
         // Add adapter logs to existing logs string
         logs += adapterLogs
 
