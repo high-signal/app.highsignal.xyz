@@ -424,6 +424,11 @@ export async function getUsersUtil(
                     signalStrengthsQuery = signalStrengthsQuery.not("raw_value", "is", null)
                 }
 
+                // Filter out raw_value if it is not visible to the requesting user
+                if (!isSuperAdminRequesting && !isUserDataVisible) {
+                    signalStrengthsQuery = signalStrengthsQuery.is("raw_value", null)
+                }
+
                 // Fetch signal strength data from the last previousDays max
                 const signalStrengthsMap = new Map<string, SignalStrengthData[]>()
 
