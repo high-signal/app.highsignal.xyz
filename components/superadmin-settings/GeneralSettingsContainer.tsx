@@ -158,7 +158,7 @@ export default function GeneralSettingsContainer() {
                                         {project?.signalStrengths?.length > 0 &&
                                             !project?.signalStrengths?.some((ss) => ss.enabled === true) && (
                                                 <Text color="red.500" fontSize="sm" ml={1}>
-                                                    (No Signal Strengths enabled)
+                                                    (No Signals enabled)
                                                 </Text>
                                             )}
                                     </HStack>

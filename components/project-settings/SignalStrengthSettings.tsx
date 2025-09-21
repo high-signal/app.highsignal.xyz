@@ -110,7 +110,7 @@ export default function SignalStrengthSettings({
         [signalStrength],
     )
 
-    const shortName = signalStrength.displayName.replace(" Engagement", "")
+    const shortName = signalStrength.displayName.replace(" Signal", "")
 
     // Set the settings to the initial state when the signal strength changes
     useEffect(() => {

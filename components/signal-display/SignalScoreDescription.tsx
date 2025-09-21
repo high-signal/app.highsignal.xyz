@@ -41,7 +41,7 @@ export default function SignalScoreDescription({
     }
 
     if (showLoading) {
-        descriptionText = `⏳ Check back later to see ${loggedInUser?.username === currentUser.username ? "your" : "the"} calculated Signal Score ⏳`
+        descriptionText = `⏳ Check back later to see ${loggedInUser?.username === currentUser.username ? "your" : "the"} calculated score ⏳`
     } else if (!isSignalStrengthLoading) {
         if (currentUser.score === 100) {
             titleEmoji = "💯"

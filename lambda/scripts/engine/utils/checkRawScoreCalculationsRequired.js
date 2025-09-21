@@ -14,9 +14,12 @@ async function checkRawScoreCalculationsRequired({
     for (const day of dailyActivityData) {
         if (day.data.length > 0) {
             if (existingUserRawData.length > 0 && existingUserRawData.find((item) => item.day === day.date)) {
-                console.log(
-                    `✅ Raw score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${day.date} already exists in the database. Skipping...`,
-                )
+                // Local development logging
+                if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+                    console.log(
+                        `✅ Raw score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${day.date} already exists in the database. Skipping...`,
+                    )
+                }
             } else {
                 console.log(
                     `🗳️ Adding raw_score queue item for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${day.date}`,

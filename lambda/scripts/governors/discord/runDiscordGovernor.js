@@ -197,10 +197,13 @@ async function runDiscordGovernor() {
                 // ====================================================
                 for (const channel of shuffledChannels) {
                     const channelId = channel.id
-                    console.log("--------------------------------")
-                    console.log(
-                        `⭐️ Processing Discord: ${project.projects.url_slug}. Guild ID: ${guildId}. Channel: ${channel.name} (ID: ${channelId}).`,
-                    )
+                    // Local development logging
+                    if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+                        console.log("--------------------------------")
+                        console.log(
+                            `⭐️ Processing Discord: ${project.projects.url_slug}. Guild ID: ${guildId}. Channel: ${channel.name} (ID: ${channelId}).`,
+                        )
+                    }
 
                     // Look in the queue for any current items for this channel that are not completed.
                     const { data: currentQueueItem, error: currentQueueItemError } = await supabase
@@ -392,9 +395,12 @@ async function runDiscordGovernor() {
                         const daysBetweenNowAndAbsoluteOldestTimestamp =
                             Math.floor((now - absoluteOldestTimestampAlreadyInQueue) / (1000 * 60 * 60 * 24)) + 1
 
-                        console.log(
-                            `✅ Queue items already cover ${previousDays} previous days. Oldest message in DB from date ${absoluteOldestTimestampAlreadyInQueue.toISOString().split("T")[0]} (${daysBetweenNowAndAbsoluteOldestTimestamp} days ago). No sync needed.`,
-                        )
+                        // Local development logging
+                        if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+                            console.log(
+                                `✅ Queue items already cover ${previousDays} previous days. Oldest message in DB from date ${absoluteOldestTimestampAlreadyInQueue.toISOString().split("T")[0]} (${daysBetweenNowAndAbsoluteOldestTimestamp} days ago). No sync needed.`,
+                            )
+                        }
                         continue
                     }
 

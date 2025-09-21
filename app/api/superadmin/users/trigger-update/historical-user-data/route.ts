@@ -26,8 +26,8 @@ export async function POST(req: NextRequest) {
         .range(offset, offset + limit - 1)
 
     if (error) {
-        console.error("Error fetching user signal strengths:", error.message)
-        return NextResponse.json({ error: "Error fetching user signal strengths" }, { status: 500 })
+        console.error("Error fetching user signals:", error.message)
+        return NextResponse.json({ error: "Error fetching user signals" }, { status: 500 })
     }
 
     // For each row, update the user_project_scores_history table

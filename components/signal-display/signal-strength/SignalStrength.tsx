@@ -1,19 +1,21 @@
 "use client"
 
-import { HStack, VStack, Box, Text, Spinner, Button } from "@chakra-ui/react"
+import { HStack, VStack, Box, Text, Spinner, Button, Span, Image } from "@chakra-ui/react"
 import Link from "next/link"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
 import { faDiscord, faXTwitter, faDiscourse } from "@fortawesome/free-brands-svg-icons"
 import { useState, useEffect } from "react"
+import { ASSETS } from "../../../config/constants"
+
+import HistoricalDataChart from "./HistoricalDataChart"
 
 import { useUser } from "../../../contexts/UserContext"
-import { usePrivy } from "@privy-io/react-auth"
 
+import LoginToSeeInsights from "../../ui/LoginToSeeInsights"
 import { APP_CONFIG } from "../../../config/constants"
-import { useRouter } from "next/navigation"
-import { Lozenges } from "../../ui/Lozenges"
+import Divider from "../../ui/Divider"
 
 // Define signalStrengthIcons
 const signalStrengthIcons = {
@@ -41,24 +43,102 @@ const SignalStrengthLozenge = ({ children }: { children: React.ReactNode }) => (
     </HStack>
 )
 
+const ShowMoreDetailsButton = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (isOpen: boolean) => void }) => (
+    <Button
+        as={"span"}
+        secondaryButton
+        borderTopRadius={"10px"}
+        borderBottomRadius={isOpen ? "0px" : "10px"}
+        opacity={0.9}
+        minW={"50px"}
+        maxW={"50px"}
+        w={"50px"}
+        ml={2}
+        mt={"1px"}
+        pt={"2px"}
+        pb={isOpen ? "10px" : "2px"}
+        gap={"3px"}
+        role={"button"}
+        tabIndex={0}
+        onClick={() => setIsOpen(!isOpen)}
+        transition="all 0s"
+        verticalAlign="top"
+    >
+        <Span mb={"-2px"} rotate={isOpen ? "90deg" : "0deg"} transition="all 0.2s">
+            <FontAwesomeIcon icon={faChevronRight} />
+        </Span>
+        <FontAwesomeIcon icon={faInfoCircle} size="lg" />
+    </Button>
+)
+
+const MoreDetailsContainer = ({ children }: { children: React.ReactNode }) => (
+    <VStack
+        w="100%"
+        gap={2}
+        alignItems={"start"}
+        bg={"button.secondary.default"}
+        borderRadius={"10px"}
+        py={3}
+        px={3}
+        position={"relative"}
+    >
+        {children}
+    </VStack>
+)
+
+const MoreDetailsBullet = ({ children, icon }: { children: React.ReactNode; icon?: string }) => (
+    <HStack w="100%" justifyContent={"start"} alignItems={"start"} gap={3}>
+        {icon && (
+            <Text
+                w={"20px"}
+                h={"20px"}
+                display={"flex"}
+                alignItems={"center"}
+                justifyContent={"center"}
+                fontSize={"xl"}
+                userSelect="none"
+                draggable="false"
+            >
+                {icon}
+            </Text>
+        )}
+        {!icon && (
+            <Image
+                src={`${ASSETS.LOGO_BASE_URL}/w_300,h_300,c_fill,q_auto,f_webp/${ASSETS.LOGO_ID}`}
+                alt="Logo"
+                boxSize={"20px"}
+                minW={"20px"}
+                borderRadius="full"
+                userSelect="none"
+                draggable="false"
+            />
+        )}
+        <Text w="100%" fontSize={"sm"}>
+            {children}
+        </Text>
+    </HStack>
+)
+
 export default function SignalStrength({
+    userDisplayName,
     username,
     userData,
+    dailyData,
     timestamp,
     projectData,
     signalStrengthProjectData,
     refreshUserData,
 }: {
+    userDisplayName?: string
     username: string
     userData: SignalStrengthUserData
+    dailyData?: SignalStrengthUserData[]
     timestamp: number
     projectData: ProjectData
     signalStrengthProjectData: SignalStrengthProjectData
     refreshUserData: () => void
 }) {
     const { loggedInUser } = useUser()
-    const { login, authenticated } = usePrivy()
-    const router = useRouter()
 
     const displayValue = userData.value || userData.rawValue || 0
 
@@ -66,8 +146,13 @@ export default function SignalStrength({
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
     const [isOpen, setIsOpen] = useState(userData.description ? true : false)
     const [countdown, setCountdown] = useState<number | null>(null)
-    const [countdownText, setCountdownText] = useState<string | null>("Analyzing engagement...")
+    const [countdownText, setCountdownText] = useState<string | null>("Analyzing activity...")
     const [userDataRefreshTriggered, setUserDataRefreshTriggered] = useState(false)
+
+    // More details states
+    const [isSignalScoreMoreDetailsOpen, setIsSignalScoreMoreDetailsOpen] = useState(false)
+    const [isSignalSummaryMoreDetailsOpen, setIsSignalSummaryMoreDetailsOpen] = useState(false)
+    const [isSignalDailyActivityMoreDetailsOpen, setIsSignalDailyActivityMoreDetailsOpen] = useState(false)
 
     const countdownDuration = APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
 
@@ -119,7 +204,7 @@ export default function SignalStrength({
             const updatedTimeRemaining = countdownDuration - updatedTimeElapsed
 
             if (updatedTimeRemaining > countdownDuration * 0.6) {
-                setCountdownText("Analyzing engagement...")
+                setCountdownText("Analyzing activity...")
             } else if (updatedTimeRemaining > countdownDuration * 0.3) {
                 setCountdownText("Checking criteria...")
             } else if (updatedTimeRemaining > countdownDuration * 0.15) {
@@ -158,10 +243,13 @@ export default function SignalStrength({
     // Get the icon based on signalStrengthProjectData.name
     const icon = signalStrengthIcons[signalStrengthProjectData.name as SignalStrengthName]
 
+    const dataAvailable =
+        signalStrengthProjectData.enabled && userContentAvailable && !countdown && !userDataRefreshTriggered
+
     return (
         <VStack
             alignItems={"center"}
-            gap={4}
+            gap={0}
             w={"100%"}
             maxW={"600px"}
             bg="contentBackground"
@@ -170,150 +258,254 @@ export default function SignalStrength({
             borderRadius={{ base: 0, sm: "16px" }}
         >
             <HStack
+                gap={3}
                 alignItems={"center"}
-                py={2}
-                px={4}
-                justifyContent={{ base: "center", sm: !signalStrengthProjectData.enabled ? "space-between" : "center" }}
+                justifyContent={"center"}
+                fontWeight={"bold"}
+                pt={2}
+                pb={3}
+                px={2}
+                mb={2}
+                w={"100%"}
                 border={"5px solid"}
                 borderColor={"pageBackground"}
                 borderRadius={"12px"}
-                columnGap={3}
-                rowGap={2}
-                w="100%"
-                flexWrap={"wrap"}
             >
-                <HStack gap={3} alignItems={"center"} justifyContent={"center"} w={{ base: "100%", sm: "auto" }}>
-                    {icon && <FontAwesomeIcon icon={icon} size="lg" />}
-                    <Text
-                        as="a"
-                        id={signalStrengthProjectData.name}
-                        fontSize="xl"
-                        color={!signalStrengthProjectData.enabled ? "textColorMuted" : undefined}
-                    >
-                        {signalStrengthProjectData.displayName}
-                    </Text>
-                </HStack>
-                {!countdown &&
-                    !userDataRefreshTriggered &&
-                    signalStrengthProjectData.status === "active" &&
-                    signalStrengthProjectData.enabled && (
-                        <HStack>
-                            <HStack
-                                gap={"2px"}
-                                bg={
-                                    completedBarWidth !== "0%"
-                                        ? "lozenge.background.active"
-                                        : "lozenge.background.disabled"
-                                }
-                                fontSize="xl"
-                                px={2}
-                                borderRadius="8px"
-                                color={completedBarWidth !== "0%" ? "lozenge.text.active" : "lozenge.text.disabled"}
-                                cursor={"default"}
-                            >
-                                {completedBarWidth !== "0%" && <Text>+</Text>}
-                                <Text>{displayValue}</Text>
-                            </HStack>
-                            <Lozenges types={["calcInfo"]} />
-                        </HStack>
-                    )}
-                {signalStrengthProjectData.status === "dev" && (
-                    <HStack w={{ base: "100%", sm: "auto" }} justifyContent={"space-between"}>
-                        <SignalStrengthLozenge>
-                            <Text>🏗️</Text>
-                            <Text>Coming soon</Text>
-                            <Text>🏗️</Text>
-                        </SignalStrengthLozenge>
-                    </HStack>
-                )}
-                {signalStrengthProjectData.status === "active" && !signalStrengthProjectData.enabled && (
-                    <HStack w={{ base: "100%", sm: "auto" }} justifyContent={"space-between"}>
-                        <SignalStrengthLozenge>
-                            <Text>Not enabled by {projectData.displayName}</Text>
-                        </SignalStrengthLozenge>
-                    </HStack>
-                )}
+                {icon && <FontAwesomeIcon icon={icon} size="lg" />}
+                <Text
+                    as="a"
+                    id={signalStrengthProjectData.name}
+                    fontSize="xl"
+                    color={!signalStrengthProjectData.enabled ? "textColorMuted" : undefined}
+                >
+                    {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")}
+                </Text>
             </HStack>
-            {userContentAvailable &&
-                signalStrengthProjectData.status !== "dev" &&
-                signalStrengthProjectData.enabled && (
-                    <HStack
-                        w="100%"
-                        justifyContent={"space-between"}
-                        alignItems={"center"}
-                        fontSize={"lg"}
-                        color={"textColorMuted"}
-                        px={1}
-                    >
-                        <Text fontFamily={"monospace"}>0</Text>
-                        <HStack
-                            w="100%"
-                            h="30px"
-                            bg="lozenge.background.disabled"
-                            borderRadius="md"
-                            overflow="hidden"
-                            className={userDataRefreshTriggered || countdown ? "rainbow-animation" : ""}
-                            border="3px solid"
-                            borderColor={completedBarWidth === "100%" ? "lozenge.border.active" : "pageBackground"}
+            <VStack alignItems={"center"} pt={2} px={2} gap={0}>
+                <HStack justifyContent={"center"} w="100%" flexWrap={"wrap"}>
+                    <HStack gap={3} alignItems={"center"} justifyContent={"center"}>
+                        <Text
+                            as="a"
+                            id={signalStrengthProjectData.name}
+                            fontSize="lg"
+                            color={!signalStrengthProjectData.enabled ? "textColorMuted" : undefined}
+                            fontWeight={"bold"}
                         >
-                            {userDataRefreshTriggered ? (
-                                <HStack w={"100%"} justifyContent={"center"}>
-                                    <Text fontWeight={"bold"} color="white" textAlign={"center"} fontSize={"md"}>
-                                        Loading score...
-                                    </Text>
-                                    <Spinner size="sm" />
-                                </HStack>
-                            ) : countdown !== null ? (
-                                <Text fontWeight={"bold"} color="white" w={"100%"} textAlign={"center"} fontSize={"md"}>
-                                    {countdownText}{" "}
-                                    {countdown > 0 && (
-                                        <>
-                                            <Text as="span" fontFamily={"monospace"}>
-                                                {countdown}
-                                            </Text>
-                                            <Text as="span" fontFamily={"monospace"}>
-                                                s
-                                            </Text>
-                                        </>
-                                    )}
-                                </Text>
-                            ) : (
-                                <Box
-                                    w={completedBarWidth}
-                                    h="100%"
-                                    bg="lozenge.background.active"
-                                    borderRight={
-                                        completedBarWidth === "100%" || completedBarWidth === "0%"
-                                            ? "none"
-                                            : "3px solid"
-                                    }
-                                    borderColor={"lozenge.border.active"}
-                                />
-                            )}
-                        </HStack>
-                        <Text fontFamily={"monospace"}>{signalStrengthProjectData.maxValue}</Text>
-                    </HStack>
-                )}
-            {!userDataRefreshTriggered && countdown === -2 && (
-                <VStack w="100%" gap={2} px={2} textAlign={"center"} color="textColorMuted">
-                    {loggedInUser?.username === username && (
-                        <Text>
-                            {`It's taking longer than expected to calculate your score, probably because you have a lot of
-                        activity!`}
+                            Signal Score
                         </Text>
+                    </HStack>
+                    {!countdown &&
+                        !userDataRefreshTriggered &&
+                        signalStrengthProjectData.status === "active" &&
+                        signalStrengthProjectData.enabled && (
+                            <HStack>
+                                <HStack
+                                    gap={"2px"}
+                                    bg={
+                                        completedBarWidth !== "0%"
+                                            ? "lozenge.background.active"
+                                            : "lozenge.background.disabled"
+                                    }
+                                    fontSize="xl"
+                                    px={2}
+                                    borderRadius="8px"
+                                    color={completedBarWidth !== "0%" ? "lozenge.text.active" : "lozenge.text.disabled"}
+                                    cursor={"default"}
+                                >
+                                    {completedBarWidth !== "0%" && <Text>+</Text>}
+                                    <Text>{displayValue}</Text>
+                                </HStack>
+                            </HStack>
+                        )}
+                    {signalStrengthProjectData.status === "dev" && (
+                        <HStack w={{ base: "100%", sm: "auto" }} justifyContent={"space-between"}>
+                            <SignalStrengthLozenge>
+                                <Text>🏗️</Text>
+                                <Text>Coming soon</Text>
+                                <Text>🏗️</Text>
+                            </SignalStrengthLozenge>
+                        </HStack>
                     )}
-                    <Text>
-                        Check back later to see {loggedInUser?.username === username ? "your" : "the"} calculated Signal
-                        Score.
+                    {signalStrengthProjectData.status === "active" && !signalStrengthProjectData.enabled && (
+                        <HStack w={{ base: "100%", sm: "auto" }} justifyContent={"space-between"}>
+                            <SignalStrengthLozenge>
+                                <Text>Not enabled by {projectData.displayName}</Text>
+                            </SignalStrengthLozenge>
+                        </HStack>
+                    )}
+                </HStack>
+                <Box h={2} />
+                {userContentAvailable &&
+                    signalStrengthProjectData.status !== "dev" &&
+                    signalStrengthProjectData.enabled && (
+                        <VStack w="100%" gap={0} alignItems={"start"}>
+                            <HStack
+                                w="100%"
+                                justifyContent={"space-between"}
+                                alignItems={"center"}
+                                fontSize={"lg"}
+                                color={"textColorMuted"}
+                                px={1}
+                            >
+                                <Text fontFamily={"monospace"}>0</Text>
+                                <HStack
+                                    w="100%"
+                                    h="30px"
+                                    bg="lozenge.background.disabled"
+                                    borderRadius="md"
+                                    overflow="hidden"
+                                    className={userDataRefreshTriggered || countdown ? "rainbow-animation" : ""}
+                                    border="3px solid"
+                                    borderColor={
+                                        completedBarWidth === "100%" ? "lozenge.border.active" : "pageBackground"
+                                    }
+                                >
+                                    {userDataRefreshTriggered ? (
+                                        <HStack w={"100%"} justifyContent={"center"}>
+                                            <Text
+                                                fontWeight={"bold"}
+                                                color="white"
+                                                textAlign={"center"}
+                                                fontSize={"md"}
+                                            >
+                                                Loading score...
+                                            </Text>
+                                            <Spinner size="sm" />
+                                        </HStack>
+                                    ) : countdown !== null ? (
+                                        <Text
+                                            fontWeight={"bold"}
+                                            color="white"
+                                            w={"100%"}
+                                            textAlign={"center"}
+                                            fontSize={"md"}
+                                        >
+                                            {countdownText}{" "}
+                                            {countdown > 0 && (
+                                                <>
+                                                    <Text as="span" fontFamily={"monospace"}>
+                                                        {countdown}
+                                                    </Text>
+                                                    <Text as="span" fontFamily={"monospace"}>
+                                                        s
+                                                    </Text>
+                                                </>
+                                            )}
+                                        </Text>
+                                    ) : (
+                                        <Box
+                                            w={completedBarWidth}
+                                            h="100%"
+                                            bg="lozenge.background.active"
+                                            borderRight={
+                                                completedBarWidth === "100%" || completedBarWidth === "0%"
+                                                    ? "none"
+                                                    : "3px solid"
+                                            }
+                                            borderColor={"lozenge.border.active"}
+                                        />
+                                    )}
+                                </HStack>
+                                <Text fontFamily={"monospace"}>{signalStrengthProjectData.maxValue}</Text>
+                            </HStack>
+                        </VStack>
+                    )}
+                <Box h={2} />
+                <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
+                    {loggedInUser?.username === username ? "Your" : "This"} Signal Score
+                    {loggedInUser?.username !== username && ` for ${userDisplayName}`} is calculated using{" "}
+                    {loggedInUser?.username === username ? "your" : "their"} activity and engagement on the{" "}
+                    {projectData.displayName} {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")}.
+                    <ShowMoreDetailsButton
+                        isOpen={isSignalScoreMoreDetailsOpen}
+                        setIsOpen={setIsSignalScoreMoreDetailsOpen}
+                    />
+                </Text>
+                {isSignalScoreMoreDetailsOpen && (
+                    <MoreDetailsContainer>
+                        <MoreDetailsBullet>
+                            Scores are updated daily, analyzing {loggedInUser?.username === username ? "your" : "the"}{" "}
+                            activity from yesterday and the past {signalStrengthProjectData.previousDays} days.
+                        </MoreDetailsBullet>
+                        <MoreDetailsBullet>
+                            Only {loggedInUser?.username === username ? "your" : "the"} highest signal activity
+                            contributes to {loggedInUser?.username === username ? "your" : "the"} score. This means{" "}
+                            {loggedInUser?.username === username ? "your" : "the"} score may not change even if{" "}
+                            {loggedInUser?.username === username
+                                ? "you have posted recently"
+                                : "there has been recent activity"}
+                            .
+                        </MoreDetailsBullet>
+                        <MoreDetailsBullet>
+                            There is a decay function, which means older activity contributes less to{" "}
+                            {loggedInUser?.username === username ? "your" : "the"} score than newer posts. So,{" "}
+                            {loggedInUser?.username === username && "if you want"} to maintain a High Signal,{" "}
+                            {loggedInUser?.username === username && "you need to"} keep up{" "}
+                            {loggedInUser?.username === username ? "your" : "the"} level of engagement!
+                        </MoreDetailsBullet>
+                        <MoreDetailsBullet icon={"⏳"}>
+                            If {loggedInUser?.username === username ? "your" : "the"} score has not yet been updated,
+                            come back tomorrow to see {loggedInUser?.username === username ? "your" : "the"} new daily
+                            score.
+                        </MoreDetailsBullet>
+                    </MoreDetailsContainer>
+                )}
+            </VStack>
+            {dataAvailable && <Divider borderWidth={3} my={6} />}
+            {dataAvailable && (
+                <VStack w="100%" gap={0} alignItems={"center"}>
+                    <Text fontSize="lg" fontWeight={"bold"} cursor={"default"} mb={2}>
+                        Activity Summary
                     </Text>
-                </VStack>
-            )}
-            {signalStrengthProjectData.enabled && userContentAvailable && !countdown && !userDataRefreshTriggered && (
-                <VStack w="100%" gap={0} alignItems={"start"}>
+                    <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
+                        Highlights of {loggedInUser?.username === username && "your"} engagement{" "}
+                        {loggedInUser?.username !== username && ` for ${userDisplayName}`} with the{" "}
+                        {projectData.displayName} community.
+                        <ShowMoreDetailsButton
+                            isOpen={isSignalSummaryMoreDetailsOpen}
+                            setIsOpen={setIsSignalSummaryMoreDetailsOpen}
+                        />
+                    </Text>
+                    {isSignalSummaryMoreDetailsOpen && (
+                        <MoreDetailsContainer>
+                            <MoreDetailsBullet>
+                                {loggedInUser?.username === username ? "Your" : "The"} activity summary takes into
+                                account {loggedInUser?.username === username && "your"} activity and engagement with the{" "}
+                                {projectData.displayName} community over the past{" "}
+                                {signalStrengthProjectData.previousDays} days.
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet>
+                                It&apos;s a helpful way to understand {loggedInUser?.username === username && "your"}{" "}
+                                style
+                                {loggedInUser?.username !== username && "s"} of interaction with the{" "}
+                                {projectData.displayName} community and learn how{" "}
+                                {loggedInUser?.username === username
+                                    ? "you could improve your score"
+                                    : "scores could be improved"}
+                                .
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet>
+                                {loggedInUser?.username === username ? "Your" : "The"} summary is updated daily along
+                                with {loggedInUser?.username === username ? "your" : "the"} score, so if{" "}
+                                {loggedInUser?.username === username
+                                    ? "you don't see any changes yet"
+                                    : "there are no changes yet"}
+                                , come back tomorrow to see {loggedInUser?.username === username ? "your" : "the"}{" "}
+                                updated summary.
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet icon={"🔒"}>
+                                {loggedInUser?.username === username ? "Your" : "This"} full summary is private and can
+                                only be seen by {loggedInUser?.username === username ? "you" : `${userDisplayName}`} and
+                                the {projectData.displayName} team. Only the heading &quot;
+                                {userData.summary}&quot; is public.
+                            </MoreDetailsBullet>
+                        </MoreDetailsContainer>
+                    )}
                     <HStack
                         alignItems={"center"}
                         justifyContent={"start"}
                         cursor={expandableContent ? "pointer" : "default"}
+                        mt={3}
                         py={2}
                         pl={3}
                         pr={4}
@@ -354,53 +546,7 @@ export default function SignalStrength({
                                 </Text>
                             ) : (
                                 <HStack position={"relative"} w={"100%"} justifyContent={"center"}>
-                                    <HStack
-                                        position={"absolute"}
-                                        bg={"pageBackground"}
-                                        justifyContent={"center"}
-                                        zIndex={1}
-                                        px={5}
-                                        py={3}
-                                        borderRadius={"16px"}
-                                        border={"3px solid"}
-                                        borderColor={"contentBorder"}
-                                        boxShadow={"lg"}
-                                        flexWrap={"wrap"}
-                                    >
-                                        {authenticated ? (
-                                            <VStack>
-                                                <Text>You can only view your own insights</Text>
-                                                <Button
-                                                    secondaryButton
-                                                    px={3}
-                                                    py={1}
-                                                    borderRadius={"full"}
-                                                    onClick={() =>
-                                                        router.push(
-                                                            `/p/${projectData.urlSlug}/${loggedInUser?.username}`,
-                                                        )
-                                                    }
-                                                >
-                                                    <Text fontWeight={"bold"}>View your own insights</Text>
-                                                </Button>
-                                            </VStack>
-                                        ) : (
-                                            <>
-                                                <Text>View your own insights by</Text>
-                                                <Button
-                                                    primaryButton
-                                                    px={3}
-                                                    py={1}
-                                                    borderRadius={"full"}
-                                                    onClick={() => {
-                                                        login()
-                                                    }}
-                                                >
-                                                    <Text fontWeight={"bold"}>Logging in or creating an account</Text>
-                                                </Button>
-                                            </>
-                                        )}
-                                    </HStack>
+                                    <LoginToSeeInsights projectData={projectData} />
                                     <Text
                                         filter={"blur(5px)"}
                                         cursor={"default"}
@@ -449,30 +595,110 @@ export default function SignalStrength({
                     )}
                 </VStack>
             )}
+            {!userDataRefreshTriggered && countdown === -2 && (
+                <VStack w="100%" gap={2} px={2} pb={3} textAlign={"center"} color="textColorMuted">
+                    {loggedInUser?.username === username && (
+                        <Text>
+                            {`It's taking longer than expected to calculate your score, probably because you have a lot of
+                        activity!`}
+                        </Text>
+                    )}
+                    <Text>
+                        Check back later to see {loggedInUser?.username === username ? "your" : "the"} updated score.
+                    </Text>
+                </VStack>
+            )}
+            {dataAvailable && <Divider borderWidth={3} my={6} />}
+            {dataAvailable && dailyData && (
+                <VStack w="100%" gap={0} alignItems={"start"} mb={2}>
+                    <Text w="100%" fontSize="lg" fontWeight={"bold"} textAlign={"center"} mb={2}>
+                        Daily Activity Tracker
+                    </Text>
+                    <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
+                        This chart shows {loggedInUser?.username === username ? "your" : "the"} daily engagement scores
+                        for each day {loggedInUser?.username === username ? "you" : `${userDisplayName}`}{" "}
+                        {loggedInUser?.username === username ? "have" : "has"} been active in the{" "}
+                        {projectData.displayName}{" "}
+                        {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
+                        {signalStrengthProjectData.previousDays} days.{" "}
+                        <ShowMoreDetailsButton
+                            isOpen={isSignalDailyActivityMoreDetailsOpen}
+                            setIsOpen={setIsSignalDailyActivityMoreDetailsOpen}
+                        />
+                    </Text>
+                    {isSignalDailyActivityMoreDetailsOpen && (
+                        <MoreDetailsContainer>
+                            <MoreDetailsBullet>
+                                Every day {loggedInUser?.username === username ? "you" : `${userDisplayName}`} engaged
+                                with the {projectData.displayName} community on their{" "}
+                                {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")},{" "}
+                                {loggedInUser?.username === username ? "you will see" : "there will be"} a calculated
+                                daily engagement score. The most recent day shown on the chart is yesterday.
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet>
+                                These daily engagement scores are used as part of the algorithm to calculate{" "}
+                                {loggedInUser?.username === username ? "your" : "the"} overall Signal Score.
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet>
+                                Only available data can be analyzed. If posts were made in a private thread or channel,
+                                they will not be included in the daily engagement scores and will not count toward{" "}
+                                {loggedInUser?.username === username ? "your" : "the"} overall Signal Score.
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet icon={"🏗️"}>
+                                Very short posts may not be visible on the chart, but are planned to be supported soon.
+                            </MoreDetailsBullet>
+                            <MoreDetailsBullet icon={"🔒"}>
+                                This chart is private and can only be seen by{" "}
+                                {loggedInUser?.username === username ? "you" : `${userDisplayName}`} and the{" "}
+                                {projectData.displayName} team.
+                            </MoreDetailsBullet>
+                        </MoreDetailsContainer>
+                    )}
+                    <Box h={2} />
+                    {userContentAvailable ? (
+                        <HistoricalDataChart
+                            data={dailyData}
+                            signalStrengthProjectData={signalStrengthProjectData}
+                            projectData={projectData}
+                        />
+                    ) : (
+                        <HistoricalDataChart
+                            data={[]}
+                            signalStrengthProjectData={signalStrengthProjectData}
+                            projectData={projectData}
+                        />
+                    )}
+                </VStack>
+            )}
             {signalStrengthProjectData.status === "active" &&
                 signalStrengthProjectData.enabled &&
                 !userContentAvailable &&
                 loggedInUser?.username === username && (
-                    <VStack w={"100%"} gap={2} alignItems={"center"}>
-                        <Text textAlign={"center"} fontSize={"sm"} color={"textColorMuted"}>
-                            Confirm ownership of this account so it can be used to calculate your score.
-                        </Text>
-                        <HStack w={"100%"} justifyContent={"center"}>
-                            <Link href={`/settings/u/${username}?tab=accounts`}>
-                                <Button
-                                    primaryButton
-                                    justifyContent={"start"}
-                                    fontWeight={"bold"}
-                                    fontSize={"sm"}
-                                    borderRadius={"full"}
-                                    px={3}
-                                    py={1}
-                                >
-                                    Confirm ownership
-                                </Button>
-                            </Link>
-                        </HStack>
-                    </VStack>
+                    <>
+                        <Divider borderWidth={3} my={6} />
+                        <VStack w={"100%"} gap={2} alignItems={"center"} px={3} pb={3}>
+                            <Text textAlign={"center"} fontSize={"sm"} color={"textColorMuted"}>
+                                Confirm ownership of your {projectData.displayName}{" "}
+                                {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} account so
+                                your activity can be used to calculate your score.
+                            </Text>
+                            <HStack w={"100%"} justifyContent={"center"}>
+                                <Link href={`/settings/u/${username}?tab=accounts`}>
+                                    <Button
+                                        primaryButton
+                                        justifyContent={"start"}
+                                        fontWeight={"bold"}
+                                        fontSize={"sm"}
+                                        borderRadius={"full"}
+                                        px={3}
+                                        py={1}
+                                    >
+                                        Confirm ownership
+                                    </Button>
+                                </Link>
+                            </HStack>
+                        </VStack>
+                    </>
                 )}
         </VStack>
     )

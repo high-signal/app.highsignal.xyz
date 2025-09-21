@@ -14,6 +14,7 @@ interface UserData {
     signalStrengths?: {
         signalStrengthName: string
         data: SignalStrengthUserData[]
+        dailyData?: SignalStrengthUserData[]
     }[]
     forumUsers?: ForumUser[]
     isSuperAdmin?: boolean
@@ -104,6 +105,7 @@ interface SignalStrengthUserData {
     testRequestingUser?: number
     scoreCalculationPeriodPreviousDays?: number // Usually previousDays but made more verbose for the public API
     timestamp?: number
+    currentDay?: boolean
 }
 
 interface ProjectData {
@@ -181,12 +183,4 @@ interface BannerProps {
     internal_name?: string
 }
 
-type LozengeType =
-    | "public"
-    | "private"
-    | "shared_address"
-    | "shared_account"
-    | "comingSoon"
-    | "notifications"
-    | "score"
-    | "calcInfo"
+type LozengeType = "public" | "private" | "shared_address" | "shared_account" | "comingSoon" | "notifications" | "score"

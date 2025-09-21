@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
             .select("id, available_auth_types")
 
         if (signalStrengthsError) {
-            return NextResponse.json({ error: "Error fetching signal strengths" }, { status: 500 })
+            return NextResponse.json({ error: "Error fetching signals" }, { status: 500 })
         }
 
         // For each signal strength, create a new project_signal_strength entry
