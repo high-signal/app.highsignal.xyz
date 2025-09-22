@@ -13,6 +13,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 
 import { useUser } from "../../../contexts/UserContext"
+import { useParams } from "next/navigation"
 
 export default function HistoricalDataChart({
     data,
@@ -24,6 +25,9 @@ export default function HistoricalDataChart({
     projectData: ProjectData
 }) {
     const { loggedInUser, loggedInUserLoading } = useUser()
+
+    const params = useParams()
+    const targetUsername = params.username as string
 
     const [dummyData, setDummyData] = useState<SignalStrengthUserData[]>([])
     const hasGeneratedDummyData = useRef(false)
@@ -364,9 +368,13 @@ export default function HistoricalDataChart({
                                 alignItems="center"
                                 pointerEvents="auto"
                             >
-                                {dummyData.length > 0 || loggedInUserLoading || !loggedInUser ? (
-                                    <LoginToSeeInsights projectData={projectData} />
-                                ) : (
+                                {!loggedInUserLoading &&
+                                loggedInUser &&
+                                (loggedInUser.username === targetUsername ||
+                                    loggedInUser.projectAdmins?.some(
+                                        (adminProject) => adminProject.urlSlug === projectData.urlSlug,
+                                    ) ||
+                                    loggedInUser.isSuperAdmin) ? (
                                     <HStack>
                                         <Box color={"textColorMuted"}>
                                             <FontAwesomeIcon icon={faInfoCircle} size="lg" />
@@ -375,6 +383,8 @@ export default function HistoricalDataChart({
                                             No activity in the past {signalStrengthProjectData.previousDays} days
                                         </Text>
                                     </HStack>
+                                ) : (
+                                    <LoginToSeeInsights projectData={projectData} />
                                 )}
                             </Box>
                         )}
