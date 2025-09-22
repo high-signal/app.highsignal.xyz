@@ -12,6 +12,8 @@ import LoginToSeeInsights from "../../ui/LoginToSeeInsights"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 
+import { useUser } from "../../../contexts/UserContext"
+
 export default function HistoricalDataChart({
     data,
     signalStrengthProjectData,
@@ -21,6 +23,8 @@ export default function HistoricalDataChart({
     signalStrengthProjectData: SignalStrengthProjectData
     projectData: ProjectData
 }) {
+    const { loggedInUser, loggedInUserLoading } = useUser()
+
     const [dummyData, setDummyData] = useState<SignalStrengthUserData[]>([])
     const hasGeneratedDummyData = useRef(false)
 
@@ -360,7 +364,7 @@ export default function HistoricalDataChart({
                                 alignItems="center"
                                 pointerEvents="auto"
                             >
-                                {dummyData.length > 0 ? (
+                                {dummyData.length > 0 || (!loggedInUserLoading && !loggedInUser) ? (
                                     <LoginToSeeInsights projectData={projectData} />
                                 ) : (
                                     <HStack>
