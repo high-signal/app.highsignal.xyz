@@ -364,7 +364,7 @@ export default function HistoricalDataChart({
                                 alignItems="center"
                                 pointerEvents="auto"
                             >
-                                {dummyData.length > 0 || (!loggedInUserLoading && !loggedInUser) ? (
+                                {dummyData.length > 0 || loggedInUserLoading || !loggedInUser ? (
                                     <LoginToSeeInsights projectData={projectData} />
                                 ) : (
                                     <HStack>
