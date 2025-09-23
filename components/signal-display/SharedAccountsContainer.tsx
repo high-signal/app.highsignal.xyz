@@ -228,7 +228,7 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                             <Text>Loading accounts...</Text>
                         </HStack>
                     )}
-                    {!(isPrivyAccountsLoading || isUserAddressesLoading) && publicAndSharedUserAccounts.length > 0 && (
+                    {!(isPrivyAccountsLoading || isUserAddressesLoading) && totalVisibleAccounts > 0 && (
                         <VStack w="100%" alignItems="start" px={3} gap={{ base: 6, md: 4 }}>
                             {targetUser &&
                                 targetUser.userAddresses
@@ -316,21 +316,20 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                             ))}
                         </VStack>
                     )}
-                    {!(isPrivyAccountsLoading || isUserAddressesLoading) &&
-                        publicAndSharedUserAccounts.length === 0 && (
-                            <VStack w="100%" color={"orange.500"} px={3} textAlign={"center"}>
-                                <HStack w="100%" justifyContent={"center"} alignItems={"center"} fontWeight={"bold"}>
-                                    <FontAwesomeIcon icon={faExclamationTriangle} />
-                                    <Text pt={"2px"}>No accounts visible to {projectData.displayName}</Text>
-                                    <FontAwesomeIcon icon={faExclamationTriangle} />
-                                </HStack>
-                                <Text>
-                                    You have not shared any accounts with {projectData.displayName} and do not have any
-                                    accounts set to public. This means {projectData.displayName} cannot associate your
-                                    High Signal score with you.
-                                </Text>
-                            </VStack>
-                        )}
+                    {!(isPrivyAccountsLoading || isUserAddressesLoading) && totalVisibleAccounts === 0 && (
+                        <VStack w="100%" color={"orange.500"} px={3} textAlign={"center"}>
+                            <HStack w="100%" justifyContent={"center"} alignItems={"center"} fontWeight={"bold"}>
+                                <FontAwesomeIcon icon={faExclamationTriangle} />
+                                <Text pt={"2px"}>No accounts visible to {projectData.displayName}</Text>
+                                <FontAwesomeIcon icon={faExclamationTriangle} />
+                            </HStack>
+                            <Text>
+                                You have not shared any accounts with {projectData.displayName} and do not have any
+                                accounts set to public. This means {projectData.displayName} cannot associate your High
+                                Signal score with you.
+                            </Text>
+                        </VStack>
+                    )}
                 </VStack>
             )}
         </VStack>
