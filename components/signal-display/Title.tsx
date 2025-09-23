@@ -56,7 +56,7 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
                     </Button>
                 </Link>
             </HStack>
-            <VStack maxW="600px" justifyContent="center">
+            <VStack maxW="600px" justifyContent="center" gap={{ base: 5, xl: 0 }}>
                 <HStack w="fit-content" justifyContent="center" gap={3} mt={{ base: 5, xl: 0 }}>
                     <Image
                         src={projectData.projectLogoUrl}

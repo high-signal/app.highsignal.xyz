@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { VStack, Text, HStack, Box, Button, Spinner, Flex } from "@chakra-ui/react"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
+import { faChevronRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 
 import Divider from "../ui/Divider"
 
@@ -159,8 +159,8 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                 <Box transform={isOpen ? "rotate(90deg)" : "rotate(0deg)"} transition="transform 0.2s">
                     <FontAwesomeIcon icon={faChevronRight} />
                 </Box>
-                <Text textAlign={"center"} px={{ base: 3, md: 0 }}>
-                    Your accounts {projectData.displayName} can see
+                <Text textAlign={"center"} px={{ base: 3, md: 1 }}>
+                    Accounts {projectData.displayName} can see for {loggedInUser?.displayName}
                 </Text>
                 <Box
                     bg={"contentBackground"}
@@ -189,18 +189,33 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                     borderBottomRadius={"16px"}
                     borderTopRadius={{ base: "0px", md: "16px" }}
                     mx={{ base: 0, md: 10 }}
-                    py={3}
+                    pt={4}
+                    pb={3}
                     mt={"-3px"}
                 >
-                    <Text fontSize="sm" color="textColorMuted" px={3}>
-                        Listed below are your accounts that {projectData.displayName} can see. {projectData.displayName}{" "}
-                        can use this information to associate your High Signal score with you.
+                    <HStack w="100%" justifyContent={"center"}>
+                        <HStack
+                            justifyContent={"center"}
+                            gap={2}
+                            px={3}
+                            bg={"contentBackground"}
+                            borderRadius="full"
+                            py={0}
+                            mx={3}
+                        >
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                            <Text>Only you can see this information</Text>
+                        </HStack>
+                    </HStack>
+                    <Text color="textColorMuted" px={3}>
+                        Listed below are all your accounts that {projectData.displayName} can see.{" "}
+                        {projectData.displayName} can use this information to associate your High Signal score with you.
                     </Text>
-                    <Text fontSize="sm" color="textColorMuted" px={3}>
+                    <Text color="textColorMuted" px={3}>
                         For example, if you share an Ethereum address with {projectData.displayName}, they can know your
                         High Signal score is for that address.
                     </Text>
-                    <Text fontSize="sm" color="textColorMuted" px={3}>
+                    <Text color="textColorMuted" px={3}>
                         If you have not shared any accounts with {projectData.displayName}, and do not have any public
                         accounts, then {projectData.displayName} cannot associate your score with you.
                     </Text>
