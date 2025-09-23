@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { VStack, Text, HStack, Box, Button, Spinner, Flex } from "@chakra-ui/react"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faChevronRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
+import { faChevronRight, faExclamationTriangle, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 
 import Divider from "../ui/Divider"
 
@@ -26,7 +26,6 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
     const params = useParams()
     const targetUsername = params.username as string
 
-    // TODO: Add more account types
     const accountTypeMapping = {
         email: "Email",
         discord_username: "Discord",
@@ -128,9 +127,6 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
             return count + (entry.isPublic || hasShared ? 1 : 0)
         }, 0)
 
-        // Add the number of userAddresses that are shared with the project
-        // TODO
-
         const totalAccounts = totalPrivyAccountsVisible + (totalUserAddressesVisible || 0)
 
         setTotalVisibleAccounts(totalAccounts)
@@ -150,8 +146,8 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                 borderBottomRadius={isOpen ? "0px" : "16px"}
                 justifyContent={"center"}
                 alignItems={"center"}
-                pl={2}
-                pr={1}
+                pl={3}
+                pr={2}
                 py={"4px"}
                 cursor="pointer"
                 zIndex={10}
@@ -162,15 +158,7 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                 <Text textAlign={"center"} px={{ base: 3, md: 1 }}>
                     Accounts {projectData.displayName} can see for {loggedInUser?.displayName}
                 </Text>
-                <Box
-                    bg={"contentBackground"}
-                    borderRadius="full"
-                    px={2}
-                    py={0}
-                    fontWeight={"bold"}
-                    fontFamily={"monospace"}
-                    fontSize={"16px"}
-                >
+                <Box bg={"contentBackground"} borderRadius="full" px={2} py={0} fontWeight={"bold"} fontSize={"16px"}>
                     {isPrivyAccountsLoading || isUserAddressesLoading ? (
                         <Spinner size="xs" mx={"-1px"} />
                     ) : (
@@ -197,25 +185,26 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                         <HStack
                             justifyContent={"center"}
                             gap={2}
-                            px={3}
+                            px={2}
                             bg={"contentBackground"}
                             borderRadius="full"
                             py={0}
                             mx={3}
+                            cursor="default"
                         >
                             <FontAwesomeIcon icon={faInfoCircle} />
                             <Text>Only you can see this information</Text>
                         </HStack>
                     </HStack>
-                    <Text color="textColorMuted" px={3}>
+                    <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
                         Listed below are all your accounts that {projectData.displayName} can see.{" "}
                         {projectData.displayName} can use this information to associate your High Signal score with you.
                     </Text>
-                    <Text color="textColorMuted" px={3}>
+                    <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
                         For example, if you share an Ethereum address with {projectData.displayName}, they can know your
                         High Signal score is for that address.
                     </Text>
-                    <Text color="textColorMuted" px={3}>
+                    <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
                         If you have not shared any accounts with {projectData.displayName}, and do not have any public
                         accounts, then {projectData.displayName} cannot associate your score with you.
                     </Text>
@@ -229,16 +218,17 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                                 router.push(`/settings/u/${loggedInUser?.username}?tab=accounts`)
                             }}
                         >
-                            Manage your accounts
+                            Manage your account sharing settings
                         </Button>
                     </HStack>
                     <Divider borderWidth={3} />
-                    {isPrivyAccountsLoading || isUserAddressesLoading ? (
+                    {(isPrivyAccountsLoading || isUserAddressesLoading) && (
                         <HStack w="100%" justifyContent={"center"}>
                             <Spinner />
                             <Text>Loading accounts...</Text>
                         </HStack>
-                    ) : (
+                    )}
+                    {!(isPrivyAccountsLoading || isUserAddressesLoading) && publicAndSharedUserAccounts.length > 0 && (
                         <VStack w="100%" alignItems="start" px={3} gap={{ base: 6, md: 4 }}>
                             {targetUser &&
                                 targetUser.userAddresses
@@ -324,6 +314,20 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                                     </Text>
                                 </Flex>
                             ))}
+                        </VStack>
+                    )}
+                    {publicAndSharedUserAccounts.length === 0 && (
+                        <VStack w="100%" color={"orange.500"} px={3} textAlign={"center"}>
+                            <HStack w="100%" justifyContent={"center"} alignItems={"center"} fontWeight={"bold"}>
+                                <FontAwesomeIcon icon={faExclamationTriangle} />
+                                <Text pt={"2px"}>No accounts visible to {projectData.displayName}</Text>
+                                <FontAwesomeIcon icon={faExclamationTriangle} />
+                            </HStack>
+                            <Text>
+                                You have not shared any accounts with {projectData.displayName} and do not have any
+                                accounts set to public. This means {projectData.displayName} cannot associate your High
+                                Signal score with you.
+                            </Text>
                         </VStack>
                     )}
                 </VStack>
