@@ -61,7 +61,7 @@ const typeConfig = {
         color: "white",
         icon: faChartLine,
         text: "Signal Score",
-        tip: "When confirmed, your activity on these accounts will contribute to your Signal Score.",
+        tip: "When confirmed, your activity on this account will contribute to your Signal Score.",
     },
 }
 

@@ -91,7 +91,7 @@ export default function ConnectedAccountsContainer({
                     <Divider />
                     <ForumAccountsContainer targetUser={targetUser} disabled={!isOwner} />
                     <Divider />
-                    <SettingsGroupContainer icon={faBullhorn} title="Social Accounts" lozengeTypes={["score"]}>
+                    <SettingsGroupContainer icon={faBullhorn} title="Social Accounts" lozengeTypes={[]}>
                         <LinkPrivyAccountsContainer
                             targetUser={targetUser}
                             accountConfig={{
@@ -102,7 +102,7 @@ export default function ConnectedAccountsContainer({
                                 privyLinkMethod: "discord_oauth",
                             }}
                             disabled={!isOwner}
-                            lozengeTypes={[checkSharingStatus("discord_username")]}
+                            lozengeTypes={["score", checkSharingStatus("discord_username")]}
                             sharingConfig={
                                 publicAndSharedUserAccounts.find((account) => account.type === "discord_username") || {
                                     type: "discord_username",
@@ -120,7 +120,7 @@ export default function ConnectedAccountsContainer({
                                 privyLinkMethod: "twitter_oauth",
                             }}
                             disabled={!isOwner}
-                            lozengeTypes={["comingSoon", checkSharingStatus("x_username")]}
+                            lozengeTypes={[checkSharingStatus("x_username")]}
                             sharingConfig={
                                 publicAndSharedUserAccounts.find((account) => account.type === "x_username") || {
                                     type: "x_username",
@@ -138,7 +138,7 @@ export default function ConnectedAccountsContainer({
                                 privyLinkMethod: "farcaster",
                             }}
                             disabled={!isOwner}
-                            lozengeTypes={["comingSoon", checkSharingStatus("farcaster_username")]}
+                            lozengeTypes={[checkSharingStatus("farcaster_username")]}
                             sharingConfig={
                                 publicAndSharedUserAccounts.find(
                                     (account) => account.type === "farcaster_username",

@@ -5,7 +5,7 @@ import SingleLineTextInput from "./SingleLineTextInput"
 import { ReactNode } from "react"
 import { Lozenges } from "./Lozenges"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faPencil } from "@fortawesome/free-solid-svg-icons"
+import { faGear } from "@fortawesome/free-solid-svg-icons"
 
 interface SettingsInputFieldProps {
     label: string
@@ -53,12 +53,12 @@ export default function SettingsInputField({
             bg={"pageBackground"}
             gap={1}
         >
-            <HStack justify="space-between" alignItems="start" px={2} pb={labelIcon ? 2 : 1} gap={2} flexWrap="wrap">
+            <HStack justify="space-between" alignItems="start" px={2} pb={labelIcon ? 2 : 1} gap={2}>
                 <HStack>
                     {labelIcon}
                     <Text fontWeight="bold">{label}</Text>
                 </HStack>
-                <HStack>
+                <HStack justify="end" wrap="wrap" ml="auto">
                     <Lozenges
                         types={lozengeTypes.filter(
                             (type) => !type.includes("private") && !type.includes("public") && !type.includes("shared"),
@@ -75,8 +75,8 @@ export default function SettingsInputField({
                             onClick={onEditButton}
                         >
                             <HStack gap={1}>
-                                <FontAwesomeIcon icon={faPencil} />
-                                <Text whiteSpace="wrap">Edit</Text>
+                                <FontAwesomeIcon icon={faGear} />
+                                <Text whiteSpace="wrap">Sharing settings</Text>
                             </HStack>
                         </Button>
                     )}
