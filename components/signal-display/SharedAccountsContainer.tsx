@@ -73,7 +73,7 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
             setIsPrivyAccountsLoading(false)
         }
         fetchPublicAndSharedUserAccounts()
-    }, [targetUsername, loggedInUser])
+    }, [targetUsername, loggedInUser, projectData.urlSlug])
 
     // Get user data for wallet accounts
     useEffect(() => {
@@ -114,7 +114,7 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
         }
 
         fetchUserData()
-    }, [getAccessToken, router])
+    }, [router, projectData.urlSlug, targetUsername])
 
     // Calculate the total number of accounts that the user has shared with the project
     useEffect(() => {
@@ -134,7 +134,7 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
         const totalAccounts = totalPrivyAccountsVisible + (totalUserAddressesVisible || 0)
 
         setTotalVisibleAccounts(totalAccounts)
-    }, [publicAndSharedUserAccounts, targetUser])
+    }, [publicAndSharedUserAccounts, targetUser, projectData.urlSlug])
 
     return (
         <VStack gap={0} w="100%" maxW="600px" alignItems={"center"} bg={"pageBackground"}>
