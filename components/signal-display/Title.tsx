@@ -1,11 +1,20 @@
 "use client"
 
-import { HStack, Text, Image, Button } from "@chakra-ui/react"
+import { VStack, HStack, Text, Image, Button } from "@chakra-ui/react"
 import Link from "next/link"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"
+import SharedAccountsContainer from "./SharedAccountsContainer"
+
+import { useParams } from "next/navigation"
+import { useUser } from "../../contexts/UserContext"
 
 export default function Title({ projectData }: { projectData: ProjectData }) {
+    const { loggedInUser } = useUser()
+    const params = useParams()
+    const targetUsername = params.username as string
+    const isOwner = loggedInUser?.username === targetUsername
+
     return (
         <HStack
             position="relative"
@@ -47,7 +56,7 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
                     </Button>
                 </Link>
             </HStack>
-            <HStack maxW="600px" justifyContent="center">
+            <VStack maxW="600px" justifyContent="center">
                 <HStack w="fit-content" justifyContent="center" gap={3} mt={{ base: 5, xl: 0 }}>
                     <Image
                         src={projectData.projectLogoUrl}
@@ -69,7 +78,8 @@ export default function Title({ projectData }: { projectData: ProjectData }) {
                         {projectData.displayName}
                     </Text>
                 </HStack>
-            </HStack>
+                {isOwner && <SharedAccountsContainer projectData={projectData} />}
+            </VStack>
         </HStack>
     )
 }
