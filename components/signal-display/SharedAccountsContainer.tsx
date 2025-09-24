@@ -145,7 +145,7 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                 borderTopRadius={"16px"}
                 borderBottomRadius={isOpen ? "0px" : "16px"}
                 justifyContent={"center"}
-                alignItems={"center"}
+                alignItems={"start"}
                 pl={3}
                 pr={2}
                 py={"4px"}
@@ -156,7 +156,7 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                     <FontAwesomeIcon icon={faChevronRight} />
                 </Box>
                 <Text textAlign={"center"} px={{ base: 3, md: 1 }}>
-                    Accounts {projectData.displayName} can see for {loggedInUser?.displayName}
+                    Account details {projectData.displayName} can see for {loggedInUser?.displayName}
                 </Text>
                 <Box bg={"contentBackground"} borderRadius="full" px={2} py={0} fontWeight={"bold"} fontSize={"16px"}>
                     {isPrivyAccountsLoading || isUserAddressesLoading ? (
@@ -197,16 +197,24 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                         </HStack>
                     </HStack>
                     <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
-                        Listed below are all your accounts that {projectData.displayName} can see.{" "}
+                        Listed below are all of your account details that {projectData.displayName} can see.
+                    </Text>
+                    <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
+                        While your Signal Score values are public, the usernames and addresses of the accounts behind
+                        them are private by default to protect your privacy.
+                    </Text>
+                    <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
+                        For example, everyone can see you Signal Score for Discord (if you have connected your Discord
+                        account), but they cannot see your Discord username unless you choose to share it.
+                    </Text>
+                    <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
                         {projectData.displayName} can use this information to associate your High Signal score with you.
+                        For example, if you share an Ethereum address with {projectData.displayName}, they will know
+                        that your High Signal Score is linked to that address.
                     </Text>
                     <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
-                        For example, if you share an Ethereum address with {projectData.displayName}, they can know your
-                        High Signal score is for that address.
-                    </Text>
-                    <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
-                        If you have not shared any accounts with {projectData.displayName}, and do not have any public
-                        accounts, then {projectData.displayName} cannot associate your score with you.
+                        If you have not shared any account details with {projectData.displayName} and do not have any
+                        public accounts, then {projectData.displayName} cannot associate your score with you.
                     </Text>
                     <HStack w="100%" justifyContent={"center"} px={3}>
                         <Button
@@ -217,8 +225,10 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                             onClick={() => {
                                 router.push(`/settings/u/${loggedInUser?.username}?tab=accounts`)
                             }}
+                            whiteSpace="normal"
+                            textAlign="center"
                         >
-                            Manage your account sharing settings
+                            <Text whiteSpace="normal">Manage your account sharing settings</Text>
                         </Button>
                     </HStack>
                     <Divider borderWidth={3} />
@@ -269,7 +279,13 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                                                             {`${userAddressConfig.address.slice(0, 6)}...${userAddressConfig.address.slice(-4)}`}
                                                         </Text>
                                                     </HStack>
-                                                    <Text bg={"contentBackground"} borderRadius="full" px={2} py={0}>
+                                                    <Text
+                                                        bg={"contentBackground"}
+                                                        borderRadius="full"
+                                                        px={2}
+                                                        py={0}
+                                                        w={"fit-content"}
+                                                    >
                                                         {userAddressConfig.isPublic
                                                             ? "Public"
                                                             : "Shared  with " + projectData.displayName}
@@ -291,10 +307,10 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                                         <Text>✅</Text>
                                         <Text fontWeight={"bold"}>
                                             {accountTypeMapping[account.type as keyof typeof accountTypeMapping]}{" "}
-                                            account
+                                            {account.type === "email" ? "address" : "username"}
                                         </Text>
                                     </HStack>
-                                    <Text bg={"contentBackground"} borderRadius="full" px={2} py={0}>
+                                    <Text bg={"contentBackground"} borderRadius="full" px={2} py={0} w={"fit-content"}>
                                         {account.isPublic ? "Public" : "Shared  with " + projectData.displayName}
                                     </Text>
                                 </Flex>
