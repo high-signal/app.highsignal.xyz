@@ -325,9 +325,9 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                                 <FontAwesomeIcon icon={faExclamationTriangle} />
                             </HStack>
                             <Text>
-                                You have not shared any accounts with {projectData.displayName} and do not have any
-                                accounts set to public. This means {projectData.displayName} cannot associate your High
-                                Signal score with you.
+                                You have not shared any account details with {projectData.displayName} and do not have
+                                any accounts set to public. This means {projectData.displayName} cannot associate your
+                                High Signal score with you.
                             </Text>
                         </VStack>
                     )}
