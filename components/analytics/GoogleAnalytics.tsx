@@ -20,6 +20,7 @@ const GoogleAnalytics = () => {
                         function gtag(){dataLayer.push(arguments);}
                         gtag('js', new Date());
                         gtag('config', '${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID}', { page_path: window.location.pathname });
+                        ${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID_2 ? `gtag('config', '${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID_2}', { page_path: window.location.pathname });` : ""}
                     `,
                 }}
             />
