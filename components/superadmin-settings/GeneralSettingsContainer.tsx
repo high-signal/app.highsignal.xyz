@@ -13,6 +13,7 @@ import { ASSETS } from "../../config/constants"
 
 interface StatsData {
     totalUsers: number
+    activeUsers: number
     missingDays: number
     aiRawScoreErrors: number
     lastCheckedNotNull: number
@@ -84,6 +85,7 @@ export default function GeneralSettingsContainer() {
                     ) : (
                         <VStack alignItems="start" w={"100%"} color={"textColorMuted"} gap={0}>
                             <StatsRow label="Total Users" value={stats?.totalUsers ?? 0} />
+                            <StatsRow label="User Project Scores" value={stats?.activeUsers ?? 0} />
                             <StatsRow label="Total Projects" value={projects?.length ?? 0} />
                             <Text>--------------------------</Text>
                             <StatsRow label="Missing Days" value={stats?.missingDays ?? 0} shouldBeZero />

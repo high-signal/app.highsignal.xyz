@@ -16,6 +16,18 @@ export async function GET() {
         return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
     }
 
+    // Get total number of active users
+    const { count: activeUsers, error: activeUsersError } = await supabase
+        .from("user_project_scores")
+        .select("*", { count: "exact", head: true })
+        .gt("total_score", 0)
+
+    if (activeUsersError) {
+        const errorMessage = "Error fetching active users: " + (activeUsersError.message || "Unknown error")
+        console.error(errorMessage)
+        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+    }
+
     // Get missing days
     const { count: missingDays, error: missingDaysError } = await supabase
         .from("user_signal_strengths_missing_ranges")
@@ -72,6 +84,7 @@ export async function GET() {
         statusCode: 200,
         data: {
             totalUsers,
+            activeUsers,
             missingDays,
             aiRawScoreErrors,
             lastCheckedNotNull,
