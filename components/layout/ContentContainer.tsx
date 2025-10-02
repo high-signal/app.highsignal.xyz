@@ -34,7 +34,7 @@ export default function ContentContainer({ children }: ContentContainerProps) {
                         justifyContent={"center"}
                         gap={5}
                         w={"100%"}
-                        maxW={{ base: "100%", sm: "95dvw" }}
+                        maxW={{ base: "100dvw", sm: "95dvw" }}
                         pt={{ base: 0, sm: 5 }}
                         zIndex={1}
                     >

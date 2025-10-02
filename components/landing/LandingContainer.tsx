@@ -1,10 +1,11 @@
 "use client"
 
-import { VStack, Text, Image, Spinner, HStack, useBreakpointValue } from "@chakra-ui/react"
+import { VStack, Text, Image, Spinner, HStack, useBreakpointValue, Button } from "@chakra-ui/react"
 import Link from "next/link"
 import { useGetProjects } from "../../hooks/useGetProjects"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDiscord, faDiscourse } from "@fortawesome/free-brands-svg-icons"
+import { faPlusCircle } from "@fortawesome/free-solid-svg-icons"
 
 export default function LandingContainer() {
     const { projects, loading, error } = useGetProjects()
@@ -70,7 +71,9 @@ export default function LandingContainer() {
                             boxSize="50px"
                             borderRadius="full"
                         />
-                        <Text fontSize="3xl">{project.displayName}</Text>
+                        <Text fontSize="3xl" whiteSpace="normal" overflowWrap="break-word" wordBreak="break-word">
+                            {project.displayName}
+                        </Text>
                     </HStack>
                     <VStack h={{ base: "7.3em", sm: "6em" }}>
                         <Text
@@ -102,7 +105,7 @@ export default function LandingContainer() {
                             </Text>
                             <Text fontSize="sm"> active users</Text>
                         </HStack>
-                        <HStack>
+                        <HStack flexWrap="wrap" justifyContent="center">
                             <SignalIndicator signalName="discord" icon={faDiscord} text="Discord" project={project} />
                             <SignalIndicator
                                 signalName="discourse_forum"
@@ -118,7 +121,7 @@ export default function LandingContainer() {
     }
 
     return (
-        <VStack gap={8} pt={8} maxW="100%" w={"1200px"}>
+        <VStack gap={8} pt={5} maxW="100%" w={"1200px"}>
             <Text fontSize="3xl" fontWeight="bold" px={6} textAlign="center">
                 High Signal Leaderboards
             </Text>
@@ -133,6 +136,14 @@ export default function LandingContainer() {
                         .sort((a, b) => (b.activeUsers ?? 0) - (a.activeUsers ?? 0))
                         .map((project: ProjectData) => <ProjectCard project={project} key={project.urlSlug} />)}
             </HStack>
+            <Link href="/new-project">
+                <Button primaryButton pl={2} pr={3} py={2} borderRadius={"full"} mx={3}>
+                    <FontAwesomeIcon icon={faPlusCircle} size="xl" />
+                    <Text whiteSpace="normal" overflowWrap="break-word" wordBreak="break-word">
+                        Add your project or community to High Signal
+                    </Text>
+                </Button>
+            </Link>
         </VStack>
     )
 }
