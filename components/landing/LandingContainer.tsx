@@ -48,7 +48,7 @@ export default function LandingContainer() {
                     gap={3}
                     borderRadius="16px"
                     border="3px solid"
-                    borderColor="button.secondary.default"
+                    borderColor="contentBorder"
                     justifyContent="space-between"
                     bg="pageBackground"
                     w="400px"
@@ -61,7 +61,7 @@ export default function LandingContainer() {
                         pt={2}
                         pb={3}
                         justifyContent={{ base: "center", sm: "start" }}
-                        bg={"button.secondary.default"}
+                        bg={"contentBorder"}
                         borderTopRadius="10px"
                     >
                         <Image
