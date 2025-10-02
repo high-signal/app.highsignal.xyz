@@ -112,11 +112,13 @@ interface ProjectData {
     id?: number
     urlSlug: string
     displayName: string
+    description?: string
     projectLogoUrl: string
     apiKey?: string
     peakSignalsEnabled: boolean
     peakSignalsMaxValue: number
     signalStrengths: SignalStrengthProjectData[]
+    activeUsers?: number
 }
 
 interface SignalStrengthProjectData {

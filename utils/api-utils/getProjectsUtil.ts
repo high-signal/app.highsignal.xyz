@@ -22,9 +22,11 @@ type Project = {
     id?: number // Requires isSuperAdminRequesting is true
     url_slug: string
     display_name: string
+    description?: string
     project_logo_url: string
     api_key?: string
     project_signal_strengths: ProjectSignalStrengths[]
+    activeUsers?: number
 }
 
 export async function getProjectsUtil(
@@ -45,6 +47,7 @@ export async function getProjectsUtil(
                 id,
                 url_slug,
                 display_name,
+                description,
                 project_logo_url,
                 api_key,
                 project_signal_strengths (
@@ -92,6 +95,32 @@ export async function getProjectsUtil(
             return NextResponse.json([])
         }
 
+        // Get active users count for each project
+        const projectIds = projects.map((p) => p.id).filter(Boolean)
+        let activeUsersMap: Record<number, number> = {}
+
+        if (projectIds.length > 0) {
+            // Initialize all project counts to 0 first
+            projectIds.forEach((id) => {
+                activeUsersMap[id] = 0
+            })
+
+            // Use the database function to get all counts in a single query
+            const { data: countData, error: countError } = await supabase.rpc("get_project_active_users_counts", {
+                project_ids: projectIds.join(","),
+            })
+
+            if (countError) {
+                console.error("Error fetching active users counts:", countError)
+            } else if (countData) {
+                // Use the results from the database function
+                const countArray = countData as { project_id: number; active_users_count: number }[]
+                countArray.forEach((row) => {
+                    activeUsersMap[row.project_id] = row.active_users_count
+                })
+            }
+        }
+
         // Format the projects to match UI naming conventions
         const formattedProjects = (projects as unknown as Project[])
             .map((project) => {
@@ -99,8 +128,10 @@ export async function getProjectsUtil(
                     ...(isSuperAdminRequesting ? { id: project.id } : {}),
                     urlSlug: project.url_slug,
                     displayName: project.display_name,
+                    description: project.description,
                     projectLogoUrl: project.project_logo_url,
                     ...(isSuperAdminRequesting || isProjectAdminRequesting ? { apiKey: project.api_key } : {}),
+                    activeUsers: project.id ? activeUsersMap[project.id] || 0 : 0,
                     signalStrengths:
                         project.project_signal_strengths?.map((ps) => ({
                             url: ps.url,
