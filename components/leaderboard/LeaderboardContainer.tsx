@@ -1,13 +1,13 @@
 "use client"
 
-import { VStack, Text, HStack, Image, Skeleton, Spinner, Link, Box } from "@chakra-ui/react"
+import { VStack, Text, HStack, Skeleton, Spinner, Box } from "@chakra-ui/react"
 import Leaderboard from "./Leaderboard"
 import { useGetProjects } from "../../hooks/useGetProjects"
 import AcmeIncPlaceholder from "../ui/AcmeIncPlaceholder"
 import SignalIndicator from "../ui/SignalIndicator"
 import { faDiscord, faDiscourse } from "@fortawesome/free-brands-svg-icons"
-import { faExternalLink } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+
+import Title from "../signal-display/Title"
 
 export default function LeaderboardContainer({ project }: { project: string }) {
     const { projects, loading, error } = useGetProjects(project)
@@ -39,59 +39,12 @@ export default function LeaderboardContainer({ project }: { project: string }) {
         )
     }
 
-    const Title = () => {
-        return (
-            <HStack gap={4} h="50px" cursor={currentProject?.website ? "pointer" : "default"}>
-                <Image
-                    src={currentProject?.projectLogoUrl}
-                    alt={currentProject?.displayName}
-                    boxSize="50px"
-                    borderRadius="full"
-                />
-                <HStack>
-                    <Text
-                        fontWeight="bold"
-                        whiteSpace="normal"
-                        overflowWrap="break-word"
-                        wordBreak="break-word"
-                        fontSize={{
-                            base: currentProject?.displayName?.length >= 16 ? "2xl" : "3xl",
-                            sm: "4xl",
-                        }}
-                    >
-                        {currentProject?.displayName}{" "}
-                    </Text>
-                    {currentProject?.website && (
-                        <Box fontSize="20px">
-                            <FontAwesomeIcon icon={faExternalLink} />
-                        </Box>
-                    )}
-                </HStack>
-            </HStack>
-        )
-    }
-
     return (
         <VStack gap={0} w="100%" maxW="650px" borderRadius="20px">
-            <VStack
-                fontSize="3xl"
-                px={6}
-                pt={6}
-                w="100%"
-                textAlign="center"
-                gap={10}
-                flexWrap="wrap"
-                justifyContent="center"
-            >
+            <VStack fontSize="3xl" px={6} w="100%" textAlign="center" gap={10} flexWrap="wrap" justifyContent="center">
                 {!loading && !error ? (
                     <VStack gap={5}>
-                        {currentProject?.website ? (
-                            <Link href={`${currentProject?.website}`} target="_blank">
-                                <Title />
-                            </Link>
-                        ) : (
-                            <Title />
-                        )}
+                        <Title projectData={currentProject} allLeaderboards linkUrl={currentProject?.website} />
                         <VStack bg={"contentBackground"} p={4} borderRadius={"32px"} fontSize="md" gap={5}>
                             <Text fontSize="md">{currentProject?.description}</Text>
                             <HStack
@@ -132,7 +85,7 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                         {error ? (
                             <Text fontSize="sm">Error: {error}</Text>
                         ) : (
-                            <Skeleton defaultSkeleton height="100%" width="200px" borderRadius="full" />
+                            <Skeleton defaultSkeleton height="100%" width="200px" borderRadius="full" mt={"20px"} />
                         )}
                     </HStack>
                 )}

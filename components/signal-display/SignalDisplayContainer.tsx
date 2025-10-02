@@ -14,6 +14,9 @@ import { useGetUsers } from "../../hooks/useGetUsers"
 import { useGetProjects } from "../../hooks/useGetProjects"
 import AcmeIncPlaceholder from "../ui/AcmeIncPlaceholder"
 import { useUser } from "../../contexts/UserContext"
+import { useParams } from "next/navigation"
+
+import SharedAccountsContainer from "./SharedAccountsContainer"
 
 export default function SignalDisplayContainer({ project, username }: { project: string; username: string }) {
     const { loggedInUser, loggedInUserLoading } = useUser()
@@ -24,6 +27,10 @@ export default function SignalDisplayContainer({ project, username }: { project:
     const [currentProject, setCurrentProject] = useState<ProjectData | null>(null)
     const [noUsersFound, setNoUsersFound] = useState(false)
     const [noProjectsFound, setNoProjectsFound] = useState(false)
+
+    const params = useParams()
+    const targetUsername = params.username as string
+    const isOwner = loggedInUser?.username === targetUsername
 
     const [isSignalStrengthLoading, setIsSignalStrengthLoading] = useState<number | null>(null)
 
@@ -147,10 +154,12 @@ export default function SignalDisplayContainer({ project, username }: { project:
 
     if (currentUser && currentProject) {
         return (
-            <VStack gap={12} w="100%" maxW="800px" pb={6} pt={{ base: 4, sm: 0 }}>
+            <VStack gap={12} w="100%" maxW="800px" pb={6}>
                 <VStack gap={0} w="100%" maxW="800px" px={3}>
-                    <Title projectData={currentProject} />
-                    <Box w="100%" h="10px" />
+                    <Title projectData={currentProject} linkUrl={currentProject?.website} />
+                    {isOwner && <Box w="100%" h={{ base: "10px", sm: "0" }} />}
+                    {isOwner && <SharedAccountsContainer projectData={currentProject} />}
+                    <Box w="100%" h="20px" />
                     <UserInfo
                         profileImageUrl={currentUser.profileImageUrl || ""}
                         displayName={currentUser.displayName || ""}
