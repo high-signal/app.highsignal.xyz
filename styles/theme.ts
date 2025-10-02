@@ -156,7 +156,7 @@ export const customConfig = defineConfig({
 
                 // Border colors
                 contentBorder: {
-                    value: { _light: "{colors.blue.500}", _dark: "{colors.teal.700}" },
+                    value: { _light: "{colors.blue.400}", _dark: "{colors.teal.700}" },
                 },
 
                 // Button colors
