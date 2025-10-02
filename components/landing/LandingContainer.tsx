@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, Text, Image, Spinner, HStack, useBreakpointValue, Button } from "@chakra-ui/react"
+import { VStack, Text, Image, HStack, useBreakpointValue, Button, Skeleton } from "@chakra-ui/react"
 import Link from "next/link"
 import { useGetProjects } from "../../hooks/useGetProjects"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -125,10 +125,12 @@ export default function LandingContainer() {
             <Text fontSize="3xl" fontWeight="bold" px={6} textAlign="center">
                 High Signal Leaderboards
             </Text>
-            {loading && <Spinner />}
             {error && <Text>Error loading projects</Text>}
-
             <HStack gap={8} flexWrap="wrap" justifyContent="center" maxW="100%">
+                {loading &&
+                    [1, 2, 3, 4].map((item) => (
+                        <Skeleton defaultSkeleton key={item} w="400px" maxW="90vw" h={"200px"} borderRadius="16px" />
+                    ))}
                 {!loading &&
                     projects &&
                     projects.length > 0 &&
