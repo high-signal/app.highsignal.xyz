@@ -7,39 +7,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDiscord, faDiscourse } from "@fortawesome/free-brands-svg-icons"
 import { faPlusCircle } from "@fortawesome/free-solid-svg-icons"
 
+import SignalIndicator from "../ui/SignalIndicator"
+
 export default function LandingContainer() {
     const { projects, loading, error } = useGetProjects()
     const isMobile = useBreakpointValue({ base: true, sm: false })
-
-    const SignalIndicator = ({
-        signalName,
-        icon,
-        text,
-        project,
-    }: {
-        signalName: string
-        icon: any
-        text: string
-        project: ProjectData
-    }) => {
-        const isEnabled = project.signalStrengths.find((signal) => signal.name === signalName)?.enabled ?? false
-
-        return (
-            <HStack
-                h={"100%"}
-                py={1}
-                px={3}
-                borderRadius="full"
-                border="2px solid"
-                borderColor="contentBorder"
-                gap={"6px"}
-                opacity={isEnabled ? "1" : "0.2"}
-            >
-                <FontAwesomeIcon icon={icon} size="sm" />
-                <Text>{text}</Text>
-            </HStack>
-        )
-    }
 
     const ProjectCard = ({ project }: { project: ProjectData }) => {
         return (

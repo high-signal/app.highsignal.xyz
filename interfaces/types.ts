@@ -113,6 +113,7 @@ interface ProjectData {
     urlSlug: string
     displayName: string
     description?: string
+    website?: string
     projectLogoUrl: string
     apiKey?: string
     peakSignalsEnabled: boolean

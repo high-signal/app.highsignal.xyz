@@ -23,6 +23,7 @@ type Project = {
     url_slug: string
     display_name: string
     description?: string
+    website?: string
     project_logo_url: string
     api_key?: string
     project_signal_strengths: ProjectSignalStrengths[]
@@ -48,6 +49,7 @@ export async function getProjectsUtil(
                 url_slug,
                 display_name,
                 description,
+                website,
                 project_logo_url,
                 api_key,
                 project_signal_strengths (
@@ -129,6 +131,7 @@ export async function getProjectsUtil(
                     urlSlug: project.url_slug,
                     displayName: project.display_name,
                     description: project.description,
+                    website: project.website,
                     projectLogoUrl: project.project_logo_url,
                     ...(isSuperAdminRequesting || isProjectAdminRequesting ? { apiKey: project.api_key } : {}),
                     activeUsers: project.id ? activeUsersMap[project.id] || 0 : 0,
