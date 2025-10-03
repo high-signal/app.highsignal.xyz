@@ -1,4 +1,5 @@
 const { handleRunAiGovernor } = require("./scripts/index-handlers/handleRunAiGovernor")
+const { handleRunLambdaStats } = require("./scripts/index-handlers/handleRunLambdaStats")
 const { handleRunAiQueueItem } = require("./scripts/index-handlers/handleRunAiQueueItem")
 const { handleRunForumGovernor } = require("./scripts/index-handlers/handleRunForumGovernor")
 const { handleRunDiscordGovernor } = require("./scripts/index-handlers/handleRunDiscordGovernor")
@@ -119,6 +120,8 @@ exports.handler = async (event, context) => {
                     return await handleAddAllItemsToForumQueue()
                 case "runForumGovernor": // Processes the forum queue
                     return await handleRunForumGovernor()
+                case "runLambdaStats": // Processes the lambda stats
+                    return await handleRunLambdaStats()
                 default:
                     console.log(`Unknown function type: ${functionType}`)
                     return {
