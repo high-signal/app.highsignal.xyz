@@ -13,6 +13,7 @@ interface ChartConfig {
     colors: string[]
     getCategories: (data: any[]) => string[]
     getData: (data: any[]) => any[]
+    formatYAxis?: (value: number) => string
 }
 
 interface LambdaStatsDaily {
@@ -41,6 +42,19 @@ interface StatsChartProps {
     config: ChartConfig
 }
 
+// Format numbers for Y-axis display
+function formatNumber(value: number): string {
+    if (value < 1000) {
+        return value.toString()
+    } else if (value < 1000000) {
+        const k = value / 1000
+        return k % 1 === 0 ? `${k}k` : `${k.toFixed(1)}k`
+    } else {
+        const m = value / 1000000
+        return m % 1 === 0 ? `${m}m` : `${m.toFixed(1)}m`
+    }
+}
+
 function StatsChart({ title, data, config }: StatsChartProps) {
     const chartData = config.getData(data)
     const categories = config.getCategories(data)
@@ -53,7 +67,7 @@ function StatsChart({ title, data, config }: StatsChartProps) {
             <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartData}>
                     <XAxis dataKey="day" />
-                    <YAxis />
+                    <YAxis tickFormatter={config.formatYAxis} />
                     <Tooltip />
                     <Legend />
                     {categories.map((category, index) => (
@@ -131,6 +145,7 @@ export default function SuperadminStatsContainer() {
             title: "AI Stats - Tokens Used",
             dataKey: "total_tokens",
             colors: aiColors,
+            formatYAxis: formatNumber,
             getCategories: (data) => Array.from(new Set(data.map((item: AiStatsDaily) => item.score_type))),
             getData: (data) => {
                 const dayGroups: { [key: string]: any } = {}
@@ -170,7 +185,8 @@ export default function SuperadminStatsContainer() {
                     if (!dayGroups[item.day]) {
                         dayGroups[item.day] = { day: item.day }
                     }
-                    dayGroups[item.day][item.function_type] = item.total_billed_duration
+                    // Convert milliseconds to seconds with 1 decimal place
+                    dayGroups[item.day][item.function_type] = Math.round((item.total_billed_duration / 1000) * 10) / 10
                 })
                 return Object.values(dayGroups)
             },
