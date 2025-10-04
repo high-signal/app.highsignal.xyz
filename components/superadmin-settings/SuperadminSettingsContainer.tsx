@@ -10,6 +10,7 @@ import { usePrivy } from "@privy-io/react-auth"
 import ContentContainer from "../layout/ContentContainer"
 import SettingsTabbedContent from "../ui/SettingsTabbedContent"
 import GeneralSettingsContainer from "./GeneralSettingsContainer"
+import SuperadminStatsContainer from "./superadmin-stats/SuperadminStatsContainer"
 import SignalStrengthSettingsContainer from "./signal-strength-settings/SignalStrengthSettingsContainer"
 import BannersSettingsContainer from "./banner-settings/BannersSettingsContainer"
 
@@ -122,6 +123,11 @@ export default function ProjectSettingsContainer() {
                         value: "general",
                         label: "⚙️ General",
                         content: <GeneralSettingsContainer />,
+                    },
+                    {
+                        value: "stats",
+                        label: "📊 Stats",
+                        content: <SuperadminStatsContainer />,
                     },
                     {
                         value: "signalStrengths",
