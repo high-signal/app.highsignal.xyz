@@ -5,14 +5,14 @@ import { createClient } from "@supabase/supabase-js"
 export async function GET() {
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-    const pastDays = 2
+    const pastDays = 90
 
     // Get past X days of lambda stats
     const { data: lambdaStatsDaily, error: lambdaStatsDailyError } = await supabase
-        .from("ai_stats_daily")
+        .from("lambda_stats_daily")
         .select("*")
         .gte("day", new Date(Date.now() - pastDays * 24 * 60 * 60 * 1000).toISOString().split("T")[0]) // keep only YYYY-MM-DD
-        .order("day", { ascending: false })
+        .order("day", { ascending: true })
 
     if (lambdaStatsDailyError) {
         const errorMessage = "Error fetching lambda stats daily: " + (lambdaStatsDailyError.message || "Unknown error")
@@ -25,7 +25,7 @@ export async function GET() {
         .from("ai_stats_daily")
         .select("*")
         .gte("day", new Date(Date.now() - pastDays * 24 * 60 * 60 * 1000).toISOString().split("T")[0]) // keep only YYYY-MM-DD
-        .order("day", { ascending: false })
+        .order("day", { ascending: true })
 
     if (aiStatsDailyError) {
         const errorMessage = "Error fetching ai stats daily: " + (aiStatsDailyError.message || "Unknown error")
