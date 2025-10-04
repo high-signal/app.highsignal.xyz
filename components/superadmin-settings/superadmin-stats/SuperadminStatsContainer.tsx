@@ -68,13 +68,18 @@ function StatsChart({ title, data, config }: StatsChartProps) {
                 {title}
             </Text>
             <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
+                <BarChart data={chartData} maxBarSize={50} barCategoryGap="5%" barGap="2%">
                     <XAxis dataKey="day" />
                     <YAxis tickFormatter={config.formatYAxis} />
                     <Tooltip />
                     <Legend />
                     {categories.map((category, index) => (
-                        <Bar key={category} dataKey={category} fill={config.colors[index % config.colors.length]} />
+                        <Bar
+                            key={category}
+                            dataKey={category}
+                            fill={config.colors[index % config.colors.length]}
+                            radius={[4, 4, 0, 0]}
+                        />
                     ))}
                 </BarChart>
             </ResponsiveContainer>
