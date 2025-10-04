@@ -1,4 +1,5 @@
 const { createClient } = require("@supabase/supabase-js")
+const { storeStatsInDb } = require("../../utils/storeStatsInDb")
 
 // For each signal strength, add all valid users to the AI queue
 async function addAllItemsToForumQueue() {
@@ -14,6 +15,15 @@ async function addAllItemsToForumQueue() {
             console.error(errorMessage)
             throw errorMessage
         }
+
+        // ==============================
+        // Update action count in the DB
+        // ==============================
+        // Set the action count equal to the number of
+        // DB functions that were invoked
+        await storeStatsInDb({
+            actionCount: 1,
+        })
 
         console.log("🎉 Finished adding all items to forum queue.")
     } catch (error) {

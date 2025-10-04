@@ -6,6 +6,7 @@ const { createClient } = require("@supabase/supabase-js")
 const { handleTriggerAiQueueItem } = require("./handleTriggerAiQueueItem")
 const { checkQueueForStaleItems } = require("../utils/checkQueueForStaleItems")
 const { getPriorityQueueItems } = require("./getPriorityQueueItems")
+const { storeStatsInDb } = require("../../utils/storeStatsInDb")
 
 // ==========
 // Constants
@@ -18,12 +19,12 @@ const { MAX_TOKENS_PER_MINUTE, MAX_QUEUE_LENGTH, TIMEOUT_SECONDS, MAX_ATTEMPTS }
 async function runAiGovernor() {
     console.log("💡 Running AI governor")
 
+    // Invoked counter to optimistically track
+    // the number of items that have been invoked.
+    let invokedCounter = 0
+
     try {
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
-
-        // Invoked counter to optimistically track
-        // the number of items that have been invoked.
-        let invokedCounter = 0
 
         await checkQueueForStaleItems({ supabase, queueDbTable: "ai_request_queue", MAX_ATTEMPTS, TIMEOUT_SECONDS })
 
@@ -73,10 +74,20 @@ async function runAiGovernor() {
         } else {
             console.log("🚧 No AI queue items to trigger.")
         }
+
         console.log("🎉 Finished triggering AI queue items. AI governor complete.")
     } catch (error) {
         console.error("Error in runAiGovernor:", error)
         throw error
+    } finally {
+        // ==============================
+        // Update action count in the DB
+        // ==============================
+        // Set the action count equal to the number of
+        // AI queue items that were triggered
+        await storeStatsInDb({
+            actionCount: invokedCounter,
+        })
     }
 }
 
