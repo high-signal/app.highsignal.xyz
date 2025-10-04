@@ -77,7 +77,7 @@ export default function GeneralSettingsContainer() {
             <SettingsSectionContainer>
                 <VStack alignItems="start" w={"100%"} px={3}>
                     <Text fontSize="xl" fontWeight="bold">
-                        Stats
+                        Overview
                     </Text>
                     {statsError && <Text color="red.500">{statsError}</Text>}
                     {isStatsLoading ? (
@@ -88,6 +88,9 @@ export default function GeneralSettingsContainer() {
                             <StatsRow label="User Project Scores" value={stats?.activeUsers ?? 0} />
                             <StatsRow label="Total Projects" value={projects?.length ?? 0} />
                             <Text>--------------------------</Text>
+                            <Text fontSize="xl" fontWeight="bold" color={"textColor"}>
+                                Errors
+                            </Text>
                             <StatsRow label="Missing Days" value={stats?.missingDays ?? 0} shouldBeZero />
                             <StatsRow label="AI Raw Score Errors" value={stats?.aiRawScoreErrors ?? 0} shouldBeZero />
                             <StatsRow
