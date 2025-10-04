@@ -5,6 +5,7 @@ require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { DiscordRestApi } = require("./discordRestApi")
 const { handleTriggerDiscordQueueItem } = require("./handleTriggerDiscordQueueItem")
+const { storeStatsInDb } = require("../../utils/storeStatsInDb")
 
 // ==========
 // Constants
@@ -21,12 +22,12 @@ async function runDiscordGovernor() {
     // ===================================
     const discordApi = new DiscordRestApi()
 
+    // Invoked counter to optimistically track
+    // the number of items that have been invoked.
+    let invokedCounter = 0
+
     try {
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
-
-        // Invoked counter to optimistically track
-        // the number of items that have been invoked.
-        let invokedCounter = 0
 
         // ============================
         // Check queue for stale items
@@ -448,6 +449,15 @@ async function runDiscordGovernor() {
         console.error("Error in runDiscordGovernor:", error)
         throw error
     } finally {
+        // ==============================
+        // Update action count in the DB
+        // ==============================
+        // Set the action count equal to the number of
+        // AI queue items that were triggered
+        await storeStatsInDb({
+            actionCount: invokedCounter,
+        })
+
         console.log("✅ Discord REST API governor complete")
     }
 }

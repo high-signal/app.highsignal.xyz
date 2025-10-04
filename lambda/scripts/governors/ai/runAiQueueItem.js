@@ -2,6 +2,7 @@ require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { runEngine } = require("../../engine/runEngine")
 const { clearLastChecked } = require("../../engine/utils/lastCheckedUtils")
+const { storeStatsInDb } = require("../../utils/storeStatsInDb")
 
 // ==========
 // Constants
@@ -85,6 +86,16 @@ async function runAiQueueItem({ queueItemId }) {
                         signalStrengthId: claimedQueueItem[0].signal_strength_id,
                     })
                 }
+
+                // ==============================
+                // Update action count in the DB
+                // ==============================
+                // If the item was successfully run,
+                // set the action count to 1
+                await storeStatsInDb({
+                    actionCount: 1,
+                })
+
                 console.log(`💾 Updated queue item: ${queueItemId}`)
             }
             return

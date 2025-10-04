@@ -1,6 +1,7 @@
 require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { CloudWatchLogsClient, FilterLogEventsCommand } = require("@aws-sdk/client-cloudwatch-logs")
+const { storeStatsInDb } = require("./storeStatsInDb")
 
 const als = require("./asyncContext")
 
@@ -104,6 +105,16 @@ async function runLambdaStats() {
             console.log(`⚠️ No REPORT found for ${row.request_id}`)
         }
     }
+
+    // ==============================
+    // Update action count in the DB
+    // ==============================
+    // Set the action count equal to the number of
+    // rows that were updated
+    await storeStatsInDb({
+        actionCount: updatedCount,
+    })
+
     console.log(`✅ Lambda Row Updates Complete: Processed ${updatedCount} rows`)
 }
 

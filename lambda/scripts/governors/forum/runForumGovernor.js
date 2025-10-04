@@ -5,6 +5,7 @@ require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { fetchUserActivity } = require("./fetchUserActivity")
 const { checkQueueForStaleItems } = require("../utils/checkQueueForStaleItems")
+const { storeStatsInDb } = require("../../utils/storeStatsInDb")
 
 // ==========
 // Constants
@@ -16,6 +17,8 @@ const { MAX_QUEUE_LENGTH, MAX_ATTEMPTS, TIMEOUT_SECONDS } = require("./constants
 // =================
 async function runForumGovernor() {
     console.log("💡 Running forum governor")
+
+    let completedCounter = 0
 
     try {
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -148,6 +151,7 @@ async function runForumGovernor() {
                     console.error(errorMessage)
                     continue
                 } else {
+                    completedCounter++
                     console.log(`🏁 Marked queue item ${pendingQueueItem.id} as "completed"`)
                 }
             }
@@ -156,6 +160,15 @@ async function runForumGovernor() {
     } catch (error) {
         console.error("Error in runForumGovernor:", error)
         throw error
+    } finally {
+        // ==============================
+        // Update action count in the DB
+        // ==============================
+        // Set the action count equal to the number of
+        // forum queue items that were completed
+        await storeStatsInDb({
+            actionCount: completedCounter,
+        })
     }
 }
 

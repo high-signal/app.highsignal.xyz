@@ -16,7 +16,7 @@ const storeStatsInDb = async ({ source, functionType, actionCount, errorType }) 
             request_id: requestId,
             ...(source && { source }),
             ...(functionType && { function_type: functionType }),
-            ...(actionCount && { action_count: actionCount }),
+            ...(actionCount !== undefined && { action_count: actionCount }), // Allow 0
             ...(errorType && { error_type: errorType }),
         },
         { onConflict: "request_id" },

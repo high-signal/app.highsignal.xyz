@@ -1,5 +1,7 @@
 const { createClient } = require("@supabase/supabase-js")
 
+const { storeStatsInDb } = require("../../utils/storeStatsInDb")
+
 // Add a single item to the AI queue
 async function addSingleItemToAiQueue({ signalStrengthName, userId, projectId, signalStrengthUsername, testingData }) {
     try {
@@ -51,6 +53,14 @@ async function addSingleItemToAiQueue({ signalStrengthName, userId, projectId, s
             console.error(errorMessage)
             throw errorMessage
         }
+
+        // ==============================
+        // Update action count in the DB
+        // ==============================
+        // One action was performed to add a single item to the AI queue
+        await storeStatsInDb({
+            actionCount: 1,
+        })
     } catch (error) {
         const errorMessage = `Error adding single item to AI queue: ${error.message}`
         console.error(errorMessage)

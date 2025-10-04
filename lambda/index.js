@@ -27,9 +27,8 @@ exports.handler = async (event, context) => {
                 // Check if the api key is valid
                 if (!apiKey || apiKey !== expectedApiKey) {
                     console.log(`Unauthorized: Invalid API key`)
-                    storeStatsInDb({
+                    await storeStatsInDb({
                         source: "external-http",
-                        actionCount: 0,
                         errorType: "invalid-api-key",
                     })
                     return {
@@ -47,10 +46,9 @@ exports.handler = async (event, context) => {
                 const raw = event.body ?? event
                 const body = typeof raw === "string" ? JSON.parse(raw) : raw
                 const { functionType } = body
-                storeStatsInDb({
+                await storeStatsInDb({
                     source: "external-http",
                     functionType: functionType,
-                    actionCount: 1,
                 })
                 return {
                     statusCode: 202,
@@ -58,20 +56,19 @@ exports.handler = async (event, context) => {
                 }
             } else if (event.source === "aws.events") {
                 // Triggered directly from AWS EventBridge
-                storeStatsInDb({
+                await storeStatsInDb({
                     source: event.source,
                 })
             } else if (event.source === "aws.lambda") {
                 // Triggered directly from AWS Lambda
-                storeStatsInDb({
+                await storeStatsInDb({
                     source: event.source,
                 })
             } else {
                 console.warn("Unauthorized or unknown source")
                 console.log("event.source", event.source)
-                storeStatsInDb({
+                await storeStatsInDb({
                     source: event.source,
-                    actionCount: 0,
                     errorType: "unknown-source",
                 })
                 return {
@@ -98,7 +95,7 @@ exports.handler = async (event, context) => {
             }
 
             // Store the function type in the DB
-            storeStatsInDb({
+            await storeStatsInDb({
                 functionType: functionType,
             })
 

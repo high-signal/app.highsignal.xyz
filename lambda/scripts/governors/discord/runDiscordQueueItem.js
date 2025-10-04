@@ -1,6 +1,8 @@
 require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { DiscordRestApi } = require("./discordRestApi")
+const { storeStatsInDb } = require("../../utils/storeStatsInDb")
+
 // Dynamic import for out-of-character based on environment
 let outOfCharacter
 if (process.env.AWS_LAMBDA_FUNCTION_NAME) {
@@ -261,6 +263,15 @@ async function runDiscordQueueItem({ queueItemId }) {
                 console.error("Error updating queue item:", updatedQueueItemError)
                 throw updatedQueueItemError
             } else {
+                // ==============================
+                // Update action count in the DB
+                // ==============================
+                // If the item was successfully run,
+                // set the action count to the number of messages stored
+                await storeStatsInDb({
+                    actionCount: totalMessagesStored,
+                })
+
                 console.log(`💾 Updated queue item: ${queueItemId}`)
             }
             return
