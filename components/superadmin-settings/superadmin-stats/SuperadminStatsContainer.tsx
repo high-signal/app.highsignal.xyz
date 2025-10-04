@@ -7,6 +7,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBars } from "@fortawesome/free-solid-svg-icons"
 
+import { useThemeColor } from "../../../utils/theme-utils/getThemeColor"
+
 import SettingsSectionContainer from "../../ui/SettingsSectionContainer"
 import { usePrivy } from "@privy-io/react-auth"
 
@@ -58,9 +60,44 @@ function formatNumber(value: number): string {
     }
 }
 
+const ChartTooltip = ({ payload, label }: { payload: any[]; label: string }) => {
+    if (!payload || payload.length === 0) return null
+
+    return (
+        <VStack
+            alignItems={"center"}
+            bg={"pageBackground"}
+            borderRadius={"16px"}
+            border={"4px solid"}
+            borderColor={"contentBorder"}
+            wrap={"wrap"}
+            fontSize={"sm"}
+            px={3}
+            py={1}
+            gap={0}
+        >
+            <Text fontWeight={"bold"} color={"textColorMuted"} w={"100%"}>
+                {label}
+            </Text>
+            <VStack alignItems={"flex-start"} gap={1} pr={2} py={1}>
+                {payload.map((entry, index) => (
+                    <HStack key={index} gap={2} alignItems={"center"}>
+                        <Box w={"12px"} h={"12px"} bg={entry.color} borderRadius={"2px"} />
+                        <Text fontWeight={"bold"} color={entry.color}>
+                            {entry.name}: {entry.value?.toLocaleString() || 0}
+                        </Text>
+                    </HStack>
+                ))}
+            </VStack>
+        </VStack>
+    )
+}
+
 function StatsChart({ title, data, config }: StatsChartProps) {
     const chartData = config.getData(data)
     const categories = config.getCategories(data)
+
+    const textColorMutedHex = useThemeColor("textColorMuted")
 
     return (
         <Box p={4} bg="contentBackground" borderRadius={{ base: "0px", sm: "16px" }}>
@@ -71,7 +108,11 @@ function StatsChart({ title, data, config }: StatsChartProps) {
                 <BarChart data={chartData} maxBarSize={50} barCategoryGap="5%" barGap="2%">
                     <XAxis dataKey="day" />
                     <YAxis tickFormatter={config.formatYAxis} />
-                    <Tooltip />
+                    <Tooltip
+                        content={<ChartTooltip payload={[]} label={""} />}
+                        isAnimationActive={false}
+                        cursor={{ stroke: textColorMutedHex, strokeWidth: 2 }}
+                    />
                     <Legend />
                     {categories.map((category, index) => (
                         <Bar
