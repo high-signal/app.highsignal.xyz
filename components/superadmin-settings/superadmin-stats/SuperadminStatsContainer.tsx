@@ -97,7 +97,7 @@ function StatsChart({ title, data, config }: StatsChartProps) {
     const chartData = config.getData(data)
     const categories = config.getCategories(data)
 
-    const textColorMutedHex = useThemeColor("textColorMuted")
+    const pageBackgroundColorHex = useThemeColor("pageBackground")
 
     return (
         <Box p={4} bg="contentBackground" borderRadius={{ base: "0px", sm: "16px" }}>
@@ -105,14 +105,18 @@ function StatsChart({ title, data, config }: StatsChartProps) {
                 {title}
             </Text>
             <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData} maxBarSize={50} barCategoryGap="5%" barGap="2%">
-                    <XAxis dataKey="day" />
-                    <YAxis tickFormatter={config.formatYAxis} />
+                <BarChart data={chartData} maxBarSize={50} barCategoryGap="10%" barGap="2%">
                     <Tooltip
                         content={<ChartTooltip payload={[]} label={""} />}
                         isAnimationActive={false}
-                        cursor={{ stroke: textColorMutedHex, strokeWidth: 2 }}
+                        cursor={{
+                            fill: pageBackgroundColorHex,
+                            strokeWidth: 0,
+                            radius: [10, 10, 0, 0] as any,
+                        }}
                     />
+                    <XAxis dataKey="day" />
+                    <YAxis tickFormatter={config.formatYAxis} />
                     <Legend />
                     {categories.map((category, index) => (
                         <Bar
