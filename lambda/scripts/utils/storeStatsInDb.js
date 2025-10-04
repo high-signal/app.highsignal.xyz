@@ -2,6 +2,12 @@ const { createClient } = require("@supabase/supabase-js")
 const als = require("./asyncContext")
 
 const storeStatsInDb = async ({ source, functionType, actionCount, errorType }) => {
+    const runningInLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME && !!process.env.AWS_REGION
+    if (!runningInLambda) {
+        console.log("💻 Not running in Lambda. Skipping stats storage.")
+        return
+    }
+
     const store = als.getStore()
     const requestId = store?.requestId
 
