@@ -1,8 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { HStack, Spinner, Text, VStack, Box, Grid, GridItem, useToken } from "@chakra-ui/react"
+import { useState, useEffect, useMemo } from "react"
+import { HStack, Spinner, Text, VStack, Box, Grid, GridItem, useToken, Flex } from "@chakra-ui/react"
+import { Slider } from "@chakra-ui/react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faBars } from "@fortawesome/free-solid-svg-icons"
 
 import SettingsSectionContainer from "../../ui/SettingsSectionContainer"
 import { usePrivy } from "@privy-io/react-auth"
@@ -86,6 +89,71 @@ export default function SuperadminStatsContainer() {
     const [isStatsLoading, setIsStatsLoading] = useState(true)
     const [statsError, setStatsError] = useState<string | null>(null)
 
+    // Date range state
+    const [dateRange, setDateRange] = useState<{ start: number; end: number } | null>(null)
+
+    // Get theme colors
+    const [teal500, contentBackground, pageBackground] = useToken("colors", [
+        "teal.500",
+        "contentBackground",
+        "pageBackground",
+    ])
+
+    // Helper functions for date handling
+    const formatDate = (date: Date) => {
+        return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    }
+
+    // Generate 90 days of dates (today back to 90 days ago)
+    const getDateRange = useMemo(() => {
+        const dates = []
+        const today = new Date()
+
+        for (let i = 90; i >= 0; i--) {
+            const date = new Date(today)
+            date.setDate(today.getDate() - i)
+            dates.push(date.toISOString().split("T")[0]) // Format as YYYY-MM-DD
+        }
+
+        return dates
+    }, [])
+
+    const sliderMax = getDateRange.length - 1
+    const [sliderValues, setSliderValues] = useState([0, sliderMax])
+
+    // Initialize slider to show last 30 days by default
+    useEffect(() => {
+        const defaultRange = 30 // Show last 30 days by default
+        const startIndex = Math.max(0, sliderMax - defaultRange)
+        setSliderValues([startIndex, sliderMax])
+    }, [sliderMax])
+
+    const handleSliderChange = (newValues: number[]) => {
+        let [firstValue, secondValue] = newValues
+
+        if (secondValue - firstValue < 1) {
+            if (sliderValues[0] === firstValue) {
+                secondValue = firstValue + 1
+            } else {
+                firstValue = secondValue - 1
+            }
+        }
+        setSliderValues([firstValue, secondValue])
+    }
+
+    // Filter data based on selected date range
+    const filteredData = useMemo(() => {
+        if (!stats || sliderValues.length !== 2) return stats
+
+        const startDay = getDateRange[sliderValues[0]]
+        const endDay = getDateRange[sliderValues[1]]
+
+        return {
+            aiStatsDaily: stats.aiStatsDaily.filter((item) => item.day >= startDay && item.day <= endDay),
+            lambdaStatsDaily: stats.lambdaStatsDaily.filter((item) => item.day >= startDay && item.day <= endDay),
+        }
+    }, [stats, sliderValues, getDateRange])
+
     useEffect(() => {
         const fetchStats = async () => {
             const token = await getAccessToken()
@@ -110,9 +178,8 @@ export default function SuperadminStatsContainer() {
     }, [getAccessToken])
 
     // Get theme colors using useToken hook
-    const [green500, teal500, gold500, red400, pink500, purple500, orange500] = useToken("colors", [
+    const [green500, gold500, red400, pink500, purple500, orange500] = useToken("colors", [
         "green.500",
-        "teal.500",
         "gold.500",
         "red.400",
         "pink.500",
@@ -204,32 +271,129 @@ export default function SuperadminStatsContainer() {
                 </HStack>
             ) : (
                 <VStack gap={8} w={"100%"}>
+                    {/* Date Range Slider */}
+                    {getDateRange.length > 1 && (
+                        <Box
+                            width="100%"
+                            bg={contentBackground}
+                            borderRadius={{ base: "0px", sm: "16px" }}
+                            pt={12}
+                            pb={3}
+                            px={{ base: 1, sm: 2 }}
+                        >
+                            <Flex direction="row" justifyContent="center" alignItems="center" px={8}>
+                                <Slider.Root
+                                    value={sliderValues}
+                                    min={0}
+                                    max={sliderMax}
+                                    step={1}
+                                    onValueChange={({ value }) => handleSliderChange(value)}
+                                    width="100%"
+                                >
+                                    <Slider.Control>
+                                        <Slider.Track bg={pageBackground} height="10px" borderRadius="5px">
+                                            <Slider.Range bg={"teal.500"} />
+                                        </Slider.Track>
+                                        <Slider.Thumb
+                                            index={0}
+                                            boxSize={6}
+                                            cursor="pointer"
+                                            bg={"teal.500"}
+                                            border="2px solid"
+                                            borderColor="teal.500"
+                                        >
+                                            <Box
+                                                position="absolute"
+                                                top="50%"
+                                                left="50%"
+                                                transform="translate(-50%, -50%)"
+                                            >
+                                                <FontAwesomeIcon icon={faBars} color="white" size="sm" />
+                                            </Box>
+                                            <Box
+                                                position="absolute"
+                                                top="-40px"
+                                                left="50%"
+                                                transform="translateX(-50%)"
+                                                bg="pageBackground"
+                                                px={2}
+                                                py={1}
+                                                borderRadius="md"
+                                                fontSize="xs"
+                                                fontWeight="bold"
+                                                whiteSpace="nowrap"
+                                            >
+                                                {getDateRange[sliderValues[0]]
+                                                    ? formatDate(new Date(getDateRange[sliderValues[0]]))
+                                                    : ""}
+                                            </Box>
+                                        </Slider.Thumb>
+                                        <Slider.Thumb
+                                            index={1}
+                                            boxSize={6}
+                                            cursor="pointer"
+                                            bg={"teal.500"}
+                                            border="2px solid"
+                                            borderColor="teal.500"
+                                        >
+                                            <Box
+                                                position="absolute"
+                                                top="50%"
+                                                left="50%"
+                                                transform="translate(-50%, -50%)"
+                                            >
+                                                <FontAwesomeIcon icon={faBars} color="white" size="sm" />
+                                            </Box>
+                                            <Box
+                                                position="absolute"
+                                                top="-40px"
+                                                left="50%"
+                                                transform="translateX(-50%)"
+                                                bg="pageBackground"
+                                                px={2}
+                                                py={1}
+                                                borderRadius="md"
+                                                fontSize="xs"
+                                                fontWeight="bold"
+                                                whiteSpace="nowrap"
+                                            >
+                                                {getDateRange[sliderValues[1]]
+                                                    ? formatDate(new Date(getDateRange[sliderValues[1]]))
+                                                    : ""}
+                                            </Box>
+                                        </Slider.Thumb>
+                                    </Slider.Control>
+                                </Slider.Root>
+                            </Flex>
+                        </Box>
+                    )}
+
                     <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={6} w={"100%"}>
                         <GridItem>
                             <StatsChart
                                 title={chartConfigs[0].title}
-                                data={stats?.aiStatsDaily || []}
+                                data={filteredData?.aiStatsDaily || []}
                                 config={chartConfigs[0]}
                             />
                         </GridItem>
                         <GridItem>
                             <StatsChart
                                 title={chartConfigs[1].title}
-                                data={stats?.aiStatsDaily || []}
+                                data={filteredData?.aiStatsDaily || []}
                                 config={chartConfigs[1]}
                             />
                         </GridItem>
                         <GridItem>
                             <StatsChart
                                 title={chartConfigs[2].title}
-                                data={stats?.lambdaStatsDaily || []}
+                                data={filteredData?.lambdaStatsDaily || []}
                                 config={chartConfigs[2]}
                             />
                         </GridItem>
                         <GridItem>
                             <StatsChart
                                 title={chartConfigs[3].title}
-                                data={stats?.lambdaStatsDaily || []}
+                                data={filteredData?.lambdaStatsDaily || []}
                                 config={chartConfigs[3]}
                             />
                         </GridItem>
