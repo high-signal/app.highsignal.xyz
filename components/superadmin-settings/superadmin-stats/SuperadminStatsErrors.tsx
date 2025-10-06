@@ -1,6 +1,6 @@
 "use client"
 
-import { Text, Spinner, VStack, HStack } from "@chakra-ui/react"
+import { Text, Spinner, VStack, HStack, useToken } from "@chakra-ui/react"
 
 import { useEffect, useState } from "react"
 import { usePrivy } from "@privy-io/react-auth"
@@ -49,22 +49,34 @@ export default function SuperadminStatsErrors() {
 
         return (
             <HStack
-                bg={"contentBackground"}
+                bg={isError ? "red.500" : "contentBackground"}
                 gap={3}
-                pl={3}
-                pr={isErrorStatsLoading ? 3 : 4}
+                pl={2}
+                pr={isError ? 3 : isErrorStatsLoading ? 3 : 3}
                 py={"2px"}
                 borderRadius={"16px"}
-                border={isError ? "5px solid" : "none"}
-                borderColor={isError ? "red.500" : "contentBorder"}
                 fontWeight={isError ? "bold" : "normal"}
-                color={isError ? "red.500" : "textColorMuted"}
+                color={isError ? "textColor" : "textColorMuted"}
             >
                 <Text>{label}:</Text>
-                {isErrorStatsLoading ? <Spinner size="xs" /> : <Text>{isError ? value : "-"}</Text>}
+                {isErrorStatsLoading ? (
+                    <Spinner size="xs" />
+                ) : (
+                    <Text bg={"contentBackground"} px={isError ? 2 : 0} borderRadius={"full"}>
+                        {isError ? value : "-"}
+                    </Text>
+                )}
             </HStack>
         )
     }
+
+    const isAnyError = errorStats && Object.values(errorStats).some((value) => value > 0)
+    const [red500] = useToken("colors", ["red.500"])
+    const contentBorder = useThemeColor("contentBorder")
+
+    console.log("red500", red500)
+    console.log("contentBorder", contentBorder)
+
     return (
         <VStack alignItems="start" w={"100%"} bg={"pageBackground"}>
             <HStack
@@ -78,8 +90,11 @@ export default function SuperadminStatsErrors() {
                 px={3}
                 borderRadius={{ base: "0px", sm: "16px" }}
                 border="2px solid"
-                borderX={{ base: "0px solid", sm: `2px solid ${useThemeColor("contentBorder")}` }}
-                borderColor="contentBorder"
+                borderX={{
+                    base: "0px solid",
+                    sm: `2px solid ${isAnyError ? red500 : contentBorder}`,
+                }}
+                borderColor={isAnyError ? red500 : contentBorder}
                 pt={{ base: 0, sm: "3px" }}
                 pb={{ base: 2, sm: "3px" }}
                 flexWrap={"wrap"}
@@ -91,11 +106,7 @@ export default function SuperadminStatsErrors() {
                         <Text
                             fontSize="lg"
                             fontWeight="bold"
-                            color={
-                                errorStats && Object.values(errorStats).some((value) => value > 0)
-                                    ? "red.500"
-                                    : "textColorMuted"
-                            }
+                            color={isAnyError ? "red.500" : "textColorMuted"}
                             ml={{ base: 1, sm: 0 }}
                         >
                             Errors
