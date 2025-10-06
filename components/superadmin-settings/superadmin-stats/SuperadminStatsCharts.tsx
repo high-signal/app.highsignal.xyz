@@ -84,7 +84,7 @@ const ChartTooltip = ({ payload, label }: { payload: any[]; label: string }) => 
             <Text fontWeight={"bold"} color={"textColorMuted"} w={"100%"}>
                 {label}
             </Text>
-            <VStack alignItems={"flex-start"} gap={1} pr={2} py={1}>
+            <VStack alignItems={"flex-start"} gap={0} pr={2} py={1}>
                 {payload.map((entry, index) => (
                     <HStack key={index} gap={2} alignItems={"center"}>
                         <Box w={"12px"} h={"12px"} bg={entry.color} borderRadius={"2px"} />
@@ -133,7 +133,7 @@ function StatsLineChart({ title, data, config }: StatsChartProps) {
                     <XAxis dataKey="day" />
                     <YAxis tickFormatter={config.formatYAxis} domain={getYAxisDomain()} />
                     <Line
-                        type="monotone"
+                        type="linear"
                         dataKey="user_count"
                         stroke={config.colors[0]}
                         strokeWidth={3}
