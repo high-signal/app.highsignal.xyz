@@ -101,7 +101,14 @@ export default function LandingContainer() {
             <HStack gap={8} flexWrap="wrap" justifyContent="center" maxW="100%">
                 {loading &&
                     [1, 2, 3, 4].map((item) => (
-                        <Skeleton defaultSkeleton key={item} w="400px" maxW="90vw" h={"244px"} borderRadius="16px" />
+                        <Skeleton
+                            defaultSkeleton
+                            key={item}
+                            w="400px"
+                            maxW="90vw"
+                            h={{ base: "305px", sm: "244px" }}
+                            borderRadius="16px"
+                        />
                     ))}
                 {!loading &&
                     projects &&
