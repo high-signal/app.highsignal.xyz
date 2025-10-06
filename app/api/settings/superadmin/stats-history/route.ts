@@ -5,15 +5,17 @@ import { createClient } from "@supabase/supabase-js"
 export async function GET() {
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-    const pastDays = 90
+    const pastDays = 360
 
     // Get the total number of users
-    const { count: totalUsers, error: usersError } = await supabase
-        .from("users")
-        .select("*", { count: "exact", head: true })
+    const { data: totalUsersDaily, error: totalUsersDailyError } = await supabase
+        .from("users_stats_daily")
+        .select("*")
+        .gte("day", new Date(Date.now() - pastDays * 24 * 60 * 60 * 1000).toISOString().split("T")[0]) // keep only YYYY-MM-DD
+        .order("day", { ascending: true })
 
-    if (usersError) {
-        const errorMessage = "Error fetching all users: " + (usersError.message || "Unknown error")
+    if (totalUsersDailyError) {
+        const errorMessage = "Error fetching total users daily: " + (totalUsersDailyError.message || "Unknown error")
         console.error(errorMessage)
         return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
     }
@@ -60,6 +62,8 @@ export async function GET() {
         status: "success",
         statusCode: 200,
         data: {
+            pastDays,
+            totalUsersDaily,
             lambdaStatsDaily,
             aiStatsDaily,
         },

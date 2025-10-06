@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { HStack, Spinner, Text, VStack, Box, Grid, GridItem, useToken, Flex } from "@chakra-ui/react"
 import { Slider } from "@chakra-ui/react"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBars } from "@fortawesome/free-solid-svg-icons"
 
@@ -16,9 +16,14 @@ interface ChartConfig {
     title: string
     dataKey: string
     colors: string[]
-    getCategories: (data: any[]) => string[]
+    getCategories?: (data: any[]) => string[]
     getData: (data: any[]) => any[]
     formatYAxis?: (value: number) => string
+}
+
+interface TotalUsersDaily {
+    day: string
+    total_users: number
 }
 
 interface LambdaStatsDaily {
@@ -37,6 +42,8 @@ interface AiStatsDaily {
 }
 
 interface StatsData {
+    pastDays: number
+    totalUsersDaily: TotalUsersDaily[]
     lambdaStatsDaily: LambdaStatsDaily[]
     aiStatsDaily: AiStatsDaily[]
 }
@@ -93,9 +100,57 @@ const ChartTooltip = ({ payload, label }: { payload: any[]; label: string }) => 
     )
 }
 
+function StatsLineChart({ title, data, config }: StatsChartProps) {
+    const chartData = config.getData(data)
+    const textColor = useThemeColor("textColor")
+
+    // Calculate Y-axis domain based on data range
+    const getYAxisDomain = () => {
+        if (!chartData || chartData.length === 0) return [0, 100]
+
+        const values = chartData.map((item) => item.user_count).filter((val) => val != null)
+        if (values.length === 0) return [0, 100]
+
+        const min = Math.min(...values)
+        const max = Math.max(...values)
+
+        return [min, max]
+    }
+
+    return (
+        <Box p={4} bg="contentBackground" borderRadius={{ base: "0px", sm: "16px" }}>
+            <Text fontSize="lg" fontWeight="semibold" mb={4} w="100%" textAlign="center">
+                {title}
+            </Text>
+            <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={chartData}>
+                    <Tooltip
+                        content={<ChartTooltip payload={[]} label={""} />}
+                        isAnimationActive={false}
+                        cursor={{
+                            stroke: textColor,
+                            strokeWidth: 1,
+                        }}
+                    />
+                    <XAxis dataKey="day" />
+                    <YAxis tickFormatter={config.formatYAxis} domain={getYAxisDomain()} />
+                    <Line
+                        type="monotone"
+                        dataKey="user_count"
+                        stroke={config.colors[0]}
+                        strokeWidth={3}
+                        dot={{ fill: config.colors[0], strokeWidth: 0, r: 0 }}
+                        activeDot={{ r: 6, stroke: config.colors[0], strokeWidth: 2 }}
+                    />
+                </LineChart>
+            </ResponsiveContainer>
+        </Box>
+    )
+}
+
 function StatsChart({ title, data, config }: StatsChartProps) {
     const chartData = config.getData(data)
-    const categories = config.getCategories(data)
+    const categories = config?.getCategories?.(data) || []
 
     const pageBackgroundColorHex = useThemeColor("pageBackground")
 
@@ -135,7 +190,12 @@ function StatsChart({ title, data, config }: StatsChartProps) {
 export default function SuperadminStatsCharts() {
     const { getAccessToken } = usePrivy()
 
-    const [stats, setStats] = useState<StatsData | null>(null)
+    const [stats, setStats] = useState<StatsData>({
+        pastDays: 0,
+        totalUsersDaily: [],
+        aiStatsDaily: [],
+        lambdaStatsDaily: [],
+    })
     const [isStatsLoading, setIsStatsLoading] = useState(true)
     const [statsError, setStatsError] = useState<string | null>(null)
 
@@ -159,21 +219,21 @@ export default function SuperadminStatsCharts() {
         const dates = []
         const today = new Date()
 
-        for (let i = 90; i >= 0; i--) {
+        for (let i = stats.pastDays; i >= 0; i--) {
             const date = new Date(today)
             date.setDate(today.getDate() - i)
             dates.push(date.toISOString().split("T")[0]) // Format as YYYY-MM-DD
         }
 
         return dates
-    }, [])
+    }, [stats])
 
     const sliderMax = getDateRange.length - 1
     const [sliderValues, setSliderValues] = useState([0, sliderMax])
 
-    // Initialize slider to show last 30 days by default
+    // Initialize slider to show last 90 days by default
     useEffect(() => {
-        const defaultRange = 30 // Show last 30 days by default
+        const defaultRange = 90
         const startIndex = Math.max(0, sliderMax - defaultRange)
         setSliderValues([startIndex, sliderMax])
     }, [sliderMax])
@@ -199,6 +259,7 @@ export default function SuperadminStatsCharts() {
         const endDay = getDateRange[sliderValues[1]]
 
         return {
+            totalUsersDaily: stats.totalUsersDaily.filter((item) => item.day >= startDay && item.day <= endDay),
             aiStatsDaily: stats.aiStatsDaily.filter((item) => item.day >= startDay && item.day <= endDay),
             lambdaStatsDaily: stats.lambdaStatsDaily.filter((item) => item.day >= startDay && item.day <= endDay),
         }
@@ -242,6 +303,12 @@ export default function SuperadminStatsCharts() {
 
     // Chart configurations
     const chartConfigs: ChartConfig[] = [
+        {
+            title: "Total Users",
+            dataKey: "user_count",
+            colors: aiColors,
+            getData: (data) => data,
+        },
         {
             title: "AI Stats - Invocation Count",
             dataKey: "record_count",
@@ -419,9 +486,16 @@ export default function SuperadminStatsCharts() {
 
                     <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={6} w={"100%"}>
                         <GridItem>
-                            <StatsChart
+                            <StatsLineChart
                                 title={chartConfigs[0].title}
-                                data={filteredData?.aiStatsDaily || []}
+                                data={filteredData?.totalUsersDaily || []}
+                                config={chartConfigs[0]}
+                            />
+                        </GridItem>
+                        <GridItem>
+                            <StatsLineChart
+                                title={chartConfigs[0].title}
+                                data={filteredData?.totalUsersDaily || []}
                                 config={chartConfigs[0]}
                             />
                         </GridItem>
@@ -435,7 +509,7 @@ export default function SuperadminStatsCharts() {
                         <GridItem>
                             <StatsChart
                                 title={chartConfigs[2].title}
-                                data={filteredData?.lambdaStatsDaily || []}
+                                data={filteredData?.aiStatsDaily || []}
                                 config={chartConfigs[2]}
                             />
                         </GridItem>
@@ -444,6 +518,13 @@ export default function SuperadminStatsCharts() {
                                 title={chartConfigs[3].title}
                                 data={filteredData?.lambdaStatsDaily || []}
                                 config={chartConfigs[3]}
+                            />
+                        </GridItem>
+                        <GridItem>
+                            <StatsChart
+                                title={chartConfigs[4].title}
+                                data={filteredData?.lambdaStatsDaily || []}
+                                config={chartConfigs[4]}
                             />
                         </GridItem>
                     </Grid>
