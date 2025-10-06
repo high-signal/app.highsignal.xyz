@@ -484,9 +484,11 @@ export default function SuperadminStatsCharts() {
                                             </Box>
                                             <Box
                                                 position="absolute"
-                                                top="-35px"
+                                                top="-37px"
                                                 left="50%"
                                                 transform="translateX(-50%)"
+                                                bg={"pageBackground"}
+                                                borderRadius={"full"}
                                                 px={2}
                                                 py={1}
                                                 fontSize="xs"
@@ -516,9 +518,11 @@ export default function SuperadminStatsCharts() {
                                             </Box>
                                             <Box
                                                 position="absolute"
-                                                top="-35px"
+                                                top="-37px"
                                                 left="50%"
                                                 transform="translateX(-50%)"
+                                                bg={"pageBackground"}
+                                                borderRadius={"full"}
                                                 px={2}
                                                 py={1}
                                                 fontSize="xs"
