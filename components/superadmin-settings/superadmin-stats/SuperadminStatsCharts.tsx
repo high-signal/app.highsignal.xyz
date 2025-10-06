@@ -184,6 +184,7 @@ function StatsChart({ title, data, config }: StatsChartProps) {
 
     const pageBackgroundColorHex = useThemeColor("pageBackground")
     const textColorMutedHex = useThemeColor("textColorMuted")
+    const contentBackgroundColorHex = useThemeColor("contentBackground")
 
     return (
         <Box p={4} bg="contentBackground" borderRadius={{ base: "0px", sm: "16px" }}>
@@ -214,9 +215,8 @@ function StatsChart({ title, data, config }: StatsChartProps) {
                         content={<ChartTooltip payload={[]} label={""} />}
                         isAnimationActive={false}
                         cursor={{
-                            fill: pageBackgroundColorHex,
+                            fill: contentBackgroundColorHex,
                             strokeWidth: 0,
-                            radius: [10, 10, 0, 0] as any,
                         }}
                     />
                     <XAxis dataKey="day" />
@@ -472,7 +472,7 @@ export default function SuperadminStatsCharts() {
                     <Text>Loading stats...</Text>
                 </HStack>
             ) : (
-                <VStack gap={8} w={"100%"}>
+                <VStack gap={4} w={"100%"}>
                     {/* Date Range Slider */}
                     {getDateRange.length > 1 && (
                         <DateRangeSlider

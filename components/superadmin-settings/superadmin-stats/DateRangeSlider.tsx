@@ -49,7 +49,7 @@ export default function DateRangeSlider({ onSliderCommit, initialValues, max, ge
     }
 
     return (
-        <Box width="100%" borderRadius={{ base: "0px", sm: "16px" }} pt={12} pb={3} px={{ base: 1, sm: 2 }}>
+        <Box width="100%" borderRadius={{ base: "0px", sm: "16px" }} pt={8} px={{ base: 1, sm: 0 }}>
             <Flex direction="row" justifyContent="center" alignItems="center" px={{ base: 4, sm: 0 }}>
                 <Slider.Root
                     value={sliderValues}

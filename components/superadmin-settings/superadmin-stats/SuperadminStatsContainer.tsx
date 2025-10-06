@@ -6,7 +6,7 @@ import SuperadminStatsCharts from "./SuperadminStatsCharts"
 
 export default function SuperadminStatsContainer() {
     return (
-        <SettingsSectionContainer maxWidth="100%">
+        <SettingsSectionContainer maxWidth="100%" gap={0}>
             <SuperadminStatsErrors />
             <SuperadminStatsCharts />
         </SettingsSectionContainer>
