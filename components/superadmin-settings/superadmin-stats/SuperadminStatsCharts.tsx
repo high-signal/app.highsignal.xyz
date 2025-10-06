@@ -301,13 +301,39 @@ export default function SuperadminStatsCharts() {
     const aiColors = [green500, teal500]
     const lambdaColors = [green500, teal500, pink500, gold500, purple500, red400, orange500]
 
+    // Create consistent date range for all charts
+    const createConsistentDateRange = (startDay: string, endDay: string) => {
+        const dates = []
+        const start = new Date(startDay)
+        const end = new Date(endDay)
+
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            dates.push(d.toISOString().split("T")[0])
+        }
+        return dates
+    }
+
     // Chart configurations
     const chartConfigs: ChartConfig[] = [
         {
             title: "Total Users",
             dataKey: "user_count",
             colors: aiColors,
-            getData: (data) => data,
+            getData: (data) => {
+                if (!filteredData) return []
+                const startDay = getDateRange[sliderValues[0]]
+                const endDay = getDateRange[sliderValues[1]]
+                const consistentDates = createConsistentDateRange(startDay, endDay)
+
+                // Create data with all dates, filling missing ones with 0
+                return consistentDates.map((date) => {
+                    const existingData = data.find((item) => item.day === date)
+                    return {
+                        day: date,
+                        user_count: existingData ? existingData.user_count : 0,
+                    }
+                })
+            },
         },
         {
             title: "AI Stats - Invocation Count",
@@ -315,14 +341,20 @@ export default function SuperadminStatsCharts() {
             colors: aiColors,
             getCategories: (data) => Array.from(new Set(data.map((item: AiStatsDaily) => item.score_type))),
             getData: (data) => {
-                const dayGroups: { [key: string]: any } = {}
-                data.forEach((item: AiStatsDaily) => {
-                    if (!dayGroups[item.day]) {
-                        dayGroups[item.day] = { day: item.day }
-                    }
-                    dayGroups[item.day][item.score_type] = item.record_count
+                if (!filteredData) return []
+                const startDay = getDateRange[sliderValues[0]]
+                const endDay = getDateRange[sliderValues[1]]
+                const consistentDates = createConsistentDateRange(startDay, endDay)
+                const categories = Array.from(new Set(data.map((item: AiStatsDaily) => item.score_type)))
+
+                return consistentDates.map((date) => {
+                    const dayData: { [key: string]: any } = { day: date }
+                    categories.forEach((category) => {
+                        const existingData = data.find((item) => item.day === date && item.score_type === category)
+                        dayData[category] = existingData ? existingData.record_count : 0
+                    })
+                    return dayData
                 })
-                return Object.values(dayGroups)
             },
         },
         {
@@ -332,14 +364,20 @@ export default function SuperadminStatsCharts() {
             formatYAxis: formatNumber,
             getCategories: (data) => Array.from(new Set(data.map((item: AiStatsDaily) => item.score_type))),
             getData: (data) => {
-                const dayGroups: { [key: string]: any } = {}
-                data.forEach((item: AiStatsDaily) => {
-                    if (!dayGroups[item.day]) {
-                        dayGroups[item.day] = { day: item.day }
-                    }
-                    dayGroups[item.day][item.score_type] = item.total_tokens
+                if (!filteredData) return []
+                const startDay = getDateRange[sliderValues[0]]
+                const endDay = getDateRange[sliderValues[1]]
+                const consistentDates = createConsistentDateRange(startDay, endDay)
+                const categories = Array.from(new Set(data.map((item: AiStatsDaily) => item.score_type)))
+
+                return consistentDates.map((date) => {
+                    const dayData: { [key: string]: any } = { day: date }
+                    categories.forEach((category) => {
+                        const existingData = data.find((item) => item.day === date && item.score_type === category)
+                        dayData[category] = existingData ? existingData.total_tokens : 0
+                    })
+                    return dayData
                 })
-                return Object.values(dayGroups)
             },
         },
         {
@@ -348,14 +386,20 @@ export default function SuperadminStatsCharts() {
             colors: lambdaColors,
             getCategories: (data) => Array.from(new Set(data.map((item: LambdaStatsDaily) => item.function_type))),
             getData: (data) => {
-                const dayGroups: { [key: string]: any } = {}
-                data.forEach((item: LambdaStatsDaily) => {
-                    if (!dayGroups[item.day]) {
-                        dayGroups[item.day] = { day: item.day }
-                    }
-                    dayGroups[item.day][item.function_type] = item.invocation_count
+                if (!filteredData) return []
+                const startDay = getDateRange[sliderValues[0]]
+                const endDay = getDateRange[sliderValues[1]]
+                const consistentDates = createConsistentDateRange(startDay, endDay)
+                const categories = Array.from(new Set(data.map((item: LambdaStatsDaily) => item.function_type)))
+
+                return consistentDates.map((date) => {
+                    const dayData: { [key: string]: any } = { day: date }
+                    categories.forEach((category) => {
+                        const existingData = data.find((item) => item.day === date && item.function_type === category)
+                        dayData[category] = existingData ? existingData.invocation_count : 0
+                    })
+                    return dayData
                 })
-                return Object.values(dayGroups)
             },
         },
         {
@@ -364,15 +408,23 @@ export default function SuperadminStatsCharts() {
             colors: lambdaColors,
             getCategories: (data) => Array.from(new Set(data.map((item: LambdaStatsDaily) => item.function_type))),
             getData: (data) => {
-                const dayGroups: { [key: string]: any } = {}
-                data.forEach((item: LambdaStatsDaily) => {
-                    if (!dayGroups[item.day]) {
-                        dayGroups[item.day] = { day: item.day }
-                    }
-                    // Convert milliseconds to seconds with 1 decimal place
-                    dayGroups[item.day][item.function_type] = Math.round((item.total_billed_duration / 1000) * 10) / 10
+                if (!filteredData) return []
+                const startDay = getDateRange[sliderValues[0]]
+                const endDay = getDateRange[sliderValues[1]]
+                const consistentDates = createConsistentDateRange(startDay, endDay)
+                const categories = Array.from(new Set(data.map((item: LambdaStatsDaily) => item.function_type)))
+
+                return consistentDates.map((date) => {
+                    const dayData: { [key: string]: any } = { day: date }
+                    categories.forEach((category) => {
+                        const existingData = data.find((item) => item.day === date && item.function_type === category)
+                        // Convert milliseconds to seconds with 1 decimal place
+                        dayData[category] = existingData
+                            ? Math.round((existingData.total_billed_duration / 1000) * 10) / 10
+                            : 0
+                    })
+                    return dayData
                 })
-                return Object.values(dayGroups)
             },
         },
     ]
