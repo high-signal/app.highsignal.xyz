@@ -325,13 +325,12 @@ export default function SuperadminStatsCharts() {
                     {getDateRange.length > 1 && (
                         <Box
                             width="100%"
-                            bg={contentBackground}
                             borderRadius={{ base: "0px", sm: "16px" }}
                             pt={12}
                             pb={3}
                             px={{ base: 1, sm: 2 }}
                         >
-                            <Flex direction="row" justifyContent="center" alignItems="center" px={8}>
+                            <Flex direction="row" justifyContent="center" alignItems="center" px={{ base: 4, sm: 0 }}>
                                 <Slider.Root
                                     value={sliderValues}
                                     min={0}
@@ -339,9 +338,13 @@ export default function SuperadminStatsCharts() {
                                     step={1}
                                     onValueChange={({ value }) => handleSliderChange(value)}
                                     width="100%"
+                                    bg={"contentBackground"}
+                                    py={2}
+                                    px={2}
+                                    borderRadius={"full"}
                                 >
-                                    <Slider.Control>
-                                        <Slider.Track bg={pageBackground} height="10px" borderRadius="5px">
+                                    <Slider.Control cursor="pointer">
+                                        <Slider.Track height="10px" borderRadius="5px" bg={"pageBackground"}>
                                             <Slider.Range bg={"teal.500"} />
                                         </Slider.Track>
                                         <Slider.Thumb
@@ -362,13 +365,11 @@ export default function SuperadminStatsCharts() {
                                             </Box>
                                             <Box
                                                 position="absolute"
-                                                top="-40px"
+                                                top="-35px"
                                                 left="50%"
                                                 transform="translateX(-50%)"
-                                                bg="pageBackground"
                                                 px={2}
                                                 py={1}
-                                                borderRadius="md"
                                                 fontSize="xs"
                                                 fontWeight="bold"
                                                 whiteSpace="nowrap"
@@ -396,13 +397,11 @@ export default function SuperadminStatsCharts() {
                                             </Box>
                                             <Box
                                                 position="absolute"
-                                                top="-40px"
+                                                top="-35px"
                                                 left="50%"
                                                 transform="translateX(-50%)"
-                                                bg="pageBackground"
                                                 px={2}
                                                 py={1}
-                                                borderRadius="md"
                                                 fontSize="xs"
                                                 fontWeight="bold"
                                                 whiteSpace="nowrap"

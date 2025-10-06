@@ -96,7 +96,6 @@ export default function SuperadminStatsErrors() {
                                     ? "red.500"
                                     : "textColorMuted"
                             }
-                            // color={"textColorMuted"}
                             ml={{ base: 1, sm: 0 }}
                         >
                             Errors
@@ -108,7 +107,6 @@ export default function SuperadminStatsErrors() {
                             <StatsRow
                                 label="Discord Request Queue Errors"
                                 value={errorStats?.discordRequestQueueErrors ?? 0}
-                                // value={0}
                             />
                         </HStack>
                     </>
