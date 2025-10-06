@@ -2,7 +2,18 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { HStack, Spinner, Text, VStack, Box, Grid, GridItem, useToken } from "@chakra-ui/react"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts"
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+    LineChart,
+    Line,
+    CartesianGrid,
+} from "recharts"
 
 import { useThemeColor } from "../../../utils/theme-utils/getThemeColor"
 
@@ -101,6 +112,8 @@ const ChartTooltip = ({ payload, label }: { payload: any[]; label: string }) => 
 function StatsLineChart({ title, data, config }: StatsChartProps) {
     const chartData = config.getData(data)
     const textColor = useThemeColor("textColor")
+    const textColorMutedHex = useThemeColor("textColorMuted")
+    const pageBackgroundColorHex = useThemeColor("pageBackground")
 
     // Calculate Y-axis domain based on data range
     const getYAxisDomain = () => {
@@ -117,11 +130,29 @@ function StatsLineChart({ title, data, config }: StatsChartProps) {
 
     return (
         <Box p={4} bg="contentBackground" borderRadius={{ base: "0px", sm: "16px" }}>
-            <Text fontSize="lg" fontWeight="semibold" mb={4} w="100%" textAlign="center">
+            <Text fontSize="lg" fontWeight="semibold" mb={0} w="100%" textAlign="center">
                 {title}
             </Text>
             <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
+                <LineChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                    <defs>
+                        <pattern id="graphPaperPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <rect
+                                width="20"
+                                height="20"
+                                fill="none"
+                                stroke={textColorMutedHex}
+                                strokeWidth="0.5"
+                                strokeOpacity="0.2"
+                            />
+                        </pattern>
+                    </defs>
+
+                    {/* Background color */}
+                    <CartesianGrid stroke="none" fill={pageBackgroundColorHex} fillOpacity={1} />
+
+                    {/* Graph paper pattern — clipped automatically */}
+                    <CartesianGrid stroke="none" fill="url(#graphPaperPattern)" fillOpacity={1} />
                     <Tooltip
                         content={<ChartTooltip payload={[]} label={""} />}
                         isAnimationActive={false}
@@ -152,14 +183,33 @@ function StatsChart({ title, data, config }: StatsChartProps) {
     const categories = config?.getCategories?.(data) || []
 
     const pageBackgroundColorHex = useThemeColor("pageBackground")
+    const textColorMutedHex = useThemeColor("textColorMuted")
 
     return (
         <Box p={4} bg="contentBackground" borderRadius={{ base: "0px", sm: "16px" }}>
-            <Text fontSize="lg" fontWeight="semibold" mb={4} w="100%" textAlign="center">
+            <Text fontSize="lg" fontWeight="semibold" mb={1} w="100%" textAlign="center">
                 {title}
             </Text>
             <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartData} maxBarSize={50} barCategoryGap="10%" barGap="2%">
+                    <defs>
+                        <pattern id="graphPaperPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <rect
+                                width="20"
+                                height="20"
+                                fill="none"
+                                stroke={textColorMutedHex}
+                                strokeWidth="0.5"
+                                strokeOpacity="0.2"
+                            />
+                        </pattern>
+                    </defs>
+
+                    {/* Background color */}
+                    <CartesianGrid stroke="none" fill={pageBackgroundColorHex} fillOpacity={1} />
+
+                    {/* Graph paper pattern — clipped automatically */}
+                    <CartesianGrid stroke="none" fill="url(#graphPaperPattern)" fillOpacity={1} />
                     <Tooltip
                         content={<ChartTooltip payload={[]} label={""} />}
                         isAnimationActive={false}
@@ -206,7 +256,7 @@ export default function SuperadminStatsCharts() {
         "pageBackground",
     ])
 
-    // Generate 90 days of dates (today back to 90 days ago)
+    // Generate pastDays days of dates (today back to pastDays days ago)
     const getDateRange = useMemo(() => {
         const dates = []
         const today = new Date()
