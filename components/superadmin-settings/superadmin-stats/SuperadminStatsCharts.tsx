@@ -32,7 +32,12 @@ interface ChartConfig {
 
 interface TotalUsersDaily {
     day: string
-    total_users: number
+    user_count: number
+}
+
+interface TotalProjectsDaily {
+    day: string
+    project_count: number
 }
 
 interface LambdaStatsDaily {
@@ -53,6 +58,7 @@ interface AiStatsDaily {
 interface StatsData {
     pastDays: number
     totalUsersDaily: TotalUsersDaily[]
+    totalProjectsDaily: TotalProjectsDaily[]
     lambdaStatsDaily: LambdaStatsDaily[]
     aiStatsDaily: AiStatsDaily[]
 }
@@ -119,11 +125,11 @@ function StatsLineChart({ title, data, config }: StatsChartProps) {
     const getYAxisDomain = () => {
         if (!chartData || chartData.length === 0) return [0, 100]
 
-        const values = chartData.map((item) => item.user_count).filter((val) => val != null)
+        const values = chartData.map((item) => item[config.dataKey]).filter((val) => val != null)
         if (values.length === 0) return [0, 100]
 
-        const min = Math.min(...values)
-        const max = Math.max(...values)
+        const min = Math.floor(Math.min(...values))
+        const max = Math.ceil(Math.max(...values))
 
         return [min, max]
     }
@@ -162,10 +168,13 @@ function StatsLineChart({ title, data, config }: StatsChartProps) {
                         }}
                     />
                     <XAxis dataKey="day" />
-                    <YAxis tickFormatter={config.formatYAxis} domain={getYAxisDomain()} />
+                    <YAxis
+                        tickFormatter={(value) => (Number.isInteger(value) ? value.toString() : "")}
+                        domain={getYAxisDomain()}
+                    />
                     <Line
                         type="linear"
-                        dataKey="user_count"
+                        dataKey={config.dataKey}
                         stroke={config.colors[0]}
                         strokeWidth={3}
                         dot={{ fill: config.colors[0], strokeWidth: 0, r: 0 }}
@@ -243,6 +252,7 @@ export default function SuperadminStatsCharts() {
     const [stats, setStats] = useState<StatsData>({
         pastDays: 0,
         totalUsersDaily: [],
+        totalProjectsDaily: [],
         aiStatsDaily: [],
         lambdaStatsDaily: [],
     })
@@ -293,6 +303,7 @@ export default function SuperadminStatsCharts() {
 
         return {
             totalUsersDaily: stats.totalUsersDaily.filter((item) => item.day >= startDay && item.day <= endDay),
+            totalProjectsDaily: stats.totalProjectsDaily.filter((item) => item.day >= startDay && item.day <= endDay),
             aiStatsDaily: stats.aiStatsDaily.filter((item) => item.day >= startDay && item.day <= endDay),
             lambdaStatsDaily: stats.lambdaStatsDaily.filter((item) => item.day >= startDay && item.day <= endDay),
         }
@@ -364,6 +375,26 @@ export default function SuperadminStatsCharts() {
                     return {
                         day: date,
                         user_count: existingData ? existingData.user_count : 0,
+                    }
+                })
+            },
+        },
+        {
+            title: "Total Projects",
+            dataKey: "project_count",
+            colors: aiColors,
+            getData: (data) => {
+                if (!filteredData) return []
+                const startDay = getDateRange[chartSliderValues[0]]
+                const endDay = getDateRange[chartSliderValues[1]]
+                const consistentDates = createConsistentDateRange(startDay, endDay)
+
+                // Create data with all dates, filling missing ones with 0
+                return consistentDates.map((date) => {
+                    const existingData = data.find((item) => item.day === date)
+                    return {
+                        day: date,
+                        project_count: existingData ? existingData.project_count : 0,
                     }
                 })
             },
@@ -493,15 +524,8 @@ export default function SuperadminStatsCharts() {
                         </GridItem>
                         <GridItem>
                             <StatsLineChart
-                                title={chartConfigs[0].title}
-                                data={filteredData?.totalUsersDaily || []}
-                                config={chartConfigs[0]}
-                            />
-                        </GridItem>
-                        <GridItem>
-                            <StatsChart
                                 title={chartConfigs[1].title}
-                                data={filteredData?.aiStatsDaily || []}
+                                data={filteredData?.totalProjectsDaily || []}
                                 config={chartConfigs[1]}
                             />
                         </GridItem>
@@ -515,7 +539,7 @@ export default function SuperadminStatsCharts() {
                         <GridItem>
                             <StatsChart
                                 title={chartConfigs[3].title}
-                                data={filteredData?.lambdaStatsDaily || []}
+                                data={filteredData?.aiStatsDaily || []}
                                 config={chartConfigs[3]}
                             />
                         </GridItem>
@@ -524,6 +548,13 @@ export default function SuperadminStatsCharts() {
                                 title={chartConfigs[4].title}
                                 data={filteredData?.lambdaStatsDaily || []}
                                 config={chartConfigs[4]}
+                            />
+                        </GridItem>
+                        <GridItem>
+                            <StatsChart
+                                title={chartConfigs[5].title}
+                                data={filteredData?.lambdaStatsDaily || []}
+                                config={chartConfigs[5]}
                             />
                         </GridItem>
                     </Grid>

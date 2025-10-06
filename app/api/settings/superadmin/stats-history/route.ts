@@ -20,14 +20,16 @@ export async function GET() {
         return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
     }
 
-    // Get total number of active users
-    const { count: activeUsers, error: activeUsersError } = await supabase
-        .from("user_project_scores")
-        .select("*", { count: "exact", head: true })
-        .gt("total_score", 0)
+    // Get the total number of users
+    const { data: totalProjectsDaily, error: totalProjectsDailyError } = await supabase
+        .from("projects_stats_daily")
+        .select("*")
+        .gte("day", new Date(Date.now() - pastDays * 24 * 60 * 60 * 1000).toISOString().split("T")[0]) // keep only YYYY-MM-DD
+        .order("day", { ascending: true })
 
-    if (activeUsersError) {
-        const errorMessage = "Error fetching active users: " + (activeUsersError.message || "Unknown error")
+    if (totalProjectsDailyError) {
+        const errorMessage =
+            "Error fetching total projects daily: " + (totalProjectsDailyError.message || "Unknown error")
         console.error(errorMessage)
         return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
     }
@@ -64,6 +66,7 @@ export async function GET() {
         data: {
             pastDays,
             totalUsersDaily,
+            totalProjectsDaily,
             lambdaStatsDaily,
             aiStatsDaily,
         },

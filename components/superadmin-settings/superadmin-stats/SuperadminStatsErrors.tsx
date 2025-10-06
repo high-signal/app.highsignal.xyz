@@ -74,9 +74,6 @@ export default function SuperadminStatsErrors() {
     const [red500] = useToken("colors", ["red.500"])
     const contentBorder = useThemeColor("contentBorder")
 
-    console.log("red500", red500)
-    console.log("contentBorder", contentBorder)
-
     return (
         <VStack alignItems="start" w={"100%"} bg={"pageBackground"}>
             <HStack
