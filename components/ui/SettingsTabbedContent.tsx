@@ -49,7 +49,7 @@ export default function SettingsTabbedContent({
     return (
         <>
             {title && (
-                <Text fontSize="3xl" fontWeight="bold" pt={5} px={3} textAlign="center">
+                <Text fontSize="3xl" fontWeight="bold" pt={2} px={3} textAlign="center">
                     {title}
                 </Text>
             )}

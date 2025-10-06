@@ -5,29 +5,6 @@ import { createClient } from "@supabase/supabase-js"
 export async function GET() {
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-    // Get the total number of users
-    const { count: totalUsers, error: usersError } = await supabase
-        .from("users")
-        .select("*", { count: "exact", head: true })
-
-    if (usersError) {
-        const errorMessage = "Error fetching all users: " + (usersError.message || "Unknown error")
-        console.error(errorMessage)
-        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
-    }
-
-    // Get total number of active users
-    const { count: activeUsers, error: activeUsersError } = await supabase
-        .from("user_project_scores")
-        .select("*", { count: "exact", head: true })
-        .gt("total_score", 0)
-
-    if (activeUsersError) {
-        const errorMessage = "Error fetching active users: " + (activeUsersError.message || "Unknown error")
-        console.error(errorMessage)
-        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
-    }
-
     // Get missing days
     const { count: missingDays, error: missingDaysError } = await supabase
         .from("user_signal_strengths_missing_ranges")
@@ -83,8 +60,6 @@ export async function GET() {
         status: "success",
         statusCode: 200,
         data: {
-            totalUsers,
-            activeUsers,
             missingDays,
             aiRawScoreErrors,
             lastCheckedNotNull,
