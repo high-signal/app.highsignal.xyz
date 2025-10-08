@@ -403,13 +403,16 @@ export default function SuperadminStatsCharts() {
             title: "AI Stats - Invocation Count",
             dataKey: "record_count",
             colors: aiColors,
-            getCategories: (data) => Array.from(new Set(data.map((item: AiStatsDaily) => item.score_type))),
+            getCategories: (data) =>
+                Array.from(new Set(stats.aiStatsDaily.map((item: AiStatsDaily) => item.score_type))).sort(),
             getData: (data) => {
                 if (!filteredData) return []
                 const startDay = getDateRange[chartSliderValues[0]]
                 const endDay = getDateRange[chartSliderValues[1]]
                 const consistentDates = createConsistentDateRange(startDay, endDay)
-                const categories = Array.from(new Set(data.map((item: AiStatsDaily) => item.score_type)))
+                const categories = Array.from(
+                    new Set(stats.aiStatsDaily.map((item: AiStatsDaily) => item.score_type)),
+                ).sort()
 
                 return consistentDates.map((date) => {
                     const dayData: { [key: string]: any } = { day: date }
@@ -426,13 +429,16 @@ export default function SuperadminStatsCharts() {
             dataKey: "total_tokens",
             colors: aiColors,
             formatYAxis: formatNumber,
-            getCategories: (data) => Array.from(new Set(data.map((item: AiStatsDaily) => item.score_type))),
+            getCategories: (data) =>
+                Array.from(new Set(stats.aiStatsDaily.map((item: AiStatsDaily) => item.score_type))).sort(),
             getData: (data) => {
                 if (!filteredData) return []
                 const startDay = getDateRange[chartSliderValues[0]]
                 const endDay = getDateRange[chartSliderValues[1]]
                 const consistentDates = createConsistentDateRange(startDay, endDay)
-                const categories = Array.from(new Set(data.map((item: AiStatsDaily) => item.score_type)))
+                const categories = Array.from(
+                    new Set(stats.aiStatsDaily.map((item: AiStatsDaily) => item.score_type)),
+                ).sort()
 
                 return consistentDates.map((date) => {
                     const dayData: { [key: string]: any } = { day: date }
@@ -448,13 +454,16 @@ export default function SuperadminStatsCharts() {
             title: "Lambda Stats - Invocation Count",
             dataKey: "invocation_count",
             colors: lambdaColors,
-            getCategories: (data) => Array.from(new Set(data.map((item: LambdaStatsDaily) => item.function_type))),
+            getCategories: (data) =>
+                Array.from(new Set(stats.lambdaStatsDaily.map((item: LambdaStatsDaily) => item.function_type))).sort(),
             getData: (data) => {
                 if (!filteredData) return []
                 const startDay = getDateRange[chartSliderValues[0]]
                 const endDay = getDateRange[chartSliderValues[1]]
                 const consistentDates = createConsistentDateRange(startDay, endDay)
-                const categories = Array.from(new Set(data.map((item: LambdaStatsDaily) => item.function_type)))
+                const categories = Array.from(
+                    new Set(stats.lambdaStatsDaily.map((item: LambdaStatsDaily) => item.function_type)),
+                ).sort()
 
                 return consistentDates.map((date) => {
                     const dayData: { [key: string]: any } = { day: date }
@@ -470,13 +479,16 @@ export default function SuperadminStatsCharts() {
             title: "Lambda Stats - Total Billed Duration (seconds)",
             dataKey: "total_billed_duration",
             colors: lambdaColors,
-            getCategories: (data) => Array.from(new Set(data.map((item: LambdaStatsDaily) => item.function_type))),
+            getCategories: (data) =>
+                Array.from(new Set(stats.lambdaStatsDaily.map((item: LambdaStatsDaily) => item.function_type))).sort(),
             getData: (data) => {
                 if (!filteredData) return []
                 const startDay = getDateRange[chartSliderValues[0]]
                 const endDay = getDateRange[chartSliderValues[1]]
                 const consistentDates = createConsistentDateRange(startDay, endDay)
-                const categories = Array.from(new Set(data.map((item: LambdaStatsDaily) => item.function_type)))
+                const categories = Array.from(
+                    new Set(stats.lambdaStatsDaily.map((item: LambdaStatsDaily) => item.function_type)),
+                ).sort()
 
                 return consistentDates.map((date) => {
                     const dayData: { [key: string]: any } = { day: date }
