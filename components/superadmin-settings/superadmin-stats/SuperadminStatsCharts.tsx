@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { HStack, Spinner, Text, VStack, Box, Grid, GridItem, useToken } from "@chakra-ui/react"
+import { HStack, Spinner, Text, VStack, Box, Grid, GridItem, useToken, Button } from "@chakra-ui/react"
 import {
     BarChart,
     Bar,
@@ -519,7 +519,28 @@ export default function SuperadminStatsCharts() {
                             getDateRange={getDateRange}
                         />
                     )}
-
+                    {/* Date Range Buttons */}
+                    <HStack gap={2} flexWrap="wrap" px={2} justifyContent="center">
+                        {[
+                            { label: "Past 365 days", range: 360 },
+                            { label: "Past 180 days", range: 180 },
+                            { label: "Past 90 days", range: 90 },
+                            { label: "Past 30 days", range: 30 },
+                            { label: "Past 7 days", range: 7 },
+                            { label: "Past 3 days", range: 2 },
+                        ].map(({ label, range }) => (
+                            <Button
+                                key={label}
+                                secondaryButton
+                                borderRadius="full"
+                                px={2}
+                                py={1}
+                                onClick={() => setChartSliderValues([sliderMax - range, sliderMax])}
+                            >
+                                {label}
+                            </Button>
+                        ))}
+                    </HStack>
                     <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={6} w={"100%"}>
                         <GridItem>
                             <StatsLineChart
