@@ -151,6 +151,7 @@ async function runDiscordGovernor() {
         // Process each project
         // =====================
         for (const project of shuffledProjects) {
+            let invokedCounterForProject = 0
             try {
                 console.log("")
                 console.log("================================")
@@ -262,6 +263,7 @@ async function runDiscordGovernor() {
                             if (updatedQueueItem && updatedQueueItem.length > 0) {
                                 await handleTriggerDiscordQueueItem({ queueItemId: currentQueueItem[0].id })
                                 invokedCounter++
+                                invokedCounterForProject++
                             }
                             continue
                         } else {
@@ -281,6 +283,7 @@ async function runDiscordGovernor() {
                         )
                         await handleTriggerDiscordQueueItem({ queueItemId: currentQueueItem[0].id })
                         invokedCounter++
+                        invokedCounterForProject++
                         continue
                     }
 
@@ -452,6 +455,7 @@ async function runDiscordGovernor() {
                     console.log(`🏁 Triggering new queue item: ${queueItemId}`)
                     await handleTriggerDiscordQueueItem({ queueItemId })
                     invokedCounter++
+                    invokedCounterForProject++
 
                     // Calculate the new queue length.
                     if (availableSpace <= invokedCounter >= MAX_QUEUE_LENGTH) {
@@ -459,6 +463,9 @@ async function runDiscordGovernor() {
                         return
                     }
                 }
+                console.log(
+                    `Invoked ${invokedCounterForProject} Discord queue items for project: ${project.projects.display_name} (${project.projects.url_slug}).`,
+                )
             } catch (error) {
                 console.error("Error in runDiscordGovernor for project:", project.projects.display_name, error)
                 continue
