@@ -193,6 +193,58 @@ async function runDiscordGovernor() {
                 // Useful in case of ratel-imit issues that only allow the first X channels to be processed.
                 const shuffledChannels = [...accessibleChannels].sort(() => Math.random() - 0.5)
 
+                // =========================================================
+                // Fetch ALL queue items for this guild at once (batching)
+                // =========================================================
+                const now = new Date()
+                const previousDays = project.previous_days
+                const oldestTimestampLimit = new Date(now)
+                oldestTimestampLimit.setDate(oldestTimestampLimit.getDate() - previousDays)
+
+                // Fetch all queue items with pagination
+                let allQueueItems = []
+                let pageSize = 1000
+                let currentPage = 0
+                let hasMoreResults = true
+
+                while (hasMoreResults) {
+                    const from = currentPage * pageSize
+                    const to = from + pageSize - 1
+
+                    const { data: pageData, error: pageError } = await supabase
+                        .from("discord_request_queue")
+                        .select("*")
+                        .eq("guild_id", guildId)
+                        .gte("newest_message_timestamp", oldestTimestampLimit.toISOString())
+                        .range(from, to)
+
+                    if (pageError) {
+                        console.error("Error fetching queue items for guild:", pageError)
+                        throw pageError
+                    }
+
+                    if (pageData && pageData.length > 0) {
+                        allQueueItems = allQueueItems.concat(pageData)
+                        currentPage++
+
+                        // If we got fewer results than the page size, we have reached the end
+                        if (pageData.length < pageSize) {
+                            hasMoreResults = false
+                        }
+                    } else {
+                        hasMoreResults = false
+                    }
+                }
+
+                // Group queue items by channel_id for fast lookup
+                const queueItemsByChannel = {}
+                allQueueItems.forEach((item) => {
+                    if (!queueItemsByChannel[item.channel_id]) {
+                        queueItemsByChannel[item.channel_id] = []
+                    }
+                    queueItemsByChannel[item.channel_id].push(item)
+                })
+
                 // ====================================================
                 // For each channel, check queue and trigger if needed
                 // ====================================================
@@ -206,19 +258,9 @@ async function runDiscordGovernor() {
                         )
                     }
 
-                    // Look in the queue for any current items for this channel that are not completed.
-                    const { data: currentQueueItem, error: currentQueueItemError } = await supabase
-                        .from("discord_request_queue")
-                        .select("*")
-                        .eq("guild_id", guildId)
-                        .eq("channel_id", channelId)
-                        .neq("status", "completed")
-                        .limit(1)
-
-                    if (currentQueueItemError) {
-                        console.error("Error fetching current queue item:", currentQueueItemError)
-                        throw currentQueueItemError
-                    }
+                    // Look in the cached queue items for any current items for this channel that are not completed.
+                    const channelQueueItems = queueItemsByChannel[channelId] || []
+                    const currentQueueItem = channelQueueItems.filter((item) => item.status !== "completed")
 
                     if (currentQueueItem?.length > 0) {
                         console.log("⏳ Processing queue item ID: ", currentQueueItem[0].id)
@@ -292,58 +334,18 @@ async function runDiscordGovernor() {
                     // Then we might need to add one if there is a gap in the data.
 
                     // Calculate the time period for the current sync.
-                    const now = new Date()
-                    const previousDays = project.previous_days
                     let newestTimestamp = now
                     let newestMessageId = null
-
-                    // Calculate the oldest timestamp limit based on previousDays.
-                    const oldestTimestampLimit = new Date(now)
-                    oldestTimestampLimit.setDate(oldestTimestampLimit.getDate() - previousDays)
 
                     // Initialize variables to track the absolute oldest message in the queue.
                     let absoluteOldestTimestampAlreadyInQueue
                     let absoluteOldestMessageIdAlreadyInQueue
 
-                    // Fetch any existing queue items within the time range.
-                    // Using pagination to ensure we get all results.
-                    let existingQueueItems = []
-                    let pageSize = 1000
-                    let currentPage = 0
-                    let hasMoreResults = true
-
-                    while (hasMoreResults) {
-                        const from = currentPage * pageSize
-                        const to = from + pageSize - 1
-
-                        const { data: pageData, error: pageError } = await supabase
-                            .from("discord_request_queue")
-                            .select(
-                                "id, oldest_message_timestamp, oldest_message_id, newest_message_timestamp, newest_message_id",
-                            )
-                            .eq("guild_id", guildId)
-                            .eq("channel_id", channelId)
-                            .gte("newest_message_timestamp", oldestTimestampLimit.toISOString())
-                            .order("newest_message_timestamp", { ascending: false })
-                            .range(from, to)
-
-                        if (pageError) {
-                            console.error("Error fetching existing queue items:", pageError)
-                            throw pageError
-                        }
-
-                        if (pageData && pageData.length > 0) {
-                            existingQueueItems = existingQueueItems.concat(pageData)
-                            currentPage++
-
-                            // If we got fewer results than the page size, we have reached the end
-                            if (pageData.length < pageSize) {
-                                hasMoreResults = false
-                            }
-                        } else {
-                            hasMoreResults = false
-                        }
-                    }
+                    // Use the cached queue items for this channel that are within the time range.
+                    // Sort by newest_message_timestamp descending (newest first)
+                    const existingQueueItems = channelQueueItems
+                        .filter((item) => new Date(item.newest_message_timestamp) >= oldestTimestampLimit)
+                        .sort((a, b) => new Date(b.newest_message_timestamp) - new Date(a.newest_message_timestamp))
 
                     // ==========================================
                     // Determine the starting point for the sync
