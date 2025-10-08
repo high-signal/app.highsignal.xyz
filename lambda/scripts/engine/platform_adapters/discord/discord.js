@@ -55,7 +55,6 @@ async function getDailyActivityData({
             .eq("guild_id", guildId)
             .gte("created_timestamp", activityRangeOldest.toISOString())
             .lte("created_timestamp", activityRangeNewest.toISOString())
-            .filter("char_length(content)", "gte", 9) // TODO: Remove this filter once we have a way to handle messages with less than 9 characters by not passing them to the AI and giving a fixed score.
             .order("created_timestamp", { ascending: false })
             .range(from, to)
 
@@ -76,6 +75,10 @@ async function getDailyActivityData({
             hasMoreResults = false
         }
     }
+
+    // TODO: Remove this filter once we have a way to handle messages with less
+    // than 9 characters by not passing them to the AI and giving a fixed score.
+    activityData = activityData.filter((activity) => activity.content.length >= 9)
 
     console.log(
         `🗓️ Processed ${activityData?.length || 0} activities for ${userDisplayName} (Discord username: ${discordUsername})`,
