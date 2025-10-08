@@ -432,6 +432,74 @@ async function runDiscordGovernor() {
                                 `✅ Queue items already cover ${previousDays} previous days. Oldest message in DB from date ${absoluteOldestTimestampAlreadyInQueue.toISOString().split("T")[0]} (${daysBetweenNowAndAbsoluteOldestTimestamp} days ago). No sync needed.`,
                             )
                         }
+
+                        // =====================================================
+                        // Consolidate completed queue items to prevent growth
+                        // =====================================================
+                        // Since we know there are no gaps, merge all completed items into one
+                        const completedItems = existingQueueItems.filter((item) => item.status === "completed")
+
+                        if (completedItems.length >= 2) {
+                            // Find the oldest message (the tail of our sync)
+                            let oldestItem = completedItems[0]
+                            for (const item of completedItems) {
+                                if (
+                                    !item.oldest_message_id ||
+                                    new Date(item.oldest_message_timestamp) <
+                                        new Date(oldestItem.oldest_message_timestamp)
+                                ) {
+                                    oldestItem = item
+                                }
+                            }
+
+                            // Find the newest message (the head of our sync)
+                            let newestItem = completedItems[0]
+                            for (const item of completedItems) {
+                                if (
+                                    new Date(item.newest_message_timestamp) >
+                                    new Date(newestItem.newest_message_timestamp)
+                                ) {
+                                    newestItem = item
+                                }
+                            }
+
+                            // Create consolidated item
+                            const consolidatedItem = {
+                                guild_id: guildId,
+                                channel_id: channelId,
+                                status: "completed",
+                                newest_message_timestamp: newestItem.newest_message_timestamp,
+                                newest_message_id: newestItem.newest_message_id,
+                                oldest_message_timestamp: oldestItem.oldest_message_timestamp,
+                                oldest_message_id: oldestItem.oldest_message_id,
+                                attempts: 0,
+                            }
+
+                            console.log(
+                                `🔄 Consolidating ${completedItems.length} completed queue items into 1 for channel ${channelId}`,
+                            )
+
+                            // Insert consolidated item first
+                            const { error: insertError } = await supabase
+                                .from("discord_request_queue")
+                                .insert(consolidatedItem)
+
+                            if (insertError) {
+                                console.error("Error inserting consolidated queue item:", insertError)
+                            } else {
+                                // Only delete old items if insert succeeded
+                                const itemIdsToDelete = completedItems.map((item) => item.id)
+                                const { error: deleteError } = await supabase
+                                    .from("discord_request_queue")
+                                    .delete()
+                                    .in("id", itemIdsToDelete)
+
+                                if (deleteError) {
+                                    console.error("Error deleting old queue items during consolidation:", deleteError)
+                                }
+                            }
+                        }
+
                         continue
                     }
 
