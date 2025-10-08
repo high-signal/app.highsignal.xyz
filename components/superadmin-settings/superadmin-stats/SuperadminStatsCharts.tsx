@@ -467,7 +467,7 @@ export default function SuperadminStatsCharts() {
             },
         },
         {
-            title: "Lambda Stats - Total Billed Duration",
+            title: "Lambda Stats - Total Billed Duration (seconds)",
             dataKey: "total_billed_duration",
             colors: lambdaColors,
             getCategories: (data) => Array.from(new Set(data.map((item: LambdaStatsDaily) => item.function_type))),
@@ -482,10 +482,16 @@ export default function SuperadminStatsCharts() {
                     const dayData: { [key: string]: any } = { day: date }
                     categories.forEach((category) => {
                         const existingData = data.find((item) => item.day === date && item.function_type === category)
-                        // Convert milliseconds to seconds with 1 decimal place
-                        dayData[category] = existingData
-                            ? Math.round((existingData.total_billed_duration / 1000) * 10) / 10
-                            : 0
+                        // Convert milliseconds to seconds with conditional decimal places
+                        if (existingData) {
+                            const valueInSeconds = existingData.total_billed_duration / 1000
+                            dayData[category] =
+                                valueInSeconds < 10
+                                    ? Math.round(valueInSeconds * 10) / 10 // 1 decimal for single-digit numbers
+                                    : Math.round(valueInSeconds) // No decimals for 10+
+                        } else {
+                            dayData[category] = 0
+                        }
                     })
                     return dayData
                 })
