@@ -10,7 +10,7 @@ const { storeStatsInDb } = require("../../utils/storeStatsInDb")
 // ==========
 // Constants
 // ==========
-const { MAX_QUEUE_LENGTH, TIMEOUT_SECONDS, MAX_ATTEMPTS, HEAD_GAP_MINUTES } = require("./constants")
+const { MAX_QUEUE_LENGTH, TIMEOUT_SECONDS, MAX_ATTEMPTS } = require("./constants")
 
 // =================
 // Run the governor
@@ -304,17 +304,43 @@ async function runDiscordGovernor() {
                     let absoluteOldestMessageIdAlreadyInQueue
 
                     // Fetch any existing queue items within the time range.
-                    const { data: existingQueueItems, error: existingQueueError } = await supabase
-                        .from("discord_request_queue")
-                        .select("id, oldest_message_timestamp, oldest_message_id, newest_message_timestamp")
-                        .eq("guild_id", guildId)
-                        .eq("channel_id", channelId)
-                        .gte("newest_message_timestamp", oldestTimestampLimit.toISOString())
-                        .order("newest_message_timestamp", { ascending: false })
+                    // Using pagination to ensure we get all results.
+                    let existingQueueItems = []
+                    let pageSize = 1000
+                    let currentPage = 0
+                    let hasMoreResults = true
 
-                    if (existingQueueError) {
-                        console.error("Error fetching existing queue items:", existingQueueError)
-                        throw existingQueueError
+                    while (hasMoreResults) {
+                        const from = currentPage * pageSize
+                        const to = from + pageSize - 1
+
+                        const { data: pageData, error: pageError } = await supabase
+                            .from("discord_request_queue")
+                            .select(
+                                "id, oldest_message_timestamp, oldest_message_id, newest_message_timestamp, newest_message_id",
+                            )
+                            .eq("guild_id", guildId)
+                            .eq("channel_id", channelId)
+                            .gte("newest_message_timestamp", oldestTimestampLimit.toISOString())
+                            .order("newest_message_timestamp", { ascending: false })
+                            .range(from, to)
+
+                        if (pageError) {
+                            console.error("Error fetching existing queue items:", pageError)
+                            throw pageError
+                        }
+
+                        if (pageData && pageData.length > 0) {
+                            existingQueueItems = existingQueueItems.concat(pageData)
+                            currentPage++
+
+                            // If we got fewer results than the page size, we have reached the end
+                            if (pageData.length < pageSize) {
+                                hasMoreResults = false
+                            }
+                        } else {
+                            hasMoreResults = false
+                        }
                     }
 
                     // ==========================================
@@ -328,15 +354,10 @@ async function runDiscordGovernor() {
                     }
 
                     // Look for a head gap.
-                    // A head gap is when it has been longer than HEAD_GAP_MINUTES since the newest_message_timestamp.
                     let headGapFound = false
                     if (existingQueueItems.length > 0) {
-                        // Check if there is a gap between the newest_message_timestamp and the current time.
-                        // Note: newest_message_timestamp is set to "now" when it runs a head sync, so that is
-                        // what it compares to wait for the HEAD_GAP_MINUTES.
-                        const newestMessageTimestamp = new Date(existingQueueItems[0].newest_message_timestamp)
-                        const timeSinceNewestMessage = now.getTime() - newestMessageTimestamp.getTime()
-                        if (timeSinceNewestMessage > HEAD_GAP_MINUTES * 60 * 1000) {
+                        // Check if there is a gap between the newest_message_id and the last_message_id in the channel.
+                        if (existingQueueItems[0].newest_message_id !== channel.last_message_id) {
                             console.log(`📣 Head gap found. Processing newest messages.`)
                             headGapFound = true
                             // Do nothing here as it will be processed like a new head sync
