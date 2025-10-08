@@ -153,7 +153,6 @@ async function runDiscordGovernor() {
         for (const project of shuffledProjects) {
             let invokedCounterForProject = 0
             try {
-                console.log("")
                 console.log("================================")
                 console.log(
                     `⏳ Processing project: ${project.projects.display_name} (${project.projects.url_slug}) with Discord URL: ${project.url}`,
@@ -476,7 +475,6 @@ async function runDiscordGovernor() {
         }
 
         console.log("--------------------------------")
-        console.log("")
         console.log("🎉 Finished triggering Discord queue items. Discord governor complete.")
     } catch (error) {
         console.error("Error in runDiscordGovernor:", error)

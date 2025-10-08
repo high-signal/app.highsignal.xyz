@@ -93,7 +93,6 @@ async function runDiscordQueueItem({ queueItemId }) {
             let oldestMessageTimestamp = null
 
             let totalMessagesProcessed = 0
-            let totalMessagesSkipped = 0
             let totalMessagesStored = 0
             let totalMessagesAlreadyStored = 0
 
@@ -111,7 +110,6 @@ async function runDiscordQueueItem({ queueItemId }) {
                 console.log(`|  📬 Messages fetched: ${messages.length || 0}`)
                 totalMessagesProcessed += messages.length || 0
 
-                let messagesSkipped = 0
                 let messagesStored = 0
                 let messagesAlreadyStored = 0
 
@@ -216,7 +214,6 @@ async function runDiscordQueueItem({ queueItemId }) {
                             }
                         })
 
-                        console.log(`|  🧮 Messages skipped: ${messagesSkipped}`)
                         console.log(`|  🧮 Messages stored: ${messagesStored}`)
                         console.log(`|  🧮 Messages already stored: ${messagesAlreadyStored}`)
                     } else {
@@ -230,7 +227,6 @@ async function runDiscordQueueItem({ queueItemId }) {
             }
 
             console.log(`🧮 Total messages processed: ${totalMessagesProcessed}`)
-            console.log(`🧮 Total messages skipped: ${totalMessagesSkipped}`)
             console.log(`🧮 Total messages stored: ${totalMessagesStored}`)
             console.log(`🧮 Total messages already stored: ${totalMessagesAlreadyStored}`)
 
