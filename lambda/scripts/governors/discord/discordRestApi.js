@@ -94,9 +94,19 @@ class DiscordRestApi {
 
         if (!response.ok) {
             const errorText = await response.text()
-            throw new Error(
-                `Discord API error for URL ${url}: ${response.status} ${response.statusText} - ${errorText}`,
-            )
+            // For an edge case where the bot could previously see and access a channel
+            // then that access was removed, the channel will still appear in the list,
+            // and will not be filtered out, but will return a 403 error when trying to access it.
+            // Note: If in future access is granted again, the messages will only sync from when
+            // access was granted again.
+            if (response.status === 403) {
+                console.error(`❌ Edge case: 403 error for URL ${url} - Channel access was removed.`)
+                return []
+            } else {
+                throw new Error(
+                    `Discord API error for URL ${url}: ${response.status} ${response.statusText} - ${errorText}`,
+                )
+            }
         }
 
         return await response.json()
