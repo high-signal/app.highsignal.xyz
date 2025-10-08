@@ -466,7 +466,9 @@ async function runDiscordGovernor() {
                         return
                     }
                 }
-                console.log("--------------------------------")
+                if (invokedCounterForProject > 0) {
+                    console.log("--------------------------------")
+                }
                 console.log(
                     `☑️ Invoked ${invokedCounterForProject} Discord queue items for project: ${project.projects.display_name} (${project.projects.url_slug}).`,
                 )
