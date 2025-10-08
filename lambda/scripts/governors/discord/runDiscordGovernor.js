@@ -358,7 +358,9 @@ async function runDiscordGovernor() {
                     if (existingQueueItems.length > 0) {
                         // Check if there is a gap between the newest_message_id and the last_message_id in the channel.
                         if (existingQueueItems[0].newest_message_id !== channel.last_message_id) {
-                            console.log(`📣 Head gap found. Processing newest messages.`)
+                            console.log(
+                                `📣 Head gap found. Processing newest messages for Project: ${project.projects.display_name} (${project.projects.url_slug}). Guild: ${guildId}. ${channel.name} (ID: ${channelId}).`,
+                            )
                             headGapFound = true
                             // Do nothing here as it will be processed like a new head sync
                             // since the newest_message_id will be null.

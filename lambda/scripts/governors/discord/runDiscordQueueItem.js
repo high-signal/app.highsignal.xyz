@@ -122,8 +122,6 @@ async function runDiscordQueueItem({ queueItemId }) {
                     if (!newestMessageId) {
                         newestMessageId = messages[0].id
 
-                        console.log(`|  📣 Head sync detected.`)
-
                         // Set the newest_message_id to the newest message in the channel.
                         const { error: setNewestMessageIdError } = await supabase
                             .from("discord_request_queue")
