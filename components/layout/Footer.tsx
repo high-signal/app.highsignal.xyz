@@ -1,6 +1,6 @@
 "use client"
 
-import { HStack, Text, Button } from "@chakra-ui/react"
+import { HStack, Text, Button, Box } from "@chakra-ui/react"
 import Link from "next/link"
 
 import { ColorModeToggle } from "../color-mode/ColorModeToggle"
@@ -8,7 +8,7 @@ import ParticleToggle from "../particle-animation/ParticleToggle"
 import { FeedbackFish } from "@feedback-fish/react"
 import { useUser } from "../../contexts/UserContext"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faMessage, faGlobe } from "@fortawesome/free-solid-svg-icons"
+import { faMessage, faGlobe, faExternalLink } from "@fortawesome/free-solid-svg-icons"
 import { faXTwitter } from "@fortawesome/free-brands-svg-icons"
 import { EXTERNAL_LINKS } from "../../config/constants"
 
@@ -17,53 +17,51 @@ export default function Footer() {
 
     return (
         <HStack
-            justifyContent={"space-between"}
+            justifyContent={{ base: "center", md: "space-between" }}
             position="relative"
             w="100%"
-            pb={5}
-            px={3}
+            pb={2}
+            px={4}
             flexWrap={"wrap-reverse"}
-            columnGap={{ base: 3, sm: 10 }}
+            columnGap={{ base: 3, md: 10 }}
             rowGap={5}
         >
             <HStack
                 alignItems={"center"}
                 gap={1}
-                justifyContent={{ base: "start", sm: "center" }}
+                justifyContent={{ base: "space-between", md: "center" }}
                 h={"28px"}
                 justifySelf={"center"}
             >
-                {/* <Text fontWeight={"bold"} textAlign={"center"}>
-                    Built with ❤️ by{" "}
-                    <Link
-                        as={NextLink}
-                        href={"https://eridian.xyz"}
-                        color={"blue.500"}
-                        textDecoration={"underline"}
-                        target="_blank"
-                    >
-                        Eridian
-                    </Link>
-                </Text> */}
                 {process.env.NEXT_PUBLIC_FEEDBACK_FISH_PROJECT_ID && (
-                    <FeedbackFish
-                        projectId={process.env.NEXT_PUBLIC_FEEDBACK_FISH_PROJECT_ID}
-                        userId={loggedInUser?.username || "anonymous"}
-                    >
-                        <Button secondaryButton px={3} py={1} borderRadius={"full"}>
-                            <HStack>
-                                <Text>Give us feedback</Text>
-                                <FontAwesomeIcon icon={faMessage} />
-                            </HStack>
-                        </Button>
-                    </FeedbackFish>
+                    <Box flexGrow={1}>
+                        <FeedbackFish
+                            projectId={process.env.NEXT_PUBLIC_FEEDBACK_FISH_PROJECT_ID}
+                            userId={loggedInUser?.username || "anonymous"}
+                        >
+                            <Button secondaryButton px={3} py={1} borderRadius={"full"}>
+                                <HStack>
+                                    <Text>Give us feedback</Text>
+                                    <FontAwesomeIcon icon={faMessage} />
+                                </HStack>
+                            </Button>
+                        </FeedbackFish>
+                    </Box>
                 )}
             </HStack>
+            <HStack fontWeight={"bold"} fontSize={"14px"} textAlign={"center"} gap={1}>
+                <Text color={"textColorMuted"}>Built with ❤️ by </Text>
+                <Link href={"https://eridian.xyz"} target="_blank">
+                    <HStack textDecoration={"underline"} color={"blue.500"} gap={"2px"}>
+                        <Text>Eridian</Text>
+                        <FontAwesomeIcon icon={faExternalLink} size="xs" />
+                    </HStack>
+                </Link>
+            </HStack>
             <HStack
-                position={{ base: "relative", sm: "absolute" }}
-                right={{ base: 0, sm: 5 }}
-                bottom={{ base: 0, sm: 5 }}
-                gap={{ base: 5, sm: 8 }}
+                gap={{ base: 5, md: 8 }}
+                w={{ base: "100%", md: "auto" }}
+                justifyContent={{ base: "center", md: "end" }}
             >
                 <HStack gap={3}>
                     <Link href={EXTERNAL_LINKS.website.url} target="_blank">
@@ -72,7 +70,6 @@ export default function Footer() {
                             borderRadius={"full"}
                             h={"28px"}
                             minW={"28px"}
-                            // mr={{ base: "-5px", sm: 5 }}
                             aria-label={EXTERNAL_LINKS.website.label}
                         >
                             <FontAwesomeIcon icon={faGlobe} size="lg" />
@@ -84,7 +81,6 @@ export default function Footer() {
                             borderRadius={"full"}
                             h={"28px"}
                             minW={"28px"}
-                            // mr={{ base: "-5px", sm: 5 }}
                             aria-label={EXTERNAL_LINKS.X.label}
                         >
                             <FontAwesomeIcon icon={faXTwitter} size="lg" />
