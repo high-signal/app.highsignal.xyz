@@ -101,10 +101,16 @@ async function runDiscordQueueItem({ queueItemId }) {
                 console.log(`🔄 Loop ${i + 1} of ${MAX_PAGINATION_LOOPS}`)
                 console.log(`|  🔚 Oldest message timestamp: ${oldestMessageTimestamp}`)
 
+                // If it is the first loop and it is a head sync, fetch the newest messages.
+                let messageIdToFetchBefore = newestMessageId
+                if (i === 0 && claimedQueueItem[0].isHeadSync) {
+                    messageIdToFetchBefore = null
+                }
+
                 // Fetch messages from the channel using REST API.
                 const messages = await discordApi.fetchMessages(channelId, {
                     limit: MAX_MESSAGES_TO_PROCESS,
-                    before: newestMessageId,
+                    before: messageIdToFetchBefore,
                 })
 
                 console.log(`|  📬 Messages fetched: ${messages.length || 0}`)
