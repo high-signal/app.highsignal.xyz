@@ -114,13 +114,19 @@ class DiscordRestApi {
 
         const url = `${this.baseUrl}/channels/${channelId}/messages?${params.toString()}`
 
-        console.log("|  📡 DISCORD API CALL: fetchMessages")
+        // Local development logging
+        if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+            console.log("|  📡 DISCORD API CALL: fetchMessages")
+        }
         return await this.makeDiscordRequest(url)
     }
 
     // Get guild roles
     async getGuildRoles(guildId) {
-        console.log("📡 DISCORD API CALL: Get all guild roles")
+        // Local development logging
+        if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+            console.log("📡 DISCORD API CALL: Get all guild roles")
+        }
         const url = `${this.baseUrl}/guilds/${guildId}/roles`
         return await this.makeDiscordRequest(url)
     }
@@ -130,7 +136,10 @@ class DiscordRestApi {
         const TEXT_CHANNEL_TYPES = [0] // GuildText
 
         // Fetch all channels
-        console.log("📡 DISCORD API CALL: Fetching all channels")
+        // Local development logging
+        if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+            console.log("📡 DISCORD API CALL: Fetching all channels")
+        }
         const channelsUrl = `${this.baseUrl}/guilds/${guildId}/channels`
         const allChannels = await this.makeDiscordRequest(channelsUrl)
 
@@ -140,7 +149,10 @@ class DiscordRestApi {
 
         // Get bot user and their member roles
         const botUserId = process.env.DISCORD_BOT_USER_ID
-        console.log("📡 DISCORD API CALL: Get bot member roles")
+        // Local development logging
+        if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+            console.log("📡 DISCORD API CALL: Get bot member roles")
+        }
         const memberUrl = `${this.baseUrl}/guilds/${guildId}/members/${botUserId}`
         const botMember = await this.makeDiscordRequest(memberUrl)
         const botRoleIds = botMember.roles
@@ -182,7 +194,10 @@ class DiscordRestApi {
 
     // Get visible active threads
     async getVisibleActiveThreads(guildId) {
-        console.log("📡 DISCORD API CALL: Get all visible active threads")
+        // Local development logging
+        if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+            console.log("📡 DISCORD API CALL: Get all visible active threads")
+        }
         const url = `${this.baseUrl}/guilds/${guildId}/threads/active`
         return await this.makeDiscordRequest(url)
     }
