@@ -103,7 +103,7 @@ async function runDiscordQueueItem({ queueItemId }) {
 
                 // If it is the first loop and it is a head sync, fetch the newest messages.
                 let messageIdToFetchBefore = newestMessageId
-                if (i === 0 && claimedQueueItem[0].isHeadSync) {
+                if (i === 0 && claimedQueueItem[0].is_head_sync) {
                     messageIdToFetchBefore = null
                 }
 
