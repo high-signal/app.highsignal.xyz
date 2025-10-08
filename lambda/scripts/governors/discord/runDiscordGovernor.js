@@ -464,7 +464,7 @@ async function runDiscordGovernor() {
                     }
                 }
                 console.log(
-                    `Invoked ${invokedCounterForProject} Discord queue items for project: ${project.projects.display_name} (${project.projects.url_slug}).`,
+                    `☑️ Invoked ${invokedCounterForProject} Discord queue items for project: ${project.projects.display_name} (${project.projects.url_slug}).`,
                 )
             } catch (error) {
                 console.error("Error in runDiscordGovernor for project:", project.projects.display_name, error)

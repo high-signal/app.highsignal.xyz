@@ -143,19 +143,10 @@ async function runDiscordQueueItem({ queueItemId }) {
                     // This ensures we move backward through the message history.
                     newestMessageId = oldestMessageId
 
-                    // Collect all valid messages to insert in one go
+                    // Reformat messages to insert into the DB.
+                    // Note: All messages have to be stored so that the head gap check works.
                     let messagesToInsert = []
                     messages.forEach((msg) => {
-                        if (msg.content.length < MIN_MESSAGE_CHAR_LENGTH) {
-                            // console.log(
-                            //     `⏭️ Skipping message: ${msg.id}. Shorter than ${MIN_MESSAGE_CHAR_LENGTH} characters`,
-                            // )
-                            messagesSkipped++
-                            totalMessagesSkipped++
-                            return
-                        }
-
-                        // If message meets min char length, add it to the messagesToInsert array.
                         messagesToInsert.push({
                             message_id: msg.id,
                             guild_id: guildId,
