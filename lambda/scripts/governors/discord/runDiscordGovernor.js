@@ -365,8 +365,11 @@ async function runDiscordGovernor() {
                                 `📣 Head gap found. Processing newest messages for Project: ${project.projects.display_name} (${project.projects.url_slug}). Guild: ${guildId}. ${channel.name} (ID: ${channelId}).`,
                             )
                             headGapFound = true
-                            // Do nothing here as it will be processed like a new head sync
-                            // since the newest_message_id will be null.
+
+                            // There is an edge case where the last_message_id does not exist in the channel.
+                            // To stop this being an infinite loop, set the newest_message_id to the last_message_id.
+                            // Then when there is a new message in the channel, it will still see a head gap.
+                            newestMessageId = channel.last_message_id
                         }
                     }
 
