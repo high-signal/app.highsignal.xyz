@@ -10,7 +10,7 @@ const { storeStatsInDb } = require("../../utils/storeStatsInDb")
 // ==========
 // Constants
 // ==========
-const { MAX_QUEUE_LENGTH, TIMEOUT_SECONDS, MAX_ATTEMPTS, HEAD_GAP_MINUTES } = require("./constants")
+const { MAX_QUEUE_LENGTH, TIMEOUT_SECONDS, MAX_ATTEMPTS } = require("./constants")
 
 // =================
 // Run the governor
@@ -151,8 +151,8 @@ async function runDiscordGovernor() {
         // Process each project
         // =====================
         for (const project of shuffledProjects) {
+            let invokedCounterForProject = 0
             try {
-                console.log("")
                 console.log("================================")
                 console.log(
                     `⏳ Processing project: ${project.projects.display_name} (${project.projects.url_slug}) with Discord URL: ${project.url}`,
@@ -193,6 +193,58 @@ async function runDiscordGovernor() {
                 // Useful in case of ratel-imit issues that only allow the first X channels to be processed.
                 const shuffledChannels = [...accessibleChannels].sort(() => Math.random() - 0.5)
 
+                // =========================================================
+                // Fetch ALL queue items for this guild at once (batching)
+                // =========================================================
+                const now = new Date()
+                const previousDays = project.previous_days
+                const oldestTimestampLimit = new Date(now)
+                oldestTimestampLimit.setDate(oldestTimestampLimit.getDate() - previousDays)
+
+                // Fetch all queue items with pagination
+                let allQueueItems = []
+                let pageSize = 1000
+                let currentPage = 0
+                let hasMoreResults = true
+
+                while (hasMoreResults) {
+                    const from = currentPage * pageSize
+                    const to = from + pageSize - 1
+
+                    const { data: pageData, error: pageError } = await supabase
+                        .from("discord_request_queue")
+                        .select("*")
+                        .eq("guild_id", guildId)
+                        .gte("newest_message_timestamp", oldestTimestampLimit.toISOString())
+                        .range(from, to)
+
+                    if (pageError) {
+                        console.error("Error fetching queue items for guild:", pageError)
+                        throw pageError
+                    }
+
+                    if (pageData && pageData.length > 0) {
+                        allQueueItems = allQueueItems.concat(pageData)
+                        currentPage++
+
+                        // If we got fewer results than the page size, we have reached the end
+                        if (pageData.length < pageSize) {
+                            hasMoreResults = false
+                        }
+                    } else {
+                        hasMoreResults = false
+                    }
+                }
+
+                // Group queue items by channel_id for fast lookup
+                const queueItemsByChannel = {}
+                allQueueItems.forEach((item) => {
+                    if (!queueItemsByChannel[item.channel_id]) {
+                        queueItemsByChannel[item.channel_id] = []
+                    }
+                    queueItemsByChannel[item.channel_id].push(item)
+                })
+
                 // ====================================================
                 // For each channel, check queue and trigger if needed
                 // ====================================================
@@ -206,19 +258,9 @@ async function runDiscordGovernor() {
                         )
                     }
 
-                    // Look in the queue for any current items for this channel that are not completed.
-                    const { data: currentQueueItem, error: currentQueueItemError } = await supabase
-                        .from("discord_request_queue")
-                        .select("*")
-                        .eq("guild_id", guildId)
-                        .eq("channel_id", channelId)
-                        .neq("status", "completed")
-                        .limit(1)
-
-                    if (currentQueueItemError) {
-                        console.error("Error fetching current queue item:", currentQueueItemError)
-                        throw currentQueueItemError
-                    }
+                    // Look in the cached queue items for any current items for this channel that are not completed.
+                    const channelQueueItems = queueItemsByChannel[channelId] || []
+                    const currentQueueItem = channelQueueItems.filter((item) => item.status !== "completed")
 
                     if (currentQueueItem?.length > 0) {
                         console.log("⏳ Processing queue item ID: ", currentQueueItem[0].id)
@@ -262,6 +304,7 @@ async function runDiscordGovernor() {
                             if (updatedQueueItem && updatedQueueItem.length > 0) {
                                 await handleTriggerDiscordQueueItem({ queueItemId: currentQueueItem[0].id })
                                 invokedCounter++
+                                invokedCounterForProject++
                             }
                             continue
                         } else {
@@ -281,6 +324,7 @@ async function runDiscordGovernor() {
                         )
                         await handleTriggerDiscordQueueItem({ queueItemId: currentQueueItem[0].id })
                         invokedCounter++
+                        invokedCounterForProject++
                         continue
                     }
 
@@ -290,32 +334,18 @@ async function runDiscordGovernor() {
                     // Then we might need to add one if there is a gap in the data.
 
                     // Calculate the time period for the current sync.
-                    const now = new Date()
-                    const previousDays = project.previous_days
                     let newestTimestamp = now
                     let newestMessageId = null
-
-                    // Calculate the oldest timestamp limit based on previousDays.
-                    const oldestTimestampLimit = new Date(now)
-                    oldestTimestampLimit.setDate(oldestTimestampLimit.getDate() - previousDays)
 
                     // Initialize variables to track the absolute oldest message in the queue.
                     let absoluteOldestTimestampAlreadyInQueue
                     let absoluteOldestMessageIdAlreadyInQueue
 
-                    // Fetch any existing queue items within the time range.
-                    const { data: existingQueueItems, error: existingQueueError } = await supabase
-                        .from("discord_request_queue")
-                        .select("id, oldest_message_timestamp, oldest_message_id, newest_message_timestamp")
-                        .eq("guild_id", guildId)
-                        .eq("channel_id", channelId)
-                        .gte("newest_message_timestamp", oldestTimestampLimit.toISOString())
-                        .order("newest_message_timestamp", { ascending: false })
-
-                    if (existingQueueError) {
-                        console.error("Error fetching existing queue items:", existingQueueError)
-                        throw existingQueueError
-                    }
+                    // Use the cached queue items for this channel that are within the time range.
+                    // Sort by newest_message_timestamp descending (newest first)
+                    const existingQueueItems = channelQueueItems
+                        .filter((item) => new Date(item.newest_message_timestamp) >= oldestTimestampLimit)
+                        .sort((a, b) => new Date(b.newest_message_timestamp) - new Date(a.newest_message_timestamp))
 
                     // ==========================================
                     // Determine the starting point for the sync
@@ -328,19 +358,19 @@ async function runDiscordGovernor() {
                     }
 
                     // Look for a head gap.
-                    // A head gap is when it has been longer than HEAD_GAP_MINUTES since the newest_message_timestamp.
                     let headGapFound = false
                     if (existingQueueItems.length > 0) {
-                        // Check if there is a gap between the newest_message_timestamp and the current time.
-                        // Note: newest_message_timestamp is set to "now" when it runs a head sync, so that is
-                        // what it compares to wait for the HEAD_GAP_MINUTES.
-                        const newestMessageTimestamp = new Date(existingQueueItems[0].newest_message_timestamp)
-                        const timeSinceNewestMessage = now.getTime() - newestMessageTimestamp.getTime()
-                        if (timeSinceNewestMessage > HEAD_GAP_MINUTES * 60 * 1000) {
-                            console.log(`📣 Head gap found. Processing newest messages.`)
+                        // Check if there is a gap between the newest_message_id and the last_message_id in the channel.
+                        if (existingQueueItems[0].newest_message_id !== channel.last_message_id) {
+                            console.log(
+                                `📣 Head gap found. Processing newest messages for Project: ${project.projects.display_name} (${project.projects.url_slug}). Guild: ${guildId}. ${channel.name} (ID: ${channelId}).`,
+                            )
                             headGapFound = true
-                            // Do nothing here as it will be processed like a new head sync
-                            // since the newest_message_id will be null.
+
+                            // There is an edge case where the last_message_id does not exist in the channel.
+                            // To stop this being an infinite loop, set the newest_message_id to the last_message_id.
+                            // Then when there is a new message in the channel, it will still see a head gap.
+                            newestMessageId = channel.last_message_id
                         }
                     }
 
@@ -402,6 +432,74 @@ async function runDiscordGovernor() {
                                 `✅ Queue items already cover ${previousDays} previous days. Oldest message in DB from date ${absoluteOldestTimestampAlreadyInQueue.toISOString().split("T")[0]} (${daysBetweenNowAndAbsoluteOldestTimestamp} days ago). No sync needed.`,
                             )
                         }
+
+                        // =====================================================
+                        // Consolidate completed queue items to prevent growth
+                        // =====================================================
+                        // Since we know there are no gaps, merge all completed items into one
+                        const completedItems = existingQueueItems.filter((item) => item.status === "completed")
+
+                        if (completedItems.length >= 2) {
+                            // Find the oldest message (the tail of our sync)
+                            let oldestItem = completedItems[0]
+                            for (const item of completedItems) {
+                                if (
+                                    !item.oldest_message_id ||
+                                    new Date(item.oldest_message_timestamp) <
+                                        new Date(oldestItem.oldest_message_timestamp)
+                                ) {
+                                    oldestItem = item
+                                }
+                            }
+
+                            // Find the newest message (the head of our sync)
+                            let newestItem = completedItems[0]
+                            for (const item of completedItems) {
+                                if (
+                                    new Date(item.newest_message_timestamp) >
+                                    new Date(newestItem.newest_message_timestamp)
+                                ) {
+                                    newestItem = item
+                                }
+                            }
+
+                            // Create consolidated item
+                            const consolidatedItem = {
+                                guild_id: guildId,
+                                channel_id: channelId,
+                                status: "completed",
+                                newest_message_timestamp: newestItem.newest_message_timestamp,
+                                newest_message_id: newestItem.newest_message_id,
+                                oldest_message_timestamp: oldestItem.oldest_message_timestamp,
+                                oldest_message_id: oldestItem.oldest_message_id,
+                                attempts: 0,
+                            }
+
+                            console.log(
+                                `🔄 Consolidating ${completedItems.length} completed queue items into 1 for channel ${channelId}`,
+                            )
+
+                            // Insert consolidated item first
+                            const { error: insertError } = await supabase
+                                .from("discord_request_queue")
+                                .insert(consolidatedItem)
+
+                            if (insertError) {
+                                console.error("Error inserting consolidated queue item:", insertError)
+                            } else {
+                                // Only delete old items if insert succeeded
+                                const itemIdsToDelete = completedItems.map((item) => item.id)
+                                const { error: deleteError } = await supabase
+                                    .from("discord_request_queue")
+                                    .delete()
+                                    .in("id", itemIdsToDelete)
+
+                                if (deleteError) {
+                                    console.error("Error deleting old queue items during consolidation:", deleteError)
+                                }
+                            }
+                        }
+
                         continue
                     }
 
@@ -415,6 +513,7 @@ async function runDiscordGovernor() {
                             newest_message_timestamp: newestTimestamp,
                             newest_message_id: newestMessageId,
                             // oldest_message_timestamp and oldest_message_id will be set by runDiscordQueueItem
+                            is_head_sync: headGapFound,
                         })
                         .select()
 
@@ -429,6 +528,7 @@ async function runDiscordGovernor() {
                     console.log(`🏁 Triggering new queue item: ${queueItemId}`)
                     await handleTriggerDiscordQueueItem({ queueItemId })
                     invokedCounter++
+                    invokedCounterForProject++
 
                     // Calculate the new queue length.
                     if (availableSpace <= invokedCounter >= MAX_QUEUE_LENGTH) {
@@ -436,14 +536,18 @@ async function runDiscordGovernor() {
                         return
                     }
                 }
+                if (invokedCounterForProject > 0) {
+                    console.log("--------------------------------")
+                }
+                console.log(
+                    `☑️ Invoked ${invokedCounterForProject} Discord queue items for project: ${project.projects.display_name} (${project.projects.url_slug}).`,
+                )
             } catch (error) {
                 console.error("Error in runDiscordGovernor for project:", project.projects.display_name, error)
                 continue
             }
         }
 
-        console.log("--------------------------------")
-        console.log("")
         console.log("🎉 Finished triggering Discord queue items. Discord governor complete.")
     } catch (error) {
         console.error("Error in runDiscordGovernor:", error)

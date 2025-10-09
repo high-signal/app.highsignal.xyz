@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { HStack, Spinner, Text, VStack, Box, Grid, GridItem, useToken } from "@chakra-ui/react"
+import { HStack, Spinner, Text, VStack, Box, Grid, GridItem, useToken, Button } from "@chakra-ui/react"
 import {
     BarChart,
     Bar,
@@ -403,13 +403,16 @@ export default function SuperadminStatsCharts() {
             title: "AI Stats - Invocation Count",
             dataKey: "record_count",
             colors: aiColors,
-            getCategories: (data) => Array.from(new Set(data.map((item: AiStatsDaily) => item.score_type))),
+            getCategories: (data) =>
+                Array.from(new Set(stats.aiStatsDaily.map((item: AiStatsDaily) => item.score_type))).sort(),
             getData: (data) => {
                 if (!filteredData) return []
                 const startDay = getDateRange[chartSliderValues[0]]
                 const endDay = getDateRange[chartSliderValues[1]]
                 const consistentDates = createConsistentDateRange(startDay, endDay)
-                const categories = Array.from(new Set(data.map((item: AiStatsDaily) => item.score_type)))
+                const categories = Array.from(
+                    new Set(stats.aiStatsDaily.map((item: AiStatsDaily) => item.score_type)),
+                ).sort()
 
                 return consistentDates.map((date) => {
                     const dayData: { [key: string]: any } = { day: date }
@@ -426,13 +429,16 @@ export default function SuperadminStatsCharts() {
             dataKey: "total_tokens",
             colors: aiColors,
             formatYAxis: formatNumber,
-            getCategories: (data) => Array.from(new Set(data.map((item: AiStatsDaily) => item.score_type))),
+            getCategories: (data) =>
+                Array.from(new Set(stats.aiStatsDaily.map((item: AiStatsDaily) => item.score_type))).sort(),
             getData: (data) => {
                 if (!filteredData) return []
                 const startDay = getDateRange[chartSliderValues[0]]
                 const endDay = getDateRange[chartSliderValues[1]]
                 const consistentDates = createConsistentDateRange(startDay, endDay)
-                const categories = Array.from(new Set(data.map((item: AiStatsDaily) => item.score_type)))
+                const categories = Array.from(
+                    new Set(stats.aiStatsDaily.map((item: AiStatsDaily) => item.score_type)),
+                ).sort()
 
                 return consistentDates.map((date) => {
                     const dayData: { [key: string]: any } = { day: date }
@@ -448,13 +454,16 @@ export default function SuperadminStatsCharts() {
             title: "Lambda Stats - Invocation Count",
             dataKey: "invocation_count",
             colors: lambdaColors,
-            getCategories: (data) => Array.from(new Set(data.map((item: LambdaStatsDaily) => item.function_type))),
+            getCategories: (data) =>
+                Array.from(new Set(stats.lambdaStatsDaily.map((item: LambdaStatsDaily) => item.function_type))).sort(),
             getData: (data) => {
                 if (!filteredData) return []
                 const startDay = getDateRange[chartSliderValues[0]]
                 const endDay = getDateRange[chartSliderValues[1]]
                 const consistentDates = createConsistentDateRange(startDay, endDay)
-                const categories = Array.from(new Set(data.map((item: LambdaStatsDaily) => item.function_type)))
+                const categories = Array.from(
+                    new Set(stats.lambdaStatsDaily.map((item: LambdaStatsDaily) => item.function_type)),
+                ).sort()
 
                 return consistentDates.map((date) => {
                     const dayData: { [key: string]: any } = { day: date }
@@ -467,25 +476,34 @@ export default function SuperadminStatsCharts() {
             },
         },
         {
-            title: "Lambda Stats - Total Billed Duration",
+            title: "Lambda Stats - Total Billed Duration (seconds)",
             dataKey: "total_billed_duration",
             colors: lambdaColors,
-            getCategories: (data) => Array.from(new Set(data.map((item: LambdaStatsDaily) => item.function_type))),
+            getCategories: (data) =>
+                Array.from(new Set(stats.lambdaStatsDaily.map((item: LambdaStatsDaily) => item.function_type))).sort(),
             getData: (data) => {
                 if (!filteredData) return []
                 const startDay = getDateRange[chartSliderValues[0]]
                 const endDay = getDateRange[chartSliderValues[1]]
                 const consistentDates = createConsistentDateRange(startDay, endDay)
-                const categories = Array.from(new Set(data.map((item: LambdaStatsDaily) => item.function_type)))
+                const categories = Array.from(
+                    new Set(stats.lambdaStatsDaily.map((item: LambdaStatsDaily) => item.function_type)),
+                ).sort()
 
                 return consistentDates.map((date) => {
                     const dayData: { [key: string]: any } = { day: date }
                     categories.forEach((category) => {
                         const existingData = data.find((item) => item.day === date && item.function_type === category)
-                        // Convert milliseconds to seconds with 1 decimal place
-                        dayData[category] = existingData
-                            ? Math.round((existingData.total_billed_duration / 1000) * 10) / 10
-                            : 0
+                        // Convert milliseconds to seconds with conditional decimal places
+                        if (existingData) {
+                            const valueInSeconds = existingData.total_billed_duration / 1000
+                            dayData[category] =
+                                valueInSeconds < 10
+                                    ? Math.round(valueInSeconds * 10) / 10 // 1 decimal for single-digit numbers
+                                    : Math.round(valueInSeconds) // No decimals for 10+
+                        } else {
+                            dayData[category] = 0
+                        }
                     })
                     return dayData
                 })
@@ -513,7 +531,28 @@ export default function SuperadminStatsCharts() {
                             getDateRange={getDateRange}
                         />
                     )}
-
+                    {/* Date Range Buttons */}
+                    <HStack gap={2} flexWrap="wrap" px={2} justifyContent="center">
+                        {[
+                            { label: "Past 365 days", range: 360 },
+                            { label: "Past 180 days", range: 180 },
+                            { label: "Past 90 days", range: 90 },
+                            { label: "Past 30 days", range: 30 },
+                            { label: "Past 7 days", range: 7 },
+                            { label: "Past 3 days", range: 2 },
+                        ].map(({ label, range }) => (
+                            <Button
+                                key={label}
+                                secondaryButton
+                                borderRadius="full"
+                                px={2}
+                                py={1}
+                                onClick={() => setChartSliderValues([sliderMax - range, sliderMax])}
+                            >
+                                {label}
+                            </Button>
+                        ))}
+                    </HStack>
                     <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={6} w={"100%"}>
                         <GridItem>
                             <StatsLineChart

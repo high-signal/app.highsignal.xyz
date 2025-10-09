@@ -38,22 +38,47 @@ async function getDailyActivityData({
         new Date(activityRangeNewest).setDate(activityRangeNewest.getDate() - previousDays),
     )
 
-    // Note: This has a maximum default return limit of 1000 messages.
-    //       That means it might not cover all messages in the range,
-    //       but is more than enough for an accurate score calculation.
-    const { data: activityData, error: activityError } = await supabase
-        .from("discord_messages")
-        .select("*")
-        .eq("discord_user_id", discordUserId)
-        .eq("guild_id", guildId)
-        .gte("created_timestamp", activityRangeOldest.toISOString())
-        .lte("created_timestamp", activityRangeNewest.toISOString())
-        .order("created_timestamp", { ascending: false })
+    // Using pagination to ensure we get all messages in the range.
+    let activityData = []
+    let pageSize = 1000
+    let currentPage = 0
+    let hasMoreResults = true
 
-    if (activityError) {
-        console.error("Error fetching activity data:", activityError)
-        throw activityError
+    while (hasMoreResults) {
+        const from = currentPage * pageSize
+        const to = from + pageSize - 1
+
+        const { data: pageData, error: pageError } = await supabase
+            .from("discord_messages")
+            .select("*")
+            .eq("discord_user_id", discordUserId)
+            .eq("guild_id", guildId)
+            .gte("created_timestamp", activityRangeOldest.toISOString())
+            .lte("created_timestamp", activityRangeNewest.toISOString())
+            .order("created_timestamp", { ascending: false })
+            .range(from, to)
+
+        if (pageError) {
+            console.error("Error fetching activity data:", pageError)
+            throw pageError
+        }
+
+        if (pageData && pageData.length > 0) {
+            activityData = activityData.concat(pageData)
+            currentPage++
+
+            // If we got fewer results than the page size, we have reached the end
+            if (pageData.length < pageSize) {
+                hasMoreResults = false
+            }
+        } else {
+            hasMoreResults = false
+        }
     }
+
+    // TODO: Remove this filter once we have a way to handle messages with less
+    // than 9 characters by not passing them to the AI and giving a fixed score.
+    activityData = activityData.filter((activity) => activity.content.length >= 9)
 
     console.log(
         `🗓️ Processed ${activityData?.length || 0} activities for ${userDisplayName} (Discord username: ${discordUsername})`,

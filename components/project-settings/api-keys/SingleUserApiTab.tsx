@@ -52,12 +52,14 @@ export default function SingleUserApiTab({ project }: { project: ProjectData }) 
                         color={"textColorMuted"}
                     >
                         <Text color={"textColor"}>{`searchType=<SEARCH_TYPE>`}</Text>
-                        <li>highSignalUsername</li>
-                        <li>ethereumAddress</li>
-                        <li>email</li>
-                        <li>discordUsername</li>
-                        <li>xUsername</li>
-                        <li>farcasterUsername</li>
+                        <ul style={{ margin: 0, paddingLeft: "1.5rem", listStyleType: "disc" }}>
+                            <li>highSignalUsername</li>
+                            <li>ethereumAddress</li>
+                            <li>email</li>
+                            <li>discordUsername</li>
+                            <li>xUsername</li>
+                            <li>farcasterUsername</li>
+                        </ul>
                     </VStack>
                     <VStack
                         bg={"pageBackground"}

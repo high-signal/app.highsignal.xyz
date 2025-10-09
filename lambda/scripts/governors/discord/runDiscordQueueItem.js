@@ -93,7 +93,6 @@ async function runDiscordQueueItem({ queueItemId }) {
             let oldestMessageTimestamp = null
 
             let totalMessagesProcessed = 0
-            let totalMessagesSkipped = 0
             let totalMessagesStored = 0
             let totalMessagesAlreadyStored = 0
 
@@ -102,16 +101,21 @@ async function runDiscordQueueItem({ queueItemId }) {
                 console.log(`🔄 Loop ${i + 1} of ${MAX_PAGINATION_LOOPS}`)
                 console.log(`|  🔚 Oldest message timestamp: ${oldestMessageTimestamp}`)
 
+                // If it is the first loop and it is a head sync, fetch the newest messages.
+                let messageIdToFetchBefore = newestMessageId
+                if (i === 0 && claimedQueueItem[0].is_head_sync) {
+                    messageIdToFetchBefore = null
+                }
+
                 // Fetch messages from the channel using REST API.
                 const messages = await discordApi.fetchMessages(channelId, {
                     limit: MAX_MESSAGES_TO_PROCESS,
-                    before: newestMessageId,
+                    before: messageIdToFetchBefore,
                 })
 
                 console.log(`|  📬 Messages fetched: ${messages.length || 0}`)
                 totalMessagesProcessed += messages.length || 0
 
-                let messagesSkipped = 0
                 let messagesStored = 0
                 let messagesAlreadyStored = 0
 
@@ -121,8 +125,6 @@ async function runDiscordQueueItem({ queueItemId }) {
                     // as on the second loop newestMessageId will have been set.
                     if (!newestMessageId) {
                         newestMessageId = messages[0].id
-
-                        console.log(`|  📣 Head sync detected.`)
 
                         // Set the newest_message_id to the newest message in the channel.
                         const { error: setNewestMessageIdError } = await supabase
@@ -145,19 +147,10 @@ async function runDiscordQueueItem({ queueItemId }) {
                     // This ensures we move backward through the message history.
                     newestMessageId = oldestMessageId
 
-                    // Collect all valid messages to insert in one go
+                    // Reformat messages to insert into the DB.
+                    // Note: All messages have to be stored so that the head gap check works.
                     let messagesToInsert = []
                     messages.forEach((msg) => {
-                        if (msg.content.length < MIN_MESSAGE_CHAR_LENGTH) {
-                            // console.log(
-                            //     `⏭️ Skipping message: ${msg.id}. Shorter than ${MIN_MESSAGE_CHAR_LENGTH} characters`,
-                            // )
-                            messagesSkipped++
-                            totalMessagesSkipped++
-                            return
-                        }
-
-                        // If message meets min char length, add it to the messagesToInsert array.
                         messagesToInsert.push({
                             message_id: msg.id,
                             guild_id: guildId,
@@ -227,7 +220,6 @@ async function runDiscordQueueItem({ queueItemId }) {
                             }
                         })
 
-                        console.log(`|  🧮 Messages skipped: ${messagesSkipped}`)
                         console.log(`|  🧮 Messages stored: ${messagesStored}`)
                         console.log(`|  🧮 Messages already stored: ${messagesAlreadyStored}`)
                     } else {
@@ -241,7 +233,6 @@ async function runDiscordQueueItem({ queueItemId }) {
             }
 
             console.log(`🧮 Total messages processed: ${totalMessagesProcessed}`)
-            console.log(`🧮 Total messages skipped: ${totalMessagesSkipped}`)
             console.log(`🧮 Total messages stored: ${totalMessagesStored}`)
             console.log(`🧮 Total messages already stored: ${totalMessagesAlreadyStored}`)
 

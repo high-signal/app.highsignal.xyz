@@ -596,7 +596,7 @@ export default function SignalStrength({
                 </VStack>
             )}
             {!userDataRefreshTriggered && countdown === -2 && (
-                <VStack w="100%" gap={2} px={2} pb={3} textAlign={"center"} color="textColorMuted">
+                <VStack w="100%" gap={2} px={2} pb={3} mt={3} textAlign={"center"} color="textColorMuted">
                     {loggedInUser?.username === username && (
                         <Text>
                             {`It's taking longer than expected to calculate your score, probably because you have a lot of
