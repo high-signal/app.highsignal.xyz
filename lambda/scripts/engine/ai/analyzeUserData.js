@@ -59,7 +59,18 @@ async function analyzeUserData({
 
         calculatedSmartScore = smartScoreResult.smartScore
 
-        if (!testingData) {
+        // If there was a raw score for the dayDate, then run the AI analysis.
+        // This is to show some change to the data even if the score did not change,
+        // but the user has activity and should see some change.
+        let isRawScoreForDayDate
+        if (userData.some((d) => d.day === dayDate)) {
+            isRawScoreForDayDate = true
+        }
+
+        // Check if the smart score has changed since last run.
+        // If it has not, do not run the AI analysis and instead
+        // copy the latest smart score to the new smart score.
+        if (!testingData && !isRawScoreForDayDate) {
             // Get the last smart score for the user
             const latestSmartScore = await getLatestSmartScore({ supabase, userId, projectId, signalStrengthId })
 
@@ -97,12 +108,15 @@ async function analyzeUserData({
             }
         }
 
-        const topBandDays = smartScoreResult.topBandDays
+        // Instead of using the topBandDays, use the entire userData but ordered by day with the latest first.
+        userData = userData.sort((a, b) => new Date(b.day) - new Date(a.day))
 
-        // Filter userData to only include the days that were used in the smart score calculation
-        if (topBandDays.length > 0) {
-            userData = userData.filter((d) => topBandDays.includes(d.day))
-        }
+        // TODO: Remove if using all days ordered is better
+        // const topBandDays = smartScoreResult.topBandDays
+        // // Filter userData to only include the days that were used in the smart score calculation
+        // if (topBandDays.length > 0) {
+        //     userData = userData.filter((d) => topBandDays.includes(d.day))
+        //   }
     }
 
     let promptId
