@@ -55,11 +55,14 @@ async function checkRawScoreCalculationsRequired({
 
         const { data: newQueueItems, error: addQueueItemError } = await supabase
             .from("ai_request_queue")
-            .insert(itemsToInsert, { ignoreDuplicates: true })
+            .upsert(itemsToInsert, {
+                onConflict: "queue_item_unique_identifier",
+                ignoreDuplicates: true,
+            })
             .select()
 
         if (addQueueItemError) {
-            const errorMessage = `Error adding raw_score queue items: ${addQueueItemError.message}`
+            const errorMessage = `❌ Error adding raw_score queue items: ${addQueueItemError.message}`
             console.error(errorMessage)
             throw new Error(errorMessage)
         }
