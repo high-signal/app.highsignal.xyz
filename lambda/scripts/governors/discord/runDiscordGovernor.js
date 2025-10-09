@@ -97,7 +97,10 @@ async function runDiscordGovernor() {
             console.log("🚧 No available space in the queue. Exiting.")
             return
         } else {
-            console.log(`📋 Available space in queue: ${availableSpace}`)
+            // Local development logging
+            if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+                console.log(`📋 Available space in queue: ${availableSpace}`)
+            }
         }
 
         // ==========================

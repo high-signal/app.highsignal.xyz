@@ -15,7 +15,10 @@ async function getPriorityQueueItems(supabase, availableSpace) {
     for (const priorityType of priorityOrder) {
         if (remainingSpace <= 0) break
 
-        console.log(`🔍 Fetching ${priorityType} items (limit: ${remainingSpace})`)
+        // Local development logging
+        if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+            console.log(`🔍 Fetching ${priorityType} items (limit: ${remainingSpace})`)
+        }
 
         const { data: typeQueueItems, error: typeQueueItemsError } = await supabase
             .from("ai_request_queue")
@@ -36,7 +39,10 @@ async function getPriorityQueueItems(supabase, availableSpace) {
             remainingSpace -= typeQueueItems.length
             console.log(`🔍 Found ${typeQueueItems.length} ${priorityType} items`)
         } else {
-            console.log(`📭 No ${priorityType} items found`)
+            // Local development logging
+            if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+                console.log(`📭 No ${priorityType} items found`)
+            }
         }
     }
 
