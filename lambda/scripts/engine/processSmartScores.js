@@ -49,6 +49,10 @@ async function processSmartScores({
     }
 
     const analysisResults = await analyzeUserData({
+        supabase,
+        userId,
+        projectId,
+        signalStrengthId,
         signalStrengthData,
         userData: rawActivityCombinedData,
         userDisplayName,

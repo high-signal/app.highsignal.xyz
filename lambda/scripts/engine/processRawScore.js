@@ -27,6 +27,10 @@ async function processRawScore({
     }
 
     const analysisResults = await analyzeUserData({
+        supabase,
+        userId,
+        projectId,
+        signalStrengthId,
         signalStrengthData,
         userData: dayData.data,
         userDisplayName,
