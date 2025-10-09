@@ -20,7 +20,9 @@ const { createClient } = require("@supabase/supabase-js")
 
 // Function to run the engine
 async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUsername, dayDate, type, testingData }) {
-    console.log("🏁 Running engine for signal strength:", signalStrengthId)
+    console.log(
+        `🏁 Running engine for signal strength: ${signalStrengthId}. userId: ${userId}. projectId: ${projectId}. signalStrengthUsername: ${signalStrengthUsername}. dayDate: ${dayDate}. type: ${type}.`,
+    )
 
     let supabase
 
