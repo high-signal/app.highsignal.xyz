@@ -158,6 +158,7 @@ async function runDiscordQueueItem({ queueItemId }) {
                             discord_user_id: msg.author.id,
                             discord_username: msg.author.username,
                             discord_global_name: msg.author.global_name,
+                            is_bot: msg.author?.bot ?? false,
                             content: msg.content,
                             created_timestamp: new Date(msg.timestamp).toISOString(),
                         })

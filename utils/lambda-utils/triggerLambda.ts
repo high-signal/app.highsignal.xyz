@@ -10,6 +10,8 @@ import { handleAddAllItemsToForumQueue } from "../../lambda/scripts/index-handle
 import { handleRunForumGovernor } from "../../lambda/scripts/index-handlers/handleRunForumGovernor"
 // @ts-ignore
 import { handleRunDiscordGovernor } from "../../lambda/scripts/index-handlers/handleRunDiscordGovernor"
+// @ts-ignore
+import { handleRunShellUserGovernor } from "../../lambda/scripts/index-handlers/handleRunShellUserGovernor"
 
 export async function triggerLambda(params: {
     functionType: string
@@ -97,6 +99,8 @@ export async function triggerLambda(params: {
                 await handleRunForumGovernor()
             } else if (functionType === "runDiscordGovernor") {
                 await handleRunDiscordGovernor()
+            } else if (functionType === "runShellUserGovernor") {
+                await handleRunShellUserGovernor()
             } else {
                 throw new Error(`Unknown function type: ${functionType}`)
             }
