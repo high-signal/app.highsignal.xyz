@@ -58,7 +58,6 @@ async function runShellUserGovernor() {
                     })
                 }
 
-                // TODO: Remove this after testing
                 console.log("🔍 Shell users to create in this batch:", shellUsersToCreate.length)
 
                 // Look for any conflicting usernames
