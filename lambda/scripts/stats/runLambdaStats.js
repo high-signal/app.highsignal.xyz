@@ -18,6 +18,7 @@ async function runLambdaStats() {
         .select("request_id, created_at")
         .is("billed_duration", null)
         .neq("request_id", currentLambdaRequestId)
+        .order("created_at", { ascending: false })
         .limit(100)
 
     if (error) throw error
