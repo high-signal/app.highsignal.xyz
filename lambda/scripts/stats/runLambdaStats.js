@@ -12,6 +12,8 @@ async function runLambdaStats() {
     const store = als.getStore()
     const currentLambdaRequestId = store?.requestId
 
+    // TODO: Maybe add pagination here to get even more rows at once
+
     // Get rows needing billed_duration
     const { data: rows, error } = await supabase
         .from("lambda_stats")
@@ -19,7 +21,6 @@ async function runLambdaStats() {
         .is("billed_duration", null)
         .neq("request_id", currentLambdaRequestId)
         .order("created_at", { ascending: false })
-        .limit(200)
 
     if (error) throw error
     if (!rows || rows.length === 0) {
