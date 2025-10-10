@@ -3,7 +3,7 @@ const { createClient } = require("@supabase/supabase-js")
 const { CloudWatchLogsClient, FilterLogEventsCommand } = require("@aws-sdk/client-cloudwatch-logs")
 const { storeStatsInDb } = require("./storeStatsInDb")
 
-const als = require("./asyncContext")
+const als = require("../utils/asyncContext")
 
 async function runLambdaStats() {
     console.log("📊 Running lambda stats")
