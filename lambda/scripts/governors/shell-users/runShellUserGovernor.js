@@ -1,0 +1,173 @@
+// How to run this locally:
+// node -e "require('./runShellUserGovernor.js').runShellUserGovernor().catch(console.error)"
+
+require("dotenv").config({ path: "../../../../.env" })
+const { createClient } = require("@supabase/supabase-js")
+const { storeStatsInDb } = require("../../stats/storeStatsInDb")
+
+// =================
+// Run the governor
+// =================
+async function runShellUserGovernor() {
+    console.log("💡 Running shell user governor")
+
+    let shellUsersUpdated = 0
+
+    try {
+        const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+
+        // Find missing Discord shell users
+        // Max 1000 at a time from the DB limit (that is fine for now)
+        const { data: discordShellUsersMissing, error: discordShellUsersMissingError } = await supabase
+            .from("discord_shell_users_missing")
+            .select("*")
+            .not("discord_username", "is", null)
+
+        if (discordShellUsersMissingError) {
+            const errorMessage = `Error fetching discord shell users missing: ${discordShellUsersMissingError.message}`
+            console.error(errorMessage)
+            throw errorMessage
+        }
+
+        if (discordShellUsersMissing.length > 0) {
+            console.log("🔍 Found", discordShellUsersMissing.length, "missing Discord shell users")
+
+            const batchSize = 100 // A manageable batch size for the DB limit
+            const totalBatches = Math.ceil(discordShellUsersMissing.length / batchSize)
+
+            for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+                const start = batchIndex * batchSize
+                const end = Math.min(start + batchSize, discordShellUsersMissing.length)
+                const batch = discordShellUsersMissing.slice(start, end)
+
+                console.log(`📦 Processing batch ${batchIndex + 1}/${totalBatches} (${batch.length} users)`)
+
+                // Process each missing Discord shell user.
+                // Note: Adding an _ to the username shows that this is a shell user.
+                //       Users cannot create usernames with an _ at the start.
+                const shellUsersToCreate = []
+                for (const shellUser of batch) {
+                    shellUsersToCreate.push({
+                        discord_user_id: shellUser.discord_user_id,
+                        discord_username: shellUser.discord_username,
+                        username: `_${shellUser.discord_username}`,
+                        display_name: !shellUser.discord_global_name
+                            ? shellUser.discord_username
+                            : shellUser.discord_global_name,
+                        signup_code: "shell-user",
+                    })
+                }
+
+                console.log("🔍 Shell users to create in this batch:", shellUsersToCreate.length)
+
+                // Look for any conflicting usernames
+                // This is for the edge case where a user changes their Discord username and someone claims their old username.
+                // This would cause an insert error because the username already exists,
+                // so deleting the old shell user first is the simplest way to avoid the conflict.
+                const { data: conflictingUsernames, error: conflictingUsernamesError } = await supabase
+                    .from("users")
+                    .select("username")
+                    .in(
+                        "username",
+                        shellUsersToCreate.map((shellUser) => shellUser.username),
+                    )
+
+                if (conflictingUsernamesError) {
+                    const errorMessage = `Error fetching conflicting usernames: ${conflictingUsernamesError.message}`
+                    console.error(errorMessage)
+                    throw errorMessage
+                }
+
+                // Delete the conflicting usernames from the DB
+                if (conflictingUsernames.length > 0) {
+                    console.log("⚠️ Conflicting usernames:", conflictingUsernames)
+
+                    const { error: deleteError } = await supabase
+                        .from("users")
+                        .delete()
+                        .in(
+                            "username",
+                            conflictingUsernames.map((username) => username.username),
+                        )
+                        .is("privy_id", null) // Stops a real user from being deleted
+
+                    if (deleteError) {
+                        const errorMessage = `Error deleting conflicting usernames: ${deleteError.message}`
+                        console.error(errorMessage)
+                        throw errorMessage
+                    }
+
+                    console.log("✅ Deleted conflicting usernames")
+                }
+
+                // Bulk insert the missing Discord shell users into the users table
+                const { error: bulkInsertError } = await supabase
+                    .from("users")
+                    .upsert(shellUsersToCreate, { onConflict: "discord_user_id", ignoreDuplicates: true })
+                    .is("privy_id", null) // Stops a real user from being modified
+
+                if (bulkInsertError) {
+                    const errorMessage = `Error bulk inserting discord shell users: ${bulkInsertError.message}`
+                    console.error(errorMessage)
+                    throw errorMessage
+                }
+
+                console.log(`✅ Batch ${batchIndex + 1}/${totalBatches} completed`)
+            }
+
+            console.log("✅ All batches completed")
+        }
+
+        // Check the discord_shell_users_changed table to see if any shell users have been changed
+        const { data: discordShellUsersChanged, error: discordShellUsersChangedError } = await supabase
+            .from("discord_shell_users_changed")
+            .select("*")
+
+        if (discordShellUsersChangedError) {
+            const errorMessage = `Error fetching discord shell users changed: ${discordShellUsersChangedError.message}`
+            console.error(errorMessage)
+            throw errorMessage
+        }
+
+        if (discordShellUsersChanged.length > 0) {
+            console.log("🔍 Found", discordShellUsersChanged.length, "changed Discord shell users")
+
+            // Process each changed Discord shell user
+            for (const shellUserChanged of discordShellUsersChanged) {
+                // Update the users table with the new values
+                const { error: updateError } = await supabase
+                    .from("users")
+                    .update({
+                        discord_username: `_${shellUserChanged.discord_table_username}`,
+                        display_name: shellUserChanged.discord_table_global_name,
+                    })
+                    .eq("discord_user_id", shellUserChanged.discord_user_id)
+                    .is("privy_id", null) // Stops a real user from being modified
+
+                if (updateError) {
+                    const errorMessage = `Error updating discord shell user: ${updateError.message}`
+                    console.error(errorMessage)
+                    throw errorMessage
+                }
+
+                console.log("✅ Updated discord shell user", shellUserChanged.discord_table_username)
+            }
+        }
+
+        console.log("🎉 Finished processing all shell users. Shell user governor complete.")
+    } catch (error) {
+        console.error("Error in runShellUserGovernor:", error)
+        throw error
+    } finally {
+        // ==============================
+        // Update action count in the DB
+        // ==============================
+        // Set the action count equal to the number of
+        // shell users that were updated.
+        await storeStatsInDb({
+            actionCount: shellUsersUpdated,
+        })
+    }
+}
+
+module.exports = { runShellUserGovernor }

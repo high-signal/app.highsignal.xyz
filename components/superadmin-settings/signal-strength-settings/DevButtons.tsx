@@ -86,6 +86,7 @@ export default function DevButtons({
             <DevButton label="addAllItemsToForumQueue" functionType="addAllItemsToForumQueue" />
             <DevButton label="runForumGovernor" functionType="runForumGovernor" />
             <DevButton label="runDiscordGovernor" functionType="runDiscordGovernor" />
+            <DevButton label="runShellUserGovernor" functionType="runShellUserGovernor" />
         </HStack>
     )
 }

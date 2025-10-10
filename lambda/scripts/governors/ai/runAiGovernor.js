@@ -6,7 +6,7 @@ const { createClient } = require("@supabase/supabase-js")
 const { handleTriggerAiQueueItem } = require("./handleTriggerAiQueueItem")
 const { checkQueueForStaleItems } = require("../utils/checkQueueForStaleItems")
 const { getPriorityQueueItems } = require("./getPriorityQueueItems")
-const { storeStatsInDb } = require("../../utils/storeStatsInDb")
+const { storeStatsInDb } = require("../../stats/storeStatsInDb")
 
 // ==========
 // Constants

@@ -1,5 +1,5 @@
 const { createClient } = require("@supabase/supabase-js")
-const als = require("./asyncContext")
+const als = require("../utils/asyncContext")
 
 const storeStatsInDb = async ({ source, functionType, actionCount, errorType }) => {
     const runningInLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME && !!process.env.AWS_REGION
