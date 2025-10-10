@@ -60,6 +60,21 @@ export async function GET() {
         return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
     }
 
+    // Get lambda stats null billed duration
+    const { count: lambdaStatsNullBilledDuration, error: lambdaStatsNullBilledDurationError } = await supabase
+        .from("lambda_stats")
+        .select("*", { count: "exact" })
+        .is("billed_duration", null)
+        .limit(0)
+
+    if (lambdaStatsNullBilledDurationError) {
+        const errorMessage =
+            "Error fetching lambda stats null billed duration: " +
+            (lambdaStatsNullBilledDurationError.message || "Unknown error")
+        console.error(errorMessage)
+        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+    }
+
     return NextResponse.json({
         status: "success",
         statusCode: 200,
@@ -68,6 +83,7 @@ export async function GET() {
             aiRawScoreErrors,
             lastCheckedNotNull,
             discordRequestQueueErrors,
+            lambdaStatsNullBilledDuration,
         },
     })
 }
