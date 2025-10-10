@@ -102,8 +102,14 @@ async function runLambdaStats() {
                 updatedCount++
             }
         } else {
-            console.log(`⚠️ No REPORT found for ${row.request_id}`)
+            // console.log(`⚠️ No REPORT found for ${row.request_id}`)
         }
+    }
+
+    if (updatedCount > 0) {
+        console.log(`☑️ Updated ${updatedCount} rows`)
+    } else {
+        console.log(`⚠️ No reports found for any rows`)
     }
 
     // ==============================
