@@ -19,7 +19,7 @@ async function runLambdaStats() {
         .is("billed_duration", null)
         .neq("request_id", currentLambdaRequestId)
         .order("created_at", { ascending: false })
-        .limit(100)
+        .limit(200)
 
     if (error) throw error
     if (!rows || rows.length === 0) {
