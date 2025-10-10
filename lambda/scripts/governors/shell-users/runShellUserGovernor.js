@@ -11,11 +11,6 @@ const { storeStatsInDb } = require("../../stats/storeStatsInDb")
 async function runShellUserGovernor() {
     console.log("💡 Running shell user governor")
 
-    // Just run this in batches of 1000 each time the governor runs
-    // TODO: Maybe it can do more if it loops, but might not need to
-
-    // TODO: Still limit the lengths of the display name and username (as they can be massive strings)
-
     let shellUsersUpdated = 0
 
     try {
