@@ -156,6 +156,8 @@ async function runDiscordQueueItem({ queueItemId }) {
                             guild_id: guildId,
                             channel_id: channelId,
                             discord_user_id: msg.author.id,
+                            discord_username: msg.author.username,
+                            discord_global_name: msg.author.global_name,
                             content: msg.content,
                             created_timestamp: new Date(msg.timestamp).toISOString(),
                         })
