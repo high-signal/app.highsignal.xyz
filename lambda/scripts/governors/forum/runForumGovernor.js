@@ -5,7 +5,7 @@ require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { fetchUserActivity } = require("./fetchUserActivity")
 const { checkQueueForStaleItems } = require("../utils/checkQueueForStaleItems")
-const { storeStatsInDb } = require("../../utils/storeStatsInDb")
+const { storeStatsInDb } = require("../../stats/storeStatsInDb")
 
 // ==========
 // Constants

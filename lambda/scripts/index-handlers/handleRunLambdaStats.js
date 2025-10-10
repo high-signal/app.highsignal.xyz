@@ -1,4 +1,4 @@
-const { runLambdaStats } = require("../utils/runLambdaStats")
+const { runLambdaStats } = require("../stats/runLambdaStats")
 
 async function handleRunLambdaStats() {
     try {

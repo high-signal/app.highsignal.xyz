@@ -1,7 +1,7 @@
 require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { DiscordRestApi } = require("./discordRestApi")
-const { storeStatsInDb } = require("../../utils/storeStatsInDb")
+const { storeStatsInDb } = require("../../stats/storeStatsInDb")
 
 // Dynamic import for out-of-character based on environment
 let outOfCharacter
