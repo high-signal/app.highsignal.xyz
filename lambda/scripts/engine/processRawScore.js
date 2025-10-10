@@ -21,12 +21,16 @@ async function processRawScore({
 
     if (!dayData || dayData.data.length === 0) {
         // This should not happen as this raw_score queue item should not be created if there is no activity data.
-        const errorMessage = `No activity data found for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate}`
+        const errorMessage = `⚠️ No activity data found for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate}`
         console.log(errorMessage)
         throw new Error(errorMessage)
     }
 
     const analysisResults = await analyzeUserData({
+        supabase,
+        userId,
+        projectId,
+        signalStrengthId,
         signalStrengthData,
         userData: dayData.data,
         userDisplayName,
@@ -42,7 +46,9 @@ async function processRawScore({
     // === Validity check on maxValue ===
     if (analysisResults && !analysisResults.error) {
         if (analysisResults[signalStrengthUsername].value > maxValue) {
-            console.log(`User ${signalStrengthUsername} has a score greater than ${maxValue}. Setting to ${maxValue}.`)
+            console.log(
+                `⚠️ User ${signalStrengthUsername} has a score greater than ${maxValue}. Setting to ${maxValue}.`,
+            )
             analysisResults[signalStrengthUsername].value = maxValue
         }
     }

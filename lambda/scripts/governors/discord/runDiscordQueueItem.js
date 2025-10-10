@@ -187,7 +187,10 @@ async function runDiscordQueueItem({ queueItemId }) {
 
                         // Sanitize the message content before storing it in the DB.
                         messagesToInsert.forEach((m) => {
+                            // Remove invisible/control characters
                             m.content = outOfCharacter.replace(m.content)
+                            // Remove null bytes - the main character PostgreSQL text fields cannot handle
+                            m.content = m.content.replace(/\0/g, "")
 
                             // Truncate the message content if it exceeds the max_chars.
                             if (m.content.length > maxChars) {

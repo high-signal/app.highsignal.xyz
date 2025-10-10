@@ -39,14 +39,16 @@ async function getDailyActivityData({
         dayDate,
         previousDays,
     })
-    console.log(
-        `🗓️ Processed ${activityData?.length || 0} activities for ${userDisplayName} (forum username: ${forum_username})`,
-    )
+
     adapterLogs += `\nTotal API activities:  ${activityData?.length || 0}`
 
     if (!activityData || activityData.length === 0) {
         console.log(`📭 No activity data found for ${userDisplayName} (forum username: ${forum_username})`)
-        return
+        return { dailyActivityData: [], adapterLogs }
+    } else {
+        console.log(
+            `🗓️ Processed ${activityData?.length || 0} activities for ${userDisplayName} (forum username: ${forum_username})`,
+        )
     }
 
     // Filter activity data to the activity range

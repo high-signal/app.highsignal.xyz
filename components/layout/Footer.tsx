@@ -54,7 +54,6 @@ export default function Footer() {
                 <Link href={"https://eridian.xyz"} target="_blank">
                     <HStack textDecoration={"underline"} color={"blue.500"} gap={"2px"}>
                         <Text>Eridian</Text>
-                        <FontAwesomeIcon icon={faExternalLink} size="xs" />
                     </HStack>
                 </Link>
             </HStack>

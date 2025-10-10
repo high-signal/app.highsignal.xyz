@@ -5,6 +5,7 @@ const { Parser } = require("expr-eval")
 const OpenAI = require("openai")
 const { processObjectForHtml } = require("../utils/processObjectForHtml")
 const { calculateSmartScore } = require("./calculateSmartScores")
+const { getLatestSmartScore } = require("../db/getLatestSmartScore")
 
 // === CONFIG ===
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
@@ -13,6 +14,10 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 
 async function analyzeUserData({
+    supabase,
+    userId,
+    projectId,
+    signalStrengthId,
     signalStrengthData,
     userData,
     userDisplayName,
@@ -28,6 +33,21 @@ async function analyzeUserData({
         `⏳ ${type === "smart" ? "Smart" : "Raw"} score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate} analysis started...`,
     )
 
+    // If userData is empty, return a zero score
+    if (userData.length === 0) {
+        console.log(`⚠️ No activity in the past ${previousDays} days`)
+        return {
+            [signalStrengthUsername]: {
+                summary: `No activity in the past ${previousDays} days`,
+                description: null,
+                improvements: null,
+                value: 0,
+            },
+            created: Math.floor(Date.now() / 1000),
+            previousDays: previousDays,
+        }
+    }
+
     let calculatedSmartScore
     if (type === "smart") {
         const smartScoreResult = calculateSmartScore({
@@ -38,12 +58,65 @@ async function analyzeUserData({
         })
 
         calculatedSmartScore = smartScoreResult.smartScore
-        const topBandDays = smartScoreResult.topBandDays
 
-        // Filter userData to only include the days that were used in the smart score calculation
-        if (topBandDays.length > 0) {
-            userData = userData.filter((d) => topBandDays.includes(d.day))
+        // If there was a raw score for the dayDate, then run the AI analysis.
+        // This is to show some change to the data even if the score did not change,
+        // but the user has activity and should see some change.
+        let isRawScoreForDayDate
+        if (userData.some((d) => d.day === dayDate)) {
+            isRawScoreForDayDate = true
         }
+
+        // Check if the smart score has changed since last run.
+        // If it has not, do not run the AI analysis and instead
+        // copy the latest smart score to the new smart score.
+        if (!testingData && !isRawScoreForDayDate) {
+            // Get the last smart score for the user
+            const latestSmartScore = await getLatestSmartScore({ supabase, userId, projectId, signalStrengthId })
+
+            // If the smart score value has not changed since last run, copy the latest smart score to the new smart score
+            if (
+                latestSmartScore &&
+                latestSmartScore.length > 0 &&
+                latestSmartScore[0]?.value === calculatedSmartScore
+            ) {
+                console.log(
+                    `🏖️ Smart score for ${signalStrengthUsername} on ${dayDate} has not changed since last run. Copying latest smart score...`,
+                )
+                return {
+                    [signalStrengthUsername]: {
+                        summary: latestSmartScore[0].summary,
+                        description: latestSmartScore[0].description,
+                        improvements: latestSmartScore[0].improvements,
+                        explainedReasoning: latestSmartScore[0].explained_reasoning,
+                        value: latestSmartScore[0].value,
+                    },
+                    created: Math.floor(Date.now() / 1000),
+                    // promptTokens: latestSmartScore[0].prompt_tokens,
+                    // completionTokens: latestSmartScore[0].completion_tokens,
+                    logs: latestSmartScore[0].logs,
+                    model: latestSmartScore[0].model,
+                    promptId: latestSmartScore[0].prompt_id,
+                    maxChars: latestSmartScore[0].max_chars,
+                    previousDays: latestSmartScore[0].previous_days,
+                    analysisItems: [
+                        {
+                            id: `Copied from ${latestSmartScore[0].id}`,
+                        },
+                    ],
+                }
+            }
+        }
+
+        // Instead of using the topBandDays, use the entire userData but ordered by day with the latest first.
+        userData = userData.sort((a, b) => new Date(b.day) - new Date(a.day))
+
+        // TODO: Remove if using all days ordered is better
+        // const topBandDays = smartScoreResult.topBandDays
+        // // Filter userData to only include the days that were used in the smart score calculation
+        // if (topBandDays.length > 0) {
+        //     userData = userData.filter((d) => topBandDays.includes(d.day))
+        //   }
     }
 
     let promptId
@@ -98,21 +171,6 @@ async function analyzeUserData({
         maxChars = signalStrengthData.max_chars
     } else {
         return { error: "No max_chars set in DB" }
-    }
-
-    // If userData is empty, return a zero score
-    if (userData.length === 0) {
-        console.log(`⚠️ No activity in the past ${previousDays} days`)
-        return {
-            [signalStrengthUsername]: {
-                summary: `No activity in the past ${previousDays} days`,
-                description: null,
-                improvements: null,
-                value: 0,
-            },
-            created: Math.floor(Date.now() / 1000),
-            previousDays: previousDays,
-        }
     }
 
     // Process the userData to strip HTML
