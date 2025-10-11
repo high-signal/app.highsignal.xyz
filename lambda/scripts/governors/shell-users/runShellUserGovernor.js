@@ -43,14 +43,14 @@ async function runShellUserGovernor() {
                 console.log(`📦 Processing batch ${batchIndex + 1}/${totalBatches} (${batch.length} users)`)
 
                 // Process each missing Discord shell user.
-                // Note: Adding an _ to the username shows that this is a shell user.
-                //       Users cannot create usernames with an _ at the start.
+                // Note: Adding a ~ to the username shows that this is a shell user.
+                //       Users cannot create usernames with an ~ at the start.
                 const shellUsersToCreate = []
                 for (const shellUser of batch) {
                     shellUsersToCreate.push({
                         discord_user_id: shellUser.discord_user_id,
                         discord_username: shellUser.discord_username,
-                        username: `_${shellUser.discord_username}`,
+                        username: `~${shellUser.discord_username}`,
                         display_name: !shellUser.discord_global_name
                             ? shellUser.discord_username
                             : shellUser.discord_global_name,
@@ -138,7 +138,7 @@ async function runShellUserGovernor() {
                 const { error: updateError } = await supabase
                     .from("users")
                     .update({
-                        discord_username: `_${shellUserChanged.discord_table_username}`,
+                        discord_username: `~${shellUserChanged.discord_table_username}`,
                         display_name: shellUserChanged.discord_table_global_name,
                     })
                     .eq("discord_user_id", shellUserChanged.discord_user_id)
