@@ -167,6 +167,9 @@ class DiscordRestApi {
         const botMember = await this.makeDiscordRequest(memberUrl)
         const botRoleIds = botMember.roles
 
+        // Convert to Set for O(1) lookup instead of O(n) includes
+        const botRoleIdSet = new Set(botRoleIds)
+
         // Compute base permissions from @everyone + bot roles
         const everyoneRoleId = guildId
         let basePerms = roleMap.get(everyoneRoleId) || 0n
@@ -186,7 +189,7 @@ class DiscordRestApi {
                 const targetId = ow.id
                 const type = ow.type // 0 = role, 1 = member
 
-                if (type === 0 && (targetId === everyoneRoleId || botRoleIds.includes(targetId))) {
+                if (type === 0 && (targetId === everyoneRoleId || botRoleIdSet.has(targetId))) {
                     allow |= BigInt(ow.allow)
                     deny |= BigInt(ow.deny)
                 } else if (type === 1 && targetId === botUserId) {
