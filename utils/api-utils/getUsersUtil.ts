@@ -82,8 +82,8 @@ function fillSignalStrengthGaps(signalStrengthData: SignalStrengthData[]): Signa
 
     // Calculate date range
     const today = new Date()
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
+    const twoDaysAgo = new Date(today)
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
 
     // Get the earliest date in our data
     const earliestDataDate = sortedData[0].day
@@ -94,13 +94,13 @@ function fillSignalStrengthGaps(signalStrengthData: SignalStrengthData[]): Signa
 
     const result: SignalStrengthData[] = []
 
-    // Fill from 360 days ago to yesterday (exclude today)
+    // Fill from 360 days ago to two days ago (exclude today and yesterday)
     const currentDate = new Date(startDate)
     let previousItem: SignalStrengthData | null = null
     let nextItem: SignalStrengthData | null = null
     let nextItemDate: Date | null = null
 
-    while (currentDate <= yesterday) {
+    while (currentDate <= twoDaysAgo) {
         const dateString = currentDate.toISOString().split("T")[0]
 
         if (dataMap.has(dateString)) {
@@ -129,7 +129,7 @@ function fillSignalStrengthGaps(signalStrengthData: SignalStrengthData[]): Signa
                 nextItem = null
                 nextItemDate = null
 
-                while (lookAheadDate <= yesterday) {
+                while (lookAheadDate <= twoDaysAgo) {
                     const lookAheadString = lookAheadDate.toISOString().split("T")[0]
                     if (dataMap.has(lookAheadString)) {
                         nextItem = dataMap.get(lookAheadString)!
@@ -208,11 +208,11 @@ function fillHistoricalScoreGaps(
     historicalScores: Array<{ day: string; totalScore: number }>,
 ): Array<{ day: string; totalScore: number }> {
     if (historicalScores.length === 0) {
-        // If no historical scores, fill all 360 days with 0 (up to yesterday, not today)
+        // If no historical scores, fill all 360 days with 0 (up to two days ago, exclude today and yesterday)
         const today = new Date()
         const result: Array<{ day: string; totalScore: number }> = []
 
-        for (let i = 1; i <= 360; i++) {
+        for (let i = 2; i <= 361; i++) {
             const date = new Date(today)
             date.setDate(date.getDate() - i)
             const dateString = date.toISOString().split("T")[0]
@@ -233,8 +233,8 @@ function fillHistoricalScoreGaps(
 
     // Calculate 360 days ago from today
     const today = new Date()
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
+    const twoDaysAgo = new Date(today)
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
     const startDate = new Date(today)
     startDate.setDate(startDate.getDate() - 360)
     const startDateString = startDate.toISOString().split("T")[0]
@@ -244,13 +244,13 @@ function fillHistoricalScoreGaps(
 
     const result: Array<{ day: string; totalScore: number }> = []
 
-    // Fill from 360 days ago to yesterday (exclude today)
+    // Fill from 360 days ago to two days ago (exclude today and yesterday)
     const currentDate = new Date(startDate)
     let previousScore = 0
     let nextScore = 0
     let nextScoreDate: Date | null = null
 
-    while (currentDate <= yesterday) {
+    while (currentDate <= twoDaysAgo) {
         const dateString = currentDate.toISOString().split("T")[0]
 
         if (scoresMap.has(dateString)) {
@@ -270,7 +270,7 @@ function fillHistoricalScoreGaps(
                 nextScore = previousScore // Default to previous if no next found
                 nextScoreDate = null
 
-                while (lookAheadDate <= yesterday) {
+                while (lookAheadDate <= twoDaysAgo) {
                     const lookAheadString = lookAheadDate.toISOString().split("T")[0]
                     if (scoresMap.has(lookAheadString)) {
                         nextScore = scoresMap.get(lookAheadString)!
@@ -1042,7 +1042,7 @@ export async function getUsersUtil(
                                         // Super admin can see all summaries for all results
                                         ...(isSuperAdminRequesting ||
                                         (isUserDataVisible && index === 0) ||
-                                        (index === 0 && !d.summary?.includes("No activity in the past"))
+                                        (index === 0 && !d.summary?.includes("No activity in the past")) //TODO: This does not happen anymore
                                             ? {
                                                   summary: d.summary,
                                               }
