@@ -1,7 +1,7 @@
 const { updateTotalScoreHistory } = require("../db/updateTotalScoreHistory")
 
 async function checkForSmartScoreGaps({ supabase }) {
-    console.log("🔍 Checking for smart score gaps")
+    console.log("🔍 Checking for smart score gaps...")
 
     // Get the first batch of missing range rows
     const yesterday = new Date()
@@ -12,7 +12,7 @@ async function checkForSmartScoreGaps({ supabase }) {
         .from("user_signal_strengths_missing_ranges")
         .select("*")
         .neq("gap_start_date", yesterdayString) // Exclude gaps starting yesterday
-        .limit(10)
+        .limit(100)
 
     if (rangeError) {
         console.error("🚨 Error fetching missing ranges:", rangeError)
