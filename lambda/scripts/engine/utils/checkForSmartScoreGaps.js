@@ -1,3 +1,6 @@
+// THIS FILE IS DEPRECATED
+// The code was mode to a PostgreSQL function in the database/functions folder
+
 const { updateTotalScoreHistory } = require("../db/updateTotalScoreHistory")
 
 async function checkForSmartScoreGaps({ supabase }) {

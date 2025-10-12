@@ -8,8 +8,6 @@ const { checkQueueForStaleItems } = require("../utils/checkQueueForStaleItems")
 const { getPriorityQueueItems } = require("./getPriorityQueueItems")
 const { storeStatsInDb } = require("../../stats/storeStatsInDb")
 
-const { checkForSmartScoreGaps } = require("../../engine/utils/checkForSmartScoreGaps")
-
 // ==========
 // Constants
 // ==========
@@ -83,7 +81,12 @@ async function runAiGovernor() {
         console.log("🎉 Finished triggering AI queue items. AI governor complete.")
 
         // Check and process a batch of smart score gaps
-        await checkForSmartScoreGaps({ supabase })
+        const { error: fillSmartScoreGapsError } = await supabase.rpc("fill_smart_score_gaps")
+        if (fillSmartScoreGapsError) {
+            const errorMessage = `Failed to fill smart score gaps: ${fillSmartScoreGapsError.message}`
+            console.error(errorMessage)
+            throw errorMessage
+        }
     } catch (error) {
         console.error("Error in runAiGovernor:", error)
         throw error
