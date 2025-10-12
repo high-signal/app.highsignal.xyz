@@ -82,6 +82,8 @@ function fillSignalStrengthGaps(signalStrengthData: SignalStrengthData[]): Signa
 
     // Calculate date range
     const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
     const twoDaysAgo = new Date(today)
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
 
@@ -94,13 +96,14 @@ function fillSignalStrengthGaps(signalStrengthData: SignalStrengthData[]): Signa
 
     const result: SignalStrengthData[] = []
 
-    // Fill from 360 days ago to two days ago (exclude today and yesterday)
+    // Fill from 360 days ago to yesterday (exclude today)
+    // But only gap-fill up to two days ago (don't gap-fill for yesterday)
     const currentDate = new Date(startDate)
     let previousItem: SignalStrengthData | null = null
     let nextItem: SignalStrengthData | null = null
     let nextItemDate: Date | null = null
 
-    while (currentDate <= twoDaysAgo) {
+    while (currentDate <= yesterday) {
         const dateString = currentDate.toISOString().split("T")[0]
 
         if (dataMap.has(dateString)) {
@@ -108,8 +111,8 @@ function fillSignalStrengthGaps(signalStrengthData: SignalStrengthData[]): Signa
             const item = dataMap.get(dateString)!
             result.push(item)
             previousItem = item
-        } else {
-            // Gap detected - need to fill
+        } else if (currentDate <= twoDaysAgo) {
+            // Gap detected - need to fill (but only if not yesterday)
             // If this date is before our earliest data, fill with 0
             if (dateString < earliestDataDate) {
                 result.push({
@@ -129,7 +132,7 @@ function fillSignalStrengthGaps(signalStrengthData: SignalStrengthData[]): Signa
                 nextItem = null
                 nextItemDate = null
 
-                while (lookAheadDate <= twoDaysAgo) {
+                while (lookAheadDate <= yesterday) {
                     const lookAheadString = lookAheadDate.toISOString().split("T")[0]
                     if (dataMap.has(lookAheadString)) {
                         nextItem = dataMap.get(lookAheadString)!
@@ -208,7 +211,7 @@ function fillHistoricalScoreGaps(
     historicalScores: Array<{ day: string; totalScore: number }>,
 ): Array<{ day: string; totalScore: number }> {
     if (historicalScores.length === 0) {
-        // If no historical scores, fill all 360 days with 0 (up to two days ago, exclude today and yesterday)
+        // If no historical scores, fill all 360 days with 0 (up to two days ago, exclude today and yesterday from gap-filling)
         const today = new Date()
         const result: Array<{ day: string; totalScore: number }> = []
 
@@ -233,6 +236,8 @@ function fillHistoricalScoreGaps(
 
     // Calculate 360 days ago from today
     const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
     const twoDaysAgo = new Date(today)
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
     const startDate = new Date(today)
@@ -244,13 +249,14 @@ function fillHistoricalScoreGaps(
 
     const result: Array<{ day: string; totalScore: number }> = []
 
-    // Fill from 360 days ago to two days ago (exclude today and yesterday)
+    // Fill from 360 days ago to yesterday (exclude today)
+    // But only gap-fill up to two days ago (don't gap-fill for yesterday)
     const currentDate = new Date(startDate)
     let previousScore = 0
     let nextScore = 0
     let nextScoreDate: Date | null = null
 
-    while (currentDate <= twoDaysAgo) {
+    while (currentDate <= yesterday) {
         const dateString = currentDate.toISOString().split("T")[0]
 
         if (scoresMap.has(dateString)) {
@@ -258,8 +264,8 @@ function fillHistoricalScoreGaps(
             const score = scoresMap.get(dateString)!
             result.push({ day: dateString, totalScore: score })
             previousScore = score
-        } else {
-            // Gap detected - need to fill
+        } else if (currentDate <= twoDaysAgo) {
+            // Gap detected - need to fill (but only if not yesterday)
             // If this date is before our earliest data, fill with 0
             if (dateString < earliestDataDate) {
                 result.push({ day: dateString, totalScore: 0 })
@@ -270,7 +276,7 @@ function fillHistoricalScoreGaps(
                 nextScore = previousScore // Default to previous if no next found
                 nextScoreDate = null
 
-                while (lookAheadDate <= twoDaysAgo) {
+                while (lookAheadDate <= yesterday) {
                     const lookAheadString = lookAheadDate.toISOString().split("T")[0]
                     if (scoresMap.has(lookAheadString)) {
                         nextScore = scoresMap.get(lookAheadString)!
