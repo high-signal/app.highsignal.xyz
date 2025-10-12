@@ -61,6 +61,255 @@ type SignalStrengthGroup = {
     data: SignalStrengthData[]
 }
 
+/**
+ * Fills gaps in signal strength data with interpolated values
+ * Also ensures the full date range is covered, filling early dates with 0
+ */
+// TODO: Move this to a different file
+function fillSignalStrengthGaps(signalStrengthData: SignalStrengthData[]): SignalStrengthData[] {
+    if (signalStrengthData.length === 0) {
+        return []
+    }
+
+    // Sort by date (oldest first)
+    const sortedData = [...signalStrengthData].sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime())
+
+    // Create a map for quick lookup
+    const dataMap = new Map<string, SignalStrengthData>()
+    sortedData.forEach((item) => {
+        dataMap.set(item.day, item)
+    })
+
+    // Calculate date range
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+
+    // Get the earliest date in our data
+    const earliestDataDate = sortedData[0].day
+
+    // Start from 360 days ago (always go back full 360 days like historical scores)
+    const startDate = new Date(today)
+    startDate.setDate(startDate.getDate() - 360)
+
+    const result: SignalStrengthData[] = []
+
+    // Fill from 360 days ago to yesterday (exclude today)
+    const currentDate = new Date(startDate)
+    let previousItem: SignalStrengthData | null = null
+    let nextItem: SignalStrengthData | null = null
+    let nextItemDate: Date | null = null
+
+    while (currentDate <= yesterday) {
+        const dateString = currentDate.toISOString().split("T")[0]
+
+        if (dataMap.has(dateString)) {
+            // We have data for this date
+            const item = dataMap.get(dateString)!
+            result.push(item)
+            previousItem = item
+        } else {
+            // Gap detected - need to fill
+            // If this date is before our earliest data, fill with 0
+            if (dateString < earliestDataDate) {
+                result.push({
+                    signal_strengths: sortedData[0].signal_strengths,
+                    day: dateString,
+                    value: 0,
+                    max_value: sortedData[0].max_value || 0,
+                    previous_days: sortedData[0].previous_days || 0,
+                    summary: "",
+                    description: "",
+                    improvements: "",
+                })
+            } else {
+                // Find the next available data point
+                let lookAheadDate = new Date(currentDate)
+                lookAheadDate.setDate(lookAheadDate.getDate() + 1)
+                nextItem = null
+                nextItemDate = null
+
+                while (lookAheadDate <= yesterday) {
+                    const lookAheadString = lookAheadDate.toISOString().split("T")[0]
+                    if (dataMap.has(lookAheadString)) {
+                        nextItem = dataMap.get(lookAheadString)!
+                        nextItemDate = new Date(lookAheadDate)
+                        break
+                    }
+                    lookAheadDate.setDate(lookAheadDate.getDate() + 1)
+                }
+
+                // Calculate interpolated values
+                if (previousItem && nextItem && nextItemDate) {
+                    const previousDate = new Date(previousItem.day)
+                    const totalDays = (nextItemDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24)
+
+                    const valueDelta = nextItem.value - previousItem.value
+                    const maxValueDelta = nextItem.max_value - previousItem.max_value
+                    const previousDaysDelta = nextItem.previous_days - previousItem.previous_days
+
+                    const valuePerDay = totalDays > 0 ? valueDelta / (totalDays + 1) : 0
+                    const maxValuePerDay = totalDays > 0 ? maxValueDelta / (totalDays + 1) : 0
+                    const previousDaysPerDay = totalDays > 0 ? previousDaysDelta / (totalDays + 1) : 0
+
+                    const daysSincePrevious = (currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24)
+
+                    result.push({
+                        signal_strengths: previousItem.signal_strengths,
+                        day: dateString,
+                        value: Math.round(previousItem.value + valuePerDay * daysSincePrevious),
+                        max_value: Math.round(previousItem.max_value + maxValuePerDay * daysSincePrevious),
+                        previous_days: Math.round(previousItem.previous_days + previousDaysPerDay * daysSincePrevious),
+                        summary: "",
+                        description: "",
+                        improvements: "",
+                    })
+                } else if (previousItem) {
+                    // No next item found, use previous values
+                    result.push({
+                        signal_strengths: previousItem.signal_strengths,
+                        day: dateString,
+                        value: previousItem.value,
+                        max_value: previousItem.max_value,
+                        previous_days: previousItem.previous_days,
+                        summary: "",
+                        description: "",
+                        improvements: "",
+                    })
+                } else {
+                    // No previous item either (shouldn't happen), use zeros
+                    result.push({
+                        signal_strengths: sortedData[0].signal_strengths,
+                        day: dateString,
+                        value: 0,
+                        max_value: 0,
+                        previous_days: 0,
+                        summary: "",
+                        description: "",
+                        improvements: "",
+                    })
+                }
+            }
+        }
+
+        currentDate.setDate(currentDate.getDate() + 1)
+    }
+
+    // Return in descending order (newest first)
+    return result.reverse()
+}
+
+/**
+ * Fills gaps in historical scores with interpolated values
+ * Also ensures the full 360-day range is covered, filling early dates with 0
+ */
+// TODO: Move this to a different file
+function fillHistoricalScoreGaps(
+    historicalScores: Array<{ day: string; totalScore: number }>,
+): Array<{ day: string; totalScore: number }> {
+    if (historicalScores.length === 0) {
+        // If no historical scores, fill all 360 days with 0 (up to yesterday, not today)
+        const today = new Date()
+        const result: Array<{ day: string; totalScore: number }> = []
+
+        for (let i = 1; i <= 360; i++) {
+            const date = new Date(today)
+            date.setDate(date.getDate() - i)
+            const dateString = date.toISOString().split("T")[0]
+            result.push({ day: dateString, totalScore: 0 })
+        }
+
+        return result.reverse()
+    }
+
+    // Sort historical scores by date (oldest first)
+    const sortedScores = [...historicalScores].sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime())
+
+    // Create a map for quick lookup
+    const scoresMap = new Map<string, number>()
+    sortedScores.forEach((score) => {
+        scoresMap.set(score.day, score.totalScore)
+    })
+
+    // Calculate 360 days ago from today
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+    const startDate = new Date(today)
+    startDate.setDate(startDate.getDate() - 360)
+    const startDateString = startDate.toISOString().split("T")[0]
+
+    // Get the earliest date in our data
+    const earliestDataDate = sortedScores[0].day
+
+    const result: Array<{ day: string; totalScore: number }> = []
+
+    // Fill from 360 days ago to yesterday (exclude today)
+    const currentDate = new Date(startDate)
+    let previousScore = 0
+    let nextScore = 0
+    let nextScoreDate: Date | null = null
+
+    while (currentDate <= yesterday) {
+        const dateString = currentDate.toISOString().split("T")[0]
+
+        if (scoresMap.has(dateString)) {
+            // We have data for this date
+            const score = scoresMap.get(dateString)!
+            result.push({ day: dateString, totalScore: score })
+            previousScore = score
+        } else {
+            // Gap detected - need to fill
+            // If this date is before our earliest data, fill with 0
+            if (dateString < earliestDataDate) {
+                result.push({ day: dateString, totalScore: 0 })
+            } else {
+                // Find the next available score
+                let lookAheadDate = new Date(currentDate)
+                lookAheadDate.setDate(lookAheadDate.getDate() + 1)
+                nextScore = previousScore // Default to previous if no next found
+                nextScoreDate = null
+
+                while (lookAheadDate <= yesterday) {
+                    const lookAheadString = lookAheadDate.toISOString().split("T")[0]
+                    if (scoresMap.has(lookAheadString)) {
+                        nextScore = scoresMap.get(lookAheadString)!
+                        nextScoreDate = new Date(lookAheadDate)
+                        break
+                    }
+                    lookAheadDate.setDate(lookAheadDate.getDate() + 1)
+                }
+
+                // Calculate interpolated value
+                if (nextScoreDate) {
+                    const totalDays =
+                        (nextScoreDate.getTime() - new Date(result[result.length - 1]?.day || dateString).getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    const scoreDelta = nextScore - previousScore
+                    const scorePerDay = totalDays > 0 ? scoreDelta / (totalDays + 1) : 0
+
+                    const daysSincePrevious =
+                        result.length > 0
+                            ? (currentDate.getTime() - new Date(result[result.length - 1].day).getTime()) /
+                              (1000 * 60 * 60 * 24)
+                            : 1
+
+                    const interpolatedScore = Math.round(previousScore + scorePerDay * daysSincePrevious)
+                    result.push({ day: dateString, totalScore: interpolatedScore })
+                } else {
+                    // No next score found, use previous score
+                    result.push({ day: dateString, totalScore: previousScore })
+                }
+            }
+        }
+
+        currentDate.setDate(currentDate.getDate() + 1)
+    }
+
+    // Return in descending order (newest first)
+    return result.reverse()
+}
+
 export async function getUsersUtil(
     request: Request,
     isSuperAdminRequesting: boolean = false,
@@ -732,6 +981,9 @@ export async function getUsersUtil(
                             totalScore: historicalScore.total_score,
                         }))
 
+                    // Calculate gap fill scores
+                    const gapFilledHistoricalScores = fillHistoricalScoreGaps(historicalScores)
+
                     return {
                         ...(isSuperAdminRequesting ? { id: user.user_id } : {}),
                         username: user.username,
@@ -764,76 +1016,81 @@ export async function getUsersUtil(
                                   })),
                               }
                             : {}),
-                        ...(historicalScores.length > 0 ? { historicalScores: historicalScores } : {}),
+                        ...(gapFilledHistoricalScores.length > 0
+                            ? { historicalScores: gapFilledHistoricalScores }
+                            : {}),
                         ...(usersWithLastChecked.length > 0
                             ? {
                                   lastChecked: usersWithLastChecked.find((u) => u.user_id === user.user_id)
                                       ?.last_checked,
                               }
                             : {}),
-                        signalStrengths: userSignalStrengths.map((uss) => ({
-                            signalStrengthName: uss.data[0]?.signal_strengths?.name || uss.signalStrengthId,
-                            data: uss.data
-                                .filter((d) => showRawScoreCalcOnly || d.raw_value == null)
-                                .map((d, index) => ({
-                                    ...(d.last_checked ? { lastChecked: d.last_checked } : {}),
-                                    // These are always available to the user for every result for historical charts
-                                    day: d.day,
-                                    value: d.value,
-                                    maxValue: d.max_value,
-                                    scoreCalculationPeriodPreviousDays: d.previous_days,
-                                    // Only show summary for the latest result, if it is not `No activity in the past` but to anyone
-                                    // Super admin can see all summaries for all results
-                                    ...(isSuperAdminRequesting ||
-                                    (isUserDataVisible && index === 0) ||
-                                    (index === 0 && !d.summary?.includes("No activity in the past"))
-                                        ? {
-                                              summary: d.summary,
-                                          }
-                                        : {}),
+                        signalStrengths: userSignalStrengths.map((uss) => {
+                            const gapFilledSignalData = fillSignalStrengthGaps(uss.data)
+                            return {
+                                signalStrengthName: uss.data[0]?.signal_strengths?.name || uss.signalStrengthId,
+                                data: gapFilledSignalData
+                                    .filter((d) => showRawScoreCalcOnly || d.raw_value == null)
+                                    .map((d, index) => ({
+                                        ...(d.last_checked ? { lastChecked: d.last_checked } : {}),
+                                        // These are always available to the user for every result for historical charts
+                                        day: d.day,
+                                        value: d.value,
+                                        maxValue: d.max_value,
+                                        scoreCalculationPeriodPreviousDays: d.previous_days,
+                                        // Only show summary for the latest result, if it is not `No activity in the past` but to anyone
+                                        // Super admin can see all summaries for all results
+                                        ...(isSuperAdminRequesting ||
+                                        (isUserDataVisible && index === 0) ||
+                                        (index === 0 && !d.summary?.includes("No activity in the past"))
+                                            ? {
+                                                  summary: d.summary,
+                                              }
+                                            : {}),
 
-                                    // Only show details for the latest result to the user or project admin
-                                    // Super admin can see all details for all results
-                                    ...(isSuperAdminRequesting || (isUserDataVisible && index === 0)
-                                        ? {
-                                              description: d.description,
-                                              // TODO: Enable improvements when they are better
-                                              //   improvements: d.improvements,
-                                          }
-                                        : {}),
-                                    ...(isSuperAdminRequesting
-                                        ? {
-                                              id: d.id,
-                                              requestId: d.request_id,
-                                              created: d.created,
-                                              user_id: d.user_id,
-                                              project_id: d.project_id,
-                                              signal_strength_id: d.signal_strength_id,
-                                              explainedReasoning: d.explained_reasoning,
-                                              model: d.model,
-                                              promptId: d.prompt_id,
-                                              prompt: d.prompts?.prompt,
-                                              maxChars: d.max_chars,
-                                              logs: d.logs,
-                                              promptTokens: d.prompt_tokens,
-                                              completionTokens: d.completion_tokens,
-                                              rawValue: d.raw_value,
-                                              testRequestingUser: d.test_requesting_user,
-                                          }
-                                        : {}),
-                                })),
-                            ...(isSuperAdminRequesting || isUserDataVisible
-                                ? {
-                                      dailyData: uss.data
-                                          .filter((d) => d.value == null)
-                                          .map((d) => ({
-                                              day: d.day,
-                                              value: d.raw_value,
-                                              maxValue: d.max_value,
-                                          })),
-                                  }
-                                : {}),
-                        })),
+                                        // Only show details for the latest result to the user or project admin
+                                        // Super admin can see all details for all results
+                                        ...(isSuperAdminRequesting || (isUserDataVisible && index === 0)
+                                            ? {
+                                                  description: d.description,
+                                                  // TODO: Enable improvements when they are better
+                                                  //   improvements: d.improvements,
+                                              }
+                                            : {}),
+                                        ...(isSuperAdminRequesting
+                                            ? {
+                                                  id: d.id,
+                                                  requestId: d.request_id,
+                                                  created: d.created,
+                                                  user_id: d.user_id,
+                                                  project_id: d.project_id,
+                                                  signal_strength_id: d.signal_strength_id,
+                                                  explainedReasoning: d.explained_reasoning,
+                                                  model: d.model,
+                                                  promptId: d.prompt_id,
+                                                  prompt: d.prompts?.prompt,
+                                                  maxChars: d.max_chars,
+                                                  logs: d.logs,
+                                                  promptTokens: d.prompt_tokens,
+                                                  completionTokens: d.completion_tokens,
+                                                  rawValue: d.raw_value,
+                                                  testRequestingUser: d.test_requesting_user,
+                                              }
+                                            : {}),
+                                    })),
+                                ...(isSuperAdminRequesting || isUserDataVisible
+                                    ? {
+                                          dailyData: gapFilledSignalData
+                                              .filter((d) => d.value == null)
+                                              .map((d) => ({
+                                                  day: d.day,
+                                                  value: d.raw_value,
+                                                  maxValue: d.max_value,
+                                              })),
+                                      }
+                                    : {}),
+                            }
+                        }),
                     }
                 })
                 .filter(Boolean) // Remove nulls if any usernames didn't match filter
