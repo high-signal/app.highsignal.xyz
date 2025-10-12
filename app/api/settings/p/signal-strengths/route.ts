@@ -69,7 +69,7 @@ export async function PATCH(request: NextRequest) {
         // If the new state is disabled, set all other fields to their default values
         if (settings.enabled.new === false) {
             updateData.enabled = false
-            updateData.max_value = 20
+            updateData.max_value = 100
             updateData.previous_days = 360
             updateData.url = null
             updateData.auth_types = isPrivyAuthType ? ["privy"] : null
