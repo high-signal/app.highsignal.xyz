@@ -81,12 +81,14 @@ async function runAiGovernor() {
         console.log("🎉 Finished triggering AI queue items. AI governor complete.")
 
         // Check and process a batch of smart score gaps
+        console.log("🔍 Checking for smart score gaps...")
         const { error: fillSmartScoreGapsError } = await supabase.rpc("fill_smart_score_gaps")
         if (fillSmartScoreGapsError) {
             const errorMessage = `Failed to fill smart score gaps: ${fillSmartScoreGapsError.message}`
             console.error(errorMessage)
             throw errorMessage
         }
+        console.log("✅ Finished checking for smart score gaps.")
     } catch (error) {
         console.error("Error in runAiGovernor:", error)
         throw error

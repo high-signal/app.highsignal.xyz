@@ -13,7 +13,7 @@ declare
   gap_previous_days_delta_per_day int;
   current_date_iter date;
   yesterday date := current_date - interval '1 day';
-  batch_size int := 50;
+  batch_size int := 10;
   inserted_count int := 0;
 begin
   raise notice '🔍 Checking for smart score gaps...';
