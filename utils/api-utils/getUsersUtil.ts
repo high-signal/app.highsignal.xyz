@@ -1032,61 +1032,64 @@ export async function getUsersUtil(
                               }
                             : {}),
                         signalStrengths: userSignalStrengths.map((uss) => {
-                            const gapFilledSignalData = fillSignalStrengthGaps(uss.data)
+                            // Filter before gap filling to ensure gap filling works correctly
+                            const filteredData = showRawScoreCalcOnly
+                                ? uss.data.filter((d) => d.raw_value != null)
+                                : uss.data.filter((d) => d.raw_value == null)
+                            const gapFilledSignalData = fillSignalStrengthGaps(filteredData)
+
                             return {
                                 signalStrengthName: uss.data[0]?.signal_strengths?.name || uss.signalStrengthId,
-                                data: gapFilledSignalData
-                                    .filter((d) => showRawScoreCalcOnly || d.raw_value == null)
-                                    .map((d, index) => ({
-                                        ...(d.last_checked ? { lastChecked: d.last_checked } : {}),
-                                        // These are always available to the user for every result for historical charts
-                                        day: d.day,
-                                        value: d.value,
-                                        maxValue: d.max_value,
-                                        scoreCalculationPeriodPreviousDays: d.previous_days,
-                                        // Only show summary for the latest result, if it is not `No activity in the past` but to anyone
-                                        // Super admin can see all summaries for all results
-                                        ...(isSuperAdminRequesting ||
-                                        (isUserDataVisible && index === 0) ||
-                                        (index === 0 && !d.summary?.includes("No activity in the past")) //TODO: This does not happen anymore
-                                            ? {
-                                                  summary: d.summary,
-                                              }
-                                            : {}),
+                                data: gapFilledSignalData.map((d, index) => ({
+                                    ...(d.last_checked ? { lastChecked: d.last_checked } : {}),
+                                    // These are always available to the user for every result for historical charts
+                                    day: d.day,
+                                    value: d.value,
+                                    maxValue: d.max_value,
+                                    scoreCalculationPeriodPreviousDays: d.previous_days,
+                                    // Only show summary for the latest result, if it is not `No activity in the past` but to anyone
+                                    // Super admin can see all summaries for all results
+                                    ...(isSuperAdminRequesting ||
+                                    (isUserDataVisible && index === 0) ||
+                                    (index === 0 && !d.summary?.includes("No activity in the past")) //TODO: This does not happen anymore
+                                        ? {
+                                              summary: d.summary,
+                                          }
+                                        : {}),
 
-                                        // Only show details for the latest result to the user or project admin
-                                        // Super admin can see all details for all results
-                                        ...(isSuperAdminRequesting || (isUserDataVisible && index === 0)
-                                            ? {
-                                                  description: d.description,
-                                                  // TODO: Enable improvements when they are better
-                                                  //   improvements: d.improvements,
-                                              }
-                                            : {}),
-                                        ...(isSuperAdminRequesting
-                                            ? {
-                                                  id: d.id,
-                                                  requestId: d.request_id,
-                                                  created: d.created,
-                                                  user_id: d.user_id,
-                                                  project_id: d.project_id,
-                                                  signal_strength_id: d.signal_strength_id,
-                                                  explainedReasoning: d.explained_reasoning,
-                                                  model: d.model,
-                                                  promptId: d.prompt_id,
-                                                  prompt: d.prompts?.prompt,
-                                                  maxChars: d.max_chars,
-                                                  logs: d.logs,
-                                                  promptTokens: d.prompt_tokens,
-                                                  completionTokens: d.completion_tokens,
-                                                  rawValue: d.raw_value,
-                                                  testRequestingUser: d.test_requesting_user,
-                                              }
-                                            : {}),
-                                    })),
+                                    // Only show details for the latest result to the user or project admin
+                                    // Super admin can see all details for all results
+                                    ...(isSuperAdminRequesting || (isUserDataVisible && index === 0)
+                                        ? {
+                                              description: d.description,
+                                              // TODO: Enable improvements when they are better
+                                              //   improvements: d.improvements,
+                                          }
+                                        : {}),
+                                    ...(isSuperAdminRequesting
+                                        ? {
+                                              id: d.id,
+                                              requestId: d.request_id,
+                                              created: d.created,
+                                              user_id: d.user_id,
+                                              project_id: d.project_id,
+                                              signal_strength_id: d.signal_strength_id,
+                                              explainedReasoning: d.explained_reasoning,
+                                              model: d.model,
+                                              promptId: d.prompt_id,
+                                              prompt: d.prompts?.prompt,
+                                              maxChars: d.max_chars,
+                                              logs: d.logs,
+                                              promptTokens: d.prompt_tokens,
+                                              completionTokens: d.completion_tokens,
+                                              rawValue: d.raw_value,
+                                              testRequestingUser: d.test_requesting_user,
+                                          }
+                                        : {}),
+                                })),
                                 ...(isSuperAdminRequesting || isUserDataVisible
                                     ? {
-                                          dailyData: gapFilledSignalData
+                                          dailyData: uss.data
                                               .filter((d) => d.value == null)
                                               .map((d) => ({
                                                   day: d.day,
