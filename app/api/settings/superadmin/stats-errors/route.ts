@@ -75,6 +75,28 @@ export async function GET() {
         return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
     }
 
+    // Get rows from user_signal_strengths without raw_value or value
+    // This is an edge case that I do not even think can happen anymore, but worth checking for
+    // To fix:
+    //      DELETE FROM user_signal_strengths
+    //      WHERE value IS NULL
+    //          AND raw_value IS NULL;
+    const { count: userSignalStrengthsWithoutRawValueOrValue, error: userSignalStrengthsWithoutRawValueOrValueError } =
+        await supabase
+            .from("user_signal_strengths")
+            .select("*", { count: "exact" })
+            .is("raw_value", null)
+            .is("value", null)
+            .limit(0)
+
+    if (userSignalStrengthsWithoutRawValueOrValueError) {
+        const errorMessage =
+            "Error fetching user signal strengths without raw value or value: " +
+            (userSignalStrengthsWithoutRawValueOrValueError.message || "Unknown error")
+        console.error(errorMessage)
+        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+    }
+
     return NextResponse.json({
         status: "success",
         statusCode: 200,
@@ -84,6 +106,7 @@ export async function GET() {
             lastCheckedNotNull,
             discordRequestQueueErrors,
             lambdaStatsNullBilledDuration,
+            userSignalStrengthsWithoutRawValueOrValue,
         },
     })
 }
