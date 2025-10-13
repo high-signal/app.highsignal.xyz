@@ -107,7 +107,7 @@ export default function LandingContainer() {
                             key={item}
                             w="400px"
                             maxW="90vw"
-                            h={{ base: "305px", sm: "244px" }}
+                            h={{ base: "300px", sm: "277px" }}
                             borderRadius="16px"
                         />
                     ))}

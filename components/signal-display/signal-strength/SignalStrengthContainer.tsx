@@ -3,6 +3,8 @@
 import { VStack, Text } from "@chakra-ui/react"
 import SignalStrength from "./SignalStrength"
 
+import { useUser } from "../../../contexts/UserContext"
+
 export default function SignalStrengthContainer({
     currentUser,
     projectSignalStrengths,
@@ -14,6 +16,8 @@ export default function SignalStrengthContainer({
     projectData: ProjectData
     refreshUserData: () => void
 }) {
+    const { loggedInUser } = useUser()
+
     // Match user signal strengths with project signal strengths by name
     const matchedSignalStrengths = projectSignalStrengths.map((projectStrength) => {
         const matchingUserStrength = (currentUser.signalStrengths || []).find(
@@ -21,7 +25,16 @@ export default function SignalStrengthContainer({
         )
 
         // Get the most recent data point if it exists
-        const latestData = matchingUserStrength?.data?.[0] || null
+        let latestData = matchingUserStrength?.data?.[0] || null
+
+        if (loggedInUser?.username === currentUser.username || loggedInUser?.isSuperAdmin) {
+            if (
+                latestData &&
+                (matchingUserStrength?.data?.[0].value === "0" || !matchingUserStrength?.data?.[0].value)
+            ) {
+                latestData.summary = `No activity in the past ${projectStrength.previousDays} days`
+            }
+        }
 
         return {
             signalStrengthProjectData: projectStrength,

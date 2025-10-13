@@ -12,6 +12,7 @@ interface StatsData {
     lastCheckedNotNull: number
     discordRequestQueueErrors: number
     lambdaStatsNullBilledDuration: number
+    userSignalStrengthsWithoutRawValueOrValue: number
 }
 
 export default function SuperadminStatsErrors() {
@@ -83,7 +84,8 @@ export default function SuperadminStatsErrors() {
             isStatError(errorStats.aiRawScoreErrors) ||
             isStatError(errorStats.lastCheckedNotNull) ||
             isStatError(errorStats.discordRequestQueueErrors) ||
-            isStatError(errorStats.lambdaStatsNullBilledDuration, 500))
+            isStatError(errorStats.lambdaStatsNullBilledDuration, 500) ||
+            isStatError(errorStats.userSignalStrengthsWithoutRawValueOrValue))
 
     const [red500] = useToken("colors", ["red.500"])
     const contentBorder = useThemeColor("contentBorder")
@@ -134,6 +136,10 @@ export default function SuperadminStatsErrors() {
                                 label="Lambda Stats Null Billed Duration"
                                 value={errorStats?.lambdaStatsNullBilledDuration ?? 0}
                                 minErrorValue={500}
+                            />
+                            <StatsRow
+                                label="Signal Strengths No Raw Value or Value"
+                                value={errorStats?.userSignalStrengthsWithoutRawValueOrValue ?? 0}
                             />
                         </HStack>
                     </>

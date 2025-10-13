@@ -145,35 +145,52 @@ function fillSignalStrengthGaps(signalStrengthData: SignalStrengthData[]): Signa
 
                 // Calculate interpolated values
                 if (previousItem && nextItem && nextItemDate) {
-                    const previousDate = new Date(previousItem.day)
-                    const totalDays = (nextItemDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24)
+                    // If the last real value was 1, force gap-filled values to 0 until next real data
+                    if (previousItem.value === 1) {
+                        result.push({
+                            signal_strengths: previousItem.signal_strengths,
+                            day: dateString,
+                            value: 0,
+                            max_value: previousItem.max_value,
+                            previous_days: previousItem.previous_days,
+                            summary: "",
+                            description: "",
+                            improvements: "",
+                        })
+                    } else {
+                        const previousDate = new Date(previousItem.day)
+                        const totalDays = (nextItemDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24)
 
-                    const valueDelta = nextItem.value - previousItem.value
-                    const maxValueDelta = nextItem.max_value - previousItem.max_value
-                    const previousDaysDelta = nextItem.previous_days - previousItem.previous_days
+                        const valueDelta = nextItem.value - previousItem.value
+                        const maxValueDelta = nextItem.max_value - previousItem.max_value
+                        const previousDaysDelta = nextItem.previous_days - previousItem.previous_days
 
-                    const valuePerDay = totalDays > 0 ? valueDelta / (totalDays + 1) : 0
-                    const maxValuePerDay = totalDays > 0 ? maxValueDelta / (totalDays + 1) : 0
-                    const previousDaysPerDay = totalDays > 0 ? previousDaysDelta / (totalDays + 1) : 0
+                        const valuePerDay = totalDays > 0 ? valueDelta / (totalDays + 1) : 0
+                        const maxValuePerDay = totalDays > 0 ? maxValueDelta / (totalDays + 1) : 0
+                        const previousDaysPerDay = totalDays > 0 ? previousDaysDelta / (totalDays + 1) : 0
 
-                    const daysSincePrevious = (currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24)
+                        const daysSincePrevious =
+                            (currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24)
 
-                    result.push({
-                        signal_strengths: previousItem.signal_strengths,
-                        day: dateString,
-                        value: Math.round(previousItem.value + valuePerDay * daysSincePrevious),
-                        max_value: Math.round(previousItem.max_value + maxValuePerDay * daysSincePrevious),
-                        previous_days: Math.round(previousItem.previous_days + previousDaysPerDay * daysSincePrevious),
-                        summary: "",
-                        description: "",
-                        improvements: "",
-                    })
+                        result.push({
+                            signal_strengths: previousItem.signal_strengths,
+                            day: dateString,
+                            value: Math.round(previousItem.value + valuePerDay * daysSincePrevious),
+                            max_value: Math.round(previousItem.max_value + maxValuePerDay * daysSincePrevious),
+                            previous_days: Math.round(
+                                previousItem.previous_days + previousDaysPerDay * daysSincePrevious,
+                            ),
+                            summary: "",
+                            description: "",
+                            improvements: "",
+                        })
+                    }
                 } else if (previousItem) {
-                    // No next item found, use previous values
+                    // No next item found; if last real value was 1, force 0 for gaps, else carry previous values
                     result.push({
                         signal_strengths: previousItem.signal_strengths,
                         day: dateString,
-                        value: previousItem.value,
+                        value: previousItem.value === 1 ? 0 : previousItem.value,
                         max_value: previousItem.max_value,
                         previous_days: previousItem.previous_days,
                         summary: "",
