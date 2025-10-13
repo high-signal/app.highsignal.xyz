@@ -171,7 +171,15 @@ const LeaderboardRow = ({
                                 fit="cover"
                             />
                         </Box>
-                        <Text fontSize="lg" color="textColor" truncate>
+                        <Text
+                            fontSize="lg"
+                            color={
+                                mode === "users" && (item as UserData).username?.includes("~")
+                                    ? "textColorMuted"
+                                    : "textColor"
+                            }
+                            truncate
+                        >
                             {displayNameText}
                         </Text>
                     </HStack>

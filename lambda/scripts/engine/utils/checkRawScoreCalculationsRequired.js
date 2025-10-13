@@ -17,9 +17,12 @@ async function checkRawScoreCalculationsRequired({
     const itemsToInsert = []
     const queueItemIdentifiers = []
 
+    // Create a Set of existing days for O(1) lookup instead of O(n) find
+    const existingDays = new Set(existingUserRawData.map((item) => item.day))
+
     for (const day of dailyActivityData) {
         if (day.data.length > 0) {
-            if (existingUserRawData.length > 0 && existingUserRawData.find((item) => item.day === day.date)) {
+            if (existingDays.has(day.date)) {
                 // Local development logging.
                 if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
                     console.log(

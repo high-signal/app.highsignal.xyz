@@ -17,23 +17,33 @@ begin
     signal_strength_username
   )
   select
-    users.id as user_id,
-    project_signal_strengths.project_id,
-    signal_strengths.id as signal_strength_id,
+    u.id as user_id,
+    pss.project_id,
+    ss.id as signal_strength_id,
     target_day,
-    users.id || '_' || project_signal_strengths.project_id || '_' || signal_strengths.id || '_' || target_day::text,
+    u.id || '_' || pss.project_id || '_' || ss.id || '_' || target_day::text,
     'bulk_update',
-    users.discord_username
-  from signal_strengths
-  join project_signal_strengths
-    on signal_strengths.id = project_signal_strengths.signal_strength_id
-  cross join (
-    select id, discord_username from users
-    where discord_username is not null
-  ) as users
+    u.discord_username
+  from project_signal_strengths pss
+  join signal_strengths ss
+    on ss.id = pss.signal_strength_id
+  join users u
+    on true
   where
-    signal_strengths.name = 'discord'
-    and project_signal_strengths.enabled = true
+    ss.name = 'discord'
+    and pss.enabled = true
+    and u.discord_user_id is not null
+    and u.discord_username is not null
+    and pss.url is not null
+    and exists (
+      select 1
+      from discord_messages dm
+      where dm.guild_id = substring(rtrim(pss.url, '/') from '([^/]+)$')  -- last path token
+        and dm.discord_user_id = u.discord_user_id
+        and dm.created_timestamp >= (
+              current_date - (coalesce(pss.previous_days, 0)::int * interval '1 day')
+            )
+    )
   on conflict (queue_item_unique_identifier) do nothing;
 end;
 $$;

@@ -1,88 +1,94 @@
+// THIS FILE IS DEPRECATED
+// The code was mode to a PostgreSQL function in the database/functions folder
+
 const { updateTotalScoreHistory } = require("../db/updateTotalScoreHistory")
 
-async function checkForSmartScoreGaps({ supabase, userId, projectId, signalStrengthId }) {
-    console.log(
-        `🔍 Checking for smart score gaps for userId ${userId}. Project: ${projectId}. Signal strength: ${signalStrengthId}`,
-    )
+async function checkForSmartScoreGaps({ supabase }) {
+    console.log("🔍 Checking for smart score gaps...")
 
-    // Get all the matching gaps for this user, project, and signal strength
-    const { data: gaps, error: gapsError } = await supabase
+    // Get the first batch of missing range rows
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayString = yesterday.toISOString().split("T")[0]
+
+    const { data: ranges, error: rangeError } = await supabase
         .from("user_signal_strengths_missing_ranges")
         .select("*")
-        .eq("user_id", userId)
-        .eq("project_id", projectId)
-        .eq("signal_strength_id", signalStrengthId)
+        .neq("gap_start_date", yesterdayString) // Exclude gaps starting yesterday
+        .limit(100)
 
-    if (gapsError) {
-        console.error("🚨 Error fetching smart score gaps:", gapsError)
-        throw gapsError
+    if (rangeError) {
+        console.error("🚨 Error fetching missing ranges:", rangeError)
+        throw rangeError
     }
 
-    // Check to ensure that a gap fill never happens if there is a gap for yesterday
-    if (gaps.length > 0) {
-        const yesterday = new Date()
-        yesterday.setDate(yesterday.getDate() - 1)
-        const yesterdayString = yesterday.toISOString().split("T")[0]
-        const yesterdayGap = gaps.find((gap) => gap.gap_start_date === yesterdayString)
-        if (yesterdayGap) {
-            const errorMessage = `🚨 A gap fill cannot happen if there is a gap for yesterday. userId ${userId}. Project: ${projectId}. Signal strength: ${signalStrengthId}. Gap: ${yesterdayGap.gap_start_date} to ${yesterdayGap.gap_end_date}. This is an edge case that is unlikely to happen, but stops a gap summary being displayed to the users.`
-            console.error(errorMessage)
-            throw new Error(errorMessage)
-        }
+    if (!ranges?.length) {
+        console.log("✅ No missing ranges found.")
+        return
+    }
 
-        // Helper function to generate date range
-        function generateDateRange(startDate, endDate) {
-            const dates = []
-            const currentDate = new Date(startDate)
-            const end = new Date(endDate)
-
-            while (currentDate <= end) {
-                dates.push(new Date(currentDate))
-                currentDate.setDate(currentDate.getDate() + 1)
+    // Group by unique (user_id, project_id, signal_strength_id)
+    const groups = {}
+    for (const row of ranges) {
+        const key = `${row.user_id}_${row.project_id}_${row.signal_strength_id}`
+        if (!groups[key]) {
+            groups[key] = {
+                user_id: row.user_id,
+                project_id: row.project_id,
+                signal_strength_id: row.signal_strength_id,
+                gaps: [],
             }
-
-            return dates
         }
+        groups[key].gaps.push(row)
+    }
 
-        console.log(
-            `👀 Found ${gaps.length} smart score gaps for userId ${userId}. Project: ${projectId}. Signal strength: ${signalStrengthId}`,
-        )
+    // Process each group
+    for (const groupKey of Object.keys(groups)) {
+        const { user_id, project_id, signal_strength_id, gaps } = groups[groupKey]
+        // Local development logging
+        if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+            console.log(
+                `👀 Found ${gaps.length} gaps for user ${user_id}, project ${project_id}, signal ${signal_strength_id}`,
+            )
+        }
 
         for (const gap of gaps) {
-            console.log(
-                `🏁 Processing gap for userId ${userId}. Project: ${projectId}. Signal strength: ${signalStrengthId}. Gap: ${gap.gap_start_date} to ${gap.gap_end_date}`,
-            )
-
-            // Generate date range for this gap (inclusive of start and end dates)
-            const dateRange = generateDateRange(gap.gap_start_date, gap.gap_end_date)
+            // Skip gaps starting yesterday (should never happen as it is excluded from the DB query)
+            if (gap.gap_start_date === yesterdayString) {
+                console.log(
+                    `⚠️ Skipping gap starting yesterday for user ${user_id}, project ${project_id}, signal ${signal_strength_id}`,
+                )
+                continue
+            }
 
             const gapValueDelta = gap.value_after - gap.value_before
-            const gapValueDeltaPerDay = Math.ceil(gapValueDelta / (dateRange.length + 1))
-
             const gapMaxValueDelta = gap.max_value_after - gap.max_value_before
-            const gapMaxValueDeltaPerDay = Math.ceil(gapMaxValueDelta / (dateRange.length + 1))
-
             const gapPreviousDaysDelta = gap.previous_days_after - gap.previous_days_before
-            const gapPreviousDaysDeltaPerDay = Math.ceil(gapPreviousDaysDelta / (dateRange.length + 1))
+
+            const totalDays = (new Date(gap.gap_end_date) - new Date(gap.gap_start_date)) / (1000 * 60 * 60 * 24) + 1
+
+            const gapValueDeltaPerDay = Math.ceil(gapValueDelta / (totalDays + 1))
+            const gapMaxValueDeltaPerDay = Math.ceil(gapMaxValueDelta / (totalDays + 1))
+            const gapPreviousDaysDeltaPerDay = Math.ceil(gapPreviousDaysDelta / (totalDays + 1))
+
+            const currentDate = new Date(gap.gap_start_date)
 
             // For each day in gap, add a new smart score row to user_signal_strengths table
-            for (let index = 0; index < dateRange.length; index++) {
-                const date = dateRange[index]
-                const dateString = date.toISOString().split("T")[0] // Format as YYYY-MM-DD
+            for (let i = 0; i < totalDays; i++) {
+                const dateString = currentDate.toISOString().split("T")[0]
 
                 try {
-                    // Insert smart score row for this date
                     const { error: insertError } = await supabase.from("user_signal_strengths").insert({
-                        user_id: gap.user_id,
-                        project_id: gap.project_id,
-                        signal_strength_id: gap.signal_strength_id,
+                        user_id,
+                        project_id,
+                        signal_strength_id,
                         day: dateString,
-                        request_id: `${userId}_${projectId}_${signalStrengthId}_${dateString}_GAP_FILL`,
+                        request_id: `${user_id}_${project_id}_${signal_strength_id}_${dateString}_GAP_FILL`,
                         created: Math.floor(Date.now() / 1000),
                         summary: `Gap fill for ${dateString}`,
-                        value: gap.value_before + gapValueDeltaPerDay * (index + 1),
-                        max_value: gap.max_value_before + gapMaxValueDeltaPerDay * (index + 1),
-                        previous_days: gap.previous_days_before + gapPreviousDaysDeltaPerDay * (index + 1),
+                        value: gap.value_before + gapValueDeltaPerDay * (i + 1),
+                        max_value: gap.max_value_before + gapMaxValueDeltaPerDay * (i + 1),
+                        previous_days: gap.previous_days_before + gapPreviousDaysDeltaPerDay * (i + 1),
                     })
 
                     if (insertError) {
@@ -94,27 +100,33 @@ async function checkForSmartScoreGaps({ supabase, userId, projectId, signalStren
                         ) {
                             console.log(`ℹ️ Smart score for ${dateString} already exists, skipping...`)
                         } else {
-                            console.error(`🚨 Error inserting smart score for ${dateString}:`, insertError)
+                            console.error(`🚨 Insert failed for ${dateString}:`, insertError)
                             throw insertError
                         }
+                    } else {
+                        // Local development logging
+                        if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+                            console.log(
+                                `✅ Added smart score for ${dateString} (user ${user_id}, project ${project_id}, signal ${signal_strength_id})`,
+                            )
+                        }
+
+                        // Update total score history
+                        await updateTotalScoreHistory(supabase, user_id, project_id, dateString)
                     }
-
-                    console.log(
-                        `✅ Added smart score for ${dateString} for userId ${userId}. Project: ${projectId}. Signal strength: ${signalStrengthId}`,
-                    )
-
-                    // Update the user_project_scores_history table if it was a smart score calculation
-                    await updateTotalScoreHistory(supabase, userId, projectId, dateString)
-                } catch (error) {
+                } catch (err) {
                     console.error(
-                        `🚨 Failed to process date ${dateString} for userId ${userId}. Project: ${projectId}. Signal strength: ${signalStrengthId}:`,
-                        error,
+                        `🚨 Failed to process ${dateString} for user ${user_id}, project ${project_id}, signal ${signal_strength_id}:`,
+                        err,
                     )
-                    throw error
                 }
+
+                currentDate.setDate(currentDate.getDate() + 1)
             }
         }
     }
+
+    console.log(`✅ Finished filling smart score gaps. ${Object.keys(groups).length} groups processed.`)
 }
 
 module.exports = { checkForSmartScoreGaps }

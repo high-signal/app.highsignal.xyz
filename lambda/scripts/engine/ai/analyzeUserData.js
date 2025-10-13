@@ -34,8 +34,8 @@ async function analyzeUserData({
     )
 
     // If userData is empty, return a zero score
+    // This should only happen for new users who sign up with no activity and forum users.
     if (userData.length === 0) {
-        console.log(`⚠️ No activity in the past ${previousDays} days`)
         return {
             [signalStrengthUsername]: {
                 summary: `No activity in the past ${previousDays} days`,

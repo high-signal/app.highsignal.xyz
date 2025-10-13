@@ -5,7 +5,7 @@ require("dotenv").config({ path: "../../../../.env" })
 const { createClient } = require("@supabase/supabase-js")
 const { DiscordRestApi } = require("./discordRestApi")
 const { handleTriggerDiscordQueueItem } = require("./handleTriggerDiscordQueueItem")
-const { storeStatsInDb } = require("../../utils/storeStatsInDb")
+const { storeStatsInDb } = require("../../stats/storeStatsInDb")
 
 // ==========
 // Constants

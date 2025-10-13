@@ -18,7 +18,7 @@ export default function LandingContainer() {
             <Link href={`/p/${project.urlSlug}`} key={project.urlSlug}>
                 <VStack
                     pb={3}
-                    gap={3}
+                    gap={1}
                     borderRadius="16px"
                     border="3px solid"
                     borderColor="contentBorder"
@@ -47,7 +47,7 @@ export default function LandingContainer() {
                             {project.displayName}
                         </Text>
                     </HStack>
-                    <VStack h={{ base: "7.3em", sm: "6em" }}>
+                    <VStack h={{ base: "7.3em", sm: "6em" }} mt={2}>
                         <Text
                             style={{
                                 display: "-webkit-box",
@@ -63,20 +63,15 @@ export default function LandingContainer() {
                             {project.description}
                         </Text>
                     </VStack>
-                    <HStack
+                    <VStack
                         px={4}
                         w={"100%"}
                         minH={"30px"}
                         flexWrap="wrap"
                         rowGap={3}
-                        justifyContent={{ base: "center", sm: "space-between" }}
+                        columnGap={0}
+                        alignItems={{ base: "center", sm: "center" }}
                     >
-                        <HStack h={"100%"} bg="contentBackground" py={1} px={3} borderRadius="full" gap={"6px"}>
-                            <Text fontSize="sm" fontWeight="bold">
-                                {project.activeUsers}
-                            </Text>
-                            <Text fontSize="sm"> active users</Text>
-                        </HStack>
                         <HStack flexWrap="wrap" justifyContent="center">
                             <SignalIndicator signalName="discord" icon={faDiscord} text="Discord" project={project} />
                             <SignalIndicator
@@ -86,7 +81,13 @@ export default function LandingContainer() {
                                 project={project}
                             />
                         </HStack>
-                    </HStack>
+                        <HStack h={"100%"} bg="contentBackground" py={1} px={3} borderRadius="full" gap={"6px"}>
+                            <Text fontSize="sm" fontWeight="bold">
+                                {project.activeUsers}
+                            </Text>
+                            <Text fontSize="sm"> active community members</Text>
+                        </HStack>
+                    </VStack>
                 </VStack>
             </Link>
         )

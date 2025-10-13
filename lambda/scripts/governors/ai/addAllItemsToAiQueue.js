@@ -1,6 +1,6 @@
 const { createClient } = require("@supabase/supabase-js")
 
-const { storeStatsInDb } = require("../../utils/storeStatsInDb")
+const { storeStatsInDb } = require("../../stats/storeStatsInDb")
 
 // For each signal strength, add all valid users to the AI queue
 async function addAllItemsToAiQueue() {

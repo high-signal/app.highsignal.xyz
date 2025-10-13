@@ -44,57 +44,62 @@ export default function HistoricalDataTable({
         const consolidatedRows: Array<{ day: string; type: "normal" | "consolidated" }> = []
         let consecutiveCount = 0
         let lastSmartScore: string | null = null
-        let startIndex = -1
+        let firstDayOfStreak = ""
 
         for (let i = 0; i < days.length; i++) {
             const day = days[i]
             const processedData = deduplicatedUserData.find((d) => d.day === day)
             const rawData = deduplicatedRawUserData.find((d) => d.day === day)
 
-            const hasNoRawScore = !rawData
-            const smartScore = processedData ? `${processedData.value}/${processedData.maxValue}` : "-"
+            const hasNoRawScore = !rawData || rawData.rawValue == null
+            const smartScore =
+                processedData && String(processedData.value) !== "0"
+                    ? `${processedData.value}/${processedData.maxValue}`
+                    : "-"
 
-            if (hasNoRawScore && smartScore === lastSmartScore) {
+            if (hasNoRawScore && smartScore === lastSmartScore && lastSmartScore !== null) {
                 // Continue consecutive streak
                 consecutiveCount++
-                if (startIndex === -1) {
-                    startIndex = i
-                }
             } else {
                 // End of consecutive streak or different condition
                 if (consecutiveCount >= 3) {
-                    // Add consolidated row
-                    consolidatedRows.push({ day: days[startIndex], type: "consolidated" })
-                    // Skip the middle rows
-                    i = startIndex + consecutiveCount - 1
+                    // Add consolidated row for the previous streak
+                    consolidatedRows.push({ day: firstDayOfStreak, type: "consolidated" })
                 } else if (consecutiveCount > 0) {
                     // Add back the individual rows for streaks less than 3
-                    for (let j = startIndex; j < i; j++) {
-                        consolidatedRows.push({ day: days[j], type: "normal" })
+                    // The first row of the streak was already added, so add the rest
+                    for (let j = 1; j < consecutiveCount; j++) {
+                        const streakDay = days[i - consecutiveCount + j]
+                        consolidatedRows.push({ day: streakDay, type: "normal" })
                     }
                 }
 
-                // Add current row (only if we're not in the middle of a consolidated streak)
-                if (consecutiveCount < 3) {
-                    consolidatedRows.push({ day, type: "normal" })
-                }
+                // Add current row
+                consolidatedRows.push({ day, type: "normal" })
 
                 // Reset counters
-                consecutiveCount = hasNoRawScore ? 1 : 0
-                lastSmartScore = hasNoRawScore ? smartScore : null
-                startIndex = hasNoRawScore ? i : -1
+                if (hasNoRawScore) {
+                    consecutiveCount = 1
+                    lastSmartScore = smartScore
+                    firstDayOfStreak = day
+                } else {
+                    consecutiveCount = 0
+                    lastSmartScore = null
+                    firstDayOfStreak = ""
+                }
             }
         }
 
         // Handle any remaining consecutive streak at the end
         if (consecutiveCount >= 3) {
-            // Remove the last few normal rows and add consolidated
-            consolidatedRows.splice(-consecutiveCount)
-            consolidatedRows.push({ day: days[startIndex], type: "consolidated" })
-        } else if (consecutiveCount > 0) {
-            // Add back the individual rows for streaks less than 3 at the end
-            for (let j = startIndex; j < days.length; j++) {
-                consolidatedRows.push({ day: days[j], type: "normal" })
+            // Replace the last row with a consolidated row
+            consolidatedRows.pop()
+            consolidatedRows.push({ day: firstDayOfStreak, type: "consolidated" })
+        } else if (consecutiveCount > 1) {
+            // Add back the remaining individual rows for streaks less than 3
+            for (let j = 1; j < consecutiveCount; j++) {
+                const streakDay = days[days.length - consecutiveCount + j]
+                consolidatedRows.push({ day: streakDay, type: "normal" })
             }
         }
 
@@ -111,24 +116,26 @@ export default function HistoricalDataTable({
             const currentDay = row.day
             const currentProcessedData = deduplicatedUserData.find((d) => d.day === currentDay)
             const currentRawData = deduplicatedRawUserData.find((d) => d.day === currentDay)
-            const currentSmartScore = currentProcessedData
-                ? `${currentProcessedData.value}/${currentProcessedData.maxValue}`
-                : "-"
+            const currentSmartScore =
+                currentProcessedData && String(currentProcessedData.value) !== "0"
+                    ? `${currentProcessedData.value}/${currentProcessedData.maxValue}`
+                    : "-"
 
             // Check if current row has no raw score
-            if (!currentRawData) {
+            if (!currentRawData || currentRawData.rawValue == null) {
                 // Look at the previous row
                 const prevRow = consolidatedRows[index - 1]
                 if (prevRow.type === "normal") {
                     const prevDay = prevRow.day
                     const prevProcessedData = deduplicatedUserData.find((d) => d.day === prevDay)
                     const prevRawData = deduplicatedRawUserData.find((d) => d.day === prevDay)
-                    const prevSmartScore = prevProcessedData
-                        ? `${prevProcessedData.value}/${prevProcessedData.maxValue}`
-                        : "-"
+                    const prevSmartScore =
+                        prevProcessedData && String(prevProcessedData.value) !== "0"
+                            ? `${prevProcessedData.value}/${prevProcessedData.maxValue}`
+                            : "-"
 
                     // If previous row has both smart and raw scores, and smart scores are identical, hide current row
-                    if (prevRawData && currentSmartScore === prevSmartScore) {
+                    if (prevRawData && prevRawData.rawValue != null && currentSmartScore === prevSmartScore) {
                         return false
                     }
                 }
@@ -236,7 +243,9 @@ export default function HistoricalDataTable({
                                     borderBottom={index !== consolidatedRows.length - 1 ? undefined : "none"}
                                 >
                                     <Text textAlign={"center"}>
-                                        {rawData ? `${rawData.rawValue}/${rawData.maxValue}` : "-"}
+                                        {rawData && rawData.rawValue != null
+                                            ? `${rawData.rawValue}/${rawData.maxValue}`
+                                            : "-"}
                                     </Text>
                                 </Table.Cell>
                                 <Table.Cell
@@ -244,7 +253,9 @@ export default function HistoricalDataTable({
                                     borderBottom={index !== consolidatedRows.length - 1 ? undefined : "none"}
                                 >
                                     <Text textAlign={"center"}>
-                                        {processedData ? `${processedData.value}/${processedData.maxValue}` : "-"}
+                                        {processedData && String(processedData.value) !== "0"
+                                            ? `${processedData.value}/${processedData.maxValue}`
+                                            : "-"}
                                     </Text>
                                 </Table.Cell>
                             </Table.Row>

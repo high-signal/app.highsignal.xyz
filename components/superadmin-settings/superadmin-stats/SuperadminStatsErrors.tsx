@@ -11,6 +11,7 @@ interface StatsData {
     aiRawScoreErrors: number
     lastCheckedNotNull: number
     discordRequestQueueErrors: number
+    lambdaStatsNullBilledDuration: number
 }
 
 export default function SuperadminStatsErrors() {
@@ -44,8 +45,8 @@ export default function SuperadminStatsErrors() {
         fetchStats()
     }, [getAccessToken])
 
-    const StatsRow = ({ label, value }: { label: string; value: number }) => {
-        const isError = value > 0
+    const StatsRow = ({ label, value, minErrorValue }: { label: string; value: number; minErrorValue?: number }) => {
+        const isError = value > 0 && (minErrorValue ? value >= minErrorValue : true)
 
         return (
             <HStack
@@ -70,7 +71,20 @@ export default function SuperadminStatsErrors() {
         )
     }
 
-    const isAnyError = errorStats && Object.values(errorStats).some((value) => value > 0)
+    // Helper function to check if a stat value is an error, respecting minErrorValue thresholds
+    const isStatError = (value: number, minErrorValue?: number) => {
+        return value > 0 && (minErrorValue ? value >= minErrorValue : true)
+    }
+
+    // Add more stat errors here as needed
+    const isAnyError =
+        errorStats &&
+        (isStatError(errorStats.missingDays) ||
+            isStatError(errorStats.aiRawScoreErrors) ||
+            isStatError(errorStats.lastCheckedNotNull) ||
+            isStatError(errorStats.discordRequestQueueErrors) ||
+            isStatError(errorStats.lambdaStatsNullBilledDuration, 500))
+
     const [red500] = useToken("colors", ["red.500"])
     const contentBorder = useThemeColor("contentBorder")
 
@@ -115,6 +129,11 @@ export default function SuperadminStatsErrors() {
                             <StatsRow
                                 label="Discord Request Queue Errors"
                                 value={errorStats?.discordRequestQueueErrors ?? 0}
+                            />
+                            <StatsRow
+                                label="Lambda Stats Null Billed Duration"
+                                value={errorStats?.lambdaStatsNullBilledDuration ?? 0}
+                                minErrorValue={500}
                             />
                         </HStack>
                     </>

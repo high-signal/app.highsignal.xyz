@@ -8,7 +8,7 @@ async function getLatestSmartScore({ supabase, userId, projectId, signalStrength
         .is("last_checked", null)
         .is("test_requesting_user", null)
         .not("value", "is", null)
-        .order("created", { ascending: false })
+        .order("day", { ascending: false })
         .limit(1)
     if (error) {
         console.error("Error fetching latest smart score from Supabase:", error.message)

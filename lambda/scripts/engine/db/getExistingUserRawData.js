@@ -34,17 +34,15 @@ async function getExistingUserRawData({
 
     // Filter out duplicate rows that have the same day, user_id, project_id, signal_strength_id
     // Note: It is unlikely that there will be duplicate rows, but it is possible so this is a safety check
-    const uniqueRows = existingUserRawData.filter(
-        (row, index, self) =>
-            index ===
-            self.findIndex(
-                (t) =>
-                    t.day === row.day &&
-                    t.user_id === row.user_id &&
-                    t.project_id === row.project_id &&
-                    t.signal_strength_id === row.signal_strength_id,
-            ),
-    )
+    const seen = new Set()
+    const uniqueRows = existingUserRawData.filter((row) => {
+        const key = `${row.day}|${row.user_id}|${row.project_id}|${row.signal_strength_id}`
+        if (seen.has(key)) {
+            return false
+        }
+        seen.add(key)
+        return true
+    })
 
     return uniqueRows
 }

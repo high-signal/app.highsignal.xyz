@@ -38,7 +38,10 @@ async function updateTotalScoreHistory(supabase, userId, projectId, day) {
         )
         throw historyError
     } else {
-        console.log(`💾 Successfully updated user_project_scores_history for: userId ${userId} for day ${day}`)
+        // Local development logging
+        if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+            console.log(`💾 Successfully updated user_project_scores_history for: userId ${userId} for day ${day}`)
+        }
     }
 }
 

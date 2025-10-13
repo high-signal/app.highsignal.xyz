@@ -96,23 +96,29 @@ async function getDailyActivityData({
     // starting from dayDate and going back previousDays
     const formattedDayDate = new Date(`${dayDate}T23:59:59.999Z`)
 
+    // Group activities by date in a single pass (O(n) instead of O(n*m))
+    const activitiesByDate = new Map()
+    for (const activity of activityData) {
+        const activityDate = new Date(activity.created_timestamp).toISOString().split("T")[0]
+        if (!activitiesByDate.has(activityDate)) {
+            activitiesByDate.set(activityDate, [])
+        }
+        activitiesByDate.get(activityDate).push({
+            id: activity.message_id,
+            created_timestamp: activity.created_timestamp,
+            content: activity.content,
+        })
+    }
+
+    // Build daily activity data by looking up pre-grouped activities (O(m))
     const dailyActivityData = []
     for (let i = 0; i < previousDays; i++) {
         const date = new Date(new Date(formattedDayDate).setDate(formattedDayDate.getDate() - i))
+        const dateString = date.toISOString().split("T")[0]
 
-        const activitiesForDay = activityData
-            .filter((activity) => {
-                const activityDate = new Date(activity.created_timestamp)
-                return activityDate.toISOString().split("T")[0] === date.toISOString().split("T")[0]
-            })
-            .map((activity) => ({
-                id: activity.message_id,
-                created_timestamp: activity.created_timestamp,
-                content: activity.content,
-            }))
         dailyActivityData.push({
-            date: date.toISOString().split("T")[0],
-            data: activitiesForDay,
+            date: dateString,
+            data: activitiesByDate.get(dateString) || [],
         })
     }
 

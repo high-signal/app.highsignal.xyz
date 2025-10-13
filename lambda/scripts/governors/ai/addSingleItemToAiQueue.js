@@ -1,6 +1,6 @@
 const { createClient } = require("@supabase/supabase-js")
 
-const { storeStatsInDb } = require("../../utils/storeStatsInDb")
+const { storeStatsInDb } = require("../../stats/storeStatsInDb")
 
 // Add a single item to the AI queue
 async function addSingleItemToAiQueue({ signalStrengthName, userId, projectId, signalStrengthUsername, testingData }) {

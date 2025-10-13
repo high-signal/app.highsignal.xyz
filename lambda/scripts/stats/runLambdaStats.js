@@ -3,7 +3,7 @@ const { createClient } = require("@supabase/supabase-js")
 const { CloudWatchLogsClient, FilterLogEventsCommand } = require("@aws-sdk/client-cloudwatch-logs")
 const { storeStatsInDb } = require("./storeStatsInDb")
 
-const als = require("./asyncContext")
+const als = require("../utils/asyncContext")
 
 async function runLambdaStats() {
     console.log("📊 Running lambda stats")
@@ -12,13 +12,15 @@ async function runLambdaStats() {
     const store = als.getStore()
     const currentLambdaRequestId = store?.requestId
 
+    // TODO: Maybe add pagination here to get even more rows at once
+
     // Get rows needing billed_duration
     const { data: rows, error } = await supabase
         .from("lambda_stats")
         .select("request_id, created_at")
         .is("billed_duration", null)
         .neq("request_id", currentLambdaRequestId)
-        .limit(100)
+        .order("created_at", { ascending: false })
 
     if (error) throw error
     if (!rows || rows.length === 0) {
@@ -102,8 +104,14 @@ async function runLambdaStats() {
                 updatedCount++
             }
         } else {
-            console.log(`⚠️ No REPORT found for ${row.request_id}`)
+            // console.log(`⚠️ No REPORT found for ${row.request_id}`)
         }
+    }
+
+    if (updatedCount > 0) {
+        console.log(`☑️ Updated ${updatedCount} rows`)
+    } else {
+        console.log(`⚠️ No reports found for any rows`)
     }
 
     // ==============================
