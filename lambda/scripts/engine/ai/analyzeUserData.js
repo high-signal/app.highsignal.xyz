@@ -33,21 +33,19 @@ async function analyzeUserData({
         `⏳ ${type === "smart" ? "Smart" : "Raw"} score for ${userDisplayName} (signalStrengthUsername: ${signalStrengthUsername}) on ${dayDate} analysis started...`,
     )
 
-    // TODO: Remove this as it should no longer happen.
     // If userData is empty, return a zero score
+    // This should only happen for new users who sign up with no activity and forum users.
     if (userData.length === 0) {
-        console.log(`⚠️ No activity in the past ${previousDays} days.`)
-        throw new Error(`⚠️ Edge case: No activity in the past ${previousDays} days but still ran lambda function.`)
-        // return {
-        //     [signalStrengthUsername]: {
-        //         summary: `No activity in the past ${previousDays} days`,
-        //         description: null,
-        //         improvements: null,
-        //         value: 0,
-        //     },
-        //     created: Math.floor(Date.now() / 1000),
-        //     previousDays: previousDays,
-        // }
+        return {
+            [signalStrengthUsername]: {
+                summary: `No activity in the past ${previousDays} days`,
+                description: null,
+                improvements: null,
+                value: 0,
+            },
+            created: Math.floor(Date.now() / 1000),
+            previousDays: previousDays,
+        }
     }
 
     let calculatedSmartScore
