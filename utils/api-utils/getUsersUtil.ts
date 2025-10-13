@@ -1051,7 +1051,7 @@ export async function getUsersUtil(
                                     // Super admin can see all summaries for all results
                                     ...(isSuperAdminRequesting ||
                                     (isUserDataVisible && index === 0) ||
-                                    (index === 0 && !d.summary?.includes("No activity in the past")) //TODO: This does not happen anymore
+                                    (index === 0 && !d.summary?.includes("No activity in the past"))
                                         ? {
                                               summary: d.summary,
                                           }
