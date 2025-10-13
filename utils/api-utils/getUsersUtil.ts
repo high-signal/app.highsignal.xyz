@@ -53,6 +53,7 @@ type SignalStrengthData = {
     completion_tokens?: number
     raw_value?: number
     test_requesting_user?: string
+    analysis_items?: string[]
     // *** Super Admin only end ***
 }
 
@@ -624,7 +625,8 @@ export async function getUsersUtil(
                     prompt_tokens,
                     completion_tokens,
                     raw_value,
-                    test_requesting_user`
+                    test_requesting_user,
+                    analysis_items`
                     : ""
 
                 const selectFields = baseFields + superadminFields
@@ -1032,11 +1034,15 @@ export async function getUsersUtil(
                               }
                             : {}),
                         signalStrengths: userSignalStrengths.map((uss) => {
-                            // Filter before gap filling to ensure gap filling works correctly
+                            // Filter based on raw_value vs value
+                            // For test data, still filter but don't gap fill
                             const filteredData = showRawScoreCalcOnly
                                 ? uss.data.filter((d) => d.raw_value != null)
                                 : uss.data.filter((d) => d.raw_value == null)
-                            const gapFilledSignalData = fillSignalStrengthGaps(filteredData)
+                            // Only gap fill if NOT showing test data
+                            const gapFilledSignalData = showTestDataOnly
+                                ? filteredData
+                                : fillSignalStrengthGaps(filteredData)
 
                             return {
                                 signalStrengthName: uss.data[0]?.signal_strengths?.name || uss.signalStrengthId,
@@ -1084,6 +1090,7 @@ export async function getUsersUtil(
                                               completionTokens: d.completion_tokens,
                                               rawValue: d.raw_value,
                                               testRequestingUser: d.test_requesting_user,
+                                              analysisItems: d.analysis_items,
                                           }
                                         : {}),
                                 })),

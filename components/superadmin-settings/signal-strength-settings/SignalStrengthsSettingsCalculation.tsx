@@ -71,10 +71,31 @@ export default function SignalStrengthsSettingsCalculation({
 
     // Set selected signal strength viewer data when user is selected or changes
     useEffect(() => {
-        setSelectedSignalStrengthViewer(
-            selectedUser?.signalStrengths?.find((s) => s.signalStrengthName === signalStrength.name)?.data?.[0] || null,
-        )
-    }, [selectedUser, signalStrength.name])
+        const signalStrengthData = selectedUser?.signalStrengths?.find(
+            (s) => s.signalStrengthName === signalStrength.name,
+        )?.data
+
+        if (!signalStrengthData) {
+            setSelectedSignalStrengthViewer(null)
+            return
+        }
+
+        // For raw type, find first one with rawValue > 0
+        if (type === "raw") {
+            const rawData = signalStrengthData.find((data) => data.rawValue !== undefined && data.rawValue > 0)
+            setSelectedSignalStrengthViewer(rawData || null)
+            return
+        }
+
+        // For smart type, find first one where value and id are defined
+        if (type === "smart") {
+            const smartData = signalStrengthData.find((data) => data.value !== undefined && data.id !== undefined)
+            setSelectedSignalStrengthViewer(smartData || null)
+            return
+        }
+
+        setSelectedSignalStrengthViewer(null)
+    }, [selectedUser, signalStrength.name, type])
 
     // Set selected signal strength viewer to first test result when test results are available
     useEffect(() => {
@@ -406,7 +427,8 @@ export default function SignalStrengthsSettingsCalculation({
                                                     if (type === "raw") return data.rawValue !== undefined
 
                                                     // For smart type, only include those with value
-                                                    if (type === "smart") return data.value !== undefined
+                                                    if (type === "smart")
+                                                        return data.value !== undefined && data.id !== undefined
 
                                                     return false
                                                 }) || []
@@ -423,26 +445,43 @@ export default function SignalStrengthsSettingsCalculation({
                             )}
                         </HStack>
                         {project && selectedUser && selectedSignalStrengthViewer ? (
-                            <SignalStrength
-                                username={selectedUser.username || ""}
-                                userData={
-                                    selectedSignalStrengthViewer || {
-                                        value: "0",
-                                        description: "No data",
-                                        improvements: "No data",
-                                        name: signalStrength.name,
-                                        summary: "No data",
-                                        day: new Date().toISOString().split("T")[0],
-                                        maxValue: 0,
+                            <>
+                                {selectedSignalStrengthViewer.analysisItems?.some((item) =>
+                                    item.includes("Copied from"),
+                                ) && (
+                                    <Text
+                                        border={"3px solid"}
+                                        borderColor={"orange.500"}
+                                        borderRadius={"full"}
+                                        px={2}
+                                        py={1}
+                                        mt={2}
+                                        mb={1}
+                                    >
+                                        {JSON.stringify(selectedSignalStrengthViewer.analysisItems[0]).slice(1, -1)}
+                                    </Text>
+                                )}
+                                <SignalStrength
+                                    username={selectedUser.username || ""}
+                                    userData={
+                                        selectedSignalStrengthViewer || {
+                                            value: "0",
+                                            description: "No data",
+                                            improvements: "No data",
+                                            name: signalStrength.name,
+                                            summary: "No data",
+                                            day: new Date().toISOString().split("T")[0],
+                                            maxValue: 0,
+                                        }
                                     }
-                                }
-                                timestamp={selectedSignalStrengthViewer.timestamp || 0}
-                                projectData={project}
-                                signalStrengthProjectData={
-                                    project.signalStrengths?.find((s) => s.name === signalStrength.name)!
-                                }
-                                refreshUserData={() => {}}
-                            />
+                                    timestamp={selectedSignalStrengthViewer.timestamp || 0}
+                                    projectData={project}
+                                    signalStrengthProjectData={
+                                        project.signalStrengths?.find((s) => s.name === signalStrength.name)!
+                                    }
+                                    refreshUserData={() => {}}
+                                />
+                            </>
                         ) : (
                             !selectedUser && (
                                 <VStack w={"100%"} h={"200px"} justifyContent={"center"} alignItems={"center"}>

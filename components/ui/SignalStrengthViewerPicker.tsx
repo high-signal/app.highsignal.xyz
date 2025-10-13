@@ -93,6 +93,11 @@ export default function SignalStrengthViewerPicker({ userSignalStrengths, onSele
                                 inputRef.current?.blur()
                                 onSelect(signalStrengthEntry)
                             }}
+                            color={
+                                signalStrengthEntry.analysisItems?.some((item) => item.includes("Copied from"))
+                                    ? "orange.500"
+                                    : "inherit"
+                            }
                         >
                             <HStack
                                 fontFamily={"monospace"}

@@ -106,6 +106,7 @@ interface SignalStrengthUserData {
     scoreCalculationPeriodPreviousDays?: number // Usually previousDays but made more verbose for the public API
     timestamp?: number
     currentDay?: boolean
+    analysisItems?: string[]
 }
 
 interface ProjectData {
@@ -150,6 +151,7 @@ interface SignalStrengthData {
     prompts: Prompt[]
     maxChars?: number
     logs?: string
+    analysisItems?: string[]
 }
 
 interface SignalStrengthProjectSettingsState {
