@@ -8,6 +8,7 @@ import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
 import { faDiscord, faXTwitter, faDiscourse } from "@fortawesome/free-brands-svg-icons"
 import { useState, useEffect } from "react"
 import { ASSETS } from "../../../config/constants"
+import { useParams } from "next/navigation"
 
 import HistoricalDataChart from "./HistoricalDataChart"
 
@@ -16,6 +17,15 @@ import { useUser } from "../../../contexts/UserContext"
 import LoginToSeeInsights from "../../ui/LoginToSeeInsights"
 import { APP_CONFIG } from "../../../config/constants"
 import Divider from "../../ui/Divider"
+
+// Utility function to replace personal pronouns with third person
+const replacePersonalPronouns = (text: string): string => {
+    return text
+        .replace(/\bYour\b/g, "Their")
+        .replace(/\byour\b/g, "their")
+        .replace(/\bYou\b/g, "They")
+        .replace(/\byou\b/g, "they")
+}
 
 // Define signalStrengthIcons
 const signalStrengthIcons = {
@@ -139,6 +149,8 @@ export default function SignalStrength({
     refreshUserData: () => void
 }) {
     const { loggedInUser } = useUser()
+    const params = useParams()
+    const targetUsername = params.username as string
 
     const displayValue = userData.value || userData.rawValue || 0
 
@@ -596,7 +608,12 @@ export default function SignalStrength({
                         >
                             {userData.description && (
                                 <Text color="textColorMuted">
-                                    {userData.description?.charAt(0).toUpperCase() + userData.description?.slice(1)}
+                                    {loggedInUser?.username === targetUsername
+                                        ? userData.description?.charAt(0).toUpperCase() + userData.description?.slice(1)
+                                        : replacePersonalPronouns(
+                                              userData.description?.charAt(0).toUpperCase() +
+                                                  userData.description?.slice(1),
+                                          )}
                                 </Text>
                             )}
                             {userData.improvements && (
