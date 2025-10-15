@@ -42,25 +42,27 @@ export default function SignalScoreDescription({
 
     if (showLoading) {
         descriptionText = `⏳ Check back later to see ${loggedInUser?.username === currentUser.username ? "your" : "the"} calculated score ⏳`
-    } else if (!isSignalStrengthLoading) {
-        if (currentUser.score === 100) {
-            titleEmoji = "💯"
-            titleText = `${loggedInUser?.username === currentUser.username ? "You have" : `${currentUser.displayName} has`} reached the maximum Signal Score for ${projectData.displayName}`
-            descriptionText = `Keep engaging with ${projectData.displayName} to maintain this perfect Signal Score!`
-        } else if (currentUser.signal === "high") {
-            titleEmoji = "🤩"
-            titleText = `${loggedInUser?.username === currentUser.username ? "You are" : `${currentUser.displayName} is`} ${currentUser.signal.slice(0, 1).toUpperCase() + currentUser.signal.slice(1)} Signal for ${projectData.displayName}`
-            descriptionText = `Add more accounts and keep engaging with ${projectData.displayName} to max out your Signal Score!`
-        } else if (currentUser.signal === "mid") {
-            titleEmoji = "🙂"
-            titleText = `${loggedInUser?.username === currentUser.username ? "You are" : `${currentUser.displayName} is`} ${currentUser.signal.slice(0, 1).toUpperCase() + currentUser.signal.slice(1)} Signal for ${projectData.displayName}`
-            descriptionText = `Add accounts and engage more consistently with ${projectData.displayName} to get a High Signal Score.`
-        } else if (currentUser.signal === "low") {
-            titleEmoji = "😕"
-            titleText = `${loggedInUser?.username === currentUser.username ? "You are" : `${currentUser.displayName} is`} ${currentUser.signal.slice(0, 1).toUpperCase() + currentUser.signal.slice(1)} Signal for ${projectData.displayName}`
-            descriptionText = `Add more accounts and engage more frequently with ${projectData.displayName} to get a higher Signal Score.`
-        }
     }
+
+    // else if (!isSignalStrengthLoading) {
+    //     if (currentUser.score === 100) {
+    //         titleEmoji = "💯"
+    //         titleText = `${loggedInUser?.username === currentUser.username ? "You have" : `${currentUser.displayName} has`} reached the maximum Signal Score for ${projectData.displayName}`
+    //         descriptionText = `Keep engaging with ${projectData.displayName} to maintain this perfect Signal Score!`
+    //     } else if (currentUser.signal === "high") {
+    //         titleEmoji = "🤩"
+    //         titleText = `${loggedInUser?.username === currentUser.username ? "You are" : `${currentUser.displayName} is`} ${currentUser.signal.slice(0, 1).toUpperCase() + currentUser.signal.slice(1)} Signal for ${projectData.displayName}`
+    //         descriptionText = `Add more accounts and keep engaging with ${projectData.displayName} to max out your Signal Score!`
+    //     } else if (currentUser.signal === "mid") {
+    //         titleEmoji = "🙂"
+    //         titleText = `${loggedInUser?.username === currentUser.username ? "You are" : `${currentUser.displayName} is`} ${currentUser.signal.slice(0, 1).toUpperCase() + currentUser.signal.slice(1)} Signal for ${projectData.displayName}`
+    //         descriptionText = `Add accounts and engage more consistently with ${projectData.displayName} to get a High Signal Score.`
+    //     } else if (currentUser.signal === "low") {
+    //         titleEmoji = "😕"
+    //         titleText = `${loggedInUser?.username === currentUser.username ? "You are" : `${currentUser.displayName} is`} ${currentUser.signal.slice(0, 1).toUpperCase() + currentUser.signal.slice(1)} Signal for ${projectData.displayName}`
+    //         descriptionText = `Add more accounts and engage more frequently with ${projectData.displayName} to get a higher Signal Score.`
+    //     }
+    // }
 
     if (!titleText && !descriptionText) {
         return null
