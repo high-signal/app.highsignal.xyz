@@ -89,9 +89,9 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                         )}
                     </HStack>
                 )}
-                <Text>{currentProject?.displayName} Leaderboard</Text>
+                {!loading && !error && <Text>{currentProject?.displayName} Leaderboard</Text>}
             </VStack>
-            {loading ? <Spinner /> : currentProject && <Leaderboard project={currentProject} />}
+            {!loading && !error && currentProject && <Leaderboard project={currentProject} />}
         </VStack>
     )
 }
