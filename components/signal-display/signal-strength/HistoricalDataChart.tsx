@@ -29,9 +29,6 @@ export default function HistoricalDataChart({
     const params = useParams()
     const targetUsername = params.username as string
 
-    const [dummyData, setDummyData] = useState<SignalStrengthUserData[]>([])
-    const hasGeneratedDummyData = useRef(false)
-
     // Get theme colors using the utility function
     const textColorMutedHex = useThemeColor("textColorMuted")
     const pageBackgroundColorHex = useThemeColor("pageBackground")
@@ -69,79 +66,6 @@ export default function HistoricalDataChart({
         return date
     }, [yesterday])
 
-    // Helper to generate dummy historical points
-    const generateDummyData = (
-        count: number,
-        startDate: Date,
-        endDate: Date,
-        maxValue: number,
-        signalName: string,
-    ): SignalStrengthUserData[] => {
-        // Normalize to midnight for both bounds
-        const start = new Date(startDate)
-        start.setHours(0, 0, 0, 0)
-        const end = new Date(endDate)
-        end.setHours(0, 0, 0, 0)
-
-        const dayMs = 24 * 60 * 60 * 1000
-        const totalDays = Math.floor((end.getTime() - start.getTime()) / dayMs) + 1
-        const numPoints = Math.max(0, Math.min(count, totalDays))
-
-        // Sample unique day indices without replacement
-        const indices = Array.from({ length: totalDays }, (_, i) => i)
-        for (let i = indices.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1))
-            const tmp = indices[i]
-            indices[i] = indices[j]
-            indices[j] = tmp
-        }
-        const selected = indices.slice(0, numPoints).sort((a, b) => a - b)
-
-        const points: SignalStrengthUserData[] = []
-        const minValue = Math.max(0, Math.floor(maxValue * 0.05))
-        const maxValueCap = Math.max(minValue, Math.floor(maxValue * 0.95))
-
-        for (const dayIndex of selected) {
-            const d = new Date(start.getTime() + dayIndex * dayMs)
-            d.setHours(0, 0, 0, 0)
-            const value = Math.floor(Math.random() * (maxValueCap - minValue + 1)) + minValue
-            points.push({
-                day: d.toISOString(),
-                name: signalName,
-                value: String(value),
-                maxValue: maxValue,
-                summary: "Dummy data",
-                description: "",
-                improvements: "",
-            })
-        }
-
-        return points
-    }
-
-    // Generate dummy data when the component mounts
-    useEffect(() => {
-        if (!hasGeneratedDummyData.current && (!data || data.length === 0)) {
-            const startForDummy = new Date(pastDate)
-            startForDummy.setDate(startForDummy.getDate() + 5)
-            const endForDummy = new Date(yesterday)
-            endForDummy.setDate(endForDummy.getDate() - 5)
-
-            if (data.length > 0) {
-                setDummyData(
-                    generateDummyData(
-                        30,
-                        startForDummy,
-                        endForDummy,
-                        signalStrengthProjectData.maxValue,
-                        signalStrengthProjectData.name,
-                    ),
-                )
-                hasGeneratedDummyData.current = true
-            }
-        }
-    }, [data, pastDate, yesterday, signalStrengthProjectData.maxValue, signalStrengthProjectData.name])
-
     const { ref, inView } = useInView({
         triggerOnce: true, // only trigger the first time
         threshold: 0.2, // % of chart visible before loading
@@ -155,7 +79,7 @@ export default function HistoricalDataChart({
     }
 
     // Reverse the data so it displays correctly on the chart
-    const dataReversed = dummyData.length > 0 ? dummyData : [...data].reverse()
+    const dataReversed = [...data].reverse()
 
     // Format date
     const formatDate = (day: string) => new Date(day).toISOString().split("T")[0]
@@ -228,15 +152,7 @@ export default function HistoricalDataChart({
     }
 
     return (
-        <HStack
-            ref={ref}
-            w="100%"
-            h="300px"
-            opacity={inView ? 1 : 0}
-            transition="opacity 0.5s ease-in-out"
-            gap={0}
-            pointerEvents={dummyData.length > 0 ? "none" : "auto"}
-        >
+        <HStack ref={ref} w="100%" h="300px" opacity={inView ? 1 : 0} transition="opacity 0.5s ease-in-out" gap={0}>
             {inView && (
                 <>
                     <Box w="100%" h="100%" zIndex={5} overflow="visible" position="relative">
@@ -353,7 +269,6 @@ export default function HistoricalDataChart({
                                 />
                             </ComposedChart>
                         </ResponsiveContainer>
-                        {/* Blur overlay when dummy data is present */}
                         {data.length === 0 && (
                             <Box
                                 position="absolute"
@@ -368,24 +283,12 @@ export default function HistoricalDataChart({
                                 alignItems="center"
                                 pointerEvents="auto"
                             >
-                                {!loggedInUserLoading &&
-                                loggedInUser &&
-                                (loggedInUser.username === targetUsername ||
-                                    loggedInUser.projectAdmins?.some(
-                                        (adminProject) => adminProject.urlSlug === projectData.urlSlug,
-                                    ) ||
-                                    loggedInUser.isSuperAdmin) ? (
-                                    <HStack>
-                                        <Box color={"textColorMuted"}>
-                                            <FontAwesomeIcon icon={faInfoCircle} size="lg" />
-                                        </Box>
-                                        <Text>
-                                            No activity in the past {signalStrengthProjectData.previousDays} days
-                                        </Text>
-                                    </HStack>
-                                ) : (
-                                    <LoginToSeeInsights projectData={projectData} />
-                                )}
+                                <HStack>
+                                    <Box color={"textColorMuted"}>
+                                        <FontAwesomeIcon icon={faInfoCircle} size="lg" />
+                                    </Box>
+                                    <Text>No activity in the past {signalStrengthProjectData.previousDays} days</Text>
+                                </HStack>
                             </Box>
                         )}
                     </Box>

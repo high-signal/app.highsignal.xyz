@@ -156,6 +156,10 @@ export default function SignalStrength({
 
     const countdownDuration = APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
 
+    if (userData && userData.summary === "") {
+        userData.summary = `No activity in the past ${signalStrengthProjectData.previousDays} days`
+    }
+
     const expandableContent =
         userData && (Number(userData.value || 0) > 0 || !userData.summary?.includes("No activity in the past"))
 
@@ -242,9 +246,6 @@ export default function SignalStrength({
 
     // Get the icon based on signalStrengthProjectData.name
     const icon = signalStrengthIcons[signalStrengthProjectData.name as SignalStrengthName]
-
-    const dataAvailable =
-        signalStrengthProjectData.enabled && userContentAvailable && !countdown && !userDataRefreshTriggered
 
     return (
         <VStack
@@ -451,150 +452,127 @@ export default function SignalStrength({
                     </MoreDetailsContainer>
                 )}
             </VStack>
-            {dataAvailable && <Divider borderWidth={3} my={6} />}
-            {dataAvailable && (
-                <VStack w="100%" gap={0} alignItems={"center"}>
-                    <Text fontSize="lg" fontWeight={"bold"} cursor={"default"} mb={2}>
-                        Activity Summary
-                    </Text>
-                    <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
-                        Highlights of {loggedInUser?.username === username && "your"} engagement{" "}
-                        {loggedInUser?.username !== username && ` for ${userDisplayName}`} with the{" "}
-                        {projectData.displayName} community.
-                        <ShowMoreDetailsButton
-                            isOpen={isSignalSummaryMoreDetailsOpen}
-                            setIsOpen={setIsSignalSummaryMoreDetailsOpen}
-                        />
-                    </Text>
-                    {isSignalSummaryMoreDetailsOpen && (
-                        <MoreDetailsContainer>
-                            <MoreDetailsBullet>
-                                {loggedInUser?.username === username ? "Your" : "The"} activity summary takes into
-                                account {loggedInUser?.username === username && "your"} activity and engagement with the{" "}
-                                {projectData.displayName} community over the past{" "}
-                                {signalStrengthProjectData.previousDays} days.
-                            </MoreDetailsBullet>
-                            <MoreDetailsBullet>
-                                It&apos;s a helpful way to understand {loggedInUser?.username === username && "your"}{" "}
-                                style
-                                {loggedInUser?.username !== username && "s"} of interaction with the{" "}
-                                {projectData.displayName} community and learn how{" "}
-                                {loggedInUser?.username === username
-                                    ? "you could improve your score"
-                                    : "scores could be improved"}
-                                .
-                            </MoreDetailsBullet>
-                            <MoreDetailsBullet>
-                                {loggedInUser?.username === username ? "Your" : "The"} summary is updated daily along
-                                with {loggedInUser?.username === username ? "your" : "the"} score, so if{" "}
-                                {loggedInUser?.username === username
-                                    ? "you don't see any changes yet"
-                                    : "there are no changes yet"}
-                                , come back tomorrow to see {loggedInUser?.username === username ? "your" : "the"}{" "}
-                                updated summary.
-                            </MoreDetailsBullet>
-                            <MoreDetailsBullet icon={"🔒"}>
-                                {loggedInUser?.username === username ? "Your" : "This"} full summary is private and can
-                                only be seen by {loggedInUser?.username === username ? "you" : `${userDisplayName}`} and
-                                the {projectData.displayName} team. Only the heading &quot;
-                                {userData.summary}&quot; is public.
-                            </MoreDetailsBullet>
-                        </MoreDetailsContainer>
+            <Divider borderWidth={3} my={6} />
+
+            <VStack w="100%" gap={0} alignItems={"center"}>
+                <Text fontSize="lg" fontWeight={"bold"} cursor={"default"} mb={2}>
+                    Activity Summary
+                </Text>
+                <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
+                    Highlights of {loggedInUser?.username === username && "your"} engagement{" "}
+                    {loggedInUser?.username !== username && ` for ${userDisplayName}`} with the{" "}
+                    {projectData.displayName} community.
+                    <ShowMoreDetailsButton
+                        isOpen={isSignalSummaryMoreDetailsOpen}
+                        setIsOpen={setIsSignalSummaryMoreDetailsOpen}
+                    />
+                </Text>
+                {isSignalSummaryMoreDetailsOpen && (
+                    <MoreDetailsContainer>
+                        <MoreDetailsBullet>
+                            {loggedInUser?.username === username ? "Your" : "The"} activity summary takes into account{" "}
+                            {loggedInUser?.username === username && "your"} activity and engagement with the{" "}
+                            {projectData.displayName} community over the past {signalStrengthProjectData.previousDays}{" "}
+                            days.
+                        </MoreDetailsBullet>
+                        <MoreDetailsBullet>
+                            It&apos;s a helpful way to understand {loggedInUser?.username === username && "your"} style
+                            {loggedInUser?.username !== username && "s"} of interaction with the{" "}
+                            {projectData.displayName} community and learn how{" "}
+                            {loggedInUser?.username === username
+                                ? "you could improve your score"
+                                : "scores could be improved"}
+                            .
+                        </MoreDetailsBullet>
+                        <MoreDetailsBullet>
+                            {loggedInUser?.username === username ? "Your" : "The"} summary is updated daily along with{" "}
+                            {loggedInUser?.username === username ? "your" : "the"} score, so if{" "}
+                            {loggedInUser?.username === username
+                                ? "you don't see any changes yet"
+                                : "there are no changes yet"}
+                            , come back tomorrow to see {loggedInUser?.username === username ? "your" : "the"} updated
+                            summary.
+                        </MoreDetailsBullet>
+                    </MoreDetailsContainer>
+                )}
+                <HStack
+                    alignItems={"center"}
+                    justifyContent={"start"}
+                    cursor={expandableContent ? "pointer" : "default"}
+                    mt={3}
+                    py={2}
+                    pl={3}
+                    pr={4}
+                    gap={3}
+                    w={"100%"}
+                    bg={"pageBackground"}
+                    borderRadius={"10px"}
+                    borderBottomRadius={expandableContent ? (isOpen ? "none" : "10px") : "10px"}
+                    onClick={expandableContent ? () => setIsOpen(!isOpen) : undefined}
+                    _hover={expandableContent ? { bg: "button.secondary.default" } : undefined}
+                >
+                    {userData.summary && userData.summary.includes("No activity in the past") ? (
+                        <Box color="textColorMuted">
+                            <FontAwesomeIcon icon={faInfoCircle} size="lg" />
+                        </Box>
+                    ) : (
+                        <Box transform={isOpen ? "rotate(90deg)" : "rotate(0deg)"} transition="transform 0.2s">
+                            <FontAwesomeIcon icon={faChevronRight} />
+                        </Box>
                     )}
-                    <HStack
-                        alignItems={"center"}
+                    {userData.summary && <Text>{userData.summary}</Text>}
+                </HStack>
+                {isOpen && expandableContent && (
+                    <VStack
+                        w="100%"
+                        gap={5}
+                        px={4}
+                        pt={2}
+                        pb={3}
+                        bg="pageBackground"
+                        borderBottomRadius="md"
                         justifyContent={"start"}
-                        cursor={expandableContent ? "pointer" : "default"}
-                        mt={3}
-                        py={2}
-                        pl={3}
-                        pr={4}
-                        gap={3}
-                        w={"100%"}
-                        bg={"pageBackground"}
-                        borderRadius={"10px"}
-                        borderBottomRadius={expandableContent ? (isOpen ? "none" : "10px") : "10px"}
-                        onClick={expandableContent ? () => setIsOpen(!isOpen) : undefined}
-                        _hover={expandableContent ? { bg: "button.secondary.default" } : undefined}
+                        alignItems={"start"}
                     >
-                        {userData.summary && userData.summary.includes("No activity in the past") ? (
-                            <Box color="textColorMuted">
-                                <FontAwesomeIcon icon={faInfoCircle} size="lg" />
-                            </Box>
-                        ) : (
-                            <Box transform={isOpen ? "rotate(90deg)" : "rotate(0deg)"} transition="transform 0.2s">
-                                <FontAwesomeIcon icon={faChevronRight} />
-                            </Box>
+                        {userData.description && (
+                            <Text color="textColorMuted">
+                                {userData.description?.charAt(0).toUpperCase() + userData.description?.slice(1)}
+                            </Text>
                         )}
-                        {userData.summary && <Text>{userData.summary}</Text>}
-                    </HStack>
-                    {isOpen && expandableContent && (
-                        <VStack
-                            w="100%"
-                            gap={5}
-                            px={4}
-                            pt={2}
-                            pb={3}
-                            bg="pageBackground"
-                            borderBottomRadius="md"
-                            justifyContent={"start"}
-                            alignItems={"start"}
-                        >
-                            {userData.description ? (
-                                <Text color="textColorMuted">
-                                    {userData.description?.charAt(0).toUpperCase() + userData.description?.slice(1)}
-                                </Text>
-                            ) : (
-                                <HStack position={"relative"} w={"100%"} justifyContent={"center"}>
-                                    <LoginToSeeInsights projectData={projectData} />
-                                    <Text
-                                        filter={"blur(5px)"}
-                                        cursor={"default"}
-                                        pointerEvents={"none"}
-                                        userSelect={"none"}
-                                    >
-                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce accumsan leo
-                                        vitae lectus aliquam congue. Mauris suscipit enim vel euismod lobortis. Aenean
-                                        quis ultricies sapien. Fusce egestas in dolor vitae tempor. Phasellus euismod,
-                                        est a fermentum ullamcorper, diam arcu molestie nisl.
-                                    </Text>
-                                </HStack>
-                            )}
-                            {userData.improvements && (
-                                <VStack alignItems={"start"}>
-                                    <HStack columnGap={5} rowGap={2} flexWrap={"wrap"}>
-                                        <HStack gap={2}>
-                                            <FontAwesomeIcon icon={faLightbulb} size="lg" />
-                                            <Text>How to improve your score</Text>
-                                        </HStack>
-                                        <HStack flexGrow={1} justifyContent={"center"}>
-                                            <HStack
-                                                bg={"contentBackground"}
-                                                borderRadius={"full"}
-                                                px={3}
-                                                py={1}
-                                                fontSize={"sm"}
-                                                gap={3}
-                                                cursor={"default"}
-                                                fontWeight={"semibold"}
-                                                color={"teal.500"}
-                                            >
-                                                <Text>🏗️</Text>
-                                                <Text>Coming soon</Text>
-                                                <Text>🏗️</Text>
-                                            </HStack>
+                        {userData.improvements && (
+                            <VStack alignItems={"start"}>
+                                <HStack columnGap={5} rowGap={2} flexWrap={"wrap"}>
+                                    <HStack gap={2}>
+                                        <FontAwesomeIcon icon={faLightbulb} size="lg" />
+                                        <Text>How to improve your score</Text>
+                                    </HStack>
+                                    <HStack flexGrow={1} justifyContent={"center"}>
+                                        <HStack
+                                            bg={"contentBackground"}
+                                            borderRadius={"full"}
+                                            px={3}
+                                            py={1}
+                                            fontSize={"sm"}
+                                            gap={3}
+                                            cursor={"default"}
+                                            fontWeight={"semibold"}
+                                            color={"teal.500"}
+                                        >
+                                            <Text>🏗️</Text>
+                                            <Text>Coming soon</Text>
+                                            <Text>🏗️</Text>
                                         </HStack>
                                     </HStack>
-                                    {/* TODO: Add improvements when they are better*/}
-                                    {/* <Text color="textColorMuted">
+                                </HStack>
+                                {/* TODO: Add improvements when they are better*/}
+                                {/* <Text color="textColorMuted">
                                         {userData.improvements.charAt(0).toUpperCase() + userData.improvements.slice(1)}
                                     </Text> */}
-                                </VStack>
-                            )}
-                        </VStack>
-                    )}
-                </VStack>
-            )}
+                            </VStack>
+                        )}
+                    </VStack>
+                )}
+            </VStack>
             {!userDataRefreshTriggered && countdown === -2 && (
                 <VStack w="100%" gap={2} px={2} pb={3} mt={3} textAlign={"center"} color="textColorMuted">
                     {loggedInUser?.username === username && (
@@ -608,8 +586,8 @@ export default function SignalStrength({
                     </Text>
                 </VStack>
             )}
-            {dataAvailable && <Divider borderWidth={3} my={6} />}
-            {dataAvailable && dailyData && (
+            <Divider borderWidth={3} my={6} />
+            {dailyData && (
                 <VStack w="100%" gap={0} alignItems={"start"} mb={2}>
                     <Text w="100%" fontSize="lg" fontWeight={"bold"} textAlign={"center"} mb={2}>
                         Daily Activity Tracker
@@ -647,11 +625,6 @@ export default function SignalStrength({
                             </MoreDetailsBullet>
                             <MoreDetailsBullet icon={"🏗️"}>
                                 Very short posts may not be visible on the chart, but are planned to be supported soon.
-                            </MoreDetailsBullet>
-                            <MoreDetailsBullet icon={"🔒"}>
-                                This chart is private and can only be seen by{" "}
-                                {loggedInUser?.username === username ? "you" : `${userDisplayName}`} and the{" "}
-                                {projectData.displayName} team.
                             </MoreDetailsBullet>
                         </MoreDetailsContainer>
                     )}
