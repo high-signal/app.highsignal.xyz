@@ -38,7 +38,6 @@ async function getRawActivityCombinedData({
 
     rawActivityCombinedData = rawActivityCombinedData.map((item) => ({
         id: item.id,
-        // summary: item.summary,
         description: item.description,
         // improvements: item.improvements,
         // explained_reasoning: item.explained_reasoning,
