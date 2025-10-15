@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, Text } from "@chakra-ui/react"
+import { VStack, Text, HStack } from "@chakra-ui/react"
 import SignalStrength from "./SignalStrength"
 
 import { useUser } from "../../../contexts/UserContext"
@@ -32,7 +32,7 @@ export default function SignalStrengthContainer({
                 latestData &&
                 (matchingUserStrength?.data?.[0].value === "0" || !matchingUserStrength?.data?.[0].value)
             ) {
-                latestData.summary = `No activity in the past ${projectStrength.previousDays} days`
+                latestData.description = `No activity in the past ${projectStrength.previousDays} days`
             }
         }
 
@@ -65,14 +65,21 @@ export default function SignalStrengthContainer({
         })
 
     return (
-        <VStack gap={3} px={{ base: 0, sm: 3 }} w="100%" maxW="600px" alignItems={"center"} pb={"50px"}>
+        <VStack gap={3} px={{ base: 0, sm: 3 }} w="100%" maxW="1400px" alignItems={"center"} pb={"50px"}>
             <Text fontSize="2xl" fontWeight={"bold"} px={3}>
                 📡 Signals
             </Text>
             <Text color="textColorMuted" textAlign={"center"} px={{ base: 3, sm: 0 }}>
                 Signals are live measures of activity in the {projectData.displayName} community.
             </Text>
-            <VStack gap={10} alignItems={"start"} w={"100%"}>
+            <HStack
+                rowGap={10}
+                columnGap={8}
+                alignItems={"start"}
+                w={"100%"}
+                flexWrap={"wrap"}
+                justifyContent={"center"}
+            >
                 {sortedMatchedSignalStrengths.map(({ signalStrengthProjectData, userData }, index) => (
                     <SignalStrength
                         key={index}
@@ -100,7 +107,7 @@ export default function SignalStrengthContainer({
                         refreshUserData={refreshUserData}
                     />
                 ))}
-            </VStack>
+            </HStack>
         </VStack>
     )
 }
