@@ -67,7 +67,7 @@ export default function SignalScoreDescription({
     }
 
     return (
-        <VStack bg={"contentBackground"} p={4} borderRadius={"16px"} w={"fit-content"} textAlign={"center"}>
+        <VStack bg={"contentBackground"} p={4} borderRadius={"16px"} w={"fit-content"} textAlign={"center"} mx={3}>
             {titleText && (
                 <HStack fontWeight={"bold"} gap={3} alignItems={"start"}>
                     <Text>{titleEmoji}</Text>

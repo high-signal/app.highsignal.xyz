@@ -133,7 +133,7 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
     }, [publicAndSharedUserAccounts, targetUser, projectData.urlSlug])
 
     return (
-        <VStack gap={0} w="100%" maxW="600px" alignItems={"center"} bg={"pageBackground"}>
+        <VStack gap={0} w="100%" maxW="600px" alignItems={"center"} bg={"pageBackground"} px={3}>
             <HStack
                 onClick={() => setIsOpen(!isOpen)}
                 w={{ base: "100%", md: "auto" }}

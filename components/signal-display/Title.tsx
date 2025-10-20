@@ -19,6 +19,7 @@ export default function Title({
             <VStack
                 maxW="600px"
                 justifyContent="center"
+                px={3}
                 gap={{ base: 5, lg: 0 }}
                 _hover={linkUrl ? { textDecoration: "underline" } : {}}
                 cursor={linkUrl ? "pointer" : "default"}
