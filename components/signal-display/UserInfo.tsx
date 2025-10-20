@@ -35,7 +35,15 @@ export default function UserInfo({ currentUser }: { currentUser: UserData }) {
                     borderRadius="full"
                 />
             )}
-            <VStack gap={2} alignItems="start" justifyContent={"center"} minH={"130px"} px={2} py={2}>
+            <VStack
+                gap={2}
+                alignItems="start"
+                justifyContent={"center"}
+                minH={"130px"}
+                px={2}
+                py={2}
+                cursor={"default"}
+            >
                 <VStack gap={1} alignItems="start">
                     <Text
                         fontWeight="bold"
