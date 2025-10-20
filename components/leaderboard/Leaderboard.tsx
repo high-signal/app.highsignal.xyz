@@ -360,7 +360,7 @@ export default function Leaderboard({
     const [resultsPage, setResultsPage] = useState(parseInt(searchParams.get("page") || "1"))
     const [maxResultsPage, setMaxResultsPage] = useState(1)
 
-    const { loggedInUser } = useUser()
+    const { loggedInUser, loggedInUserLoading } = useUser()
 
     // Use the appropriate hook based on mode
     const {
@@ -402,7 +402,16 @@ export default function Leaderboard({
         error: projectsError,
     } = useGetProjects(debouncedSearchTerm, debouncedSearchTerm.length > 0)
 
-    const loading = mode === "users" ? usersLoading : projectsLoading
+    // Gate rendering on current user in users mode (when applicable)
+    const shouldWaitForCurrentUser = mode === "users" && !debouncedSearchTerm && !!loggedInUser?.username
+    // Also gate until user context finishes resolving (prevents first paint without knowing user)
+    const shouldWaitForUserContext = mode === "users" && !debouncedSearchTerm && loggedInUserLoading
+    // Prevent initial render until currentUserData resolves when we should wait
+    // useGetUsers initializes users to null, so block on null or while loading
+    const isBlockingOnCurrentUser = shouldWaitForCurrentUser && (currentUserLoading || currentUserData == null)
+
+    const loading =
+        mode === "users" ? usersLoading || shouldWaitForUserContext || isBlockingOnCurrentUser : projectsLoading
     const error = mode === "users" ? usersError : projectsError
     const items = mode === "users" ? users : projects
 
@@ -573,7 +582,7 @@ export default function Leaderboard({
                             {mode === "users" &&
                                 currentUser &&
                                 !debouncedSearchTerm &&
-                                (currentUser.rank || 0) >= 10 && (
+                                (currentUser.rank || 11) >= 10 && (
                                     <LeaderboardRow
                                         key="current-user"
                                         item={currentUser}
