@@ -116,41 +116,44 @@ const LeaderboardRow = ({
             borderTop={isSpecialTopRow ? "5px solid" : "none"}
             borderColor={borderColor}
         >
-            {mode === "users" && (
-                <Table.Cell
-                    borderBottom="none"
-                    py={"6px"}
-                    px={0}
-                    textAlign="center"
-                    minW={rankColumnWidth}
-                    maxW={rankColumnWidth}
-                    borderLeftRadius={"full"}
-                >
-                    <Link href={linkUrl}>
-                        <Text
-                            fontSize={{
-                                base: (() => {
-                                    const rankText = isScoreZero ? "-" : (item as UserData).rank?.toString() || ""
-                                    if (rankText.length > 3) return "sm"
-                                    if (rankText.length > 2) return "md"
-                                    return "lg"
-                                })(),
-                                sm: "lg",
-                            }}
-                            fontWeight="bold"
-                            color="textColor"
-                        >
-                            {isScoreZero ? "-" : (item as UserData).rank}
-                        </Text>
-                    </Link>
-                </Table.Cell>
-            )}
+            <Table.Cell
+                borderBottom="none"
+                py={"6px"}
+                px={0}
+                textAlign="center"
+                minW={rankColumnWidth}
+                maxW={rankColumnWidth}
+                borderLeftRadius={"full"}
+            >
+                <Link href={linkUrl}>
+                    <Text
+                        fontSize={{
+                            base: (() => {
+                                const rankValue = mode === "users" ? (item as UserData).rank : userData?.rank
+                                const rankText = isScoreZero ? "-" : rankValue?.toString() || ""
+                                if (rankText.length > 3) return "sm"
+                                if (rankText.length > 2) return "md"
+                                return "lg"
+                            })(),
+                            sm: "lg",
+                        }}
+                        fontWeight="bold"
+                        color="textColor"
+                    >
+                        {(() => {
+                            const rankValue = mode === "users" ? (item as UserData).rank : userData?.rank
+                            return isScoreZero ? "-" : rankValue
+                        })()}
+                    </Text>
+                </Link>
+            </Table.Cell>
+
             <Table.Cell
                 borderBottom="none"
                 py={"6px"}
                 pr={"2px"}
                 maxW={displayNameColumnWidth}
-                borderLeftRadius={mode === "projects" ? "full" : "none"}
+                borderLeftRadius={"none"}
             >
                 <Link href={linkUrl}>
                     <HStack gap={3} bg={displayNameBg} borderRadius={"full"}>
@@ -515,7 +518,7 @@ export default function Leaderboard({
         )
     }
 
-    const rankColumnWidth = mode === "users" ? { base: "20px", sm: "50px" } : { base: "0px", sm: "0px" }
+    const rankColumnWidth = { base: "20px", sm: "50px" }
     const displayNameColumnWidth = { base: "120px", sm: "auto" }
     const signalColumnWidth = { base: "40px", sm: "40px" }
     const scoreColumnWidth = { base: "40px", sm: "40px" }
@@ -526,14 +529,12 @@ export default function Leaderboard({
             <Table.Root>
                 <Table.Header>
                     <Table.Row bg="transparent">
-                        {mode === "users" && (
-                            <TableHeader textAlign="center" maxW={rankColumnWidth}>
-                                <HStack justifyContent="center">
-                                    <Text display={{ base: "block", sm: "none" }}>#</Text>
-                                    <Text display={{ base: "none", sm: "block" }}>Rank</Text>
-                                </HStack>
-                            </TableHeader>
-                        )}
+                        <TableHeader textAlign="center" maxW={rankColumnWidth}>
+                            <HStack justifyContent="center">
+                                <Text display={{ base: "block", sm: "none" }}>#</Text>
+                                <Text display={{ base: "none", sm: "block" }}>Rank</Text>
+                            </HStack>
+                        </TableHeader>
                         <TableHeader maxW={displayNameColumnWidth} px={{ base: 2, sm: 2 }}>
                             <SingleLineTextInput
                                 value={searchTerm}
