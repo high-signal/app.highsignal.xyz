@@ -4,11 +4,17 @@ import { VStack, HStack, Text, Box, Image, Button } from "@chakra-ui/react"
 import Link from "next/link"
 import { ASSETS } from "../../config/constants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faMedal, faUser } from "@fortawesome/free-solid-svg-icons"
+import { faMedal } from "@fortawesome/free-solid-svg-icons"
+
+import { useUser } from "../../contexts/UserContext"
+import { usePrivy } from "@privy-io/react-auth"
 
 import ShellUserImage from "../ui/ShellUserImage"
 
 export default function UserInfo({ currentUser }: { currentUser: UserData }) {
+    const { loggedInUser } = useUser()
+    const { login, authenticated } = usePrivy()
+
     return (
         <HStack
             gap={3}
@@ -37,14 +43,14 @@ export default function UserInfo({ currentUser }: { currentUser: UserData }) {
             )}
             <VStack
                 gap={2}
-                alignItems="start"
+                alignItems="center"
                 justifyContent={"center"}
                 minH={"130px"}
                 px={2}
                 py={2}
                 cursor={"default"}
             >
-                <VStack gap={1} alignItems="start">
+                <VStack gap={1} alignItems="center">
                     <Text
                         fontWeight="bold"
                         fontSize="30px"
@@ -76,16 +82,41 @@ export default function UserInfo({ currentUser }: { currentUser: UserData }) {
                         {currentUser.rank || "-"}
                     </Text>
                 </HStack>
-                <Box pt={1}>
-                    <Link href={`/u/${currentUser.username}`}>
-                        <Button secondaryButton px={2} py={1} borderRadius="full">
-                            <HStack gap={0}>
-                                <FontAwesomeIcon icon={faUser} />
-                                <Text>View profile</Text>
-                            </HStack>
-                        </Button>
-                    </Link>
-                </Box>
+                <HStack flexWrap={"wrap"} gap={3} justifyContent={"center"} pt={1}>
+                    {currentUser.username?.startsWith("~") &&
+                        (authenticated && loggedInUser ? (
+                            <Link href={`/settings/u/${loggedInUser.username}?tab=accounts`}>
+                                <Button primaryButton px={3} py={1} borderRadius="full">
+                                    <HStack gap={0}>
+                                        <Text>Claim this account</Text>
+                                    </HStack>
+                                </Button>
+                            </Link>
+                        ) : (
+                            <Button
+                                primaryButton
+                                px={3}
+                                py={1}
+                                borderRadius="full"
+                                onClick={() => {
+                                    login()
+                                }}
+                            >
+                                <HStack gap={0}>
+                                    <Text textWrap={"wrap"}>Login to claim this account</Text>
+                                </HStack>
+                            </Button>
+                        ))}
+                    <Box>
+                        <Link href={`/u/${currentUser.username}`}>
+                            <Button secondaryButton px={3} py={1} borderRadius="full">
+                                <HStack gap={0}>
+                                    <Text>View profile</Text>
+                                </HStack>
+                            </Button>
+                        </Link>
+                    </Box>
+                </HStack>
             </VStack>
         </HStack>
     )
