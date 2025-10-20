@@ -11,6 +11,7 @@ interface StatsData {
     aiRawScoreErrors: number
     lastCheckedNotNull: number
     discordRequestQueueErrors: number
+    duplicateUserSignalStrengths: number
     lambdaStatsNullBilledDuration: number
     userSignalStrengthsWithoutRawValueOrValue: number
 }
@@ -84,6 +85,7 @@ export default function SuperadminStatsErrors() {
             isStatError(errorStats.aiRawScoreErrors) ||
             isStatError(errorStats.lastCheckedNotNull) ||
             isStatError(errorStats.discordRequestQueueErrors) ||
+            isStatError(errorStats.duplicateUserSignalStrengths) ||
             isStatError(errorStats.lambdaStatsNullBilledDuration, 500) ||
             isStatError(errorStats.userSignalStrengthsWithoutRawValueOrValue))
 
@@ -131,6 +133,10 @@ export default function SuperadminStatsErrors() {
                             <StatsRow
                                 label="Discord Request Queue Errors"
                                 value={errorStats?.discordRequestQueueErrors ?? 0}
+                            />
+                            <StatsRow
+                                label="Duplicate User Signal Strengths"
+                                value={errorStats?.duplicateUserSignalStrengths ?? 0}
                             />
                             <StatsRow
                                 label="Lambda Stats Null Billed Duration"
