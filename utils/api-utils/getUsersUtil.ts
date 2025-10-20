@@ -1106,11 +1106,28 @@ export async function getUsersUtil(
                                     ? {
                                           dailyData: uss.data
                                               .filter((d) => d.value == null)
-                                              .map((d) => ({
-                                                  day: d.day,
-                                                  value: d.raw_value,
-                                                  maxValue: d.max_value,
-                                              })),
+                                              .reduce(
+                                                  (acc, d) => {
+                                                      // Only process records that have a raw_value
+                                                      if (d.raw_value == null) return acc
+
+                                                      const existingDay = acc.find((item) => item.day === d.day)
+                                                      if (!existingDay || d.raw_value > existingDay.value) {
+                                                          // Remove existing entry for this day if it exists
+                                                          const filteredAcc = acc.filter((item) => item.day !== d.day)
+                                                          // Add new entry with highest value
+                                                          filteredAcc.push({
+                                                              day: d.day,
+                                                              value: d.raw_value,
+                                                              maxValue: d.max_value,
+                                                          })
+                                                          return filteredAcc
+                                                      }
+                                                      return acc
+                                                  },
+                                                  [] as Array<{ day: string; value: number; maxValue: number }>,
+                                              )
+                                              .sort((a, b) => new Date(b.day).getTime() - new Date(a.day).getTime()),
                                       }
                                     : {}),
                             }
