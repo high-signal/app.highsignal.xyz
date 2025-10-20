@@ -39,11 +39,7 @@ export const useGetUsers = ({
                 }
 
                 const url = new URL(
-                    isSuperAdminRequesting
-                        ? "/api/superadmin/users"
-                        : isUserDataVisible
-                          ? "/api/private-data/users"
-                          : "/api/users",
+                    isSuperAdminRequesting ? "/api/superadmin/users" : "/api/users",
                     window.location.origin,
                 )
 

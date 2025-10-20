@@ -1070,15 +1070,6 @@ export async function getUsersUtil(
                                     value: d.value,
                                     maxValue: d.max_value,
                                     scoreCalculationPeriodPreviousDays: d.previous_days,
-                                    // Only show summary for the latest result, if it is not `No activity in the past` but to anyone
-                                    // Super admin can see all summaries for all results
-                                    ...(isSuperAdminRequesting ||
-                                    (isUserDataVisible && index === 0) ||
-                                    (index === 0 && !d.summary?.includes("No activity in the past"))
-                                        ? {
-                                              summary: d.summary,
-                                          }
-                                        : {}),
 
                                     // Only show details for the latest result to the user or project admin
                                     // Super admin can see all details for all results

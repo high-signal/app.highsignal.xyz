@@ -22,7 +22,6 @@ async function updateUserData({
             ...(!isRawScoreCalc && { value: analysisResults[signalStrengthUsername].value }),
             ...(isRawScoreCalc && { raw_value: analysisResults[signalStrengthUsername].value }),
             max_value: maxValue,
-            summary: analysisResults[signalStrengthUsername].summary,
             description: analysisResults[signalStrengthUsername].description,
             improvements: analysisResults[signalStrengthUsername].improvements,
             request_id: analysisResults.requestId,

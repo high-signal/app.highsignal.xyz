@@ -38,8 +38,8 @@ async function analyzeUserData({
     if (userData.length === 0) {
         return {
             [signalStrengthUsername]: {
-                summary: `No activity in the past ${previousDays} days`,
-                description: null,
+                summary: null,
+                description: `No activity in the past ${previousDays} days`,
                 improvements: null,
                 value: 0,
             },
@@ -85,7 +85,6 @@ async function analyzeUserData({
                 )
                 return {
                     [signalStrengthUsername]: {
-                        summary: latestSmartScore[0].summary,
                         description: latestSmartScore[0].description,
                         improvements: latestSmartScore[0].improvements,
                         explainedReasoning: latestSmartScore[0].explained_reasoning,

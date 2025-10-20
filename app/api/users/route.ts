@@ -7,7 +7,7 @@ import { updatePrivyAccounts } from "../../../utils/updatePrivyAccounts"
 // Unauthenticated GET request
 // Returns user data for a given project
 export async function GET(request: Request) {
-    return getUsersUtil(request)
+    return getUsersUtil(request, false, true)
 }
 
 // Authenticated POST request (uses logged in user privyId)

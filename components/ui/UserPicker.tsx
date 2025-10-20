@@ -83,7 +83,7 @@ export default function UserPicker({
         project: projectUrlSlug,
         username: debouncedSearchTerm,
         fuzzy: true,
-        shouldFetch: isFocused,
+        shouldFetch: isFocused && debouncedSearchTerm.length > 0,
         isSuperAdminRequesting: isSuperAdminRequesting,
     })
 
@@ -143,7 +143,7 @@ export default function UserPicker({
                     cursor="not-allowed"
                 />
             )}
-            {isFocused && !disabled && (
+            {isFocused && !disabled && debouncedSearchTerm.length > 0 && (
                 <Box
                     position="absolute"
                     top="100%"

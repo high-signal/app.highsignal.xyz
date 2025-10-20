@@ -8,6 +8,7 @@ import { faLightbulb } from "@fortawesome/free-regular-svg-icons"
 import { faDiscord, faXTwitter, faDiscourse } from "@fortawesome/free-brands-svg-icons"
 import { useState, useEffect } from "react"
 import { ASSETS } from "../../../config/constants"
+import { useParams } from "next/navigation"
 
 import HistoricalDataChart from "./HistoricalDataChart"
 
@@ -16,6 +17,15 @@ import { useUser } from "../../../contexts/UserContext"
 import LoginToSeeInsights from "../../ui/LoginToSeeInsights"
 import { APP_CONFIG } from "../../../config/constants"
 import Divider from "../../ui/Divider"
+
+// Utility function to replace personal pronouns with third person
+const replacePersonalPronouns = (text: string): string => {
+    return text
+        .replace(/\bYour\b/g, "Their")
+        .replace(/\byour\b/g, "their")
+        .replace(/\bYou\b/g, "They")
+        .replace(/\byou\b/g, "they")
+}
 
 // Define signalStrengthIcons
 const signalStrengthIcons = {
@@ -139,12 +149,13 @@ export default function SignalStrength({
     refreshUserData: () => void
 }) {
     const { loggedInUser } = useUser()
+    const params = useParams()
+    const targetUsername = params.username as string
 
     const displayValue = userData.value || userData.rawValue || 0
 
     const percentageCompleted = (Number(displayValue) / Number(signalStrengthProjectData.maxValue)) * 100
     const completedBarWidth = percentageCompleted > 100 ? "100%" : `${percentageCompleted}%`
-    const [isOpen, setIsOpen] = useState(userData.description ? true : false)
     const [countdown, setCountdown] = useState<number | null>(null)
     const [countdownText, setCountdownText] = useState<string | null>("Analyzing activity...")
     const [userDataRefreshTriggered, setUserDataRefreshTriggered] = useState(false)
@@ -156,15 +167,16 @@ export default function SignalStrength({
 
     const countdownDuration = APP_CONFIG.SIGNAL_STRENGTH_LOADING_DURATION
 
-    const expandableContent =
-        userData && (Number(userData.value || 0) > 0 || !userData.summary?.includes("No activity in the past"))
+    if (userData && userData.description === "") {
+        userData.description = `No activity in the past ${signalStrengthProjectData.previousDays} days`
+    }
 
     const userContentAvailable =
         userData &&
         (userData.lastChecked ||
             Number(userData.value || 0) > 0 ||
             Number(userData.rawValue || 0) > 0 ||
-            userData.summary?.includes("No activity in the past"))
+            userData.description?.includes("No activity in the past"))
             ? true
             : false
 
@@ -216,6 +228,7 @@ export default function SignalStrength({
             if (updatedTimeRemaining <= 0) {
                 refreshUserData()
                 setCountdown(-1)
+                setCountdownText(null)
                 clearInterval(timer)
                 setUserDataRefreshTriggered(true)
             } else {
@@ -242,9 +255,6 @@ export default function SignalStrength({
 
     // Get the icon based on signalStrengthProjectData.name
     const icon = signalStrengthIcons[signalStrengthProjectData.name as SignalStrengthName]
-
-    const dataAvailable =
-        signalStrengthProjectData.enabled && userContentAvailable && !countdown && !userDataRefreshTriggered
 
     return (
         <VStack
@@ -451,114 +461,160 @@ export default function SignalStrength({
                     </MoreDetailsContainer>
                 )}
             </VStack>
-            {dataAvailable && <Divider borderWidth={3} my={6} />}
-            {dataAvailable && (
-                <VStack w="100%" gap={0} alignItems={"center"}>
-                    <Text fontSize="lg" fontWeight={"bold"} cursor={"default"} mb={2}>
-                        Activity Summary
-                    </Text>
-                    <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
-                        Highlights of {loggedInUser?.username === username && "your"} engagement{" "}
-                        {loggedInUser?.username !== username && ` for ${userDisplayName}`} with the{" "}
-                        {projectData.displayName} community.
-                        <ShowMoreDetailsButton
-                            isOpen={isSignalSummaryMoreDetailsOpen}
-                            setIsOpen={setIsSignalSummaryMoreDetailsOpen}
-                        />
-                    </Text>
-                    {isSignalSummaryMoreDetailsOpen && (
-                        <MoreDetailsContainer>
-                            <MoreDetailsBullet>
-                                {loggedInUser?.username === username ? "Your" : "The"} activity summary takes into
-                                account {loggedInUser?.username === username && "your"} activity and engagement with the{" "}
-                                {projectData.displayName} community over the past{" "}
-                                {signalStrengthProjectData.previousDays} days.
-                            </MoreDetailsBullet>
-                            <MoreDetailsBullet>
-                                It&apos;s a helpful way to understand {loggedInUser?.username === username && "your"}{" "}
-                                style
-                                {loggedInUser?.username !== username && "s"} of interaction with the{" "}
-                                {projectData.displayName} community and learn how{" "}
-                                {loggedInUser?.username === username
-                                    ? "you could improve your score"
-                                    : "scores could be improved"}
-                                .
-                            </MoreDetailsBullet>
-                            <MoreDetailsBullet>
-                                {loggedInUser?.username === username ? "Your" : "The"} summary is updated daily along
-                                with {loggedInUser?.username === username ? "your" : "the"} score, so if{" "}
-                                {loggedInUser?.username === username
-                                    ? "you don't see any changes yet"
-                                    : "there are no changes yet"}
-                                , come back tomorrow to see {loggedInUser?.username === username ? "your" : "the"}{" "}
-                                updated summary.
-                            </MoreDetailsBullet>
-                            <MoreDetailsBullet icon={"🔒"}>
-                                {loggedInUser?.username === username ? "Your" : "This"} full summary is private and can
-                                only be seen by {loggedInUser?.username === username ? "you" : `${userDisplayName}`} and
-                                the {projectData.displayName} team. Only the heading &quot;
-                                {userData.summary}&quot; is public.
-                            </MoreDetailsBullet>
-                        </MoreDetailsContainer>
+            {!userDataRefreshTriggered && countdown === -2 && (
+                <VStack
+                    w="100%"
+                    gap={2}
+                    px={2}
+                    pb={3}
+                    mt={3}
+                    textAlign={"center"}
+                    color="textColorMuted"
+                    bg={"pageBackground"}
+                    borderRadius={"12px"}
+                    py={3}
+                >
+                    {loggedInUser?.username === username && (
+                        <Text>
+                            {`It's taking longer than expected to calculate your score, probably because you have a lot of
+                        activity!`}
+                        </Text>
                     )}
-                    <HStack
-                        alignItems={"center"}
-                        justifyContent={"start"}
-                        cursor={expandableContent ? "pointer" : "default"}
-                        mt={3}
-                        py={2}
-                        pl={3}
-                        pr={4}
-                        gap={3}
-                        w={"100%"}
-                        bg={"pageBackground"}
-                        borderRadius={"10px"}
-                        borderBottomRadius={expandableContent ? (isOpen ? "none" : "10px") : "10px"}
-                        onClick={expandableContent ? () => setIsOpen(!isOpen) : undefined}
-                        _hover={expandableContent ? { bg: "button.secondary.default" } : undefined}
-                    >
-                        {userData.summary && userData.summary.includes("No activity in the past") ? (
-                            <Box color="textColorMuted">
-                                <FontAwesomeIcon icon={faInfoCircle} size="lg" />
-                            </Box>
-                        ) : (
-                            <Box transform={isOpen ? "rotate(90deg)" : "rotate(0deg)"} transition="transform 0.2s">
-                                <FontAwesomeIcon icon={faChevronRight} />
-                            </Box>
+                    <Text>
+                        Check back later to see {loggedInUser?.username === username ? "your" : "the"} updated score.
+                    </Text>
+                </VStack>
+            )}
+            {countdownText != "Calculating score..." && dailyData && (
+                <>
+                    <Divider borderWidth={3} my={6} />
+                    {dailyData && (
+                        <VStack w="100%" gap={0} alignItems={"start"} mb={2}>
+                            <Text w="100%" fontSize="lg" fontWeight={"bold"} textAlign={"center"} mb={2}>
+                                Daily Activity Tracker
+                            </Text>
+                            <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
+                                This chart shows {loggedInUser?.username === username ? "your" : "the"} daily engagement
+                                scores for each day {loggedInUser?.username === username ? "you" : `${userDisplayName}`}{" "}
+                                {loggedInUser?.username === username ? "have" : "has"} been active in the{" "}
+                                {projectData.displayName}{" "}
+                                {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
+                                {signalStrengthProjectData.previousDays} days.{" "}
+                                <ShowMoreDetailsButton
+                                    isOpen={isSignalDailyActivityMoreDetailsOpen}
+                                    setIsOpen={setIsSignalDailyActivityMoreDetailsOpen}
+                                />
+                            </Text>
+                            {isSignalDailyActivityMoreDetailsOpen && (
+                                <MoreDetailsContainer>
+                                    <MoreDetailsBullet>
+                                        For each day{" "}
+                                        {loggedInUser?.username === username ? "you" : `${userDisplayName}`} engaged
+                                        with the {projectData.displayName} community on their{" "}
+                                        {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")},{" "}
+                                        {loggedInUser?.username === username ? "you will see" : "there will be"} a
+                                        calculated daily engagement score shown on the chart. The score for today is
+                                        still being calculated so yesterday is the most recent day shown on the chart.
+                                    </MoreDetailsBullet>
+                                    <MoreDetailsBullet>
+                                        These daily engagement scores are used as part of the algorithm to calculate{" "}
+                                        {loggedInUser?.username === username ? "your" : "the"} overall Signal Score.
+                                    </MoreDetailsBullet>
+                                    <MoreDetailsBullet>
+                                        Only available data can be analyzed. If posts were made in a private thread or
+                                        channel, they will not be included in the daily engagement scores and will not
+                                        count toward {loggedInUser?.username === username ? "your" : "the"} overall
+                                        Signal Score.
+                                    </MoreDetailsBullet>
+                                    <MoreDetailsBullet icon={"🏗️"}>
+                                        Very short posts may not be visible on the chart, but are planned to be
+                                        supported soon.
+                                    </MoreDetailsBullet>
+                                </MoreDetailsContainer>
+                            )}
+                            <Box h={2} />
+                            {userContentAvailable ? (
+                                <HistoricalDataChart
+                                    data={dailyData}
+                                    signalStrengthProjectData={signalStrengthProjectData}
+                                    projectData={projectData}
+                                />
+                            ) : (
+                                <HistoricalDataChart
+                                    data={[]}
+                                    signalStrengthProjectData={signalStrengthProjectData}
+                                    projectData={projectData}
+                                />
+                            )}
+                        </VStack>
+                    )}
+                </>
+            )}
+            {countdownText != "Calculating score..." && !userData?.description?.includes("No activity in the past") && (
+                <>
+                    <Divider borderWidth={3} my={6} />
+                    <VStack w="100%" gap={0} alignItems={"center"}>
+                        <Text fontSize="lg" fontWeight={"bold"} cursor={"default"} mb={2}>
+                            Activity Summary
+                        </Text>
+                        <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
+                            Highlights of {loggedInUser?.username === username && "your"} engagement{" "}
+                            {loggedInUser?.username !== username && ` for ${userDisplayName}`} with the{" "}
+                            {projectData.displayName} community.
+                            <ShowMoreDetailsButton
+                                isOpen={isSignalSummaryMoreDetailsOpen}
+                                setIsOpen={setIsSignalSummaryMoreDetailsOpen}
+                            />
+                        </Text>
+                        {isSignalSummaryMoreDetailsOpen && (
+                            <MoreDetailsContainer>
+                                <MoreDetailsBullet>
+                                    {loggedInUser?.username === username ? "Your" : "The"} activity summary takes into
+                                    account {loggedInUser?.username === username && "your"} activity and engagement with
+                                    the {projectData.displayName} community over the past{" "}
+                                    {signalStrengthProjectData.previousDays} days.
+                                </MoreDetailsBullet>
+                                <MoreDetailsBullet>
+                                    It&apos;s a helpful way to understand{" "}
+                                    {loggedInUser?.username === username && "your"} style
+                                    {loggedInUser?.username !== username && "s"} of interaction with the{" "}
+                                    {projectData.displayName} community and learn how{" "}
+                                    {loggedInUser?.username === username
+                                        ? "you could improve your score"
+                                        : "scores could be improved"}
+                                    .
+                                </MoreDetailsBullet>
+                                <MoreDetailsBullet>
+                                    {loggedInUser?.username === username ? "Your" : "The"} summary is updated daily
+                                    along with {loggedInUser?.username === username ? "your" : "the"} score, so if{" "}
+                                    {loggedInUser?.username === username
+                                        ? "you don't see any changes yet"
+                                        : "there are no changes yet"}
+                                    , come back tomorrow to see {loggedInUser?.username === username ? "your" : "the"}{" "}
+                                    updated summary.
+                                </MoreDetailsBullet>
+                            </MoreDetailsContainer>
                         )}
-                        {userData.summary && <Text>{userData.summary}</Text>}
-                    </HStack>
-                    {isOpen && expandableContent && (
                         <VStack
                             w="100%"
                             gap={5}
-                            px={4}
-                            pt={2}
-                            pb={3}
+                            px={5}
+                            py={4}
+                            mt={2}
                             bg="pageBackground"
-                            borderBottomRadius="md"
+                            borderRadius="12px"
                             justifyContent={"start"}
                             alignItems={"start"}
                         >
-                            {userData.description ? (
+                            {userData.description && (
                                 <Text color="textColorMuted">
-                                    {userData.description?.charAt(0).toUpperCase() + userData.description?.slice(1)}
+                                    {loggedInUser?.username === targetUsername
+                                        ? userData.description?.charAt(0).toUpperCase() + userData.description?.slice(1)
+                                        : replacePersonalPronouns(
+                                              userData.description?.charAt(0).toUpperCase() +
+                                                  userData.description?.slice(1),
+                                          )}
                                 </Text>
-                            ) : (
-                                <HStack position={"relative"} w={"100%"} justifyContent={"center"}>
-                                    <LoginToSeeInsights projectData={projectData} />
-                                    <Text
-                                        filter={"blur(5px)"}
-                                        cursor={"default"}
-                                        pointerEvents={"none"}
-                                        userSelect={"none"}
-                                    >
-                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce accumsan leo
-                                        vitae lectus aliquam congue. Mauris suscipit enim vel euismod lobortis. Aenean
-                                        quis ultricies sapien. Fusce egestas in dolor vitae tempor. Phasellus euismod,
-                                        est a fermentum ullamcorper, diam arcu molestie nisl.
-                                    </Text>
-                                </HStack>
                             )}
                             {userData.improvements && (
                                 <VStack alignItems={"start"}>
@@ -585,91 +641,11 @@ export default function SignalStrength({
                                             </HStack>
                                         </HStack>
                                     </HStack>
-                                    {/* TODO: Add improvements when they are better*/}
-                                    {/* <Text color="textColorMuted">
-                                        {userData.improvements.charAt(0).toUpperCase() + userData.improvements.slice(1)}
-                                    </Text> */}
                                 </VStack>
                             )}
                         </VStack>
-                    )}
-                </VStack>
-            )}
-            {!userDataRefreshTriggered && countdown === -2 && (
-                <VStack w="100%" gap={2} px={2} pb={3} mt={3} textAlign={"center"} color="textColorMuted">
-                    {loggedInUser?.username === username && (
-                        <Text>
-                            {`It's taking longer than expected to calculate your score, probably because you have a lot of
-                        activity!`}
-                        </Text>
-                    )}
-                    <Text>
-                        Check back later to see {loggedInUser?.username === username ? "your" : "the"} updated score.
-                    </Text>
-                </VStack>
-            )}
-            {dataAvailable && <Divider borderWidth={3} my={6} />}
-            {dataAvailable && dailyData && (
-                <VStack w="100%" gap={0} alignItems={"start"} mb={2}>
-                    <Text w="100%" fontSize="lg" fontWeight={"bold"} textAlign={"center"} mb={2}>
-                        Daily Activity Tracker
-                    </Text>
-                    <Text w="100%" textAlign={"center"} color={"textColorMuted"} fontSize={"sm"} px={3}>
-                        This chart shows {loggedInUser?.username === username ? "your" : "the"} daily engagement scores
-                        for each day {loggedInUser?.username === username ? "you" : `${userDisplayName}`}{" "}
-                        {loggedInUser?.username === username ? "have" : "has"} been active in the{" "}
-                        {projectData.displayName}{" "}
-                        {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")} over the past{" "}
-                        {signalStrengthProjectData.previousDays} days.{" "}
-                        <ShowMoreDetailsButton
-                            isOpen={isSignalDailyActivityMoreDetailsOpen}
-                            setIsOpen={setIsSignalDailyActivityMoreDetailsOpen}
-                        />
-                    </Text>
-                    {isSignalDailyActivityMoreDetailsOpen && (
-                        <MoreDetailsContainer>
-                            <MoreDetailsBullet>
-                                For each day {loggedInUser?.username === username ? "you" : `${userDisplayName}`}{" "}
-                                engaged with the {projectData.displayName} community on their{" "}
-                                {signalStrengthProjectData.displayName.split(" ").slice(0, -1).join(" ")},{" "}
-                                {loggedInUser?.username === username ? "you will see" : "there will be"} a calculated
-                                daily engagement score shown on the chart. The score for today is still being calculated
-                                so yesterday is the most recent day shown on the chart.
-                            </MoreDetailsBullet>
-                            <MoreDetailsBullet>
-                                These daily engagement scores are used as part of the algorithm to calculate{" "}
-                                {loggedInUser?.username === username ? "your" : "the"} overall Signal Score.
-                            </MoreDetailsBullet>
-                            <MoreDetailsBullet>
-                                Only available data can be analyzed. If posts were made in a private thread or channel,
-                                they will not be included in the daily engagement scores and will not count toward{" "}
-                                {loggedInUser?.username === username ? "your" : "the"} overall Signal Score.
-                            </MoreDetailsBullet>
-                            <MoreDetailsBullet icon={"🏗️"}>
-                                Very short posts may not be visible on the chart, but are planned to be supported soon.
-                            </MoreDetailsBullet>
-                            <MoreDetailsBullet icon={"🔒"}>
-                                This chart is private and can only be seen by{" "}
-                                {loggedInUser?.username === username ? "you" : `${userDisplayName}`} and the{" "}
-                                {projectData.displayName} team.
-                            </MoreDetailsBullet>
-                        </MoreDetailsContainer>
-                    )}
-                    <Box h={2} />
-                    {userContentAvailable ? (
-                        <HistoricalDataChart
-                            data={dailyData}
-                            signalStrengthProjectData={signalStrengthProjectData}
-                            projectData={projectData}
-                        />
-                    ) : (
-                        <HistoricalDataChart
-                            data={[]}
-                            signalStrengthProjectData={signalStrengthProjectData}
-                            projectData={projectData}
-                        />
-                    )}
-                </VStack>
+                    </VStack>
+                </>
             )}
             {signalStrengthProjectData.status === "active" &&
                 signalStrengthProjectData.enabled &&
