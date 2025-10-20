@@ -204,10 +204,6 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                         them are private by default to protect your privacy.
                     </Text>
                     <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
-                        For example, everyone can see you Signal Score for Discord (if you have connected your Discord
-                        account), but they cannot see your Discord username unless you choose to share it.
-                    </Text>
-                    <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
                         {projectData.displayName} can use this information to associate your High Signal score with you.
                         For example, if you share an Ethereum address with {projectData.displayName}, they will know
                         that your High Signal Score is linked to that address.
