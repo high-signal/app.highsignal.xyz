@@ -6,6 +6,8 @@ import { ASSETS } from "../../config/constants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMedal, faUser } from "@fortawesome/free-solid-svg-icons"
 
+import ShellUserImage from "../ui/ShellUserImage"
+
 export default function UserInfo({ currentUser }: { currentUser: UserData }) {
     return (
         <HStack
@@ -19,12 +21,20 @@ export default function UserInfo({ currentUser }: { currentUser: UserData }) {
             bg={"contentBackground"}
             justifyContent={"center"}
         >
-            <Image
-                src={currentUser.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE}
-                alt={currentUser.displayName || ""}
-                boxSize={{ base: "130px", sm: "160px" }}
-                borderRadius="full"
-            />
+            {currentUser.username?.startsWith("~") ? (
+                <ShellUserImage
+                    type={currentUser.profileImageUrl || ""}
+                    boxSize={{ base: "130px", sm: "160px" }}
+                    iconSize={"60px"}
+                />
+            ) : (
+                <Image
+                    src={currentUser.profileImageUrl || ASSETS.DEFAULT_PROFILE_IMAGE}
+                    alt={currentUser.displayName || ""}
+                    boxSize={{ base: "130px", sm: "160px" }}
+                    borderRadius="full"
+                />
+            )}
             <VStack gap={2} alignItems="start" justifyContent={"center"} minH={"130px"} px={2} py={2}>
                 <VStack gap={1} alignItems="start">
                     <Text

@@ -10,6 +10,7 @@ import { ASSETS } from "../../config/constants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTriangleExclamation, faTableList, faLinkSlash, faChevronDown } from "@fortawesome/free-solid-svg-icons"
 import { faDiscord, faXTwitter } from "@fortawesome/free-brands-svg-icons"
+import ShellUserImage from "./ShellUserImage"
 
 interface UserPickerProps {
     projectUrlSlug: string
@@ -230,18 +231,26 @@ export default function UserPicker({
                                         >
                                             <Table.Cell minW={"100px"} maxW={"100px"} overflow={"hidden"} py={"1px"}>
                                                 <HStack>
-                                                    <Image
-                                                        src={
-                                                            !user.profileImageUrl || user.profileImageUrl === ""
-                                                                ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                                                : user.profileImageUrl
-                                                        }
-                                                        alt={`User ${user.displayName} Profile Image`}
-                                                        fit="cover"
-                                                        transition="transform 0.2s ease-in-out"
-                                                        w="25px"
-                                                        borderRadius="full"
-                                                    />
+                                                    {user.username?.startsWith("~") ? (
+                                                        <ShellUserImage
+                                                            type={user.profileImageUrl || ""}
+                                                            boxSize={{ base: "25px", sm: "25px" }}
+                                                            iconSize={"12px"}
+                                                        />
+                                                    ) : (
+                                                        <Image
+                                                            src={
+                                                                !user.profileImageUrl || user.profileImageUrl === ""
+                                                                    ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                                                    : user.profileImageUrl
+                                                            }
+                                                            alt={`User ${user.displayName} Profile Image`}
+                                                            fit="cover"
+                                                            transition="transform 0.2s ease-in-out"
+                                                            w="25px"
+                                                            borderRadius="full"
+                                                        />
+                                                    )}
                                                     <VStack gap={0} alignItems={"flex-start"}>
                                                         <Text wordBreak="break-all" overflowWrap="break-word">
                                                             {user.displayName}
@@ -347,18 +356,26 @@ export default function UserPicker({
                                     }}
                                 >
                                     <HStack>
-                                        <Image
-                                            src={
-                                                !user.profileImageUrl || user.profileImageUrl === ""
-                                                    ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                                    : user.profileImageUrl
-                                            }
-                                            alt={`User ${user.displayName} Profile Image`}
-                                            fit="cover"
-                                            transition="transform 0.2s ease-in-out"
-                                            w="25px"
-                                            borderRadius="full"
-                                        />
+                                        {user.username?.startsWith("~") ? (
+                                            <ShellUserImage
+                                                type={user.profileImageUrl || ""}
+                                                boxSize={{ base: "25px", sm: "25px" }}
+                                                iconSize={"12px"}
+                                            />
+                                        ) : (
+                                            <Image
+                                                src={
+                                                    !user.profileImageUrl || user.profileImageUrl === ""
+                                                        ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                                        : user.profileImageUrl
+                                                }
+                                                alt={`User ${user.displayName} Profile Image`}
+                                                fit="cover"
+                                                transition="transform 0.2s ease-in-out"
+                                                w="25px"
+                                                borderRadius="full"
+                                            />
+                                        )}
                                         <Text>{user.displayName}</Text>
                                     </HStack>
                                 </Box>

@@ -16,6 +16,7 @@ import { ASSETS } from "../../config/constants"
 
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import LeaderboardPagination from "./LeaderboardPagination"
+import ShellUserImage from "../ui/ShellUserImage"
 
 const TableHeader = ({
     children,
@@ -157,22 +158,34 @@ const LeaderboardRow = ({
             >
                 <Link href={linkUrl}>
                     <HStack gap={3} bg={displayNameBg} borderRadius={"full"}>
-                        <Box position="relative" boxSize="40px" minW="40px" borderRadius="full" overflow="hidden">
-                            <Image
-                                src={
-                                    mode === "users"
-                                        ? !(item as UserData).profileImageUrl ||
-                                          (item as UserData).profileImageUrl === ""
-                                            ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                            : (item as UserData).profileImageUrl
-                                        : !(item as ProjectData).projectLogoUrl ||
-                                            (item as ProjectData).projectLogoUrl === ""
-                                          ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                          : (item as ProjectData).projectLogoUrl
-                                }
-                                alt={`${item.displayName} Image`}
-                                fit="cover"
-                            />
+                        <Box
+                            position="relative"
+                            boxSize="40px"
+                            minW="40px"
+                            borderRadius="full"
+                            overflow="hidden"
+                            justifyContent="center"
+                            alignItems="center"
+                        >
+                            {mode === "users" && (item as UserData).username?.startsWith("~") ? (
+                                <ShellUserImage type={(item as UserData)?.profileImageUrl || ""} />
+                            ) : (
+                                <Image
+                                    src={
+                                        mode === "users"
+                                            ? !(item as UserData).profileImageUrl ||
+                                              (item as UserData).profileImageUrl === ""
+                                                ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                                : (item as UserData).profileImageUrl
+                                            : !(item as ProjectData).projectLogoUrl ||
+                                                (item as ProjectData).projectLogoUrl === ""
+                                              ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                              : (item as ProjectData).projectLogoUrl
+                                    }
+                                    alt={`${item.displayName} Image`}
+                                    fit="cover"
+                                />
+                            )}
                         </Box>
                         <Text
                             fontSize="lg"
