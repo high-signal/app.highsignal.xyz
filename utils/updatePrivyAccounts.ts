@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import { fetchUserData } from "./fetchUserData"
+import { triggerCalculationRefresh } from "./triggerCalculationRefresh"
 
 // Mapping of Privy auth types to database column names and Privy account field names
 const AUTH_TYPE_MAPPING = {
@@ -63,21 +64,94 @@ export async function updatePrivyAccounts(privyId: string, targetUsername: strin
                                     // The value is already set for this user, do nothing
                                     continue
                                 } else {
-                                    // The value exists for another user, clear it from other users first
-                                    const otherUserId = existingRecords[0].id
-                                    const { error: clearError } = await supabase
-                                        .from("users")
-                                        .update({ [dbColumn]: null })
-                                        .eq("id", otherUserId)
+                                    // The value exists for another user
+                                    // - If the other user is a shell user, process the shell user
+                                    // - If the other user is a real user, clear it from the other user
+                                    if (existingRecords[0]?.privy_id === null) {
+                                        // ***********************
+                                        // Process the shell user
+                                        // ***********************
 
-                                    if (clearError) {
-                                        console.error(`Error clearing ${dbColumn} from other users:`, clearError)
-                                        continue
+                                        // Find the id of the current (real) user
+                                        const idOfShellUser = existingRecords[0].id
+                                        const { data: currentUserId, error: currentUserIdError } = await supabase
+                                            .from("users")
+                                            .select("id")
+                                            .eq("privy_id", privyId)
+                                            .single()
+
+                                        if (currentUserIdError) {
+                                            console.error(`❌ Error fetching current user id:`, currentUserIdError)
+                                            continue
+                                        }
+
+                                        // Replace all the entries in user_signal_strengths where the user_id is the
+                                        // id of the shell user with the id of the current user
+                                        const { error: replaceErrorUserSignalStrengths } = await supabase
+                                            .from("user_signal_strengths")
+                                            .update({ user_id: currentUserId.id })
+                                            .eq("user_id", idOfShellUser)
+
+                                        if (replaceErrorUserSignalStrengths) {
+                                            console.error(
+                                                `❌ Error replacing user_signal_strengths:`,
+                                                replaceErrorUserSignalStrengths,
+                                            )
+                                            continue
+                                        }
+
+                                        // Replace all the entries in ai_request_queue where the user_id is the id of the
+                                        // shell user with the id of the current user
+                                        const { error: replaceErrorAiRequestQueue } = await supabase
+                                            .from("ai_request_queue")
+                                            .update({ user_id: currentUserId.id })
+                                            .eq("user_id", idOfShellUser)
+
+                                        if (replaceErrorAiRequestQueue) {
+                                            console.error(
+                                                `❌ Error replacing ai_request_queue:`,
+                                                replaceErrorAiRequestQueue,
+                                            )
+                                            continue
+                                        }
+
+                                        console.log(
+                                            `🐚 User_signal_strengths replaced for shell user id: ${idOfShellUser} - New user id: ${currentUserId.id}`,
+                                        )
+
+                                        // Then delete the shell user from the users table
+                                        const { error: deleteShellUserError } = await supabase
+                                            .from("users")
+                                            .delete()
+                                            .eq("id", idOfShellUser)
+                                            .eq("privy_id", null) // Safety check to prevent a real user from being deleted
+
+                                        if (deleteShellUserError) {
+                                            console.error(`Error deleting shell user:`, deleteShellUserError)
+                                            continue
+                                        }
+
+                                        console.log(`🐚 Shell user deleted: ${idOfShellUser}`)
+
+                                        // Trigger a new update for the current user
+                                        triggerCalculationRefresh(supabase, currentUserId.id)
+                                    } else {
+                                        // Clear it from the other user
+                                        const otherUserId = existingRecords[0].id
+                                        const { error: clearError } = await supabase
+                                            .from("users")
+                                            .update({ [dbColumn]: null })
+                                            .eq("id", otherUserId)
+
+                                        if (clearError) {
+                                            console.error(`Error clearing ${dbColumn} from other users:`, clearError)
+                                            continue
+                                        }
+
+                                        console.log(
+                                            `Duplicate value cleared for ${dbColumn} from user id: ${otherUserId} - Value cleared: ${account[privyField]}`,
+                                        )
                                     }
-
-                                    console.log(
-                                        `Duplicate value cleared for ${dbColumn} from user id: ${otherUserId} - Value cleared: ${account[privyField]}`,
-                                    )
                                 }
                             }
 
