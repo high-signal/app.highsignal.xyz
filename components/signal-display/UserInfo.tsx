@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, HStack, Text, Box, Image, Button } from "@chakra-ui/react"
+import { VStack, HStack, Text, Box, Image, Button, useBreakpointValue } from "@chakra-ui/react"
 import Link from "next/link"
 import { ASSETS } from "../../config/constants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -15,11 +15,13 @@ export default function UserInfo({ currentUser }: { currentUser: UserData }) {
     const { loggedInUser } = useUser()
     const { login, authenticated } = usePrivy()
 
+    const showFullText = useBreakpointValue({ base: false, sm: true })
+
     return (
         <HStack
             gap={3}
             borderLeftRadius={{ base: "0px", sm: "100px" }}
-            borderRightRadius={{ base: "0px", sm: "50px" }}
+            borderRightRadius={{ base: "0px", sm: "40px" }}
             pr={4}
             pl={{ base: 3, sm: 0 }}
             py={{ base: 2, sm: 0 }}
@@ -30,7 +32,7 @@ export default function UserInfo({ currentUser }: { currentUser: UserData }) {
             {currentUser.username?.startsWith("~") ? (
                 <ShellUserImage
                     type={currentUser.profileImageUrl || ""}
-                    boxSize={{ base: "130px", sm: "160px" }}
+                    boxSize={{ base: "130px", sm: "190px" }}
                     iconSize={"60px"}
                 />
             ) : (
@@ -82,32 +84,53 @@ export default function UserInfo({ currentUser }: { currentUser: UserData }) {
                         {currentUser.rank || "-"}
                     </Text>
                 </HStack>
-                <HStack flexWrap={"wrap"} gap={3} justifyContent={"center"} pt={1}>
-                    {currentUser.username?.startsWith("~") &&
-                        (authenticated && loggedInUser ? (
-                            <Link href={`/settings/u/${loggedInUser.username}?tab=accounts`}>
-                                <Button primaryButton px={3} py={1} borderRadius="full">
-                                    <HStack gap={0}>
-                                        <Text>Claim this account</Text>
+                <HStack
+                    flexWrap={"wrap"}
+                    gap={3}
+                    justifyContent={"center"}
+                    alignItems={"end"}
+                    pt={currentUser.username?.startsWith("~") ? 0 : 1}
+                >
+                    {currentUser.username?.startsWith("~") && (
+                        <VStack gap={2} bg={"pageBackground"} px={3} pb={2} borderRadius="12px" mt={1}>
+                            <Text
+                                fontSize="sm"
+                                color="textColorMuted"
+                                mb={"-5px"}
+                                mt={1}
+                                textWrap={"wrap"}
+                                textAlign={"center"}
+                            >
+                                This user was auto-generated
+                            </Text>
+                            {authenticated && loggedInUser ? (
+                                <Link href={`/settings/u/${loggedInUser?.username}?tab=accounts`}>
+                                    <Button primaryButton px={3} py={"2px"} borderRadius="full">
+                                        <HStack gap={0}>
+                                            <Text>Claim this account</Text>
+                                        </HStack>
+                                    </Button>
+                                </Link>
+                            ) : (
+                                <Button
+                                    primaryButton
+                                    px={3}
+                                    py={"2px"}
+                                    borderRadius="full"
+                                    onClick={() => {
+                                        login()
+                                    }}
+                                >
+                                    <HStack gap={1} flexWrap={"wrap"} justifyContent={"center"}>
+                                        <Text>Login to claim</Text>
+                                        {showFullText ? <Text>this account</Text> : <Text>account</Text>}
                                     </HStack>
                                 </Button>
-                            </Link>
-                        ) : (
-                            <Button
-                                primaryButton
-                                px={3}
-                                py={1}
-                                borderRadius="full"
-                                onClick={() => {
-                                    login()
-                                }}
-                            >
-                                <HStack gap={0}>
-                                    <Text textWrap={"wrap"}>Login to claim this account</Text>
-                                </HStack>
-                            </Button>
-                        ))}
-                    <Box>
+                            )}
+                        </VStack>
+                    )}
+
+                    <Box pb={currentUser.username?.startsWith("~") ? 1 : "0px"}>
                         <Link href={`/u/${currentUser.username}`}>
                             <Button secondaryButton px={3} py={1} borderRadius="full">
                                 <HStack gap={0}>

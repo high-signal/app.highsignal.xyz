@@ -341,6 +341,18 @@ export default function UserPicker({
                             .filter(
                                 (user, index, self) => index === self.findIndex((u) => u.username === user.username),
                             )
+                            .sort((a, b) => {
+                                const aIsShell = a.username?.startsWith("~") || false
+                                const bIsShell = b.username?.startsWith("~") || false
+
+                                // If one is shell and the other isn't, non-shell comes first
+                                if (aIsShell !== bIsShell) {
+                                    return aIsShell ? 1 : -1
+                                }
+
+                                // If both are the same type, sort alphabetically by username
+                                return (a.username || "").localeCompare(b.username || "")
+                            })
                             .map((user) => (
                                 <Box
                                     key={user.username}
@@ -376,7 +388,14 @@ export default function UserPicker({
                                                 borderRadius="full"
                                             />
                                         )}
-                                        <Text>{user.displayName}</Text>
+                                        <Text
+                                            color={user.username?.startsWith("~") ? "textColorMuted" : "textColor"}
+                                            overflow="hidden"
+                                            textOverflow="ellipsis"
+                                            whiteSpace="nowrap"
+                                        >
+                                            {user.displayName}
+                                        </Text>
                                     </HStack>
                                 </Box>
                             ))
