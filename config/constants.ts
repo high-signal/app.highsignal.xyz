@@ -9,10 +9,14 @@ export const COLORS = {
 
 // Default images and assets
 export const ASSETS = {
+    // DEFAULT_PROJECT_IMAGE:
+    //     "https://res.cloudinary.com/duenpn7gd/image/upload/w_300,h_300,c_fill,q_auto,f_webp/v1750341763/profile-images/1/z4lgr9kyd3qn2mpp5ifj",
+    // DEFAULT_PROFILE_IMAGE:
+    //     "https://res.cloudinary.com/duenpn7gd/image/upload/w_300,h_300,c_fill,q_auto,f_webp/v1750341763/profile-images/1/z4lgr9kyd3qn2mpp5ifj",
     DEFAULT_PROJECT_IMAGE:
-        "https://res.cloudinary.com/duenpn7gd/image/upload/w_300,h_300,c_fill,q_auto,f_webp/v1750341763/profile-images/1/z4lgr9kyd3qn2mpp5ifj",
+        "https://res.cloudinary.com/duenpn7gd/image/upload/w_300,h_300,c_fill,q_auto,f_webp/v1750341763/logo-coin_jvr3ni.png",
     DEFAULT_PROFILE_IMAGE:
-        "https://res.cloudinary.com/duenpn7gd/image/upload/w_300,h_300,c_fill,q_auto,f_webp/v1750341763/profile-images/1/z4lgr9kyd3qn2mpp5ifj",
+        "https://res.cloudinary.com/duenpn7gd/image/upload/w_300,h_300,c_fill,q_auto,f_webp/v1750341763/logo-coin_jvr3ni.png",
     LOGO_BASE_URL: "https://res.cloudinary.com/duenpn7gd/image/upload",
     LOGO_ID: "logo-coin_jvr3ni.png",
 } as const

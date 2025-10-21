@@ -11,6 +11,7 @@ import { ASSETS } from "../../config/constants"
 import { useUser } from "../../contexts/UserContext"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPencil } from "@fortawesome/free-solid-svg-icons"
+import ShellUserImage from "../ui/ShellUserImage"
 
 export default function UserProfileContainer() {
     const { username } = useParams()
@@ -34,12 +35,20 @@ export default function UserProfileContainer() {
                 >
                     {!loading && !error ? (
                         <HStack gap={3}>
-                            <Image
-                                src={(users && users[0]?.profileImageUrl) || ASSETS.DEFAULT_PROFILE_IMAGE}
-                                alt={(users && users[0]?.displayName) || ""}
-                                boxSize="100px"
-                                borderRadius="full"
-                            />
+                            {users && users[0]?.username?.startsWith("~") ? (
+                                <ShellUserImage
+                                    type={users[0]?.profileImageUrl || ""}
+                                    boxSize="100px"
+                                    iconSize="40px"
+                                />
+                            ) : (
+                                <Image
+                                    src={(users && users[0]?.profileImageUrl) || ASSETS.DEFAULT_PROFILE_IMAGE}
+                                    alt={(users && users[0]?.displayName) || ""}
+                                    boxSize="100px"
+                                    borderRadius="full"
+                                />
+                            )}
                             <VStack gap={0} alignItems="center">
                                 <Text fontWeight="bold">{users && users[0]?.displayName}</Text>
                                 <Text fontSize="md" color="textColorMuted" mt={"-5px"}>

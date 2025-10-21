@@ -133,7 +133,7 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
     }, [publicAndSharedUserAccounts, targetUser, projectData.urlSlug])
 
     return (
-        <VStack gap={0} w="100%" maxW="600px" alignItems={"center"} bg={"pageBackground"}>
+        <VStack gap={0} w="100%" maxW="600px" alignItems={"center"} bg={"pageBackground"} px={3}>
             <HStack
                 onClick={() => setIsOpen(!isOpen)}
                 w={{ base: "100%", md: "auto" }}
@@ -202,10 +202,6 @@ export default function SharedAccountsContainer({ projectData }: { projectData: 
                     <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
                         While your Signal Score values are public, the usernames and addresses of the accounts behind
                         them are private by default to protect your privacy.
-                    </Text>
-                    <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
-                        For example, everyone can see you Signal Score for Discord (if you have connected your Discord
-                        account), but they cannot see your Discord username unless you choose to share it.
                     </Text>
                     <Text color="textColorMuted" px={{ base: 3, md: 6 }}>
                         {projectData.displayName} can use this information to associate your High Signal score with you.

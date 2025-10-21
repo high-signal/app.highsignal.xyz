@@ -8,7 +8,7 @@ export async function GET() {
     // Get missing days
     const { count: missingDays, error: missingDaysError } = await supabase
         .from("user_signal_strengths_missing_ranges")
-        .select("*", { count: "exact" })
+        .select("user_id, project_id, signal_strength_id, missing_day", { count: "exact" })
         .limit(0)
 
     if (missingDaysError) {
@@ -20,7 +20,7 @@ export async function GET() {
     // Get AI raw score errors
     const { count: aiRawScoreErrors, error: aiRawScoreErrorsError } = await supabase
         .from("ai_request_queue")
-        .select("*", { count: "exact" })
+        .select("id, status, type", { count: "exact" })
         .eq("status", "error")
         .eq("type", "raw_score")
         .limit(0)
@@ -34,7 +34,7 @@ export async function GET() {
     // Get last checked not null
     const { count: lastCheckedNotNull, error: lastCheckedNotNullError } = await supabase
         .from("user_signal_strengths")
-        .select("*", { count: "exact" })
+        .select("id, last_checked", { count: "exact" })
         .not("last_checked", "is", null)
         .limit(0)
 
@@ -48,7 +48,7 @@ export async function GET() {
     // Get discord request queue errors
     const { count: discordRequestQueueErrors, error: discordRequestQueueErrorsError } = await supabase
         .from("discord_request_queue")
-        .select("*", { count: "exact" })
+        .select("id, status", { count: "exact" })
         .eq("status", "error")
         .limit(0)
 
@@ -60,10 +60,24 @@ export async function GET() {
         return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
     }
 
+    // Get duplicate user_signal_strengths rows
+    const { count: duplicateUserSignalStrengths, error: duplicateUserSignalStrengthsError } = await supabase
+        .from("user_signal_strengths_duplicates")
+        .select("id", { count: "exact" })
+        .limit(0)
+
+    if (duplicateUserSignalStrengthsError) {
+        const errorMessage =
+            "Error fetching duplicate user signal strengths rows: " +
+            (duplicateUserSignalStrengthsError.message || "Unknown error")
+        console.error(errorMessage)
+        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+    }
+
     // Get lambda stats null billed duration
     const { count: lambdaStatsNullBilledDuration, error: lambdaStatsNullBilledDurationError } = await supabase
         .from("lambda_stats")
-        .select("*", { count: "exact" })
+        .select("request_id, billed_duration", { count: "exact" })
         .is("billed_duration", null)
         .limit(0)
 
@@ -84,7 +98,7 @@ export async function GET() {
     const { count: userSignalStrengthsWithoutRawValueOrValue, error: userSignalStrengthsWithoutRawValueOrValueError } =
         await supabase
             .from("user_signal_strengths")
-            .select("*", { count: "exact" })
+            .select("id, raw_value, value", { count: "exact" })
             .is("raw_value", null)
             .is("value", null)
             .limit(0)
@@ -105,6 +119,7 @@ export async function GET() {
             aiRawScoreErrors,
             lastCheckedNotNull,
             discordRequestQueueErrors,
+            duplicateUserSignalStrengths,
             lambdaStatsNullBilledDuration,
             userSignalStrengthsWithoutRawValueOrValue,
         },

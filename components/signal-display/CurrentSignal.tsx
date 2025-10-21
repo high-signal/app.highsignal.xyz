@@ -14,7 +14,7 @@ export default function CurrentSignal({
     const signalValue = currentUser.score
 
     return (
-        <VStack w="100%" maxW="600px" gap={1}>
+        <VStack w="100%" maxW="600px" gap={1} px={3}>
             <HStack
                 justifyContent={"center"}
                 alignItems={"center"}

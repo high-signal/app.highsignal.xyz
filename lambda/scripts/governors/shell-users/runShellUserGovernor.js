@@ -54,6 +54,7 @@ async function runShellUserGovernor() {
                         display_name: !shellUser.discord_global_name
                             ? shellUser.discord_username
                             : shellUser.discord_global_name,
+                        profile_image_url: "discord_user",
                         signup_code: "shell-user",
                     })
                 }

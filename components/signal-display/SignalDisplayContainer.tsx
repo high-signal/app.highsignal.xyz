@@ -154,18 +154,14 @@ export default function SignalDisplayContainer({ project, username }: { project:
 
     if (currentUser && currentProject) {
         return (
-            <VStack gap={12} w="100%" maxW="1400px" pb={6}>
-                <VStack gap={0} w="100%" maxW="1400px" px={3}>
+            <VStack gap={6} w="100%" maxW="1400px" pb={6}>
+                <VStack gap={0} w="100%" maxW="1400px">
                     <Title projectData={currentProject} linkUrl={currentProject?.website} />
                     {isOwner && <Box w="100%" h={{ base: "10px", sm: "0" }} />}
                     {isOwner && <SharedAccountsContainer projectData={currentProject} />}
                     <Box w="100%" h="20px" />
-                    <UserInfo
-                        profileImageUrl={currentUser.profileImageUrl || ""}
-                        displayName={currentUser.displayName || ""}
-                        username={currentUser.username || ""}
-                    />
-                    <Box w="100%" h={{ base: "30px", sm: "20px" }} />
+                    <UserInfo currentUser={currentUser} />
+                    <Box w="100%" h={{ base: "30px", sm: "30px" }} />
                     <CurrentSignal currentUser={currentUser} isSignalStrengthLoading={!!isSignalStrengthLoading} />
                     <SignalScoreDescription
                         currentUser={currentUser}

@@ -16,6 +16,7 @@ import { ASSETS } from "../../config/constants"
 
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import LeaderboardPagination from "./LeaderboardPagination"
+import ShellUserImage from "../ui/ShellUserImage"
 
 const TableHeader = ({
     children,
@@ -116,60 +117,75 @@ const LeaderboardRow = ({
             borderTop={isSpecialTopRow ? "5px solid" : "none"}
             borderColor={borderColor}
         >
-            {mode === "users" && (
-                <Table.Cell
-                    borderBottom="none"
-                    py={"6px"}
-                    px={0}
-                    textAlign="center"
-                    minW={rankColumnWidth}
-                    maxW={rankColumnWidth}
-                    borderLeftRadius={"full"}
-                >
-                    <Link href={linkUrl}>
-                        <Text
-                            fontSize={{
-                                base: (() => {
-                                    const rankText = isScoreZero ? "-" : (item as UserData).rank?.toString() || ""
-                                    if (rankText.length > 3) return "sm"
-                                    if (rankText.length > 2) return "md"
-                                    return "lg"
-                                })(),
-                                sm: "lg",
-                            }}
-                            fontWeight="bold"
-                            color="textColor"
-                        >
-                            {isScoreZero ? "-" : (item as UserData).rank}
-                        </Text>
-                    </Link>
-                </Table.Cell>
-            )}
+            <Table.Cell
+                borderBottom="none"
+                py={"6px"}
+                px={0}
+                textAlign="center"
+                minW={rankColumnWidth}
+                maxW={rankColumnWidth}
+                borderLeftRadius={"full"}
+            >
+                <Link href={linkUrl}>
+                    <Text
+                        fontSize={{
+                            base: (() => {
+                                const rankValue = mode === "users" ? (item as UserData).rank : userData?.rank
+                                const rankText = isScoreZero ? "-" : rankValue?.toString() || ""
+                                if (rankText.length > 3) return "sm"
+                                if (rankText.length > 2) return "md"
+                                return "lg"
+                            })(),
+                            sm: "lg",
+                        }}
+                        fontWeight="bold"
+                        color="textColor"
+                    >
+                        {(() => {
+                            const rankValue = mode === "users" ? (item as UserData).rank : userData?.rank
+                            return isScoreZero ? "-" : rankValue
+                        })()}
+                    </Text>
+                </Link>
+            </Table.Cell>
+
             <Table.Cell
                 borderBottom="none"
                 py={"6px"}
                 pr={"2px"}
                 maxW={displayNameColumnWidth}
-                borderLeftRadius={mode === "projects" ? "full" : "none"}
+                borderLeftRadius={"none"}
             >
                 <Link href={linkUrl}>
                     <HStack gap={3} bg={displayNameBg} borderRadius={"full"}>
-                        <Box position="relative" boxSize="40px" minW="40px" borderRadius="full" overflow="hidden">
-                            <Image
-                                src={
-                                    mode === "users"
-                                        ? !(item as UserData).profileImageUrl ||
-                                          (item as UserData).profileImageUrl === ""
-                                            ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                            : (item as UserData).profileImageUrl
-                                        : !(item as ProjectData).projectLogoUrl ||
-                                            (item as ProjectData).projectLogoUrl === ""
-                                          ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                          : (item as ProjectData).projectLogoUrl
-                                }
-                                alt={`${item.displayName} Image`}
-                                fit="cover"
-                            />
+                        <Box
+                            position="relative"
+                            boxSize="40px"
+                            minW="40px"
+                            borderRadius="full"
+                            overflow="hidden"
+                            justifyContent="center"
+                            alignItems="center"
+                        >
+                            {mode === "users" && (item as UserData).username?.startsWith("~") ? (
+                                <ShellUserImage type={(item as UserData)?.profileImageUrl || ""} />
+                            ) : (
+                                <Image
+                                    src={
+                                        mode === "users"
+                                            ? !(item as UserData).profileImageUrl ||
+                                              (item as UserData).profileImageUrl === ""
+                                                ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                                : (item as UserData).profileImageUrl
+                                            : !(item as ProjectData).projectLogoUrl ||
+                                                (item as ProjectData).projectLogoUrl === ""
+                                              ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                              : (item as ProjectData).projectLogoUrl
+                                    }
+                                    alt={`${item.displayName} Image`}
+                                    fit="cover"
+                                />
+                            )}
                         </Box>
                         <Text
                             fontSize="lg"
@@ -360,7 +376,7 @@ export default function Leaderboard({
     const [resultsPage, setResultsPage] = useState(parseInt(searchParams.get("page") || "1"))
     const [maxResultsPage, setMaxResultsPage] = useState(1)
 
-    const { loggedInUser } = useUser()
+    const { loggedInUser, loggedInUserLoading } = useUser()
 
     // Use the appropriate hook based on mode
     const {
@@ -402,7 +418,16 @@ export default function Leaderboard({
         error: projectsError,
     } = useGetProjects(debouncedSearchTerm, debouncedSearchTerm.length > 0)
 
-    const loading = mode === "users" ? usersLoading : projectsLoading
+    // Gate rendering on current user in users mode (when applicable)
+    const shouldWaitForCurrentUser = mode === "users" && !debouncedSearchTerm && !!loggedInUser?.username
+    // Also gate until user context finishes resolving (prevents first paint without knowing user)
+    const shouldWaitForUserContext = mode === "users" && !debouncedSearchTerm && loggedInUserLoading
+    // Prevent initial render until currentUserData resolves when we should wait
+    // useGetUsers initializes users to null, so block on null or while loading
+    const isBlockingOnCurrentUser = shouldWaitForCurrentUser && (currentUserLoading || currentUserData == null)
+
+    const loading =
+        mode === "users" ? usersLoading || shouldWaitForUserContext || isBlockingOnCurrentUser : projectsLoading
     const error = mode === "users" ? usersError : projectsError
     const items = mode === "users" ? users : projects
 
@@ -506,7 +531,7 @@ export default function Leaderboard({
         )
     }
 
-    const rankColumnWidth = mode === "users" ? { base: "20px", sm: "50px" } : { base: "0px", sm: "0px" }
+    const rankColumnWidth = { base: "20px", sm: "50px" }
     const displayNameColumnWidth = { base: "120px", sm: "auto" }
     const signalColumnWidth = { base: "40px", sm: "40px" }
     const scoreColumnWidth = { base: "40px", sm: "40px" }
@@ -517,14 +542,12 @@ export default function Leaderboard({
             <Table.Root>
                 <Table.Header>
                     <Table.Row bg="transparent">
-                        {mode === "users" && (
-                            <TableHeader textAlign="center" maxW={rankColumnWidth}>
-                                <HStack justifyContent="center">
-                                    <Text display={{ base: "block", sm: "none" }}>#</Text>
-                                    <Text display={{ base: "none", sm: "block" }}>Rank</Text>
-                                </HStack>
-                            </TableHeader>
-                        )}
+                        <TableHeader textAlign="center" maxW={rankColumnWidth}>
+                            <HStack justifyContent="center">
+                                <Text display={{ base: "block", sm: "none" }}>#</Text>
+                                <Text display={{ base: "none", sm: "block" }}>Rank</Text>
+                            </HStack>
+                        </TableHeader>
                         <TableHeader maxW={displayNameColumnWidth} px={{ base: 2, sm: 2 }}>
                             <SingleLineTextInput
                                 value={searchTerm}
@@ -573,7 +596,7 @@ export default function Leaderboard({
                             {mode === "users" &&
                                 currentUser &&
                                 !debouncedSearchTerm &&
-                                (currentUser.rank || 0) >= 10 && (
+                                (currentUser.rank || 11) >= 10 && (
                                     <LeaderboardRow
                                         key="current-user"
                                         item={currentUser}
