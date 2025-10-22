@@ -10,6 +10,7 @@ interface StatsData {
     missingDays: number
     aiRawScoreErrors: number
     lastCheckedNotNull: number
+    staleUserProjectScores: number
     discordRequestQueueErrors: number
     duplicateUserSignalStrengths: number
     lambdaStatsNullBilledDuration: number
@@ -84,6 +85,7 @@ export default function SuperadminStatsErrors() {
         (isStatError(errorStats.missingDays) ||
             isStatError(errorStats.aiRawScoreErrors) ||
             isStatError(errorStats.lastCheckedNotNull) ||
+            isStatError(errorStats.staleUserProjectScores) ||
             isStatError(errorStats.discordRequestQueueErrors) ||
             isStatError(errorStats.duplicateUserSignalStrengths) ||
             isStatError(errorStats.lambdaStatsNullBilledDuration, 500) ||
@@ -93,11 +95,11 @@ export default function SuperadminStatsErrors() {
     const contentBorder = useThemeColor("contentBorder")
 
     return (
-        <VStack alignItems="start" w={"100%"} bg={"pageBackground"}>
+        <VStack alignItems="center" w={"100%"} bg={"pageBackground"}>
             <HStack
                 alignItems="center"
                 justifyContent={"start"}
-                w={"100%"}
+                w={{ base: "100%", sm: "fit-content" }}
                 color={"textColorMuted"}
                 fontSize={"sm"}
                 columnGap={3}
@@ -110,26 +112,25 @@ export default function SuperadminStatsErrors() {
                     sm: `2px solid ${isAnyError ? red500 : contentBorder}`,
                 }}
                 borderColor={isAnyError ? red500 : contentBorder}
-                pt={{ base: 0, sm: "3px" }}
-                pb={{ base: 2, sm: "3px" }}
+                pt={{ base: 0, sm: "1px" }}
+                pb={{ base: 2, sm: "6px" }}
                 flexWrap={"wrap"}
             >
                 {errorStatsError ? (
                     <Text color="red.500">{errorStatsError}</Text>
                 ) : (
-                    <>
-                        <Text
-                            fontSize="lg"
-                            fontWeight="bold"
-                            color={isAnyError ? "red.500" : "textColorMuted"}
-                            ml={{ base: 1, sm: 0 }}
-                        >
+                    <VStack alignItems="start" gap={0}>
+                        <Text fontSize="lg" fontWeight="bold" color={isAnyError ? "red.500" : "textColorMuted"} ml={1}>
                             Errors
                         </Text>
-                        <HStack columnGap={3} rowGap={1} flexWrap={"wrap"}>
+                        <VStack alignItems="start" gap={1}>
                             <StatsRow label="Missing Days" value={errorStats?.missingDays ?? 0} />
                             <StatsRow label="AI Raw Score Errors" value={errorStats?.aiRawScoreErrors ?? 0} />
                             <StatsRow label="Last Checked Not Null" value={errorStats?.lastCheckedNotNull ?? 0} />
+                            <StatsRow
+                                label="Stale User Project Scores"
+                                value={errorStats?.staleUserProjectScores ?? 0}
+                            />
                             <StatsRow
                                 label="Discord Request Queue Errors"
                                 value={errorStats?.discordRequestQueueErrors ?? 0}
@@ -147,8 +148,8 @@ export default function SuperadminStatsErrors() {
                                 label="Signal Strengths No Raw Value or Value"
                                 value={errorStats?.userSignalStrengthsWithoutRawValueOrValue ?? 0}
                             />
-                        </HStack>
-                    </>
+                        </VStack>
+                    </VStack>
                 )}
             </HStack>
         </VStack>

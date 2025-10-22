@@ -1,0 +1,1 @@
+-- This table is created as part of the large single SQL command for the user_project_scores table.

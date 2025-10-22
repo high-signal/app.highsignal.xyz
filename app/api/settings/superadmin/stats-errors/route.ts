@@ -45,6 +45,19 @@ export async function GET() {
         return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
     }
 
+    // Get stale user project scores
+    const { count: staleUserProjectScores, error: staleUserProjectScoresError } = await supabase
+        .from("user_project_scores_stale_data")
+        .select("user_id", { count: "exact" })
+        .limit(0)
+
+    if (staleUserProjectScoresError) {
+        const errorMessage =
+            "Error fetching stale user project scores: " + (staleUserProjectScoresError.message || "Unknown error")
+        console.error(errorMessage)
+        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+    }
+
     // Get discord request queue errors
     const { count: discordRequestQueueErrors, error: discordRequestQueueErrorsError } = await supabase
         .from("discord_request_queue")
@@ -118,6 +131,7 @@ export async function GET() {
             missingDays,
             aiRawScoreErrors,
             lastCheckedNotNull,
+            staleUserProjectScores,
             discordRequestQueueErrors,
             duplicateUserSignalStrengths,
             lambdaStatsNullBilledDuration,
