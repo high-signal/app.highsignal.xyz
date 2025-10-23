@@ -2,6 +2,7 @@ const { updateTotalScoreHistory } = require("./updateTotalScoreHistory")
 
 async function updateUserData({
     supabase,
+    type,
     projectId,
     signalStrengthId,
     signalStrengthUsername,
@@ -95,8 +96,8 @@ async function updateUserData({
             await updateTotalScoreHistory(supabase, userId, projectId, dayDate)
         }
 
-        // Update materialized view for the user_project_scores table for smart score calculations
-        if (!isRawScoreCalc && !testingData?.requestingUserId) {
+        // Update materialized view for the user_project_scores table for smart score calculations for single_update
+        if (!isRawScoreCalc && !testingData?.requestingUserId && type === "single_update") {
             const { error: refreshUserProjectScoresError } = await supabase.rpc("refresh_user_project_scores")
 
             if (refreshUserProjectScoresError) {

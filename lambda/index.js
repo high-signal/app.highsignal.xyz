@@ -8,6 +8,7 @@ const { handleAddAllItemsToAiQueue } = require("./scripts/index-handlers/handleA
 const { handleRunShellUserGovernor } = require("./scripts/index-handlers/handleRunShellUserGovernor")
 const { handleAddSingleItemToAiQueue } = require("./scripts/index-handlers/handleAddSingleItemToAiQueue")
 const { handleAddAllItemsToForumQueue } = require("./scripts/index-handlers/handleAddAllItemsToForumQueue")
+const { handleRunRefreshUserProjectScores } = require("./scripts/index-handlers/handleRunRefreshUserProjectScores")
 
 const { storeStatsInDb } = require("./scripts/stats/storeStatsInDb")
 const { selfInvokeAsynchronously } = require("./scripts/utils/selfInvokeAsynchronously")
@@ -122,6 +123,8 @@ exports.handler = async (event, context) => {
                     return await handleRunLambdaStats()
                 case "runShellUserGovernor": // Processes shell users
                     return await handleRunShellUserGovernor()
+                case "runRefreshUserProjectScores": // Refreshes the user_project_scores table
+                    return await handleRunRefreshUserProjectScores()
                 default:
                     console.log(`Unknown function type: ${functionType}`)
                     return {

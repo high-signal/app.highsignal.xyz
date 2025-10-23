@@ -12,6 +12,8 @@ import { handleRunForumGovernor } from "../../lambda/scripts/index-handlers/hand
 import { handleRunDiscordGovernor } from "../../lambda/scripts/index-handlers/handleRunDiscordGovernor"
 // @ts-ignore
 import { handleRunShellUserGovernor } from "../../lambda/scripts/index-handlers/handleRunShellUserGovernor"
+// @ts-ignore
+import { handleRunRefreshUserProjectScores } from "../../lambda/scripts/index-handlers/handleRunRefreshUserProjectScores"
 
 export async function triggerLambda(params: {
     functionType: string
@@ -101,6 +103,8 @@ export async function triggerLambda(params: {
                 await handleRunDiscordGovernor()
             } else if (functionType === "runShellUserGovernor") {
                 await handleRunShellUserGovernor()
+            } else if (functionType === "runRefreshUserProjectScores") {
+                await handleRunRefreshUserProjectScores()
             } else {
                 throw new Error(`Unknown function type: ${functionType}`)
             }

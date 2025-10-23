@@ -87,6 +87,7 @@ export default function DevButtons({
             <DevButton label="runForumGovernor" functionType="runForumGovernor" />
             <DevButton label="runDiscordGovernor" functionType="runDiscordGovernor" />
             <DevButton label="runShellUserGovernor" functionType="runShellUserGovernor" />
+            <DevButton label="runRefreshUserProjectScores" functionType="runRefreshUserProjectScores" />
         </HStack>
     )
 }
