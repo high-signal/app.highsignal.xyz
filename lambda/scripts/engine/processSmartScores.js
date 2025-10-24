@@ -4,6 +4,7 @@ const { clearLastChecked } = require("./utils/lastCheckedUtils")
 
 async function processSmartScores({
     supabase,
+    type,
     projectId,
     userId,
     rawActivityCombinedData,
@@ -75,6 +76,7 @@ async function processSmartScores({
         // === Store the analysis results in the database ===
         await updateUserData({
             supabase,
+            type,
             projectId,
             signalStrengthId,
             signalStrengthUsername,

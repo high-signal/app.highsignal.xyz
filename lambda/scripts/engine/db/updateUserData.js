@@ -2,6 +2,7 @@ const { updateTotalScoreHistory } = require("./updateTotalScoreHistory")
 
 async function updateUserData({
     supabase,
+    type,
     projectId,
     signalStrengthId,
     signalStrengthUsername,
@@ -93,6 +94,17 @@ async function updateUserData({
         // Update the user_project_scores_history table if it was a smart score calculation
         if (!isRawScoreCalc && !testingData?.requestingUserId) {
             await updateTotalScoreHistory(supabase, userId, projectId, dayDate)
+        }
+
+        // Update materialized view for the user_project_scores table for smart score calculations for single_update
+        if (!isRawScoreCalc && !testingData?.requestingUserId && type === "single_update") {
+            const { error: refreshUserProjectScoresError } = await supabase.rpc("refresh_user_project_scores")
+
+            if (refreshUserProjectScoresError) {
+                const errorMessage = `❌ Failed to refresh user project scores: ${refreshUserProjectScoresError.message}`
+                console.error(errorMessage)
+                throw new Error(errorMessage)
+            }
         }
 
         console.log(

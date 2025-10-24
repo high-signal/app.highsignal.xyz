@@ -188,6 +188,15 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ error: "Error updating user" }, { status: 500 })
         }
 
+        // Update materialized view for the user_project_scores table
+        const { error: refreshUserProjectScoresError } = await supabase.rpc("refresh_user_project_scores")
+
+        if (refreshUserProjectScoresError) {
+            const errorMessage = `❌ Failed to refresh user project scores: ${refreshUserProjectScoresError.message}`
+            console.error(errorMessage)
+            return NextResponse.json({ error: errorMessage }, { status: 500 })
+        }
+
         return NextResponse.json(updatedUser)
     } catch (error) {
         console.error("Unhandled error in user update:", error)

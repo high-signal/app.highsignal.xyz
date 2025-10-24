@@ -57,6 +57,7 @@ async function processRawScore({
     if (analysisResults && !analysisResults.error) {
         await updateUserData({
             supabase,
+            type: "raw_score",
             projectId,
             signalStrengthId,
             signalStrengthUsername,

@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, HStack, Text, Box, Table, Image, Spinner } from "@chakra-ui/react"
+import { VStack, HStack, Text, Box, Table, Image, Skeleton } from "@chakra-ui/react"
 import Link from "next/link"
 import { Tooltip } from "../../components/ui/tooltip"
 
@@ -12,7 +12,7 @@ import { useUser } from "../../contexts/UserContext"
 import { useGetUsers } from "../../hooks/useGetUsers"
 import { useGetProjects } from "../../hooks/useGetProjects"
 
-import { ASSETS } from "../../config/constants"
+import { APP_CONFIG, ASSETS } from "../../config/constants"
 
 import SingleLineTextInput from "../ui/SingleLineTextInput"
 import LeaderboardPagination from "./LeaderboardPagination"
@@ -573,13 +573,72 @@ export default function Leaderboard({
                 </Table.Header>
                 <Table.Body>
                     {loading || isSearching ? (
-                        <Table.Row bg="transparent">
-                            <Table.Cell colSpan={5} py={0} h={"fit-content"} borderColor="transparent">
-                                <VStack gap={2} h={"100%"} justifyContent="start" py={10}>
-                                    <Spinner size="md" />
-                                </VStack>
-                            </Table.Cell>
-                        </Table.Row>
+                        <>
+                            {Array.from({ length: APP_CONFIG.PAGINATION_LIMIT_DEFAULT as number }).map((_, index) => (
+                                <Table.Row
+                                    key={`skeleton-${index}`}
+                                    bg="pageBackground"
+                                    borderBottom="1px solid"
+                                    borderColor="contentBorder"
+                                >
+                                    <Table.Cell
+                                        py={"6px"}
+                                        px={0}
+                                        textAlign="center"
+                                        minW={rankColumnWidth}
+                                        maxW={rankColumnWidth}
+                                        borderBottom="none"
+                                    >
+                                        <HStack justifyContent="center" alignItems="center">
+                                            <Skeleton defaultSkeleton height="20px" width="30px" />
+                                        </HStack>
+                                    </Table.Cell>
+                                    <Table.Cell py={"6px"} pr={"2px"} maxW={displayNameColumnWidth} borderBottom="none">
+                                        <HStack gap={3}>
+                                            <Skeleton defaultSkeleton height="40px" width="40px" borderRadius="full" />
+                                            <Skeleton defaultSkeleton height="20px" width="120px" />
+                                        </HStack>
+                                    </Table.Cell>
+                                    <Table.Cell
+                                        py={0}
+                                        px={0}
+                                        maxW={signalColumnWidth}
+                                        textAlign="center"
+                                        borderBottom="none"
+                                    >
+                                        <HStack justifyContent="center" alignItems="center">
+                                            <Skeleton defaultSkeleton height="20px" width="40px" />
+                                        </HStack>
+                                    </Table.Cell>
+                                    <Table.Cell
+                                        py={0}
+                                        px={0}
+                                        maxW={scoreColumnWidth}
+                                        textAlign="center"
+                                        borderBottom="none"
+                                    >
+                                        <HStack justifyContent="center" alignItems="center">
+                                            <Skeleton defaultSkeleton height="35px" width="45px" borderRadius="16px" />
+                                        </HStack>
+                                    </Table.Cell>
+                                    {/* <Table.Cell
+                                        py={0}
+                                        maxW={peakSignalsColumnWidth}
+                                        display={{
+                                            base: "none",
+                                            sm: project?.peakSignalsEnabled ? "table-cell" : "none",
+                                        }}
+                                        textAlign="center"
+                                    >
+                                        <HStack justify="center" gap={2}>
+                                            <Skeleton height="10px" width="10px" borderRadius="full" />
+                                            <Skeleton height="10px" width="10px" borderRadius="full" />
+                                            <Skeleton height="10px" width="10px" borderRadius="full" />
+                                        </HStack>
+                                    </Table.Cell> */}
+                                </Table.Row>
+                            ))}
+                        </>
                     ) : sortedItems.length === 0 ? (
                         <Table.Row bg="pageBackground">
                             <Table.Cell colSpan={5} textAlign="center" py={10} borderColor="contentBorder">
@@ -633,8 +692,47 @@ export default function Leaderboard({
                     )}
                 </Table.Body>
             </Table.Root>
-            {!isSearching && !loading && (
+            {!isSearching && !loading ? (
                 <LeaderboardPagination page={resultsPage} maxPage={maxResultsPage} onPageChange={setResultsPage} />
+            ) : (
+                <HStack gap={{ base: 2, sm: 4 }} justify="space-around" mt={5} w={"100%"} alignItems="start">
+                    <HStack flexWrap="wrap-reverse" justifyContent="center">
+                        <Skeleton
+                            defaultSkeleton
+                            height="35px"
+                            width={{ base: "52px", sm: "40px" }}
+                            borderRadius="16px"
+                        />
+                        <Skeleton
+                            defaultSkeleton
+                            height="35px"
+                            width={{ base: "125px", sm: "158px" }}
+                            borderRadius="16px"
+                        />
+                    </HStack>
+                    <HStack gap={2}>
+                        <Skeleton
+                            defaultSkeleton
+                            height="35px"
+                            width={{ base: "90px", sm: "100px" }}
+                            borderRadius="16px"
+                        />
+                    </HStack>
+                    <HStack flexWrap="wrap" justifyContent="center">
+                        <Skeleton
+                            defaultSkeleton
+                            height="35px"
+                            width={{ base: "100px", sm: "130px" }}
+                            borderRadius="16px"
+                        />
+                        <Skeleton
+                            defaultSkeleton
+                            height="35px"
+                            width={{ base: "52px", sm: "40px" }}
+                            borderRadius="16px"
+                        />
+                    </HStack>
+                </HStack>
             )}
         </Box>
     )

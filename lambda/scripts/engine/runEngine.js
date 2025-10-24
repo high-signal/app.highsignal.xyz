@@ -209,6 +209,7 @@ async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUs
         // =====================
         await processSmartScores({
             supabase,
+            type,
             projectId,
             userId,
             rawActivityCombinedData,
