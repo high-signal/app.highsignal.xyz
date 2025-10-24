@@ -85,11 +85,11 @@ function calculateSmartScore({ signalStrengthName, userData, previousDays, maxVa
     const topBandNormalizedAverage = roundToTwoDecimals(topBandNormalizedTotal / topBand.length)
 
     const count = topBand.length
-    let frequencyMultiplier = 0.5
+    let frequencyMultiplier = 0.2
     if (count === lowerFrequencyMultiplierCount) {
-        frequencyMultiplier = 0.7
+        frequencyMultiplier = 0.4
     } else if (count > lowerFrequencyMultiplierCount && count < upperFrequencyMultiplierCount) {
-        frequencyMultiplier = 0.85
+        frequencyMultiplier = 0.6
     } else if (count >= upperFrequencyMultiplierCount) {
         frequencyMultiplier = 1.0
     }
