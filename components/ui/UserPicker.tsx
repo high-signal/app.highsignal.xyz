@@ -443,6 +443,7 @@ export default function UserPicker({
                                                 </Text>
                                             </Box>
                                             {usersBySignal.high.map((user) => renderUser(user, "high"))}
+                                            <Box bg={"scoreColor.high"} borderBottomRadius={"12px"} h={"8px"} mb={2} />
                                         </>
                                     )}
                                     {usersBySignal.mid.length > 0 && (
@@ -460,6 +461,7 @@ export default function UserPicker({
                                                 </Text>
                                             </Box>
                                             {usersBySignal.mid.map((user) => renderUser(user, "mid"))}
+                                            <Box bg={"scoreColor.mid"} borderBottomRadius={"12px"} h={"8px"} mb={2} />
                                         </>
                                     )}
                                     {usersBySignal.low.length > 0 && (
@@ -477,6 +479,7 @@ export default function UserPicker({
                                                 </Text>
                                             </Box>
                                             {usersBySignal.low.map((user) => renderUser(user, "low"))}
+                                            <Box bg={"scoreColor.low"} borderBottomRadius={"12px"} h={"8px"} />
                                         </>
                                     )}
                                     {usersBySignal.none.length > 0 &&
