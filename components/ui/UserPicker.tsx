@@ -337,68 +337,166 @@ export default function UserPicker({
                         </Text>
                     ) : (
                         users &&
-                        users
-                            .filter(
+                        (() => {
+                            const uniqueUsers = users.filter(
                                 (user, index, self) => index === self.findIndex((u) => u.username === user.username),
                             )
-                            .sort((a, b) => {
-                                const aIsShell = a.username?.startsWith("~") || false
-                                const bIsShell = b.username?.startsWith("~") || false
 
-                                // If one is shell and the other isn't, non-shell comes first
-                                if (aIsShell !== bIsShell) {
-                                    return aIsShell ? 1 : -1
+                            // Group users by signal level
+                            const usersBySignal = {
+                                high: [] as typeof uniqueUsers,
+                                mid: [] as typeof uniqueUsers,
+                                low: [] as typeof uniqueUsers,
+                                none: [] as typeof uniqueUsers,
+                            }
+
+                            uniqueUsers.forEach((user) => {
+                                const signal = user.highestSignal
+                                if (signal === "high") {
+                                    usersBySignal.high.push(user)
+                                } else if (signal === "mid") {
+                                    usersBySignal.mid.push(user)
+                                } else if (signal === "low" || !signal) {
+                                    // Treat users without signal as "low"
+                                    usersBySignal.low.push(user)
+                                } else {
+                                    usersBySignal.none.push(user)
                                 }
-
-                                // If both are the same type, sort alphabetically by username
-                                return (a.username || "").localeCompare(b.username || "")
                             })
-                            .map((user) => (
-                                <Box
-                                    key={user.username}
-                                    p={2}
-                                    cursor="pointer"
-                                    _hover={{ bg: "contentBackground" }}
-                                    onMouseDown={(e) => {
-                                        e.preventDefault()
-                                        setSearchTerm(user.username || "")
-                                        setIsFocused(false)
-                                        inputRef.current?.blur()
-                                        onUserSelect(user)
-                                    }}
-                                >
-                                    <HStack>
-                                        {user.username?.startsWith("~") ? (
-                                            <ShellUserImage
-                                                type={user.profileImageUrl || ""}
-                                                boxSize={{ base: "25px", sm: "25px" }}
-                                                iconSize={"12px"}
-                                            />
-                                        ) : (
-                                            <Image
-                                                src={
-                                                    !user.profileImageUrl || user.profileImageUrl === ""
-                                                        ? ASSETS.DEFAULT_PROFILE_IMAGE
-                                                        : user.profileImageUrl
-                                                }
-                                                alt={`User ${user.displayName} Profile Image`}
-                                                fit="cover"
-                                                transition="transform 0.2s ease-in-out"
-                                                w="25px"
-                                                borderRadius="full"
-                                            />
-                                        )}
-                                        <Text
-                                            color={user.username?.startsWith("~") ? "textColorMuted" : "textColor"}
-                                            overflow="hidden"
-                                            textOverflow="ellipsis"
-                                            whiteSpace="nowrap"
-                                        >
-                                            {user.displayName}
-                                        </Text>
-                                    </HStack>
+
+                            // Sort each group by highest score (descending)
+                            Object.keys(usersBySignal).forEach((key) => {
+                                usersBySignal[key as keyof typeof usersBySignal].sort((a, b) => {
+                                    const aScore = a.highestScore || 0
+                                    const bScore = b.highestScore || 0
+                                    return bScore - aScore
+                                })
+                            })
+
+                            const renderUser = (user: (typeof uniqueUsers)[0], signalGroup: string) => (
+                                <Box key={user.username} bg={`scoreColor.${signalGroup}`} w={"100%"} h={"100%"}>
+                                    <Box
+                                        bg={"pageBackground"}
+                                        borderLeftRadius={"full"}
+                                        py={2}
+                                        ml={"6px"}
+                                        cursor="pointer"
+                                        _hover={{ bg: "contentBackground" }}
+                                        onMouseDown={(e) => {
+                                            e.preventDefault()
+                                            setSearchTerm(user.username || "")
+                                            setIsFocused(false)
+                                            inputRef.current?.blur()
+                                            onUserSelect(user)
+                                        }}
+                                        position="relative"
+                                    >
+                                        <HStack pl={signalGroup !== "none" ? "10px" : 0}>
+                                            {user.username?.startsWith("~") ? (
+                                                <ShellUserImage
+                                                    type={user.profileImageUrl || ""}
+                                                    boxSize={{ base: "25px", sm: "25px" }}
+                                                    iconSize={"12px"}
+                                                />
+                                            ) : (
+                                                <Image
+                                                    src={
+                                                        !user.profileImageUrl || user.profileImageUrl === ""
+                                                            ? ASSETS.DEFAULT_PROFILE_IMAGE
+                                                            : user.profileImageUrl
+                                                    }
+                                                    alt={`User ${user.displayName} Profile Image`}
+                                                    fit="cover"
+                                                    transition="transform 0.2s ease-in-out"
+                                                    w="25px"
+                                                    borderRadius="full"
+                                                />
+                                            )}
+                                            <Text
+                                                color={user.username?.startsWith("~") ? "textColorMuted" : "textColor"}
+                                                overflow="hidden"
+                                                textOverflow="ellipsis"
+                                                whiteSpace="nowrap"
+                                                flex={1}
+                                            >
+                                                {user.displayName}
+                                            </Text>
+                                        </HStack>
+                                    </Box>
                                 </Box>
-                            ))
+                            )
+
+                            return (
+                                <>
+                                    {usersBySignal.high.length > 0 && (
+                                        <>
+                                            <Box
+                                                pl={5}
+                                                pt={2}
+                                                pb={1}
+                                                cursor={"default"}
+                                                bg={"scoreColor.high"}
+                                                borderTopRadius={"12px"}
+                                            >
+                                                <Text fontWeight="bold" fontSize="sm">
+                                                    High Signal
+                                                </Text>
+                                            </Box>
+                                            {usersBySignal.high.map((user) => renderUser(user, "high"))}
+                                        </>
+                                    )}
+                                    {usersBySignal.mid.length > 0 && (
+                                        <>
+                                            <Box
+                                                pl={5}
+                                                pt={2}
+                                                pb={1}
+                                                cursor={"default"}
+                                                bg={"scoreColor.mid"}
+                                                borderTopRadius={"12px"}
+                                            >
+                                                <Text fontWeight="bold" fontSize="sm">
+                                                    Mid Signal
+                                                </Text>
+                                            </Box>
+                                            {usersBySignal.mid.map((user) => renderUser(user, "mid"))}
+                                        </>
+                                    )}
+                                    {usersBySignal.low.length > 0 && (
+                                        <>
+                                            <Box
+                                                pl={5}
+                                                pt={2}
+                                                pb={1}
+                                                cursor={"default"}
+                                                bg={"scoreColor.low"}
+                                                borderTopRadius={"12px"}
+                                            >
+                                                <Text fontWeight="bold" fontSize="sm">
+                                                    Low Signal
+                                                </Text>
+                                            </Box>
+                                            {usersBySignal.low.map((user) => renderUser(user, "low"))}
+                                        </>
+                                    )}
+                                    {usersBySignal.none.length > 0 &&
+                                        usersBySignal.none
+                                            .sort((a, b) => {
+                                                const aIsShell = a.username?.startsWith("~") || false
+                                                const bIsShell = b.username?.startsWith("~") || false
+
+                                                // If one is shell and the other isn't, non-shell comes first
+                                                if (aIsShell !== bIsShell) {
+                                                    return aIsShell ? 1 : -1
+                                                }
+
+                                                // If both are the same type, sort alphabetically by username
+                                                return (a.username || "").localeCompare(b.username || "")
+                                            })
+                                            .map((user) => renderUser(user, "none"))}
+                                </>
+                            )
+                        })()
                     )}
                 </Box>
             )}

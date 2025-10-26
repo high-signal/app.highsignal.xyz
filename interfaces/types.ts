@@ -8,6 +8,8 @@ interface UserData {
     displayName?: string
     profileImageUrl?: string
     signal?: string
+    highestSignal?: string
+    highestScore?: number
     projectSlug?: string
     projectData?: ProjectData
     peakSignals?: PeakSignalUserData[]
