@@ -3,6 +3,9 @@ function calculateSmartScore({ signalStrengthName, userData, previousDays, maxVa
 
     let topThresholdNormalizedLowerBound // Take the normalized value and subtract this value to get the lower bound of the top band
     let topBandMaxLengthToConsider
+    let firstFrequencyMultiplierValue
+    let secondFrequencyMultiplierValue
+    let thirdFrequencyMultiplierValue
     let lowerFrequencyMultiplierCount
     let upperFrequencyMultiplierCount
     let timeDecayPercent // final 30% of period decays to 0
@@ -10,14 +13,20 @@ function calculateSmartScore({ signalStrengthName, userData, previousDays, maxVa
     if (signalStrengthName === "discourse_forum") {
         topThresholdNormalizedLowerBound = 0.3
         topBandMaxLengthToConsider = 5
+        firstFrequencyMultiplierValue = 0.5
+        secondFrequencyMultiplierValue = 0.7
+        thirdFrequencyMultiplierValue = 0.85
         lowerFrequencyMultiplierCount = 2
         upperFrequencyMultiplierCount = 5
         timeDecayPercent = 0.3
     } else if (signalStrengthName === "discord") {
         topThresholdNormalizedLowerBound = 0.3
         topBandMaxLengthToConsider = 10
-        lowerFrequencyMultiplierCount = 2
-        upperFrequencyMultiplierCount = 5
+        firstFrequencyMultiplierValue = 0.1
+        secondFrequencyMultiplierValue = 0.3
+        thirdFrequencyMultiplierValue = 0.6
+        lowerFrequencyMultiplierCount = 3
+        upperFrequencyMultiplierCount = 6
         timeDecayPercent = 0.3
     } else {
         throw new Error(`No smart score calculation configured for ${signalStrengthName}`)
@@ -85,12 +94,15 @@ function calculateSmartScore({ signalStrengthName, userData, previousDays, maxVa
     const topBandNormalizedAverage = roundToTwoDecimals(topBandNormalizedTotal / topBand.length)
 
     const count = topBand.length
-    let frequencyMultiplier = 0.2
-    if (count === lowerFrequencyMultiplierCount) {
-        frequencyMultiplier = 0.4
-    } else if (count > lowerFrequencyMultiplierCount && count < upperFrequencyMultiplierCount) {
-        frequencyMultiplier = 0.6
-    } else if (count >= upperFrequencyMultiplierCount) {
+
+    let frequencyMultiplier = firstFrequencyMultiplierValue
+    if (count >= lowerFrequencyMultiplierCount) {
+        frequencyMultiplier = secondFrequencyMultiplierValue
+    }
+    if (count >= lowerFrequencyMultiplierCount && count < upperFrequencyMultiplierCount) {
+        frequencyMultiplier = thirdFrequencyMultiplierValue
+    }
+    if (count >= upperFrequencyMultiplierCount) {
         frequencyMultiplier = 1.0
     }
 
