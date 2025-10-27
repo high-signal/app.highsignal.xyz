@@ -139,8 +139,11 @@ async function runShellUserGovernor() {
                 const { error: updateError } = await supabase
                     .from("users")
                     .update({
-                        discord_username: `~${shellUserChanged.discord_table_username}`,
-                        display_name: shellUserChanged.discord_table_global_name,
+                        username: `~${shellUserChanged.discord_table_username}`,
+                        display_name: shellUserChanged.discord_table_global_name
+                            ? shellUserChanged.discord_table_global_name
+                            : shellUserChanged.discord_table_username,
+                        discord_username: shellUserChanged.discord_table_username,
                     })
                     .eq("discord_user_id", shellUserChanged.discord_user_id)
                     .is("privy_id", null) // Stops a real user from being modified
