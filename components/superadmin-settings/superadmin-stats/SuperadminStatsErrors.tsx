@@ -95,63 +95,59 @@ export default function SuperadminStatsErrors() {
     const contentBorder = useThemeColor("contentBorder")
 
     return (
-        <VStack alignItems="center" w={"100%"} bg={"pageBackground"}>
-            <HStack
-                alignItems="center"
-                justifyContent={"start"}
-                w={{ base: "100%", sm: "fit-content" }}
-                color={"textColorMuted"}
-                fontSize={"sm"}
-                columnGap={3}
-                rowGap={0}
-                px={3}
-                borderRadius={{ base: "0px", sm: "16px" }}
-                border="2px solid"
-                borderX={{
-                    base: "0px solid",
-                    sm: `2px solid ${isAnyError ? red500 : contentBorder}`,
-                }}
-                borderColor={isAnyError ? red500 : contentBorder}
-                pt={{ base: 0, sm: "1px" }}
-                pb={{ base: 2, sm: "6px" }}
-                flexWrap={"wrap"}
-            >
-                {errorStatsError ? (
-                    <Text color="red.500">{errorStatsError}</Text>
-                ) : (
-                    <VStack alignItems="start" gap={0}>
-                        <Text fontSize="lg" fontWeight="bold" color={isAnyError ? "red.500" : "textColorMuted"} ml={1}>
-                            Errors
-                        </Text>
-                        <VStack alignItems="start" gap={1}>
-                            <StatsRow label="Missing Days" value={errorStats?.missingDays ?? 0} />
-                            <StatsRow label="AI Raw Score Errors" value={errorStats?.aiRawScoreErrors ?? 0} />
-                            <StatsRow label="Last Checked Not Null" value={errorStats?.lastCheckedNotNull ?? 0} />
-                            <StatsRow
-                                label="Stale User Project Scores"
-                                value={errorStats?.staleUserProjectScores ?? 0}
-                            />
-                            <StatsRow
-                                label="Discord Request Queue Errors"
-                                value={errorStats?.discordRequestQueueErrors ?? 0}
-                            />
-                            <StatsRow
-                                label="Duplicate User Signal Strengths"
-                                value={errorStats?.duplicateUserSignalStrengths ?? 0}
-                            />
-                            <StatsRow
-                                label="Lambda Stats Null Billed Duration"
-                                value={errorStats?.lambdaStatsNullBilledDuration ?? 0}
-                                minErrorValue={500}
-                            />
-                            <StatsRow
-                                label="Signal Strengths No Raw Value or Value"
-                                value={errorStats?.userSignalStrengthsWithoutRawValueOrValue ?? 0}
-                            />
-                        </VStack>
+        <HStack
+            alignItems="center"
+            justifyContent={"start"}
+            bg={"pageBackground"}
+            w={{ base: "100%", sm: "fit-content" }}
+            color={"textColorMuted"}
+            fontSize={"sm"}
+            columnGap={3}
+            rowGap={0}
+            px={3}
+            borderRadius={{ base: "0px", sm: "16px" }}
+            border="2px solid"
+            borderX={{
+                base: "0px solid",
+                sm: `2px solid ${isAnyError ? red500 : contentBorder}`,
+            }}
+            borderColor={isAnyError ? red500 : contentBorder}
+            pt={{ base: 0, sm: "1px" }}
+            pb={{ base: 2, sm: "6px" }}
+            flexWrap={"wrap"}
+        >
+            {errorStatsError ? (
+                <Text color="red.500">{errorStatsError}</Text>
+            ) : (
+                <VStack alignItems="start" gap={0}>
+                    <Text fontSize="lg" fontWeight="bold" color={isAnyError ? "red.500" : "textColorMuted"} ml={1}>
+                        Errors
+                    </Text>
+                    <VStack alignItems="start" gap={1}>
+                        <StatsRow label="Missing Days" value={errorStats?.missingDays ?? 0} />
+                        <StatsRow label="AI Raw Score Errors" value={errorStats?.aiRawScoreErrors ?? 0} />
+                        <StatsRow label="Last Checked Not Null" value={errorStats?.lastCheckedNotNull ?? 0} />
+                        <StatsRow label="Stale User Project Scores" value={errorStats?.staleUserProjectScores ?? 0} />
+                        <StatsRow
+                            label="Discord Request Queue Errors"
+                            value={errorStats?.discordRequestQueueErrors ?? 0}
+                        />
+                        <StatsRow
+                            label="Duplicate User Signal Strengths"
+                            value={errorStats?.duplicateUserSignalStrengths ?? 0}
+                        />
+                        <StatsRow
+                            label="Lambda Stats Null Billed Duration"
+                            value={errorStats?.lambdaStatsNullBilledDuration ?? 0}
+                            minErrorValue={500}
+                        />
+                        <StatsRow
+                            label="Signal Strengths No Raw Value or Value"
+                            value={errorStats?.userSignalStrengthsWithoutRawValueOrValue ?? 0}
+                        />
                     </VStack>
-                )}
-            </HStack>
-        </VStack>
+                </VStack>
+            )}
+        </HStack>
     )
 }

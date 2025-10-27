@@ -45,6 +45,13 @@ export default function SignalStrengthContainer({
     // Keep only "active" and enabled items, then sort
     const sortedMatchedSignalStrengths = matchedSignalStrengths
         .filter((s) => s.signalStrengthProjectData.status === "active" && s.signalStrengthProjectData.enabled)
+        .filter((s) => {
+            // If username starts with ~, filter out signal strengths where userData is null
+            if (currentUser.username?.startsWith("~") && !s.userData) {
+                return false
+            }
+            return true
+        })
         .sort((a, b) => {
             // Get user values, defaulting to "0" if not available
             const userValueA = a.userData ? parseFloat(a.userData.value) : 0

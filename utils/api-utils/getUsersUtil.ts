@@ -1178,7 +1178,7 @@ async function usersOnly(
 ) {
     let usersOnlyQuery = supabase
         .from("users")
-        .select("username, display_name, profile_image_url", { count: "exact" })
+        .select("id, username, display_name, profile_image_url", { count: "exact" })
         .range(from, to)
         .order("display_name", { ascending: true })
 
@@ -1199,11 +1199,43 @@ async function usersOnly(
     const maxPageResponse = await checkMaxPage(page, count || 0, resultsPerPage, maxPage)
     if (maxPageResponse instanceof NextResponse) return maxPageResponse
 
-    const formattedUsers = usersOnly.map((user) => ({
-        username: user.username,
-        displayName: user.display_name,
-        profileImageUrl: user.profile_image_url,
-    }))
+    // Get the highest signal for each user from the materialized view
+    const userIds = usersOnly.map((user) => user.id)
+
+    const { data: userMaxScores, error: userMaxScoresError } = await supabase
+        .from("user_project_scores")
+        .select("user_id, total_score")
+        .in("user_id", userIds)
+        .gt("total_score", 0)
+
+    if (userMaxScoresError) {
+        console.error("userMaxScoresError", userMaxScoresError)
+        return NextResponse.json({ error: "Error fetching user max scores" }, { status: 500 })
+    }
+
+    // Create a map of user_id to their highest score
+    const userHighestScores = new Map<string, number>()
+    userMaxScores?.forEach((score) => {
+        const currentMax = userHighestScores.get(score.user_id) || 0
+        if (score.total_score > currentMax) {
+            userHighestScores.set(score.user_id, score.total_score)
+        }
+    })
+
+    const formattedUsers = usersOnly.map((user) => {
+        const highestScore = userHighestScores.get(user.id) || 0
+        return {
+            username: user.username,
+            displayName: user.display_name,
+            profileImageUrl: user.profile_image_url,
+            ...(highestScore > 0
+                ? {
+                      highestSignal: calculateSignalFromScore(highestScore),
+                      highestScore: highestScore,
+                  }
+                : {}),
+        }
+    })
 
     return NextResponse.json({
         data: formattedUsers,

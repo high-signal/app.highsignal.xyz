@@ -140,7 +140,7 @@ function StatsLineChart({ title, data, config }: StatsChartProps) {
                 {title}
             </Text>
             <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                         <pattern id="graphPaperPattern" width="20" height="20" patternUnits="userSpaceOnUse">
                             <rect
