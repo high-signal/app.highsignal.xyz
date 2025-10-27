@@ -161,6 +161,7 @@ async function runDiscordQueueItem({ queueItemId }) {
                             is_bot: msg.author?.bot ?? false,
                             content: msg.content,
                             created_timestamp: new Date(msg.timestamp).toISOString(),
+                            import_type: "api",
                         })
                     })
 
