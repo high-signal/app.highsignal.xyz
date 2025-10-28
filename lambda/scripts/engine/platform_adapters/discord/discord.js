@@ -78,7 +78,7 @@ async function getDailyActivityData({
 
     // TODO: Remove this filter once we have a way to handle messages with less
     // than 9 characters by not passing them to the AI and giving a fixed score.
-    activityData = activityData.filter((activity) => activity.content.length >= 9)
+    activityData = activityData.filter((activity) => activity.content && activity.content.length >= 9)
 
     console.log(
         `🗓️ Processed ${activityData?.length || 0} activities for ${userDisplayName} (Discord username: ${discordUsername})`,
