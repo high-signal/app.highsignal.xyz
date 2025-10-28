@@ -74,12 +74,14 @@ export async function PATCH(request: NextRequest) {
             updateData.url = null
             updateData.auth_types = isPrivyAuthType ? ["privy"] : null
             updateData.auth_parent_post_url = null
+            updateData.api_enabled = false
         } else {
             if (settings.maxValue.new !== null) updateData.max_value = parseInt(sanitize(settings.maxValue.new))
             if (settings.previousDays.new !== null)
                 updateData.previous_days = parseInt(sanitize(settings.previousDays.new))
             if (settings.enabled.new !== null) updateData.enabled = Boolean(settings.enabled.new)
             if (settings.url.new !== null) updateData.url = sanitize(settings.url.new)
+            if (settings.apiEnabled.new !== null) updateData.api_enabled = Boolean(settings.apiEnabled.new)
 
             if (settings.authTypes.new !== null) {
                 // Validate that all provided auth types are allowed for this signal strength
