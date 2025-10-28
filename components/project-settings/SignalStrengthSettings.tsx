@@ -382,7 +382,7 @@ export default function SignalStrengthSettings({
                     {(settings.enabled.new === true ||
                         (settings.enabled.new === null && settings.enabled.current === true)) && (
                         <>
-                            <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
+                            {/* <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
                                 <Text fontWeight={"bold"} minW={"120px"}>
                                     Max score
                                 </Text>
@@ -417,8 +417,8 @@ export default function SignalStrengthSettings({
                                     <Text>/ 100</Text>
                                     <ValidationErrorDisplay errors={validationErrors} field="maxValue" />
                                 </HStack>
-                            </HStack>
-                            <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
+                            </HStack> */}
+                            {/* <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
                                 <Text fontWeight={"bold"} minW={"120px"}>
                                     Previous days
                                 </Text>
@@ -483,14 +483,20 @@ export default function SignalStrengthSettings({
                                         ))}
                                     </Grid>
                                 </RadioGroup.Root>
-                            </HStack>
+                            </HStack> */}
                             <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
                                 <HStack gap={3}>
                                     <Text fontWeight={"bold"}>{shortName} URL</Text>
                                     <ValidationErrorDisplay errors={validationErrors} field="url" />
                                 </HStack>
                                 <SingleLineTextInput
-                                    placeholder={"e.g. https://myforum.xyz"}
+                                    placeholder={
+                                        shortName === "Discord"
+                                            ? "e.g. https://discord.com/channels/123456789123456789"
+                                            : shortName === "Forum"
+                                              ? "e.g. https://myforum.xyz"
+                                              : ""
+                                    }
                                     bg={"pageBackground"}
                                     maxW={"100%"}
                                     h={"32px"}
