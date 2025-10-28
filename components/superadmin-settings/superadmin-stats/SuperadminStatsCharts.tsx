@@ -162,6 +162,7 @@ function StatsLineChart({ title, data, config }: StatsChartProps) {
                     <Tooltip
                         content={<ChartTooltip payload={[]} label={""} />}
                         isAnimationActive={false}
+                        wrapperStyle={{ zIndex: 1000 }}
                         cursor={{
                             stroke: textColor,
                             strokeWidth: 1,
@@ -223,6 +224,7 @@ function StatsChart({ title, data, config }: StatsChartProps) {
                     <Tooltip
                         content={<ChartTooltip payload={[]} label={""} />}
                         isAnimationActive={false}
+                        wrapperStyle={{ zIndex: 1000 }}
                         cursor={{
                             fill: contentBackgroundColorHex,
                             strokeWidth: 0,
@@ -230,7 +232,7 @@ function StatsChart({ title, data, config }: StatsChartProps) {
                     />
                     <XAxis dataKey="day" />
                     <YAxis tickFormatter={config.formatYAxis} />
-                    <Legend />
+                    <Legend wrapperStyle={{ zIndex: 1 }} />
                     {categories.map((category, index) => (
                         <Bar
                             key={category}
@@ -266,14 +268,15 @@ export default function SuperadminStatsCharts() {
         "pageBackground",
     ])
 
-    // Generate pastDays days of dates (today back to pastDays days ago)
+    // Generate pastDays days of dates (today back to pastDays days ago) using UTC to avoid TZ/DST issues
     const getDateRange = useMemo(() => {
         const dates = []
-        const today = new Date()
+        const now = new Date()
+        const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
 
         for (let i = stats.pastDays; i >= 0; i--) {
-            const date = new Date(today)
-            date.setDate(today.getDate() - i)
+            const date = new Date(todayUtc)
+            date.setUTCDate(todayUtc.getUTCDate() - i)
             dates.push(date.toISOString().split("T")[0]) // Format as YYYY-MM-DD
         }
 
@@ -348,10 +351,10 @@ export default function SuperadminStatsCharts() {
     // Create consistent date range for all charts
     const createConsistentDateRange = (startDay: string, endDay: string) => {
         const dates = []
-        const start = new Date(startDay)
-        const end = new Date(endDay)
+        const start = new Date(`${startDay}T00:00:00Z`)
+        const end = new Date(`${endDay}T00:00:00Z`)
 
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        for (let d = new Date(start); d.getTime() <= end.getTime(); d.setUTCDate(d.getUTCDate() + 1)) {
             dates.push(d.toISOString().split("T")[0])
         }
         return dates
