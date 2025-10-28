@@ -107,7 +107,7 @@ async function runDiscordGovernor() {
         // Find all enabled projects
         // ==========================
         // Get all projects that have discord enabled and have a url in
-        // their project_signal_strengths url field.
+        // their project_signal_strengths url field and have api_enabled set to true.
 
         // Get the discord signal strength id.
         const { data: discordSignalStrength, error: discordError } = await supabase
@@ -136,6 +136,7 @@ async function runDiscordGovernor() {
             `,
             )
             .eq("enabled", true)
+            .eq("api_enabled", true)
             .eq("signal_strength_id", discordSignalStrength.id)
             .not("url", "is", null)
 

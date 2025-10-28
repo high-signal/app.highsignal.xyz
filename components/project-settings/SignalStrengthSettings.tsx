@@ -71,7 +71,7 @@ function AuthTypeSwitch({
         >
             <Switch.HiddenInput />
             <Switch.Control bg={"pageBackground"} borderRadius={"full"} border={"none"}>
-                <Switch.Thumb bg={"textColor"} _checked={{ bg: "lozenge.text.active" }}>
+                <Switch.Thumb bg={"textColor"} _checked={{ bg: "green.500" }}>
                     {isChecked && <FontAwesomeIcon icon={faCheck} />}
                 </Switch.Thumb>
             </Switch.Control>
@@ -106,6 +106,7 @@ export default function SignalStrengthSettings({
             url: { current: signalStrength.url ?? null, new: null },
             authTypes: { current: signalStrength.authTypes ?? null, new: null },
             authParentPostUrl: { current: signalStrength.authParentPostUrl ?? null, new: null },
+            apiEnabled: { current: signalStrength.apiEnabled ?? null, new: null },
         }),
         [signalStrength],
     )
@@ -382,7 +383,7 @@ export default function SignalStrengthSettings({
                     {(settings.enabled.new === true ||
                         (settings.enabled.new === null && settings.enabled.current === true)) && (
                         <>
-                            <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
+                            {/* <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
                                 <Text fontWeight={"bold"} minW={"120px"}>
                                     Max score
                                 </Text>
@@ -417,8 +418,8 @@ export default function SignalStrengthSettings({
                                     <Text>/ 100</Text>
                                     <ValidationErrorDisplay errors={validationErrors} field="maxValue" />
                                 </HStack>
-                            </HStack>
-                            <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
+                            </HStack> */}
+                            {/* <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
                                 <Text fontWeight={"bold"} minW={"120px"}>
                                     Previous days
                                 </Text>
@@ -483,14 +484,20 @@ export default function SignalStrengthSettings({
                                         ))}
                                     </Grid>
                                 </RadioGroup.Root>
-                            </HStack>
+                            </HStack> */}
                             <HStack alignItems={"center"} gap={6} columnGap={6} rowGap={3} w={"100%"} flexWrap={"wrap"}>
                                 <HStack gap={3}>
                                     <Text fontWeight={"bold"}>{shortName} URL</Text>
                                     <ValidationErrorDisplay errors={validationErrors} field="url" />
                                 </HStack>
                                 <SingleLineTextInput
-                                    placeholder={"e.g. https://myforum.xyz"}
+                                    placeholder={
+                                        shortName === "Discord"
+                                            ? "e.g. https://discord.com/channels/123456789123456789"
+                                            : shortName === "Forum"
+                                              ? "e.g. https://myforum.xyz"
+                                              : ""
+                                    }
                                     bg={"pageBackground"}
                                     maxW={"100%"}
                                     h={"32px"}
@@ -503,6 +510,70 @@ export default function SignalStrengthSettings({
                                     }}
                                 />
                             </HStack>
+                            {shortName === "Discord" && (settings.url.new ?? settings.url.current ?? "") !== "" && (
+                                <VStack w={"100%"} alignItems={"start"} gap={3}>
+                                    <VStack w={"100%"} alignItems={"start"} gap={1}>
+                                        <Switch.Root
+                                            size={"lg"}
+                                            cursor={"pointer"}
+                                            variant={"solid"}
+                                            checked={true}
+                                            disabled
+                                        >
+                                            <Switch.HiddenInput />
+                                            <Switch.Control bg={"pageBackground"} borderRadius={"full"} border={"none"}>
+                                                <Switch.Thumb bg={"textColor"} _checked={{ bg: "green.500" }}>
+                                                    <FontAwesomeIcon icon={faCheck} />
+                                                </Switch.Thumb>
+                                            </Switch.Control>
+                                            <Switch.Label fontWeight={"bold"} opacity={1} cursor={"default"}>
+                                                Use public data
+                                            </Switch.Label>
+                                        </Switch.Root>
+                                        <Text fontSize={"sm"} pl={"58px"}>
+                                            Publicly accessible data will be used to calculate scores.
+                                        </Text>
+                                    </VStack>
+                                    <VStack w={"100%"} alignItems={"start"} gap={1}>
+                                        <Switch.Root
+                                            size={"lg"}
+                                            cursor={"pointer"}
+                                            variant={"solid"}
+                                            checked={settings.apiEnabled.new ?? settings.apiEnabled.current ?? false}
+                                            onCheckedChange={(e) => {
+                                                setSettings({
+                                                    ...settings,
+                                                    apiEnabled: { ...settings.apiEnabled, new: e.checked },
+                                                })
+                                            }}
+                                        >
+                                            <Switch.HiddenInput />
+                                            <Switch.Control bg={"pageBackground"} borderRadius={"full"} border={"none"}>
+                                                <Switch.Thumb bg={"textColor"} _checked={{ bg: "green.500" }}>
+                                                    {(settings.apiEnabled.new ?? settings.apiEnabled.current) && (
+                                                        <FontAwesomeIcon icon={faCheck} />
+                                                    )}
+                                                </Switch.Thumb>
+                                            </Switch.Control>
+                                            <Switch.Label fontWeight={"bold"}>Use High Signal Discord bot</Switch.Label>
+                                        </Switch.Root>
+                                        <Text fontSize={"sm"} pl={"59px"}>
+                                            Add the High Signal Discord bot to your Discord server to allow analysis of
+                                            non-public data.{" "}
+                                            <Link
+                                                href={`https://www.notion.so/High-Signal-Project-Settings-Discord-229a88585e95806ea8cbfdfeb463e1c4`}
+                                                fontSize={"sm"}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                color={"blue.500"}
+                                                _hover={{ textDecoration: "underline" }}
+                                            >
+                                                Read the docs <FontAwesomeIcon icon={faUpRightFromSquare} />
+                                            </Link>
+                                        </Text>
+                                    </VStack>
+                                </VStack>
+                            )}
                             <VStack alignItems={"start"} gap={2} w={"100%"}>
                                 <HStack gap={3} flexWrap={"wrap"}>
                                     <Text fontWeight={"bold"} minW={"120px"} whiteSpace={"nowrap"}>

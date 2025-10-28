@@ -141,6 +141,7 @@ interface SignalStrengthProjectData {
     availableAuthTypes?: string[]
     authTypes?: string[]
     authParentPostUrl?: string
+    apiEnabled?: boolean
 }
 
 interface SignalStrengthData {
@@ -163,6 +164,7 @@ interface SignalStrengthProjectSettingsState {
     url: { current: string | null; new: string | null }
     authTypes: { current: string[] | null; new: string[] | null }
     authParentPostUrl: { current: string | null; new: string | null }
+    apiEnabled: { current: boolean | null; new: boolean | null }
 }
 
 interface Prompt {

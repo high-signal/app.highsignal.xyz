@@ -6,6 +6,7 @@ type ProjectSignalStrengths = {
     enabled: boolean
     max_value: number
     previous_days: number
+    api_enabled?: boolean
     auth_types?: string[]
     auth_parent_post_url?: string
     signal_strengths: {
@@ -57,6 +58,7 @@ export async function getProjectsUtil(
                     enabled,
                     max_value,
                     previous_days,
+                    api_enabled,
                     auth_types,
                     auth_parent_post_url,
                     signal_strengths (
@@ -143,6 +145,7 @@ export async function getProjectsUtil(
                             status: ps.signal_strengths.status,
                             enabled: ps.enabled,
                             maxValue: ps.max_value,
+                            apiEnabled: ps.api_enabled,
                             availableAuthTypes: ps.signal_strengths.available_auth_types,
                             authTypes: ps.auth_types,
                             authParentPostUrl: ps.auth_parent_post_url,
