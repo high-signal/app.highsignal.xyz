@@ -162,6 +162,7 @@ function StatsLineChart({ title, data, config }: StatsChartProps) {
                     <Tooltip
                         content={<ChartTooltip payload={[]} label={""} />}
                         isAnimationActive={false}
+                        wrapperStyle={{ zIndex: 1000 }}
                         cursor={{
                             stroke: textColor,
                             strokeWidth: 1,
@@ -223,6 +224,7 @@ function StatsChart({ title, data, config }: StatsChartProps) {
                     <Tooltip
                         content={<ChartTooltip payload={[]} label={""} />}
                         isAnimationActive={false}
+                        wrapperStyle={{ zIndex: 1000 }}
                         cursor={{
                             fill: contentBackgroundColorHex,
                             strokeWidth: 0,
@@ -230,7 +232,7 @@ function StatsChart({ title, data, config }: StatsChartProps) {
                     />
                     <XAxis dataKey="day" />
                     <YAxis tickFormatter={config.formatYAxis} />
-                    <Legend />
+                    <Legend wrapperStyle={{ zIndex: 1 }} />
                     {categories.map((category, index) => (
                         <Bar
                             key={category}
