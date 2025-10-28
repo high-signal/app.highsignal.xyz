@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Box, Button } from "@chakra-ui/react"
+import { Box, Button, Textarea } from "@chakra-ui/react"
 import { toaster } from "../ui/toaster"
 
 import { useUser } from "../../contexts/UserContext"
@@ -22,11 +22,15 @@ export default function GeneralSettingsContainer({ project }: { project: Project
     const [formData, setFormData] = useState({
         urlSlug: project.urlSlug || "",
         displayName: project.displayName || "",
+        website: project.website || "",
+        description: project.description || "",
         projectLogoUrl: project.projectLogoUrl || "",
     })
     const [errors, setErrors] = useState({
         urlSlug: "",
         displayName: "",
+        website: "",
+        description: "",
     })
     const [hasChanges, setHasChanges] = useState(false)
 
@@ -60,18 +64,38 @@ export default function GeneralSettingsContainer({ project }: { project: Project
             fieldError = validateUrlSlug(value)
         } else if (field === "displayName") {
             fieldError = validateDisplayName(value)
+        } else if (field === "website") {
+            if (value && !/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(value)) {
+                fieldError = "Please enter a valid website URL"
+            }
+        } else if (field === "description") {
+            if (value && value.length > 500) {
+                fieldError = "Description must be 500 characters or less"
+            }
         }
 
         setErrors((prev) => ({ ...prev, [field]: fieldError }))
 
         // Check if any field has changed from original values AND there are no errors
+        const getOriginalValue = (key: string) => {
+            switch (key) {
+                case "urlSlug":
+                    return project?.urlSlug
+                case "displayName":
+                    return project?.displayName
+                case "website":
+                    return project?.website
+                case "description":
+                    return project?.description
+                default:
+                    return ""
+            }
+        }
+
         const hasAnyChanges =
-            value !== (field === "urlSlug" ? project?.urlSlug : project?.displayName) ||
+            value !== getOriginalValue(field) ||
             Object.keys(formData).some(
-                (key) =>
-                    key !== field &&
-                    formData[key as keyof typeof formData] !==
-                        (key === "urlSlug" ? project?.urlSlug : project?.displayName),
+                (key) => key !== field && formData[key as keyof typeof formData] !== getOriginalValue(key),
             )
 
         // Only set hasChanges to true if there are changes AND no errors in any field
@@ -87,6 +111,12 @@ export default function GeneralSettingsContainer({ project }: { project: Project
         }
         if (formData.displayName !== project?.displayName) {
             changedFields.displayName = formData.displayName
+        }
+        if (formData.website !== project?.website) {
+            changedFields.website = formData.website
+        }
+        if (formData.description !== project?.description) {
+            changedFields.description = formData.description
         }
 
         // If nothing has changed, return early
@@ -116,6 +146,10 @@ export default function GeneralSettingsContainer({ project }: { project: Project
                     setErrors((prev) => ({ ...prev, urlSlug: responseData.error }))
                 } else if (responseData.error?.includes("display name")) {
                     setErrors((prev) => ({ ...prev, displayName: responseData.error }))
+                } else if (responseData.error?.includes("website")) {
+                    setErrors((prev) => ({ ...prev, website: responseData.error }))
+                } else if (responseData.error?.includes("description")) {
+                    setErrors((prev) => ({ ...prev, description: responseData.error }))
                 } else {
                     // Only set general error if it's not a field-specific error
                     setError(responseData.error || "Failed to update settings")
@@ -168,8 +202,8 @@ export default function GeneralSettingsContainer({ project }: { project: Project
                 uploadApiPath="/api/settings/p/project-image"
             />
             <SettingsInputField
-                label="Project URL Slug"
-                description="Your project URL slug is unique."
+                label="Project Identifier"
+                description="Your project identifier is unique to your project."
                 lozengeTypes={["public"]}
                 value={formData.urlSlug}
                 onChange={(e) => handleFieldChange("urlSlug", e.target.value)}
@@ -181,8 +215,8 @@ export default function GeneralSettingsContainer({ project }: { project: Project
                 }}
             />
             <SettingsInputField
-                label="Display Name"
-                description="Your display name is shown on your project page."
+                label="Project Display Name"
+                description="Your project display name is shown on your project page."
                 lozengeTypes={["public"]}
                 value={formData.displayName}
                 onChange={(e) => handleFieldChange("displayName", e.target.value)}
@@ -192,6 +226,65 @@ export default function GeneralSettingsContainer({ project }: { project: Project
                         saveChanges()
                     }
                 }}
+            />
+            <SettingsInputField
+                label="Website"
+                description="Your project's website URL (optional)."
+                lozengeTypes={["public"]}
+                value={formData.website}
+                onChange={(e) => handleFieldChange("website", e.target.value)}
+                error={errors.website}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter" && hasChanges && !isSubmitting) {
+                        saveChanges()
+                    }
+                }}
+            />
+            <SettingsInputField
+                h={"fit-content"}
+                label="Description"
+                description="A brief description of your project (optional)."
+                lozengeTypes={["public"]}
+                value={formData.description}
+                onChange={(e) => handleFieldChange("description", e.target.value)}
+                error={errors.description}
+                inputReplacement={
+                    <Box w="100%">
+                        <Textarea
+                            value={formData.description}
+                            onChange={(e) => handleFieldChange("description", e.target.value)}
+                            placeholder="Describe your project..."
+                            rows={4}
+                            resize="none"
+                            h={"100px"}
+                            overflowY="auto"
+                            fontSize="md"
+                            borderRadius="16px"
+                            border="3px solid"
+                            borderColor="transparent"
+                            _focus={{
+                                borderColor: "input.border",
+                                boxShadow: "none",
+                                outline: "none",
+                            }}
+                            _hover={{
+                                borderColor: "input.borderHover",
+                                boxShadow: "none",
+                                outline: "none",
+                            }}
+                            bg="contentBackground"
+                            color="textColor"
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" && e.ctrlKey && hasChanges && !isSubmitting) {
+                                    saveChanges()
+                                }
+                            }}
+                        />
+                        <Box fontSize="sm" color="gray.500" mt={1} px={2}>
+                            {formData.description.length}/500 characters
+                        </Box>
+                    </Box>
+                }
             />
             <Box bg={"pageBackground"} w="100%" h={"fit-content"} px={3}>
                 <Button

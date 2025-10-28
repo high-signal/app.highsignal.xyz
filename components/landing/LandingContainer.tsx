@@ -54,6 +54,8 @@ export default function LandingContainer() {
                                 WebkitLineClamp: isMobile ? 5 : 4, // number of lines
                                 WebkitBoxOrient: "vertical",
                                 overflow: "hidden",
+                                overflowWrap: "anywhere",
+                                wordBreak: "break-word",
                             }}
                             w="100%"
                             fontSize="15px"
