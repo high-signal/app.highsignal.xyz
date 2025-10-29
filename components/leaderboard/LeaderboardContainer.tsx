@@ -46,7 +46,9 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                     <VStack gap={5}>
                         <Title projectData={currentProject} allLeaderboards linkUrl={currentProject?.website} />
                         <VStack bg={"contentBackground"} p={4} borderRadius={"32px"} fontSize="md" gap={5}>
-                            <Text fontSize="md">{currentProject?.description}</Text>
+                            <Text fontSize="md" wordBreak="break-word">
+                                {currentProject?.description}
+                            </Text>
                             <HStack
                                 flexWrap="wrap"
                                 justifyContent="space-around"

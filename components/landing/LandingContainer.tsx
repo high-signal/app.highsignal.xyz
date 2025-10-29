@@ -54,6 +54,8 @@ export default function LandingContainer() {
                                 WebkitLineClamp: isMobile ? 5 : 4, // number of lines
                                 WebkitBoxOrient: "vertical",
                                 overflow: "hidden",
+                                overflowWrap: "anywhere",
+                                wordBreak: "break-word",
                             }}
                             w="100%"
                             fontSize="15px"
@@ -94,7 +96,7 @@ export default function LandingContainer() {
     }
 
     return (
-        <VStack gap={8} pt={5} maxW="100%" w={"1200px"}>
+        <VStack gap={8} pt={5} maxW="100%" w={"100%"}>
             <Text fontSize="3xl" fontWeight="bold" px={6} textAlign="center">
                 High Signal Leaderboards
             </Text>

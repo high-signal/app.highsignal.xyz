@@ -44,16 +44,16 @@ export function validateDisplayName(displayName: string): string {
  */
 export function validateUrlSlug(urlSlug: string): string {
     if (!urlSlug) {
-        return "Url slug is required"
+        return "Project identifier is required"
     }
 
     if (urlSlug.length > 20) {
-        return "Url slug cannot be longer than 20 characters"
+        return "Project identifier cannot be longer than 20 characters"
     }
 
     const urlSlugRegex = /^[a-zA-Z0-9_-]+$/
     if (!urlSlugRegex.test(urlSlug)) {
-        return "Url slug can only use letters, numbers, underscores, and hyphens"
+        return "Project identifier can only use letters, numbers, underscores, and hyphens"
     }
 
     return ""

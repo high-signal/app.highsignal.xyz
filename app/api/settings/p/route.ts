@@ -77,12 +77,30 @@ export async function PATCH(request: NextRequest) {
             }
         }
 
+        // Validate website if provided
+        if (changedFields.website) {
+            // Basic URL validation
+            const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
+            if (!urlPattern.test(changedFields.website)) {
+                return NextResponse.json({ error: "Please enter a valid website URL" }, { status: 400 })
+            }
+        }
+
+        // Validate description if provided
+        if (changedFields.description) {
+            if (changedFields.description.length > 500) {
+                return NextResponse.json({ error: "Description must be 500 characters or less" }, { status: 400 })
+            }
+        }
+
         // ************************************************
         // SANITIZE USER INPUTS BEFORE STORING IN DATABASE
         // ************************************************
         const updateData: Record<string, any> = {}
         if (changedFields.urlSlug) updateData.url_slug = sanitize(changedFields.urlSlug.toLowerCase())
         if (changedFields.displayName) updateData.display_name = sanitize(changedFields.displayName)
+        if (changedFields.website) updateData.website = sanitize(changedFields.website)
+        if (changedFields.description) updateData.description = sanitize(changedFields.description)
 
         // Update project
         const { data: updatedProject, error: updateError } = await supabase
