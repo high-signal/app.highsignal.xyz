@@ -18,7 +18,7 @@ export default function LandingContainer() {
             <Link href={`/p/${project.urlSlug}`} key={project.urlSlug}>
                 <VStack
                     pb={3}
-                    gap={1}
+                    gap={0}
                     borderRadius="16px"
                     border="3px solid"
                     borderColor="contentBorder"
@@ -26,6 +26,7 @@ export default function LandingContainer() {
                     bg="pageBackground"
                     w="400px"
                     maxW="90vw"
+                    overflow="hidden"
                 >
                     <HStack
                         w={"100%"}
@@ -35,7 +36,6 @@ export default function LandingContainer() {
                         pb={3}
                         justifyContent={{ base: "center", sm: "start" }}
                         bg={"contentBorder"}
-                        borderTopRadius="10px"
                     >
                         <Image
                             src={project.projectLogoUrl}
@@ -65,8 +65,53 @@ export default function LandingContainer() {
                             {project.description}
                         </Text>
                     </VStack>
+                    <HStack w="100%" h="25px" gap={"2px"} my={1} px={5}>
+                        {(() => {
+                            const high = project.highSignalUsers || 0
+                            const mid = project.midSignalUsers || 0
+                            const total = high + mid
+
+                            const highPercent = total > 0 ? (high / total) * 100 : 0
+                            const midPercent = total > 0 ? (mid / total) * 100 : 0
+
+                            return (
+                                <>
+                                    {highPercent > 0 && (
+                                        <HStack
+                                            h="100%"
+                                            bg="green.500"
+                                            w={`${highPercent}%`}
+                                            justifyContent="center"
+                                            minW={highPercent > 5 ? "auto" : "2px"}
+                                            borderLeftRadius="8px"
+                                        >
+                                            <Text fontSize="sm" fontWeight="bold">
+                                                {high}
+                                            </Text>
+                                        </HStack>
+                                    )}
+                                    {midPercent > 0 && (
+                                        <HStack
+                                            h="100%"
+                                            bg="blue.500"
+                                            w={`${midPercent}%`}
+                                            justifyContent="center"
+                                            minW={midPercent > 5 ? "auto" : "2px"}
+                                            opacity={1}
+                                            borderRightRadius="8px"
+                                        >
+                                            <Text fontSize="sm" fontWeight="bold">
+                                                {mid}
+                                            </Text>
+                                        </HStack>
+                                    )}
+                                </>
+                            )
+                        })()}
+                    </HStack>
                     <VStack
                         px={4}
+                        pt={2}
                         w={"100%"}
                         minH={"30px"}
                         flexWrap="wrap"
@@ -82,12 +127,6 @@ export default function LandingContainer() {
                                 text="Forum"
                                 project={project}
                             />
-                        </HStack>
-                        <HStack h={"100%"} bg="contentBackground" py={1} px={3} borderRadius="full" gap={"6px"}>
-                            <Text fontSize="sm" fontWeight="bold">
-                                {project.activeUsers}
-                            </Text>
-                            <Text fontSize="sm"> active community members</Text>
                         </HStack>
                     </VStack>
                 </VStack>
@@ -117,7 +156,7 @@ export default function LandingContainer() {
                     projects &&
                     projects.length > 0 &&
                     projects
-                        .sort((a, b) => (b.activeUsers ?? 0) - (a.activeUsers ?? 0))
+                        .sort((a, b) => (b.highSignalUsers ?? 0) - (a.highSignalUsers ?? 0))
                         .map((project: ProjectData) => <ProjectCard project={project} key={project.urlSlug} />)}
             </HStack>
             <Link href="/new-project">
