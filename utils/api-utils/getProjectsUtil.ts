@@ -29,6 +29,9 @@ type Project = {
     api_key?: string
     project_signal_strengths: ProjectSignalStrengths[]
     activeUsers?: number
+    highSignalUsers?: number
+    midSignalUsers?: number
+    lowSignalUsers?: number
 }
 
 export async function getProjectsUtil(
@@ -99,14 +102,20 @@ export async function getProjectsUtil(
             return NextResponse.json([])
         }
 
-        // Get active users count for each project
+        // Get active users count and signal strength breakdowns for each project
         const projectIds = projects.map((p) => p.id).filter(Boolean)
         let activeUsersMap: Record<number, number> = {}
+        let highSignalUsersMap: Record<number, number> = {}
+        let midSignalUsersMap: Record<number, number> = {}
+        let lowSignalUsersMap: Record<number, number> = {}
 
         if (projectIds.length > 0) {
             // Initialize all project counts to 0 first
             projectIds.forEach((id) => {
                 activeUsersMap[id] = 0
+                highSignalUsersMap[id] = 0
+                midSignalUsersMap[id] = 0
+                lowSignalUsersMap[id] = 0
             })
 
             // Use the database function to get all counts in a single query
@@ -118,9 +127,18 @@ export async function getProjectsUtil(
                 console.error("Error fetching active users counts:", countError)
             } else if (countData) {
                 // Use the results from the database function
-                const countArray = countData as { project_id: number; active_users_count: number }[]
+                const countArray = countData as {
+                    project_id: number
+                    active_users_count: number
+                    high_signal_users: number
+                    mid_signal_users: number
+                    low_signal_users: number
+                }[]
                 countArray.forEach((row) => {
                     activeUsersMap[row.project_id] = row.active_users_count
+                    highSignalUsersMap[row.project_id] = row.high_signal_users
+                    midSignalUsersMap[row.project_id] = row.mid_signal_users
+                    lowSignalUsersMap[row.project_id] = row.low_signal_users
                 })
             }
         }
@@ -137,6 +155,9 @@ export async function getProjectsUtil(
                     projectLogoUrl: project.project_logo_url,
                     ...(isSuperAdminRequesting || isProjectAdminRequesting ? { apiKey: project.api_key } : {}),
                     activeUsers: project.id ? activeUsersMap[project.id] || 0 : 0,
+                    highSignalUsers: project.id ? highSignalUsersMap[project.id] || 0 : 0,
+                    midSignalUsers: project.id ? midSignalUsersMap[project.id] || 0 : 0,
+                    lowSignalUsers: project.id ? lowSignalUsersMap[project.id] || 0 : 0,
                     signalStrengths:
                         project.project_signal_strengths?.map((ps) => ({
                             url: ps.url,

@@ -123,6 +123,9 @@ interface ProjectData {
     peakSignalsMaxValue: number
     signalStrengths: SignalStrengthProjectData[]
     activeUsers?: number
+    highSignalUsers?: number
+    midSignalUsers?: number
+    lowSignalUsers?: number
 }
 
 interface SignalStrengthProjectData {
