@@ -550,7 +550,7 @@ export default function SignalStrength({
                     )}
                 </>
             )}
-            {countdownText != "Calculating score..." && !userData?.description?.includes("No activity in the past") && (
+            {/* {countdownText != "Calculating score..." && !userData?.description?.includes("No activity in the past") && (
                 <>
                     <Divider borderWidth={3} my={6} />
                     <VStack w="100%" gap={0} alignItems={"center"}>
@@ -646,7 +646,7 @@ export default function SignalStrength({
                         </VStack>
                     </VStack>
                 </>
-            )}
+            )} */}
             {signalStrengthProjectData.status === "active" &&
                 signalStrengthProjectData.enabled &&
                 !userContentAvailable &&
