@@ -36,7 +36,6 @@ export default function LandingContainer() {
                         pb={3}
                         justifyContent={{ base: "center", sm: "start" }}
                         bg={"contentBorder"}
-                        borderTopRadius="10px"
                     >
                         <Image
                             src={project.projectLogoUrl}
@@ -66,16 +65,14 @@ export default function LandingContainer() {
                             {project.description}
                         </Text>
                     </VStack>
-                    <HStack w="100%" h="20px" gap={"2px"} my={1} px={"5px"}>
+                    <HStack w="100%" h="25px" gap={"2px"} my={1} px={5}>
                         {(() => {
-                            const total = project.activeUsers || 0
                             const high = project.highSignalUsers || 0
                             const mid = project.midSignalUsers || 0
-                            const low = project.lowSignalUsers || 0
+                            const total = high + mid
 
                             const highPercent = total > 0 ? (high / total) * 100 : 0
                             const midPercent = total > 0 ? (mid / total) * 100 : 0
-                            const lowPercent = total > 0 ? (low / total) * 100 : 0
 
                             return (
                                 <>
@@ -86,8 +83,12 @@ export default function LandingContainer() {
                                             w={`${highPercent}%`}
                                             justifyContent="center"
                                             minW={highPercent > 5 ? "auto" : "2px"}
-                                            borderRadius="8px"
-                                        ></HStack>
+                                            borderLeftRadius="8px"
+                                        >
+                                            <Text fontSize="sm" fontWeight="bold">
+                                                {high}
+                                            </Text>
+                                        </HStack>
                                     )}
                                     {midPercent > 0 && (
                                         <HStack
@@ -97,19 +98,12 @@ export default function LandingContainer() {
                                             justifyContent="center"
                                             minW={midPercent > 5 ? "auto" : "2px"}
                                             opacity={1}
-                                            borderRadius="8px"
-                                        ></HStack>
-                                    )}
-                                    {lowPercent > 0 && (
-                                        <HStack
-                                            h="100%"
-                                            bg="gray.500"
-                                            w={`${lowPercent}%`}
-                                            justifyContent="center"
-                                            minW={lowPercent > 5 ? "auto" : "2px"}
-                                            opacity={1}
-                                            borderRadius="8px"
-                                        ></HStack>
+                                            borderRightRadius="8px"
+                                        >
+                                            <Text fontSize="sm" fontWeight="bold">
+                                                {mid}
+                                            </Text>
+                                        </HStack>
                                     )}
                                 </>
                             )
@@ -162,7 +156,7 @@ export default function LandingContainer() {
                     projects &&
                     projects.length > 0 &&
                     projects
-                        .sort((a, b) => (b.activeUsers ?? 0) - (a.activeUsers ?? 0))
+                        .sort((a, b) => (b.highSignalUsers ?? 0) - (a.highSignalUsers ?? 0))
                         .map((project: ProjectData) => <ProjectCard project={project} key={project.urlSlug} />)}
             </HStack>
             <Link href="/new-project">
