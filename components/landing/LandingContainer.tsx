@@ -17,7 +17,7 @@ export default function LandingContainer() {
     const ProjectCard = ({ project }: { project: ProjectData }) => {
         const containerRef = useRef<HTMLDivElement | null>(null)
         const [containerWidth, setContainerWidth] = useState<number>(0)
-        const [showScoreLabel, setShowScoreLabel] = useState<boolean>(false)
+        const [showHoverContent, setShowScoreLabel] = useState<boolean>(false)
 
         useEffect(() => {
             if (!containerRef.current) return
@@ -75,12 +75,12 @@ export default function LandingContainer() {
                                 borderColor="green.500"
                                 justifyContent="center"
                                 alignItems="center"
-                                gap={showScoreLabel ? "6px" : 0}
+                                gap={showHoverContent ? "6px" : 0}
                                 px={2}
                             >
                                 <HStack
                                     h={"100%"}
-                                    borderRight={showScoreLabel ? "5px solid" : "none"}
+                                    borderRight={showHoverContent ? "5px solid" : "none"}
                                     borderColor="green.500"
                                 >
                                     <Text
@@ -90,17 +90,17 @@ export default function LandingContainer() {
                                         lineHeight="1.2"
                                         textAlign="center"
                                         overflow="hidden"
-                                        w={showScoreLabel ? "80px" : 0}
-                                        opacity={showScoreLabel ? 1 : 0}
+                                        w={showHoverContent ? "80px" : 0}
+                                        opacity={showHoverContent ? 1 : 0}
                                         transition={
-                                            showScoreLabel
+                                            showHoverContent
                                                 ? "width 0.3s ease, opacity 0.8s ease, margin 0.3s ease"
                                                 : "width 0.3s ease, opacity 0.3s linear, margin 0.3s ease"
                                         }
                                         className="score-label"
                                         as="span"
                                         display="inline-block"
-                                        mr={showScoreLabel ? 1 : 0}
+                                        mr={showHoverContent ? 1 : 0}
                                         whiteSpace="nowrap"
                                     >
                                         Community
@@ -150,10 +150,12 @@ export default function LandingContainer() {
                             const heightPx = 40
 
                             const DotGroup = ({
+                                type,
                                 count,
                                 color,
                                 widthPercent,
                             }: {
+                                type: "high" | "mid"
                                 count: number
                                 color: string
                                 widthPercent: number
@@ -191,10 +193,39 @@ export default function LandingContainer() {
                                         alignItems="center"
                                         alignContent="start"
                                         gap={`${gap}px`}
+                                        position="relative"
                                     >
                                         {Array.from({ length: count }).map((_, i) => (
-                                            <Box key={i} boxSize={`${dotSize}px`} borderRadius="full" bg={color} />
+                                            <Box
+                                                opacity={showHoverContent ? 0.1 : 1}
+                                                key={i}
+                                                boxSize={`${dotSize}px`}
+                                                borderRadius="full"
+                                                bg={color}
+                                            />
                                         ))}
+                                        <HStack
+                                            position="absolute"
+                                            left={0}
+                                            top={0}
+                                            w="100%"
+                                            h="100%"
+                                            display={showHoverContent ? "flex" : "none"}
+                                            justifyContent="center"
+                                            alignItems="start"
+                                        >
+                                            <Text
+                                                fontWeight="bold"
+                                                color={color}
+                                                lineHeight="1.2"
+                                                textAlign="center"
+                                                fontSize="sm"
+                                                whiteSpace="nowrap"
+                                            >
+                                                {type === "high" ? "High Signal" : "Mid Signal"}
+                                                <br /> Users
+                                            </Text>
+                                        </HStack>
                                     </HStack>
                                 )
                             }
@@ -210,8 +241,17 @@ export default function LandingContainer() {
                                     justifyContent="center"
                                     alignItems="center"
                                 >
-                                    {high > 0 && <DotGroup count={high} color="green.500" widthPercent={highPercent} />}
-                                    {mid > 0 && <DotGroup count={mid} color="blue.500" widthPercent={midPercent} />}
+                                    {high > 0 && (
+                                        <DotGroup
+                                            type="high"
+                                            count={high}
+                                            color="green.500"
+                                            widthPercent={highPercent}
+                                        />
+                                    )}
+                                    {mid > 0 && (
+                                        <DotGroup type="mid" count={mid} color="blue.500" widthPercent={midPercent} />
+                                    )}
                                 </HStack>
                             )
                         })()}
