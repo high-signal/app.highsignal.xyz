@@ -140,7 +140,6 @@ export default function LandingContainer() {
                             />
                         </Box>
                         <Box bg={"pageBackground"} h={1} w={"100%"} />
-
                         <VStack
                             bg={"pageBackground"}
                             px={4}
@@ -158,19 +157,26 @@ export default function LandingContainer() {
                                 py={1}
                                 w={"100%"}
                                 borderTopRadius="16px"
+                                rowGap={1}
+                                columnGap={2}
                             >
-                                <SignalIndicator
-                                    signalName="discord"
-                                    icon={faDiscord}
-                                    text="Discord"
-                                    project={project}
-                                />
-                                <SignalIndicator
-                                    signalName="discourse_forum"
-                                    icon={faDiscourse}
-                                    text="Forum"
-                                    project={project}
-                                />
+                                <Text fontSize="sm" fontWeight="bold" color="textColorMuted">
+                                    Signals used
+                                </Text>
+                                <HStack gap={2}>
+                                    <SignalIndicator
+                                        signalName="discord"
+                                        icon={faDiscord}
+                                        text="Discord"
+                                        project={project}
+                                    />
+                                    <SignalIndicator
+                                        signalName="discourse_forum"
+                                        icon={faDiscourse}
+                                        text="Forum"
+                                        project={project}
+                                    />
+                                </HStack>
                             </HStack>
                         </VStack>
                     </VStack>
@@ -180,7 +186,7 @@ export default function LandingContainer() {
     }
 
     return (
-        <VStack gap={8} pt={{ base: 3, sm: 0 }} maxW="100%" w={"100%"}>
+        <VStack gap={5} pt={{ base: 3, sm: 0 }} maxW="100%" w={"100%"}>
             <Text fontSize="3xl" fontWeight="bold" px={6} textAlign="center">
                 High Signal Leaderboards
             </Text>
