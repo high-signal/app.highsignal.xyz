@@ -1,6 +1,6 @@
 "use client"
 
-import { HStack, Box, Text } from "@chakra-ui/react"
+import { HStack, VStack, Box, Text, useBreakpointValue } from "@chakra-ui/react"
 import { useEffect, useRef, useState, memo } from "react"
 
 const DotGroup = memo(function DotGroup({
@@ -15,6 +15,8 @@ const DotGroup = memo(function DotGroup({
     heightPx,
     containerWidth,
     showHoverContent,
+    showLabels,
+    labelHeight,
 }: {
     type: "high" | "mid"
     count: number
@@ -27,6 +29,8 @@ const DotGroup = memo(function DotGroup({
     heightPx: number
     containerWidth: number
     showHoverContent: boolean
+    showLabels: boolean
+    labelHeight: number
 }) {
     const dotRefs = useRef<(HTMLDivElement | null)[]>([])
     const textRef = useRef<HTMLDivElement | null>(null)
@@ -81,55 +85,77 @@ const DotGroup = memo(function DotGroup({
     const gap = Math.max(0, Math.floor(cellSize * 0.2))
     const dotSize = Math.max(1, cellSize - gap)
 
+    const labelAlign =
+        showLabels && type === "high" && useBreakpointValue({ base: true, sm: false }) ? "start" : "center"
+
     return (
-        <HStack
-            h={`${heightPx}px`}
+        <VStack
             w={`${widthPercent}%`}
-            flexWrap="wrap"
-            justifyContent="center"
-            alignItems="center"
-            alignContent="start"
-            gap={`${gap}px`}
-            position="relative"
+            h={`${heightPx + labelHeight}px`}
+            justifyContent={{ base: "end", sm: "space-around" }}
+            gap={0}
         >
-            {Array.from({ length: count }).map((_, i) => (
-                <Box
-                    key={`${animationKey}-${i}`}
-                    ref={(el: HTMLDivElement | null) => (dotRefs.current[i] = el)}
-                    boxSize={`${dotSize}px`}
-                    borderRadius="full"
-                    bg={color}
-                    style={{
-                        opacity: 0,
-                        transition: "opacity 0.1s ease-in-out",
-                    }}
-                />
-            ))}
-            <HStack
-                ref={textRef}
-                position="absolute"
-                left={0}
-                top={0}
-                w="100%"
-                h="100%"
-                justifyContent="center"
-                alignItems="start"
-                opacity={0}
-                pointerEvents="none"
-            >
+            {showLabels && (
                 <Text
                     fontWeight="bold"
                     color={color}
                     lineHeight="1.2"
-                    textAlign="center"
+                    textAlign={labelAlign}
+                    w={"100%"}
                     fontSize="sm"
                     whiteSpace="nowrap"
                 >
-                    {type === "high" ? "High Signal" : "Mid Signal"}
-                    <br /> Users
+                    {type === "high" ? "High Signal" : "Mid Signal"} Users
                 </Text>
+            )}
+            <HStack
+                h={`${heightPx}px`}
+                flexWrap="wrap"
+                justifyContent="center"
+                alignItems="center"
+                alignContent={showLabels ? "end" : "start"}
+                gap={`${gap}px`}
+                position="relative"
+            >
+                {Array.from({ length: count }).map((_, i) => (
+                    <Box
+                        key={`${animationKey}-${i}`}
+                        ref={(el: HTMLDivElement | null) => (dotRefs.current[i] = el)}
+                        boxSize={`${dotSize}px`}
+                        borderRadius="full"
+                        bg={color}
+                        style={{
+                            opacity: 0,
+                            transition: "opacity 0.1s ease-in-out",
+                        }}
+                    />
+                ))}
+                <HStack
+                    ref={textRef}
+                    position="absolute"
+                    left={0}
+                    top={0}
+                    w="100%"
+                    h="100%"
+                    justifyContent="center"
+                    alignItems="start"
+                    opacity={0}
+                    pointerEvents="none"
+                >
+                    <Text
+                        fontWeight="bold"
+                        color={color}
+                        lineHeight="1.2"
+                        textAlign="center"
+                        fontSize="sm"
+                        whiteSpace="nowrap"
+                    >
+                        {type === "high" ? "High Signal" : "Mid Signal"}
+                        <br /> Users
+                    </Text>
+                </HStack>
             </HStack>
-        </HStack>
+        </VStack>
     )
 })
 
@@ -151,10 +177,12 @@ export function UserSignalDotsBar({
     const [animationKey, setAnimationKey] = useState<number>(0)
     const [isMounted, setIsMounted] = useState(false)
 
+    const labelHeight = showLabels ? useBreakpointValue({ base: 20, sm: 20 }) : 0
+
     useEffect(() => {
         setIsMounted(false)
         setAnimationKey((prev) => prev + 1)
-        const timer = setTimeout(() => setIsMounted(true), 0)
+        const timer = setTimeout(() => setIsMounted(true), 100)
         return () => clearTimeout(timer)
     }, [])
 
@@ -179,7 +207,7 @@ export function UserSignalDotsBar({
         <HStack
             ref={containerRef as any}
             w="100%"
-            h={`${heightPx}px`}
+            h={`${heightPx + (labelHeight || 0)}px`}
             gap={high < 10 || mid < 10 ? "20px" : "4px"}
             justifyContent="center"
             alignItems="center"
@@ -198,6 +226,8 @@ export function UserSignalDotsBar({
                     heightPx={heightPx}
                     containerWidth={containerWidth}
                     showHoverContent={showHoverContent}
+                    showLabels={showLabels}
+                    labelHeight={labelHeight || 0}
                 />
             )}
             {mid > 0 && (
@@ -213,6 +243,8 @@ export function UserSignalDotsBar({
                     heightPx={heightPx}
                     containerWidth={containerWidth}
                     showHoverContent={showHoverContent}
+                    showLabels={showLabels}
+                    labelHeight={labelHeight || 0}
                 />
             )}
         </HStack>
