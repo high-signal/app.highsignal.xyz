@@ -15,6 +15,20 @@ export default function LandingContainer() {
     const isMobile = useBreakpointValue({ base: true, sm: false })
 
     const ProjectCard = ({ project }: { project: ProjectData }) => {
+        const containerRef = useRef<HTMLDivElement | null>(null)
+        const [containerWidth, setContainerWidth] = useState<number>(0)
+
+        useEffect(() => {
+            if (!containerRef.current) return
+            const observer = new ResizeObserver((entries) => {
+                for (const entry of entries) {
+                    const width = entry.contentRect.width
+                    setContainerWidth(width)
+                }
+            })
+            observer.observe(containerRef.current)
+            return () => observer.disconnect()
+        }, [])
         return (
             <Link href={`/p/${project.urlSlug}`} key={project.urlSlug}>
                 <VStack
@@ -75,21 +89,6 @@ export default function LandingContainer() {
                         </VStack>
                         <Box bg={"pageBackground"} h={3} w={"100%"} />
                         {(() => {
-                            const containerRef = useRef<HTMLDivElement | null>(null)
-                            const [containerWidth, setContainerWidth] = useState<number>(0)
-
-                            useEffect(() => {
-                                if (!containerRef.current) return
-                                const observer = new ResizeObserver((entries) => {
-                                    for (const entry of entries) {
-                                        const width = entry.contentRect.width
-                                        setContainerWidth(width)
-                                    }
-                                })
-                                observer.observe(containerRef.current)
-                                return () => observer.disconnect()
-                            }, [])
-
                             const high = project.highSignalUsers || 0
                             const mid = project.midSignalUsers || 0
                             const total = Math.max(1, high + mid)
