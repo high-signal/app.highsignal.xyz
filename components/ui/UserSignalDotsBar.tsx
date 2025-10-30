@@ -34,6 +34,8 @@ const DotGroup = memo(function DotGroup({
 }) {
     const dotRefs = useRef<(HTMLDivElement | null)[]>([])
     const textRef = useRef<HTMLDivElement | null>(null)
+    const timeoutsRef = useRef<NodeJS.Timeout[]>([])
+    const showHoverRef = useRef<boolean>(showHoverContent)
 
     const containerInnerWidth = Math.max(1, containerWidth - 40)
     const groupWidth = Math.max(1, (containerInnerWidth * widthPercent) / 100)
@@ -41,21 +43,32 @@ const DotGroup = memo(function DotGroup({
     const durationMs = 1000
     const transitionMs = 500
 
+    useEffect(() => {
+        showHoverRef.current = showHoverContent
+    }, [showHoverContent])
+
     // Staggered animation on mount or animationKey change
     useEffect(() => {
         if (!isMounted) return
-
-        const timeouts: NodeJS.Timeout[] = []
+        // clear any existing timeouts before starting a new batch
+        timeoutsRef.current.forEach(clearTimeout)
+        timeoutsRef.current = []
         for (let i = 0; i < count; i++) {
             const delayMs = ((startIndex + i) * (durationMs - transitionMs)) / Math.max(1, totalDots - 1)
             const timeout = setTimeout(() => {
                 const el = dotRefs.current[i]
-                if (el) el.style.opacity = "1"
+                if (el) {
+                    // respect latest hover state even if it changed mid-animation
+                    const finalOpacity = showHoverRef.current ? 0.1 : 1
+                    el.style.opacity = String(finalOpacity)
+                }
             }, delayMs)
-            timeouts.push(timeout)
+            timeoutsRef.current.push(timeout)
         }
-
-        return () => timeouts.forEach(clearTimeout)
+        return () => {
+            timeoutsRef.current.forEach(clearTimeout)
+            timeoutsRef.current = []
+        }
     }, [count, startIndex, totalDots, durationMs, transitionMs, animationKey, isMounted])
 
     // Smooth opacity update on hover toggle
