@@ -55,9 +55,9 @@ export default function SignalIndicator({
 
     return (
         <HStack
-            h={"100%"}
+            h={"30px"}
             py={1}
-            px={3}
+            px={2}
             borderRadius="full"
             border="2px solid"
             borderColor="contentBorder"
