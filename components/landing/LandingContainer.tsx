@@ -296,14 +296,14 @@ export default function LandingContainer() {
     }
 
     return (
-        <VStack gap={8} pt={5} maxW="100%" w={"100%"}>
+        <VStack gap={8} pt={{ base: 3, sm: 0 }} maxW="100%" w={"100%"}>
             <Text fontSize="3xl" fontWeight="bold" px={6} textAlign="center">
                 High Signal Leaderboards
             </Text>
             {error && <Text>Error loading projects</Text>}
             <HStack gap={8} flexWrap="wrap" justifyContent="center" maxW="100%">
                 {loading &&
-                    [1, 2, 3, 4].map((item) => (
+                    [1, 2, 3, 4, 5, 6].map((item) => (
                         <Skeleton
                             defaultSkeleton
                             key={item}
