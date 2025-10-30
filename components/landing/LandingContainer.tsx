@@ -1,7 +1,7 @@
 "use client"
 
 import { VStack, Text, Image, HStack, useBreakpointValue, Button, Skeleton, Box } from "@chakra-ui/react"
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useGetProjects } from "../../hooks/useGetProjects"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -9,27 +9,14 @@ import { faDiscord, faDiscourse } from "@fortawesome/free-brands-svg-icons"
 import { faPlusCircle } from "@fortawesome/free-solid-svg-icons"
 
 import SignalIndicator from "../ui/SignalIndicator"
+import UserSignalDotsBar from "../ui/UserSignalDotsBar"
 
 export default function LandingContainer() {
     const { projects, loading, error } = useGetProjects()
     const isMobile = useBreakpointValue({ base: true, sm: false })
 
     const ProjectCard = ({ project }: { project: ProjectData }) => {
-        const containerRef = useRef<HTMLDivElement | null>(null)
-        const [containerWidth, setContainerWidth] = useState<number>(0)
         const [showHoverContent, setShowScoreLabel] = useState<boolean>(false)
-
-        useEffect(() => {
-            if (!containerRef.current) return
-            const observer = new ResizeObserver((entries) => {
-                for (const entry of entries) {
-                    const width = entry.contentRect.width
-                    setContainerWidth(width)
-                }
-            })
-            observer.observe(containerRef.current)
-            return () => observer.disconnect()
-        }, [])
 
         return (
             <Link href={`/p/${project.urlSlug}`} key={project.urlSlug}>
@@ -43,10 +30,14 @@ export default function LandingContainer() {
                     w="400px"
                     maxW="90vw"
                     overflow="hidden"
-                    onMouseEnter={() => setShowScoreLabel(true)}
-                    onMouseLeave={() => setShowScoreLabel(false)}
+                    onPointerEnter={(e) => {
+                        if (e.pointerType !== "touch") setShowScoreLabel(true)
+                    }}
+                    onPointerLeave={(e) => {
+                        if (e.pointerType !== "touch") setShowScoreLabel(false)
+                    }}
                 >
-                    <HStack w={"100%"} px={"3px"} pt={"2px"} mb={2}>
+                    <HStack w={"100%"} px={"4px"} pt={"2px"} mb={2}>
                         <HStack
                             bg={"pageBackground"}
                             h={"50px"}
@@ -140,123 +131,15 @@ export default function LandingContainer() {
                             </Text>
                         </VStack>
                         <Box bg={"pageBackground"} h={3} w={"100%"} />
-                        {(() => {
-                            const high = project.highSignalUsers || 0
-                            const mid = project.midSignalUsers || 0
-                            const total = Math.max(1, high + mid)
-                            const highPercent = (high / total) * 100
-                            const midPercent = (mid / total) * 100
-
-                            const heightPx = 40
-
-                            const DotGroup = ({
-                                type,
-                                count,
-                                color,
-                                widthPercent,
-                            }: {
-                                type: "high" | "mid"
-                                count: number
-                                color: string
-                                widthPercent: number
-                            }) => {
-                                // Account for horizontal padding on the container (px={5} on Chakra => ~40px)
-                                const containerInnerWidth = Math.max(1, containerWidth - 40)
-                                const groupWidth = Math.max(1, (containerInnerWidth * widthPercent) / 100)
-
-                                // Guard against zero count
-                                if (count <= 0) {
-                                    return null
-                                }
-
-                                // Compute a grid that fits within groupWidth x heightPx
-                                // Start by estimating number of columns using area ratio
-                                const estimatedColumns = Math.ceil(
-                                    Math.sqrt((count * groupWidth) / Math.max(1, heightPx)),
-                                )
-                                const columns = Math.max(1, estimatedColumns)
-                                const cellSizeX = groupWidth / columns
-                                const rows = Math.max(1, Math.ceil(count / columns))
-                                const cellSizeY = heightPx / rows
-                                const cellSize = Math.max(1, Math.floor(Math.min(cellSizeX, cellSizeY)))
-
-                                // Gap as a fraction of cell size, ensuring non-negative sizes
-                                const gap = Math.max(0, Math.floor(cellSize * 0.2))
-                                const dotSize = Math.max(1, cellSize - gap)
-
-                                return (
-                                    <HStack
-                                        h={`${heightPx}px`}
-                                        w={`${widthPercent}%`}
-                                        flexWrap="wrap"
-                                        justifyContent="center"
-                                        alignItems="center"
-                                        alignContent="start"
-                                        gap={`${gap}px`}
-                                        position="relative"
-                                    >
-                                        {Array.from({ length: count }).map((_, i) => (
-                                            <Box
-                                                opacity={showHoverContent ? 0.1 : 1}
-                                                key={i}
-                                                boxSize={`${dotSize}px`}
-                                                borderRadius="full"
-                                                bg={color}
-                                            />
-                                        ))}
-                                        <HStack
-                                            position="absolute"
-                                            left={0}
-                                            top={0}
-                                            w="100%"
-                                            h="100%"
-                                            display={showHoverContent ? "flex" : "none"}
-                                            justifyContent="center"
-                                            alignItems="start"
-                                        >
-                                            <Text
-                                                fontWeight="bold"
-                                                color={color}
-                                                lineHeight="1.2"
-                                                textAlign="center"
-                                                fontSize="sm"
-                                                whiteSpace="nowrap"
-                                            >
-                                                {type === "high" ? "High Signal" : "Mid Signal"}
-                                                <br /> Users
-                                            </Text>
-                                        </HStack>
-                                    </HStack>
-                                )
-                            }
-
-                            return (
-                                <HStack
-                                    bg={"pageBackground"}
-                                    ref={containerRef as any}
-                                    w="100%"
-                                    h={`${heightPx}px`}
-                                    gap={high < 10 || mid < 10 ? "20px" : "4px"}
-                                    px={5}
-                                    justifyContent="center"
-                                    alignItems="center"
-                                >
-                                    {high > 0 && (
-                                        <DotGroup
-                                            type="high"
-                                            count={high}
-                                            color="green.500"
-                                            widthPercent={highPercent}
-                                        />
-                                    )}
-                                    {mid > 0 && (
-                                        <DotGroup type="mid" count={mid} color="blue.500" widthPercent={midPercent} />
-                                    )}
-                                </HStack>
-                            )
-                        })()}
+                        <Box bg={"pageBackground"} px={5}>
+                            <UserSignalDotsBar
+                                highCount={project.highSignalUsers || 0}
+                                midCount={project.midSignalUsers || 0}
+                                showHoverContent={showHoverContent}
+                                heightPx={40}
+                            />
+                        </Box>
                         <Box bg={"pageBackground"} h={1} w={"100%"} />
-
                         <VStack
                             bg={"pageBackground"}
                             px={4}
@@ -274,19 +157,26 @@ export default function LandingContainer() {
                                 py={1}
                                 w={"100%"}
                                 borderTopRadius="16px"
+                                rowGap={1}
+                                columnGap={2}
                             >
-                                <SignalIndicator
-                                    signalName="discord"
-                                    icon={faDiscord}
-                                    text="Discord"
-                                    project={project}
-                                />
-                                <SignalIndicator
-                                    signalName="discourse_forum"
-                                    icon={faDiscourse}
-                                    text="Forum"
-                                    project={project}
-                                />
+                                <Text fontSize="sm" fontWeight="bold" color="textColorMuted">
+                                    Signals used
+                                </Text>
+                                <HStack gap={2}>
+                                    <SignalIndicator
+                                        signalName="discord"
+                                        icon={faDiscord}
+                                        text="Discord"
+                                        project={project}
+                                    />
+                                    <SignalIndicator
+                                        signalName="discourse_forum"
+                                        icon={faDiscourse}
+                                        text="Forum"
+                                        project={project}
+                                    />
+                                </HStack>
                             </HStack>
                         </VStack>
                     </VStack>
@@ -296,12 +186,12 @@ export default function LandingContainer() {
     }
 
     return (
-        <VStack gap={8} pt={{ base: 3, sm: 0 }} maxW="100%" w={"100%"}>
+        <VStack gap={5} pt={{ base: 3, sm: 0 }} maxW="100%" w={"100%"}>
             <Text fontSize="3xl" fontWeight="bold" px={6} textAlign="center">
                 High Signal Leaderboards
             </Text>
             {error && <Text>Error loading projects</Text>}
-            <HStack gap={8} flexWrap="wrap" justifyContent="center" maxW="100%">
+            <HStack gap={6} flexWrap="wrap" justifyContent="center" maxW="100%">
                 {loading &&
                     [1, 2, 3, 4, 5, 6].map((item) => (
                         <Skeleton
