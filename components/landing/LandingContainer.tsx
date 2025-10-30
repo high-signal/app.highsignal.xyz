@@ -45,7 +45,7 @@ export default function LandingContainer() {
                     onMouseEnter={() => setShowScoreLabel(true)}
                     onMouseLeave={() => setShowScoreLabel(false)}
                 >
-                    <HStack w={"100%"} px={"3px"} pt={"2px"} mb={2} justifyContent={{ base: "center", sm: "start" }}>
+                    <HStack w={"100%"} px={"3px"} pt={"2px"} mb={2}>
                         <HStack
                             bg={"pageBackground"}
                             h={"50px"}
@@ -54,7 +54,7 @@ export default function LandingContainer() {
                             justifyContent="space-between"
                             gap={0}
                         >
-                            <HStack justifyContent="start" gap={3}>
+                            <HStack justifyContent="start" gap={3} flex="1" minW={0}>
                                 <Image
                                     src={project.projectLogoUrl}
                                     alt={project.displayName}
