@@ -17,6 +17,7 @@ export default function LandingContainer() {
     const ProjectCard = ({ project }: { project: ProjectData }) => {
         const containerRef = useRef<HTMLDivElement | null>(null)
         const [containerWidth, setContainerWidth] = useState<number>(0)
+        const [showScoreLabel, setShowScoreLabel] = useState<boolean>(false)
 
         useEffect(() => {
             if (!containerRef.current) return
@@ -34,13 +35,15 @@ export default function LandingContainer() {
                 <VStack
                     gap={0}
                     borderRadius="32px"
-                    border="4px solid"
+                    border="6px solid"
                     borderColor="contentBorder"
                     justifyContent="space-between"
                     bg="contentBorder"
                     w="400px"
                     maxW="90vw"
                     overflow="hidden"
+                    onMouseEnter={() => setShowScoreLabel(true)}
+                    onMouseLeave={() => setShowScoreLabel(false)}
                 >
                     <HStack w={"100%"} px={"3px"} pt={"2px"} mb={2} justifyContent={{ base: "center", sm: "start" }}>
                         <HStack
@@ -48,18 +51,66 @@ export default function LandingContainer() {
                             h={"50px"}
                             w={"100%"}
                             borderRadius="full"
-                            justifyContent="start"
-                            gap={4}
+                            justifyContent="space-between"
+                            gap={0}
                         >
-                            <Image
-                                src={project.projectLogoUrl}
-                                alt={project.displayName}
-                                boxSize="50px"
+                            <HStack justifyContent="start" gap={3}>
+                                <Image
+                                    src={project.projectLogoUrl}
+                                    alt={project.displayName}
+                                    boxSize="50px"
+                                    borderRadius="full"
+                                />
+                                <Text fontSize="3xl" truncate>
+                                    {project.displayName}
+                                </Text>
+                            </HStack>
+                            <HStack
+                                minW={"max-content"}
+                                border={"5px solid"}
+                                h={"50px"}
                                 borderRadius="full"
-                            />
-                            <Text fontSize="3xl" whiteSpace="normal" overflowWrap="break-word" wordBreak="break-word">
-                                {project.displayName}
-                            </Text>
+                                bg="pageBackground"
+                                borderColor="green.500"
+                                justifyContent="center"
+                                alignItems="center"
+                                gap={showScoreLabel ? "6px" : 0}
+                                px={2}
+                            >
+                                <HStack
+                                    h={"100%"}
+                                    borderRight={showScoreLabel ? "5px solid" : "none"}
+                                    borderColor="green.500"
+                                >
+                                    <Text
+                                        fontWeight="bold"
+                                        fontSize="xs"
+                                        color="textColorMuted"
+                                        lineHeight="1.2"
+                                        textAlign="center"
+                                        overflow="hidden"
+                                        w={showScoreLabel ? "80px" : 0}
+                                        opacity={showScoreLabel ? 1 : 0}
+                                        transition={
+                                            showScoreLabel
+                                                ? "width 0.3s ease, opacity 0.8s ease, margin 0.3s ease"
+                                                : "width 0.3s ease, opacity 0.3s linear, margin 0.3s ease"
+                                        }
+                                        className="score-label"
+                                        as="span"
+                                        display="inline-block"
+                                        mr={showScoreLabel ? 1 : 0}
+                                        whiteSpace="nowrap"
+                                    >
+                                        Community
+                                        <br />
+                                        Score
+                                    </Text>
+                                </HStack>
+                                <Text fontSize="xl" fontWeight="bold">
+                                    {project.averageScore?.toFixed(0)}
+                                </Text>
+                            </HStack>
                         </HStack>
                     </HStack>
                     <VStack gap={0} pb={1} bg={"pageBackground"} borderRadius="22px" w={"100%"} overflow="hidden">
@@ -207,7 +258,7 @@ export default function LandingContainer() {
                     projects &&
                     projects.length > 0 &&
                     projects
-                        .sort((a, b) => (b.highSignalUsers ?? 0) - (a.highSignalUsers ?? 0))
+                        .sort((a, b) => (b.averageScore ?? 0) - (a.averageScore ?? 0))
                         .map((project: ProjectData) => <ProjectCard project={project} key={project.urlSlug} />)}
             </HStack>
             <Link href="/new-project">

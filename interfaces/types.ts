@@ -126,6 +126,7 @@ interface ProjectData {
     highSignalUsers?: number
     midSignalUsers?: number
     lowSignalUsers?: number
+    averageScore?: number
 }
 
 interface SignalStrengthProjectData {

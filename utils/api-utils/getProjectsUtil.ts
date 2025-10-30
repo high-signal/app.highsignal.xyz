@@ -32,6 +32,7 @@ type Project = {
     highSignalUsers?: number
     midSignalUsers?: number
     lowSignalUsers?: number
+    averageScore?: number
 }
 
 export async function getProjectsUtil(
@@ -108,6 +109,7 @@ export async function getProjectsUtil(
         let highSignalUsersMap: Record<number, number> = {}
         let midSignalUsersMap: Record<number, number> = {}
         let lowSignalUsersMap: Record<number, number> = {}
+        let averageScoreMap: Record<number, number> = {}
 
         if (projectIds.length > 0) {
             // Initialize all project counts to 0 first
@@ -116,6 +118,7 @@ export async function getProjectsUtil(
                 highSignalUsersMap[id] = 0
                 midSignalUsersMap[id] = 0
                 lowSignalUsersMap[id] = 0
+                averageScoreMap[id] = 0
             })
 
             // Use the database function to get all counts in a single query
@@ -133,12 +136,14 @@ export async function getProjectsUtil(
                     high_signal_users: number
                     mid_signal_users: number
                     low_signal_users: number
+                    average_score: number
                 }[]
                 countArray.forEach((row) => {
                     activeUsersMap[row.project_id] = row.active_users_count
                     highSignalUsersMap[row.project_id] = row.high_signal_users
                     midSignalUsersMap[row.project_id] = row.mid_signal_users
                     lowSignalUsersMap[row.project_id] = row.low_signal_users
+                    averageScoreMap[row.project_id] = row.average_score
                 })
             }
         }
@@ -158,6 +163,7 @@ export async function getProjectsUtil(
                     highSignalUsers: project.id ? highSignalUsersMap[project.id] || 0 : 0,
                     midSignalUsers: project.id ? midSignalUsersMap[project.id] || 0 : 0,
                     lowSignalUsers: project.id ? lowSignalUsersMap[project.id] || 0 : 0,
+                    averageScore: project.id ? averageScoreMap[project.id] || 0 : 0,
                     signalStrengths:
                         project.project_signal_strengths?.map((ps) => ({
                             url: ps.url,
