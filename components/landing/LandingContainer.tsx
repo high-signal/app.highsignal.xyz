@@ -43,10 +43,14 @@ export default function LandingContainer() {
                     w="400px"
                     maxW="90vw"
                     overflow="hidden"
-                    onMouseEnter={() => setShowScoreLabel(true)}
-                    onMouseLeave={() => setShowScoreLabel(false)}
+                    onPointerEnter={(e) => {
+                        if (e.pointerType !== "touch") setShowScoreLabel(true)
+                    }}
+                    onPointerLeave={(e) => {
+                        if (e.pointerType !== "touch") setShowScoreLabel(false)
+                    }}
                 >
-                    <HStack w={"100%"} px={"3px"} pt={"2px"} mb={2}>
+                    <HStack w={"100%"} px={"4px"} pt={"2px"} mb={2}>
                         <HStack
                             bg={"pageBackground"}
                             h={"50px"}
