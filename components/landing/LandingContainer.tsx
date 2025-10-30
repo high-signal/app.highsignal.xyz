@@ -52,7 +52,7 @@ export default function LandingContainer() {
                             w={"100%"}
                             borderRadius="full"
                             justifyContent="space-between"
-                            gap={0}
+                            gap={2}
                         >
                             <HStack justifyContent="start" gap={3} flex="1" minW={0}>
                                 <Image
