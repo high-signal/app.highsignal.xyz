@@ -37,6 +37,7 @@ const DotGroup = memo(function DotGroup({
 
     const containerInnerWidth = Math.max(1, containerWidth - 40)
     const groupWidth = Math.max(1, (containerInnerWidth * widthPercent) / 100)
+    const isBaseBreakpoint = useBreakpointValue({ base: true, sm: false })
     const durationMs = 1000
     const transitionMs = 500
 
@@ -85,8 +86,7 @@ const DotGroup = memo(function DotGroup({
     const gap = Math.max(0, Math.floor(cellSize * 0.2))
     const dotSize = Math.max(1, cellSize - gap)
 
-    const labelAlign =
-        showLabels && type === "high" && useBreakpointValue({ base: true, sm: false }) ? "start" : "center"
+    const labelAlign = showLabels && type === "high" && (isBaseBreakpoint ?? true) ? "start" : "center"
 
     return (
         <VStack
@@ -177,7 +177,8 @@ export function UserSignalDotsBar({
     const [animationKey, setAnimationKey] = useState<number>(0)
     const [isMounted, setIsMounted] = useState(false)
 
-    const labelHeight = showLabels ? useBreakpointValue({ base: 20, sm: 20 }) : 0
+    const responsiveLabelHeight = useBreakpointValue({ base: 20, sm: 20 })
+    const labelHeight = showLabels ? (responsiveLabelHeight ?? 20) : 0
 
     useEffect(() => {
         setIsMounted(false)
