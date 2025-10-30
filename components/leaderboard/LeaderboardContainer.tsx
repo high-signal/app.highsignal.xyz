@@ -8,6 +8,7 @@ import SignalIndicator from "../ui/SignalIndicator"
 import { faDiscord, faDiscourse } from "@fortawesome/free-brands-svg-icons"
 
 import Title from "../signal-display/Title"
+import UserSignalDotsBar from "../ui/UserSignalDotsBar"
 
 export default function LeaderboardContainer({ project }: { project: string }) {
     const { projects, loading, error } = useGetProjects(project)
@@ -49,6 +50,12 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                             <Text fontSize="md" wordBreak="break-word">
                                 {currentProject?.description}
                             </Text>
+                            <UserSignalDotsBar
+                                highCount={currentProject.highSignalUsers || 0}
+                                midCount={currentProject.midSignalUsers || 0}
+                                showLabels={true}
+                                heightPx={50}
+                            />
                             <HStack
                                 flexWrap="wrap"
                                 justifyContent="space-around"
