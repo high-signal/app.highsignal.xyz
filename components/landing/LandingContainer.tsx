@@ -1,6 +1,7 @@
 "use client"
 
-import { VStack, Text, Image, HStack, useBreakpointValue, Button, Skeleton } from "@chakra-ui/react"
+import { VStack, Text, Image, HStack, useBreakpointValue, Button, Skeleton, Box } from "@chakra-ui/react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useGetProjects } from "../../hooks/useGetProjects"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -14,120 +15,280 @@ export default function LandingContainer() {
     const isMobile = useBreakpointValue({ base: true, sm: false })
 
     const ProjectCard = ({ project }: { project: ProjectData }) => {
+        const containerRef = useRef<HTMLDivElement | null>(null)
+        const [containerWidth, setContainerWidth] = useState<number>(0)
+        const [showHoverContent, setShowScoreLabel] = useState<boolean>(false)
+
+        useEffect(() => {
+            if (!containerRef.current) return
+            const observer = new ResizeObserver((entries) => {
+                for (const entry of entries) {
+                    const width = entry.contentRect.width
+                    setContainerWidth(width)
+                }
+            })
+            observer.observe(containerRef.current)
+            return () => observer.disconnect()
+        }, [])
+
         return (
             <Link href={`/p/${project.urlSlug}`} key={project.urlSlug}>
                 <VStack
-                    pb={3}
                     gap={0}
-                    borderRadius="16px"
-                    border="3px solid"
+                    borderRadius="32px"
+                    border="6px solid"
                     borderColor="contentBorder"
                     justifyContent="space-between"
-                    bg="pageBackground"
+                    bg="contentBorder"
                     w="400px"
                     maxW="90vw"
                     overflow="hidden"
+                    onMouseEnter={() => setShowScoreLabel(true)}
+                    onMouseLeave={() => setShowScoreLabel(false)}
                 >
-                    <HStack
-                        w={"100%"}
-                        gap={4}
-                        px={4}
-                        pt={2}
-                        pb={3}
-                        justifyContent={{ base: "center", sm: "start" }}
-                        bg={"contentBorder"}
-                    >
-                        <Image
-                            src={project.projectLogoUrl}
-                            alt={project.displayName}
-                            boxSize="50px"
+                    <HStack w={"100%"} px={"3px"} pt={"2px"} mb={2}>
+                        <HStack
+                            bg={"pageBackground"}
+                            h={"50px"}
+                            w={"100%"}
                             borderRadius="full"
-                        />
-                        <Text fontSize="3xl" whiteSpace="normal" overflowWrap="break-word" wordBreak="break-word">
-                            {project.displayName}
-                        </Text>
-                    </HStack>
-                    <VStack h={{ base: "7.3em", sm: "6em" }} mt={2}>
-                        <Text
-                            style={{
-                                display: "-webkit-box",
-                                WebkitLineClamp: isMobile ? 5 : 4, // number of lines
-                                WebkitBoxOrient: "vertical",
-                                overflow: "hidden",
-                                overflowWrap: "anywhere",
-                                wordBreak: "break-word",
-                            }}
-                            w="100%"
-                            fontSize="15px"
-                            color="textColorMuted"
-                            px={5}
+                            justifyContent="space-between"
+                            gap={2}
                         >
-                            {project.description}
-                        </Text>
-                    </VStack>
-                    <HStack w="100%" h="25px" gap={"2px"} my={1} px={5}>
+                            <HStack justifyContent="start" gap={3} flex="1" minW={0}>
+                                <Image
+                                    src={project.projectLogoUrl}
+                                    alt={project.displayName}
+                                    boxSize="50px"
+                                    borderRadius="full"
+                                />
+                                <Text fontSize="3xl" truncate>
+                                    {project.displayName}
+                                </Text>
+                            </HStack>
+                            <HStack
+                                minW={"max-content"}
+                                border={"5px solid"}
+                                h={"50px"}
+                                borderRadius="full"
+                                bg="pageBackground"
+                                borderColor="green.500"
+                                justifyContent="center"
+                                alignItems="center"
+                                gap={showHoverContent ? "6px" : 0}
+                                px={2}
+                            >
+                                <HStack
+                                    h={"100%"}
+                                    borderRight={showHoverContent ? "5px solid" : "none"}
+                                    borderColor="green.500"
+                                >
+                                    <Text
+                                        fontWeight="bold"
+                                        fontSize="xs"
+                                        color="textColorMuted"
+                                        lineHeight="1.2"
+                                        textAlign="center"
+                                        overflow="hidden"
+                                        w={showHoverContent ? "80px" : 0}
+                                        opacity={showHoverContent ? 1 : 0}
+                                        transition={
+                                            showHoverContent
+                                                ? "width 0.3s ease, opacity 0.8s ease, margin 0.3s ease"
+                                                : "width 0.3s ease, opacity 0.3s linear, margin 0.3s ease"
+                                        }
+                                        className="score-label"
+                                        as="span"
+                                        display="inline-block"
+                                        mr={showHoverContent ? 1 : 0}
+                                        whiteSpace="nowrap"
+                                    >
+                                        Community
+                                        <br />
+                                        Score
+                                    </Text>
+                                </HStack>
+                                <Text fontSize="xl" fontWeight="bold">
+                                    {project.averageScore?.toFixed(0)}
+                                </Text>
+                            </HStack>
+                        </HStack>
+                    </HStack>
+                    <VStack gap={0} pb={1} bg={"pageBackground"} borderRadius="22px" w={"100%"} overflow="hidden">
+                        <VStack
+                            h={{ base: "7.3em", sm: "6em" }}
+                            pt={2}
+                            bg={"pageBackground"}
+                            w={"100%"}
+                            borderTopRadius="26px"
+                        >
+                            <Text
+                                style={{
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: isMobile ? 5 : 4, // number of lines
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    overflowWrap: "anywhere",
+                                    wordBreak: "break-word",
+                                }}
+                                w="100%"
+                                fontSize="15px"
+                                color="textColorMuted"
+                                px={5}
+                            >
+                                {project.description}
+                            </Text>
+                        </VStack>
+                        <Box bg={"pageBackground"} h={3} w={"100%"} />
                         {(() => {
                             const high = project.highSignalUsers || 0
                             const mid = project.midSignalUsers || 0
-                            const total = high + mid
+                            const total = Math.max(1, high + mid)
+                            const highPercent = (high / total) * 100
+                            const midPercent = (mid / total) * 100
 
-                            const highPercent = total > 0 ? (high / total) * 100 : 0
-                            const midPercent = total > 0 ? (mid / total) * 100 : 0
+                            const heightPx = 40
+
+                            const DotGroup = ({
+                                type,
+                                count,
+                                color,
+                                widthPercent,
+                            }: {
+                                type: "high" | "mid"
+                                count: number
+                                color: string
+                                widthPercent: number
+                            }) => {
+                                // Account for horizontal padding on the container (px={5} on Chakra => ~40px)
+                                const containerInnerWidth = Math.max(1, containerWidth - 40)
+                                const groupWidth = Math.max(1, (containerInnerWidth * widthPercent) / 100)
+
+                                // Guard against zero count
+                                if (count <= 0) {
+                                    return null
+                                }
+
+                                // Compute a grid that fits within groupWidth x heightPx
+                                // Start by estimating number of columns using area ratio
+                                const estimatedColumns = Math.ceil(
+                                    Math.sqrt((count * groupWidth) / Math.max(1, heightPx)),
+                                )
+                                const columns = Math.max(1, estimatedColumns)
+                                const cellSizeX = groupWidth / columns
+                                const rows = Math.max(1, Math.ceil(count / columns))
+                                const cellSizeY = heightPx / rows
+                                const cellSize = Math.max(1, Math.floor(Math.min(cellSizeX, cellSizeY)))
+
+                                // Gap as a fraction of cell size, ensuring non-negative sizes
+                                const gap = Math.max(0, Math.floor(cellSize * 0.2))
+                                const dotSize = Math.max(1, cellSize - gap)
+
+                                return (
+                                    <HStack
+                                        h={`${heightPx}px`}
+                                        w={`${widthPercent}%`}
+                                        flexWrap="wrap"
+                                        justifyContent="center"
+                                        alignItems="center"
+                                        alignContent="start"
+                                        gap={`${gap}px`}
+                                        position="relative"
+                                    >
+                                        {Array.from({ length: count }).map((_, i) => (
+                                            <Box
+                                                opacity={showHoverContent ? 0.1 : 1}
+                                                key={i}
+                                                boxSize={`${dotSize}px`}
+                                                borderRadius="full"
+                                                bg={color}
+                                            />
+                                        ))}
+                                        <HStack
+                                            position="absolute"
+                                            left={0}
+                                            top={0}
+                                            w="100%"
+                                            h="100%"
+                                            display={showHoverContent ? "flex" : "none"}
+                                            justifyContent="center"
+                                            alignItems="start"
+                                        >
+                                            <Text
+                                                fontWeight="bold"
+                                                color={color}
+                                                lineHeight="1.2"
+                                                textAlign="center"
+                                                fontSize="sm"
+                                                whiteSpace="nowrap"
+                                            >
+                                                {type === "high" ? "High Signal" : "Mid Signal"}
+                                                <br /> Users
+                                            </Text>
+                                        </HStack>
+                                    </HStack>
+                                )
+                            }
 
                             return (
-                                <>
-                                    {highPercent > 0 && (
-                                        <HStack
-                                            h="100%"
-                                            bg="green.500"
-                                            w={`${highPercent}%`}
-                                            justifyContent="center"
-                                            minW={highPercent > 5 ? "auto" : "2px"}
-                                            borderLeftRadius="8px"
-                                        >
-                                            <Text fontSize="sm" fontWeight="bold">
-                                                {high}
-                                            </Text>
-                                        </HStack>
+                                <HStack
+                                    bg={"pageBackground"}
+                                    ref={containerRef as any}
+                                    w="100%"
+                                    h={`${heightPx}px`}
+                                    gap={high < 10 || mid < 10 ? "20px" : "4px"}
+                                    px={5}
+                                    justifyContent="center"
+                                    alignItems="center"
+                                >
+                                    {high > 0 && (
+                                        <DotGroup
+                                            type="high"
+                                            count={high}
+                                            color="green.500"
+                                            widthPercent={highPercent}
+                                        />
                                     )}
-                                    {midPercent > 0 && (
-                                        <HStack
-                                            h="100%"
-                                            bg="blue.500"
-                                            w={`${midPercent}%`}
-                                            justifyContent="center"
-                                            minW={midPercent > 5 ? "auto" : "2px"}
-                                            opacity={1}
-                                            borderRightRadius="8px"
-                                        >
-                                            <Text fontSize="sm" fontWeight="bold">
-                                                {mid}
-                                            </Text>
-                                        </HStack>
+                                    {mid > 0 && (
+                                        <DotGroup type="mid" count={mid} color="blue.500" widthPercent={midPercent} />
                                     )}
-                                </>
+                                </HStack>
                             )
                         })()}
-                    </HStack>
-                    <VStack
-                        px={4}
-                        pt={2}
-                        w={"100%"}
-                        minH={"30px"}
-                        flexWrap="wrap"
-                        rowGap={3}
-                        columnGap={0}
-                        alignItems={{ base: "center", sm: "center" }}
-                    >
-                        <HStack flexWrap="wrap" justifyContent="center">
-                            <SignalIndicator signalName="discord" icon={faDiscord} text="Discord" project={project} />
-                            <SignalIndicator
-                                signalName="discourse_forum"
-                                icon={faDiscourse}
-                                text="Forum"
-                                project={project}
-                            />
-                        </HStack>
+                        <Box bg={"pageBackground"} h={1} w={"100%"} />
+
+                        <VStack
+                            bg={"pageBackground"}
+                            px={4}
+                            w={"100%"}
+                            minH={"30px"}
+                            flexWrap="wrap"
+                            rowGap={3}
+                            columnGap={0}
+                            alignItems={{ base: "center", sm: "center" }}
+                        >
+                            <HStack
+                                flexWrap="wrap"
+                                justifyContent="center"
+                                bg={"pageBackground"}
+                                py={1}
+                                w={"100%"}
+                                borderTopRadius="16px"
+                            >
+                                <SignalIndicator
+                                    signalName="discord"
+                                    icon={faDiscord}
+                                    text="Discord"
+                                    project={project}
+                                />
+                                <SignalIndicator
+                                    signalName="discourse_forum"
+                                    icon={faDiscourse}
+                                    text="Forum"
+                                    project={project}
+                                />
+                            </HStack>
+                        </VStack>
                     </VStack>
                 </VStack>
             </Link>
@@ -135,14 +296,14 @@ export default function LandingContainer() {
     }
 
     return (
-        <VStack gap={8} pt={5} maxW="100%" w={"100%"}>
+        <VStack gap={8} pt={{ base: 3, sm: 0 }} maxW="100%" w={"100%"}>
             <Text fontSize="3xl" fontWeight="bold" px={6} textAlign="center">
                 High Signal Leaderboards
             </Text>
             {error && <Text>Error loading projects</Text>}
             <HStack gap={8} flexWrap="wrap" justifyContent="center" maxW="100%">
                 {loading &&
-                    [1, 2, 3, 4].map((item) => (
+                    [1, 2, 3, 4, 5, 6].map((item) => (
                         <Skeleton
                             defaultSkeleton
                             key={item}
@@ -156,7 +317,7 @@ export default function LandingContainer() {
                     projects &&
                     projects.length > 0 &&
                     projects
-                        .sort((a, b) => (b.highSignalUsers ?? 0) - (a.highSignalUsers ?? 0))
+                        .sort((a, b) => (b.averageScore ?? 0) - (a.averageScore ?? 0))
                         .map((project: ProjectData) => <ProjectCard project={project} key={project.urlSlug} />)}
             </HStack>
             <Link href="/new-project">
