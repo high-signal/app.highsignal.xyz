@@ -30,6 +30,7 @@ export default function LandingContainer() {
             observer.observe(containerRef.current)
             return () => observer.disconnect()
         }, [])
+
         return (
             <Link href={`/p/${project.urlSlug}`} key={project.urlSlug}>
                 <VStack
@@ -146,7 +147,7 @@ export default function LandingContainer() {
                             const highPercent = (high / total) * 100
                             const midPercent = (mid / total) * 100
 
-                            const heightPx = 25
+                            const heightPx = 40
 
                             const DotGroup = ({
                                 count,
@@ -157,12 +158,30 @@ export default function LandingContainer() {
                                 color: string
                                 widthPercent: number
                             }) => {
-                                const groupWidth = (containerWidth * widthPercent) / 100
-                                const area = Math.max(1, groupWidth * heightPx)
-                                const areaPerDot = area / Math.max(1, count)
-                                const estimatedDiameter = Math.sqrt(areaPerDot / 3)
-                                const dotSize = Math.max(3, Math.min(10, Math.floor(estimatedDiameter)))
-                                const gap = Math.max(2, Math.floor(dotSize / 2))
+                                // Account for horizontal padding on the container (px={5} on Chakra => ~40px)
+                                const containerInnerWidth = Math.max(1, containerWidth - 40)
+                                const groupWidth = Math.max(1, (containerInnerWidth * widthPercent) / 100)
+
+                                // Guard against zero count
+                                if (count <= 0) {
+                                    return null
+                                }
+
+                                // Compute a grid that fits within groupWidth x heightPx
+                                // Start by estimating number of columns using area ratio
+                                const estimatedColumns = Math.ceil(
+                                    Math.sqrt((count * groupWidth) / Math.max(1, heightPx)),
+                                )
+                                const columns = Math.max(1, estimatedColumns)
+                                const cellSizeX = groupWidth / columns
+                                const rows = Math.max(1, Math.ceil(count / columns))
+                                const cellSizeY = heightPx / rows
+                                const cellSize = Math.max(1, Math.floor(Math.min(cellSizeX, cellSizeY)))
+
+                                // Gap as a fraction of cell size, ensuring non-negative sizes
+                                const gap = Math.max(0, Math.floor(cellSize * 0.2))
+                                const dotSize = Math.max(1, cellSize - gap)
+
                                 return (
                                     <HStack
                                         h={`${heightPx}px`}
