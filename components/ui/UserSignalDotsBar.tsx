@@ -118,7 +118,7 @@ const DotGroup = memo(function DotGroup({
     const gap = Math.max(0, Math.floor(cellSize * 0.2))
     const dotSize = Math.max(1, cellSize - gap)
 
-    const labelAlign = showLabels && type === "high" && (isBaseBreakpoint ?? true) ? "start" : "center"
+    const labelAlign = showLabels && (isBaseBreakpoint ?? true) ? (type === "high" ? "start" : "end") : "center"
 
     return (
         <VStack
@@ -133,6 +133,8 @@ const DotGroup = memo(function DotGroup({
                     color={color}
                     lineHeight="1.2"
                     textAlign={labelAlign}
+                    pl={labelAlign === "start" ? 1 : 0}
+                    pr={labelAlign === "end" ? 1 : 0}
                     w={"100%"}
                     fontSize="sm"
                     whiteSpace="nowrap"
