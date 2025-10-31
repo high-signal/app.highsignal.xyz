@@ -59,7 +59,7 @@ export default function ProjectsSettingsContainer() {
                         Create New Project
                     </Button>
                     {loading && <Spinner />}
-                    {error && <Text>Error loading projects</Text>}
+                    {error && <Text color="red.500">Error loading projects</Text>}
                     {!loading &&
                         projects &&
                         projects.length > 0 &&
