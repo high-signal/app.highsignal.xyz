@@ -142,6 +142,14 @@ export const routePermissions: RoutePermission[] = [
         },
     },
     {
+        path: "/api/single-user",
+        methods: {
+            GET: {
+                requiresAuth: false,
+            },
+        },
+    },
+    {
         path: "/api/users",
         methods: {
             // Public read access to user data
