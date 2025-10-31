@@ -156,7 +156,7 @@ export default function SignalDisplayContainer({ project, username }: { project:
         return (
             <VStack gap={6} w="100%" maxW="1400px" pb={6}>
                 <VStack gap={0} w="100%" maxW="1400px">
-                    <Title projectData={currentProject} linkUrl={currentProject?.website} />
+                    <Title projectData={currentProject} />
                     {isOwner && <Box w="100%" h={{ base: "10px", sm: "0" }} />}
                     {isOwner && <SharedAccountsContainer projectData={currentProject} />}
                     <Box w="100%" h="20px" />

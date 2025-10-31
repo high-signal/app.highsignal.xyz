@@ -8,22 +8,13 @@ import { faArrowLeft, faExternalLink } from "@fortawesome/free-solid-svg-icons"
 export default function Title({
     projectData,
     allLeaderboards,
-    linkUrl,
 }: {
     projectData: ProjectData
     allLeaderboards?: boolean
-    linkUrl?: string
 }) {
     const Content = () => {
         return (
-            <VStack
-                maxW="600px"
-                justifyContent="center"
-                px={3}
-                gap={{ base: 5, lg: 0 }}
-                _hover={linkUrl ? { textDecoration: "underline" } : {}}
-                cursor={linkUrl ? "pointer" : "default"}
-            >
+            <VStack maxW="600px" justifyContent="center" px={3} gap={{ base: 5, lg: 0 }} cursor="default">
                 <HStack w="fit-content" justifyContent="center" gap={3} mt={{ base: 5, lg: 0 }}>
                     <Image
                         src={projectData.projectLogoUrl}
@@ -44,11 +35,6 @@ export default function Title({
                     >
                         {projectData.displayName}
                     </Text>
-                    {linkUrl && (
-                        <Box fontSize="20px">
-                            <FontAwesomeIcon icon={faExternalLink} />
-                        </Box>
-                    )}
                 </HStack>
             </VStack>
         )
@@ -96,12 +82,7 @@ export default function Title({
                     </Button>
                 </Link>
             </HStack>
-            {linkUrl && (
-                <Link href={linkUrl} target="_blank">
-                    <Content />
-                </Link>
-            )}
-            {!linkUrl && <Content />}
+            <Content />
         </HStack>
     )
 }
