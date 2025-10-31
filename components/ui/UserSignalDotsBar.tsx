@@ -36,6 +36,7 @@ const DotGroup = memo(function DotGroup({
     const textRef = useRef<HTMLDivElement | null>(null)
     const timeoutsRef = useRef<NodeJS.Timeout[]>([])
     const showHoverRef = useRef<boolean>(showHoverContent)
+    const skipInitialHoverEffectRef = useRef(true)
 
     const containerInnerWidth = Math.max(1, containerWidth - 40)
     const groupWidth = Math.max(1, (containerInnerWidth * widthPercent) / 100)
@@ -53,8 +54,21 @@ const DotGroup = memo(function DotGroup({
         // clear any existing timeouts before starting a new batch
         timeoutsRef.current.forEach(clearTimeout)
         timeoutsRef.current = []
+        dotRefs.current.forEach((el, idx) => {
+            if (!el) return
+            el.style.transition = `opacity ${transitionMs}ms ease-in-out`
+            el.style.opacity = "0"
+            // ensure refs array remains aligned even if count shrinks
+            if (idx >= count) {
+                dotRefs.current[idx] = null
+            }
+        })
+
+        const staggerSpan = Math.max(0, durationMs - transitionMs)
+        const denominator = Math.max(1, totalDots - 1)
+
         for (let i = 0; i < count; i++) {
-            const delayMs = ((startIndex + i) * (durationMs - transitionMs)) / Math.max(1, totalDots - 1)
+            const delayMs = ((startIndex + i) * staggerSpan) / denominator
             const timeout = setTimeout(() => {
                 const el = dotRefs.current[i]
                 if (el) {
@@ -73,6 +87,11 @@ const DotGroup = memo(function DotGroup({
 
     // Smooth opacity update on hover toggle
     useEffect(() => {
+        if (skipInitialHoverEffectRef.current) {
+            skipInitialHoverEffectRef.current = false
+            return
+        }
+
         const finalOpacity = showHoverContent ? 0.1 : 1
         dotRefs.current.forEach((el) => {
             if (el) {
@@ -99,8 +118,6 @@ const DotGroup = memo(function DotGroup({
     const gap = Math.max(0, Math.floor(cellSize * 0.2))
     const dotSize = Math.max(1, cellSize - gap)
 
-    const labelAlign = showLabels && type === "high" && (isBaseBreakpoint ?? true) ? "start" : "center"
-
     return (
         <VStack
             w={`${widthPercent}%`}
@@ -113,7 +130,9 @@ const DotGroup = memo(function DotGroup({
                     fontWeight="bold"
                     color={color}
                     lineHeight="1.2"
-                    textAlign={labelAlign}
+                    textAlign={{ base: type === "high" ? "start" : "end", sm: "center" }}
+                    pl={{ base: 1, sm: 0 }}
+                    pr={{ base: 1, sm: 0 }}
                     w={"100%"}
                     fontSize="sm"
                     whiteSpace="nowrap"
@@ -139,7 +158,7 @@ const DotGroup = memo(function DotGroup({
                         bg={color}
                         style={{
                             opacity: 0,
-                            transition: "opacity 0.1s ease-in-out",
+                            transition: "opacity 0.5s ease-in-out",
                         }}
                     />
                 ))}
@@ -196,7 +215,7 @@ export function UserSignalDotsBar({
     useEffect(() => {
         setIsMounted(false)
         setAnimationKey((prev) => prev + 1)
-        const timer = setTimeout(() => setIsMounted(true), 100)
+        const timer = setTimeout(() => setIsMounted(true), 0)
         return () => clearTimeout(timer)
     }, [])
 
