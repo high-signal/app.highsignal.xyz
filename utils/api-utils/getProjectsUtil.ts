@@ -77,7 +77,7 @@ export async function getProjectsUtil(
             `,
             )
             .order("url_slug", { ascending: true })
-            .limit(10)
+            .limit(50)
         // TODO: Add pagination
 
         // If projectSlug is provided, add filter to the query
