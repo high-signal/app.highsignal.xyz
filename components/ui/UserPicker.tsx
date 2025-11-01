@@ -8,7 +8,13 @@ import { useDebounce } from "../../hooks/useDebounce"
 import { ASSETS } from "../../config/constants"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faTriangleExclamation, faTableList, faLinkSlash, faChevronDown } from "@fortawesome/free-solid-svg-icons"
+import {
+    faTriangleExclamation,
+    faTableList,
+    faLinkSlash,
+    faChevronDown,
+    faChevronRight,
+} from "@fortawesome/free-solid-svg-icons"
 import { faDiscord, faXTwitter } from "@fortawesome/free-brands-svg-icons"
 import ShellUserImage from "./ShellUserImage"
 
@@ -75,6 +81,7 @@ export default function UserPicker({
 }: UserPickerProps) {
     const [searchTerm, setSearchTerm] = useState<string>("")
     const [isFocused, setIsFocused] = useState(false)
+    const [showLowSignalUsers, setShowLowSignalUsers] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null!)
 
     // Use the proper debounce hook with a 300ms delay for better UX
@@ -94,6 +101,30 @@ export default function UserPicker({
             setSearchTerm("")
         }
     }, [disabled])
+
+    useEffect(() => {
+        setShowLowSignalUsers(false)
+    }, [debouncedSearchTerm])
+
+    useEffect(() => {
+        if (!isFocused) {
+            setShowLowSignalUsers(false)
+        }
+    }, [isFocused])
+
+    const getSignalGroup = (user: UserData) => {
+        const signal = user.highestSignal
+        if (signal === "high") {
+            return "high"
+        }
+        if (signal === "mid") {
+            return "mid"
+        }
+        if (signal === "low" || !signal) {
+            return "low"
+        }
+        return "none"
+    }
 
     return (
         <Box position="relative" minW={{ base: "100%", sm: "max-content" }} flexGrow={1}>
@@ -351,13 +382,12 @@ export default function UserPicker({
                             }
 
                             uniqueUsers.forEach((user) => {
-                                const signal = user.highestSignal
-                                if (signal === "high") {
+                                const signalGroup = getSignalGroup(user)
+                                if (signalGroup === "high") {
                                     usersBySignal.high.push(user)
-                                } else if (signal === "mid") {
+                                } else if (signalGroup === "mid") {
                                     usersBySignal.mid.push(user)
-                                } else if (signal === "low" || !signal) {
-                                    // Treat users without signal as "low"
+                                } else if (signalGroup === "low") {
                                     usersBySignal.low.push(user)
                                 } else {
                                     usersBySignal.none.push(user)
@@ -426,9 +456,45 @@ export default function UserPicker({
                                 </Box>
                             )
 
+                            const renderLowSignalToggle = () => (
+                                <Box key="low-signal-toggle" bg={`scoreColor.low`} w={"100%"} h={"100%"}>
+                                    <HStack
+                                        bg={"pageBackground"}
+                                        borderLeftRadius={"full"}
+                                        h={"41px"}
+                                        ml={"6px"}
+                                        cursor="pointer"
+                                        _hover={{ bg: "contentBackground" }}
+                                        onMouseDown={(e) => {
+                                            e.preventDefault()
+                                            setShowLowSignalUsers(true)
+                                        }}
+                                        onClick={() => setShowLowSignalUsers(true)}
+                                        position="relative"
+                                        justifyContent="center"
+                                        alignItems="center"
+                                    >
+                                        <HStack
+                                            justifyContent="center"
+                                            alignItems="center"
+                                            color="textColorMuted"
+                                            fontWeight="bold"
+                                        >
+                                            <FontAwesomeIcon icon={faChevronRight} size="sm" />
+                                            <Text fontSize="13px">Show low signal users</Text>
+                                        </HStack>
+                                    </HStack>
+                                </Box>
+                            )
+
+                            const hasHigh = usersBySignal.high.length > 0
+                            const hasMid = usersBySignal.mid.length > 0
+                            const hasLow = usersBySignal.low.length > 0
+                            const hasNone = usersBySignal.none.length > 0
+
                             return (
                                 <>
-                                    {usersBySignal.high.length > 0 && (
+                                    {hasHigh && (
                                         <>
                                             <Box
                                                 pl={5}
@@ -443,10 +509,15 @@ export default function UserPicker({
                                                 </Text>
                                             </Box>
                                             {usersBySignal.high.map((user) => renderUser(user, "high"))}
-                                            <Box bg={"scoreColor.high"} borderBottomRadius={"12px"} h={"8px"} mb={2} />
+                                            <Box
+                                                bg={"scoreColor.high"}
+                                                borderBottomRadius={"12px"}
+                                                h={"8px"}
+                                                mb={!hasMid && !hasLow && !hasNone ? 0 : 2}
+                                            />
                                         </>
                                     )}
-                                    {usersBySignal.mid.length > 0 && (
+                                    {hasMid && (
                                         <>
                                             <Box
                                                 pl={5}
@@ -461,10 +532,15 @@ export default function UserPicker({
                                                 </Text>
                                             </Box>
                                             {usersBySignal.mid.map((user) => renderUser(user, "mid"))}
-                                            <Box bg={"scoreColor.mid"} borderBottomRadius={"12px"} h={"8px"} mb={2} />
+                                            <Box
+                                                bg={"scoreColor.mid"}
+                                                borderBottomRadius={"12px"}
+                                                h={"8px"}
+                                                mb={!hasLow && !hasNone ? 0 : 2}
+                                            />
                                         </>
                                     )}
-                                    {usersBySignal.low.length > 0 && (
+                                    {hasLow && (
                                         <>
                                             <Box
                                                 pl={5}
@@ -478,7 +554,9 @@ export default function UserPicker({
                                                     Low Signal
                                                 </Text>
                                             </Box>
-                                            {usersBySignal.low.map((user) => renderUser(user, "low"))}
+                                            {showLowSignalUsers
+                                                ? usersBySignal.low.map((user) => renderUser(user, "low"))
+                                                : renderLowSignalToggle()}
                                             <Box bg={"scoreColor.low"} borderBottomRadius={"12px"} h={"8px"} />
                                         </>
                                     )}

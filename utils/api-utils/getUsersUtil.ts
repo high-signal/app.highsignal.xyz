@@ -427,6 +427,9 @@ export async function getUsersUtil(
                 .order("rank", { ascending: true })
                 .order("display_name", { ascending: true })
 
+            // Filter out users with a total score of 0
+            projectScoresQuery = projectScoresQuery.gt("total_score", 0)
+
             // Add project filter only if project slug is provided
             if (projectSlug) {
                 projectScoresQuery = projectScoresQuery.eq("projects.url_slug", projectSlug)

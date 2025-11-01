@@ -361,10 +361,12 @@ export default function Leaderboard({
     project,
     mode = "users",
     data,
+    singleUserData,
 }: {
     project?: ProjectData
     mode?: "users" | "projects"
     data?: UserData[]
+    singleUserData?: UserData
 }) {
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -429,7 +431,22 @@ export default function Leaderboard({
     const loading =
         mode === "users" ? usersLoading || shouldWaitForUserContext || isBlockingOnCurrentUser : projectsLoading
     const error = mode === "users" ? usersError : projectsError
-    const items = mode === "users" ? users : projects
+
+    // Helper function to get user data for a project
+    const getUserDataForProject = (projectSlug: string) => {
+        return data?.find((user) => user.projectSlug === projectSlug)
+    }
+
+    const baseItems = mode === "users" ? users : projects
+
+    const items =
+        mode === "projects"
+            ? baseItems?.filter((projectItem) => {
+                  const projectUserData = getUserDataForProject((projectItem as ProjectData).urlSlug)
+                  const rank = projectUserData?.rank ?? 0
+                  return rank > 0
+              })
+            : baseItems
 
     // Get current user data for the special top row
     const currentUser = currentUserData?.[0]
@@ -443,11 +460,6 @@ export default function Leaderboard({
             setMaxResultsPage(usersMaxPage)
         }
     }, [projects, users, mode, usersMaxPage])
-
-    // Helper function to get user data for a project
-    const getUserDataForProject = (projectSlug: string) => {
-        return data?.find((user) => user.projectSlug === projectSlug)
-    }
 
     // Sort items based on mode
     const sortedItems = [...(items || [])].sort((a, b) => {
@@ -646,6 +658,9 @@ export default function Leaderboard({
                                     {searchTerm
                                         ? `No ${mode === "users" ? "users" : "results"} found with the name "${searchTerm}"`
                                         : `No ${mode === "users" ? "users" : "results"} found`}
+                                    {mode === "users"
+                                        ? ` for ${project?.displayName}`
+                                        : ` for ${data?.[0]?.displayName || singleUserData?.displayName}`}
                                 </Text>
                             </Table.Cell>
                         </Table.Row>

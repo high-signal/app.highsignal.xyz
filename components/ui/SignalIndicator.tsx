@@ -38,6 +38,7 @@ export default function SignalIndicator({
                 fontSize="md"
                 disabled={!isEnabled}
                 cursor={isEnabled ? "pointer" : "default"}
+                opacity={isEnabled ? "1" : "0.2"}
                 onClick={
                     button && isEnabled
                         ? () =>
