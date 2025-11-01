@@ -17,6 +17,7 @@ import { useUser } from "../../../contexts/UserContext"
 import LoginToSeeInsights from "../../ui/LoginToSeeInsights"
 import { APP_CONFIG } from "../../../config/constants"
 import Divider from "../../ui/Divider"
+import { calculateSignalFromScore } from "../../../utils/calculateSignal"
 
 // Utility function to replace personal pronouns with third person
 const replacePersonalPronouns = (text: string): string => {
@@ -138,6 +139,7 @@ export default function SignalStrength({
     projectData,
     signalStrengthProjectData,
     refreshUserData,
+    userProjectScore,
 }: {
     userDisplayName?: string
     username: string
@@ -147,6 +149,7 @@ export default function SignalStrength({
     projectData: ProjectData
     signalStrengthProjectData: SignalStrengthProjectData
     refreshUserData: () => void
+    userProjectScore: number
 }) {
     const { loggedInUser } = useUser()
     const params = useParams()
@@ -550,7 +553,7 @@ export default function SignalStrength({
                     )}
                 </>
             )}
-            {/* {countdownText != "Calculating score..." && !userData?.description?.includes("No activity in the past") && (
+            {countdownText != "Calculating score..." && !userData?.description?.includes("No activity in the past") && (
                 <>
                     <Divider borderWidth={3} my={6} />
                     <VStack w="100%" gap={0} alignItems={"center"}>
@@ -606,7 +609,14 @@ export default function SignalStrength({
                             justifyContent={"start"}
                             alignItems={"start"}
                         >
-                            {userData.description && (
+                            {calculateSignalFromScore(userProjectScore) === "low" ? (
+                                <Text w="100%" textAlign={"center"} color="textColorMuted">
+                                    <Span pr={1}>
+                                        <FontAwesomeIcon icon={faInfoCircle} />
+                                    </Span>{" "}
+                                    Activity summary is only available for Mid and High Signal users.
+                                </Text>
+                            ) : userData.description ? (
                                 <Text color="textColorMuted">
                                     {loggedInUser?.username === targetUsername
                                         ? userData.description?.charAt(0).toUpperCase() + userData.description?.slice(1)
@@ -615,8 +625,15 @@ export default function SignalStrength({
                                                   userData.description?.slice(1),
                                           )}
                                 </Text>
+                            ) : (
+                                <Text w="100%" textAlign={"center"} color="textColorMuted">
+                                    <Span pr={1}>
+                                        <FontAwesomeIcon icon={faInfoCircle} />
+                                    </Span>{" "}
+                                    Activity summary is not currently available for this user.
+                                </Text>
                             )}
-                            {userData.improvements && (
+                            {/* {userData.improvements && (
                                 <VStack alignItems={"start"}>
                                     <HStack columnGap={5} rowGap={2} flexWrap={"wrap"}>
                                         <HStack gap={2}>
@@ -642,11 +659,11 @@ export default function SignalStrength({
                                         </HStack>
                                     </HStack>
                                 </VStack>
-                            )}
+                            )} */}
                         </VStack>
                     </VStack>
                 </>
-            )} */}
+            )}
             {signalStrengthProjectData.status === "active" &&
                 signalStrengthProjectData.enabled &&
                 !userContentAvailable &&

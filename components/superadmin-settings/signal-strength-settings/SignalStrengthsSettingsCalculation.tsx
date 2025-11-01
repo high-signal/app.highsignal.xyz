@@ -480,6 +480,7 @@ export default function SignalStrengthsSettingsCalculation({
                                         project.signalStrengths?.find((s) => s.name === signalStrength.name)!
                                     }
                                     refreshUserData={() => {}}
+                                    userProjectScore={selectedUser?.score || 0}
                                 />
                             </>
                         ) : (
@@ -568,6 +569,7 @@ export default function SignalStrengthsSettingsCalculation({
                                     project?.signalStrengths?.find((s) => s.name === signalStrength.name)!
                                 }
                                 refreshUserData={() => {}}
+                                userProjectScore={selectedUser?.score || 0}
                             />
                         ) : selectedUser ? (
                             <VStack w={"100%"} justifyContent={"start"} alignItems={"center"} pt={"50px"}>

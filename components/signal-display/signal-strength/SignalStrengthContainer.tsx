@@ -112,6 +112,7 @@ export default function SignalStrengthContainer({
                         projectData={projectData}
                         signalStrengthProjectData={signalStrengthProjectData}
                         refreshUserData={refreshUserData}
+                        userProjectScore={currentUser.score || 0}
                     />
                 ))}
             </HStack>
