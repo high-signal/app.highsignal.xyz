@@ -49,7 +49,7 @@ export default function LeaderboardContainer({ project }: { project: string }) {
         <VStack gap={0} w="100%" maxW="650px" borderRadius="20px">
             <VStack fontSize="3xl" px={6} w="100%" textAlign="center" gap={6} flexWrap="wrap" justifyContent="center">
                 {!loading && !error ? (
-                    <VStack gap={5}>
+                    <VStack gap={5} maxW={"100%"}>
                         <Title projectData={currentProject} allLeaderboards />
                         <VStack
                             bg={"contentBackground"}
@@ -58,29 +58,36 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                             fontSize="md"
                             gap={4}
                             alignItems="end"
+                            maxW={"100%"}
                         >
                             <HStack
-                                w={"100%"}
                                 justifyContent={smallScreen || !currentProject?.website ? "center" : "space-between"}
-                                flexWrap="wrap-reverse"
+                                flexWrap={smallScreen ? "wrap-reverse" : "none"}
                                 columnGap={5}
                                 rowGap={4}
+                                maxW={"100%"}
+                                w={"100%"}
+                                px={1}
                             >
                                 {currentProject?.website && (
-                                    <Link href={currentProject?.website} target="_blank">
+                                    <Link href={currentProject?.website} target="_blank" style={{ maxWidth: "100%" }}>
                                         <HStack
-                                            bg={"pageBackground"}
+                                            bg="pageBackground"
                                             pl={2}
                                             pr={3}
                                             py={1}
-                                            borderRadius={"full"}
+                                            borderRadius="full"
                                             _hover={currentProject?.website ? { textDecoration: "underline" } : {}}
                                             cursor={currentProject?.website ? "pointer" : "default"}
+                                            maxW={"100%"}
+                                            overflow="hidden"
                                         >
                                             <Box fontSize="20px">
                                                 <FontAwesomeIcon icon={faGlobe} />
                                             </Box>
-                                            <Text>{currentProject?.website}</Text>
+                                            <Text truncate maxW={smallScreen ? "100%" : "250px"}>
+                                                {currentProject?.website}
+                                            </Text>
                                         </HStack>
                                     </Link>
                                 )}
@@ -102,6 +109,7 @@ export default function LeaderboardContainer({ project }: { project: string }) {
                                         borderColor={"green.500"}
                                         pr={2}
                                         h={"100%"}
+                                        whiteSpace="nowrap"
                                     >
                                         Community Score
                                     </Text>
