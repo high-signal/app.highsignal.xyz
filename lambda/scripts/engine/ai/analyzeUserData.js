@@ -48,6 +48,10 @@ async function analyzeUserData({
         }
     }
 
+    const analysisItems = userData.map((d) => ({
+        id: d.id.toString(),
+    }))
+
     let calculatedSmartScore
     if (type === "smart") {
         const smartScoreResult = calculateSmartScore({
@@ -58,6 +62,20 @@ async function analyzeUserData({
         })
 
         calculatedSmartScore = smartScoreResult.smartScore
+
+        // If the calculatedSmartScore is low, don't run the AI analysis.
+        if (calculatedSmartScore && calculatedSmartScore < 30) {
+            return {
+                [signalStrengthUsername]: {
+                    description: "Low signal user",
+                    value: calculatedSmartScore,
+                },
+                previousDays: previousDays,
+                analysisItems: analysisItems,
+                created: Math.floor(Date.now() / 1000),
+                logs: `${logs ? logs + "\n" : ""}Low signal user. No AI analysis run.`,
+            }
+        }
 
         // If there was a raw score for the dayDate, then run the AI analysis.
         // This is to show some change to the data even if the score did not change,
@@ -212,10 +230,6 @@ truncatedData.length: ${truncatedData.length}
 
         // Try to clean the response if it has markdown backticks
         const cleanResponse = response.replace(/^```json\n?|\n?```$/g, "").trim()
-
-        const analysisItems = userData.map((d) => ({
-            id: d.id.toString(),
-        }))
 
         try {
             // Add the prompt and model to the response
