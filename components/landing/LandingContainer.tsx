@@ -1,7 +1,7 @@
 "use client"
 
 import { VStack, Text, Image, HStack, useBreakpointValue, Button, Skeleton, Box } from "@chakra-ui/react"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useGetProjects } from "../../hooks/useGetProjects"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -14,6 +14,89 @@ import UserSignalDotsBar from "../ui/UserSignalDotsBar"
 export default function LandingContainer() {
     const { projects, loading, error } = useGetProjects()
     const isMobile = useBreakpointValue({ base: true, sm: false })
+    const initialSkeletonCount = 10
+
+    const LazyCard = ({ index, project }: { index: number; project?: ProjectData }) => {
+        const [isNearViewport, setIsNearViewport] = useState<boolean>(false)
+        const [revealed, setRevealed] = useState<boolean>(false)
+        const [fadeIn, setFadeIn] = useState<boolean>(false)
+        const containerRef = useRef<HTMLDivElement | null>(null)
+
+        useEffect(() => {
+            if (!containerRef.current) return
+            const el = containerRef.current
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting || entry.intersectionRatio > 0) {
+                            setIsNearViewport(true)
+                            observer.unobserve(entry.target)
+                        }
+                    })
+                },
+                {
+                    root: null,
+                    rootMargin: "100% 0px 100% 0px", // 1 viewport height above and below
+                    threshold: 0,
+                },
+            )
+            observer.observe(el)
+            return () => observer.disconnect()
+        }, [])
+
+        // Per-card staggered reveal based on its index
+        useEffect(() => {
+            const id = setTimeout(() => setRevealed(true), index * 100)
+            return () => clearTimeout(id)
+        }, [index])
+
+        const shouldRenderContent = revealed && isNearViewport && !!project
+
+        useEffect(() => {
+            if (shouldRenderContent) {
+                const id = requestAnimationFrame(() => setFadeIn(true))
+                return () => cancelAnimationFrame(id)
+            } else {
+                setFadeIn(false)
+            }
+        }, [shouldRenderContent])
+
+        return (
+            <Box
+                ref={containerRef}
+                position="relative"
+                w="400px"
+                maxW="90vw"
+                h={{ base: "286px", sm: "266px" }}
+                borderRadius="32px"
+                overflow="hidden"
+            >
+                <Skeleton
+                    defaultSkeleton
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    w="100%"
+                    h="100%"
+                    borderRadius="32px"
+                    pointerEvents="none"
+                    opacity={0.8}
+                />
+                <Box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    style={{ opacity: fadeIn && shouldRenderContent ? 1 : 0, transition: "opacity 1000ms ease" }}
+                >
+                    {shouldRenderContent ? <ProjectCard project={project as ProjectData} /> : null}
+                </Box>
+            </Box>
+        )
+    }
 
     const ProjectCard = ({ project }: { project: ProjectData }) => {
         const [showHoverContent, setShowScoreLabel] = useState<boolean>(false)
@@ -192,23 +275,15 @@ export default function LandingContainer() {
             </Text>
             {error && <Text color="red.500">Error loading projects</Text>}
             <HStack gap={6} flexWrap="wrap" justifyContent="center" maxW="100%">
-                {loading &&
-                    [1, 2, 3, 4, 5, 6].map((item) => (
-                        <Skeleton
-                            defaultSkeleton
-                            key={item}
-                            w="400px"
-                            maxW="90vw"
-                            h={{ base: "300px", sm: "277px" }}
-                            borderRadius="16px"
-                        />
-                    ))}
-                {!loading &&
-                    projects &&
-                    projects.length > 0 &&
-                    projects
-                        .sort((a, b) => (b.averageScore ?? 0) - (a.averageScore ?? 0))
-                        .map((project: ProjectData) => <ProjectCard project={project} key={project.urlSlug} />)}
+                {(() => {
+                    const sorted = projects
+                        ? [...projects].sort((a, b) => (b.averageScore ?? 0) - (a.averageScore ?? 0))
+                        : []
+                    const slotCount = loading ? initialSkeletonCount : Math.max(initialSkeletonCount, sorted.length)
+                    return Array.from({ length: slotCount }).map((_, i) => (
+                        <LazyCard key={i} index={i} project={sorted[i]} />
+                    ))
+                })()}
             </HStack>
             <Link href="/new-project">
                 <Button primaryButton pl={2} pr={3} py={2} borderRadius={"full"} mx={3}>
