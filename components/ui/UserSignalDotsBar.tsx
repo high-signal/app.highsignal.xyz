@@ -169,7 +169,7 @@ const DotGroup = memo(function DotGroup({
                     top={0}
                     w="100%"
                     h="100%"
-                    justifyContent="center"
+                    justifyContent={type === "mid" ? "flex-end" : "flex-start"}
                     alignItems="start"
                     opacity={0}
                     pointerEvents="none"
@@ -178,7 +178,7 @@ const DotGroup = memo(function DotGroup({
                         fontWeight="bold"
                         color={color}
                         lineHeight="1.2"
-                        textAlign="center"
+                        textAlign={type === "mid" ? "right" : "left"}
                         fontSize="sm"
                         whiteSpace="nowrap"
                     >
