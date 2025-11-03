@@ -18,6 +18,7 @@ export default function LandingContainer() {
 
     const LazyCard = ({ index, project }: { index: number; project?: ProjectData }) => {
         const [isNearViewport, setIsNearViewport] = useState<boolean>(false)
+        const [initiallyInViewport, setInitiallyInViewport] = useState<boolean>(false)
         const [revealed, setRevealed] = useState<boolean>(false)
         const [fadeIn, setFadeIn] = useState<boolean>(false)
         const containerRef = useRef<HTMLDivElement | null>(null)
@@ -25,6 +26,11 @@ export default function LandingContainer() {
         useEffect(() => {
             if (!containerRef.current) return
             const el = containerRef.current
+            // Determine if this card is initially visible on first paint
+            const rect = el.getBoundingClientRect()
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight
+            const inInitialView = rect.top < viewportHeight && rect.bottom > 0
+            setInitiallyInViewport(inInitialView)
             const observer = new IntersectionObserver(
                 (entries) => {
                     entries.forEach((entry) => {
@@ -50,7 +56,8 @@ export default function LandingContainer() {
             return () => clearTimeout(id)
         }, [index])
 
-        const shouldRenderContent = revealed && isNearViewport && !!project
+        // Keep staggered reveal for cards initially in view; for offscreen cards, render when near viewport (no stagger)
+        const shouldRenderContent = !!project && (initiallyInViewport ? revealed : isNearViewport)
 
         useEffect(() => {
             if (shouldRenderContent) {
