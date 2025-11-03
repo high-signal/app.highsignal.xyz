@@ -198,7 +198,7 @@ export default function LandingContainer() {
                     <VStack gap={0} pb={1} bg={"pageBackground"} borderRadius="22px" w={"100%"} overflow="hidden">
                         <VStack
                             h={{ base: "7.3em", sm: "6em" }}
-                            pt={2}
+                            pt={4}
                             bg={"pageBackground"}
                             w={"100%"}
                             borderTopRadius="26px"
@@ -206,7 +206,7 @@ export default function LandingContainer() {
                             <Text
                                 style={{
                                     display: "-webkit-box",
-                                    WebkitLineClamp: isMobile ? 5 : 4, // number of lines
+                                    WebkitLineClamp: isMobile ? 4 : 3, // number of lines
                                     WebkitBoxOrient: "vertical",
                                     overflow: "hidden",
                                     overflowWrap: "anywhere",
