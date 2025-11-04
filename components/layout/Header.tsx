@@ -115,7 +115,10 @@ export default function Header({}) {
                         </Box>
                     </Link>
                     <HStack flexGrow={{ base: 1, md: 0 }} justifyContent={"center"} gap={2}>
-                        <Box display={{ base: loggedInUser ? "block" : "none", md: "block" }}>
+                        <Box
+                            display={{ base: loggedInUser ? "block" : "none", md: "block" }}
+                            w={{ base: "auto", md: "220px" }}
+                        >
                             <ProjectPicker
                                 onProjectSelect={(project) => {
                                     if (project?.urlSlug) {
@@ -126,7 +129,7 @@ export default function Header({}) {
                                 placeholder={"Search..."}
                             />
                         </Box>
-                        <Box display={{ base: "none", lg: "block" }}>
+                        <Box display={{ base: "none", lg: "block" }} w={"220px"}>
                             <UserPicker
                                 projectUrlSlug={""}
                                 selectorText={"Users..."}

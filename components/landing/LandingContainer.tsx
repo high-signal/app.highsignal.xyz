@@ -14,7 +14,7 @@ import UserSignalDotsBar from "../ui/UserSignalDotsBar"
 export default function LandingContainer() {
     const { projects, loading, error } = useGetProjects()
     const isMobile = useBreakpointValue({ base: true, sm: false })
-    const initialSkeletonCount = 10
+    const initialSkeletonCount = 12
 
     const LazyCard = ({ index, project }: { index: number; project?: ProjectData }) => {
         const [isNearViewport, setIsNearViewport] = useState<boolean>(false)
@@ -221,7 +221,7 @@ export default function LandingContainer() {
                             </Text>
                         </VStack>
                         <Box bg={"pageBackground"} h={3} w={"100%"} />
-                        <Box bg={"pageBackground"} px={5}>
+                        <Box bg={"pageBackground"} px={5} w={"100%"}>
                             <UserSignalDotsBar
                                 highCount={project.highSignalUsers || 0}
                                 midCount={project.midSignalUsers || 0}

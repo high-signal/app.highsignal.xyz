@@ -99,11 +99,21 @@ export default function ProjectPicker({
                         <Text p={2}>No projects found</Text>
                     ) : (
                         projects
-                            .sort((a, b) => (a.displayName || "").localeCompare(b.displayName || ""))
+                            .sort((a, b) => {
+                                const scoreA = a.averageScore ?? 0
+                                const scoreB = b.averageScore ?? 0
+                                // Sort by averageScore (descending), then by displayName
+                                if (scoreA !== scoreB) {
+                                    return scoreB - scoreA
+                                }
+                                return (a.displayName || "").localeCompare(b.displayName || "")
+                            })
                             .map((project) => (
                                 <Box
                                     key={project.urlSlug}
-                                    p={2}
+                                    pl={2}
+                                    pr={"6px"}
+                                    py={1}
                                     cursor="pointer"
                                     _hover={{ bg: "contentBackground" }}
                                     onMouseDown={(e) => {
@@ -113,8 +123,9 @@ export default function ProjectPicker({
                                         inputRef.current?.blur()
                                         onProjectSelect(project)
                                     }}
+                                    maxW="100%"
                                 >
-                                    <HStack>
+                                    <HStack w="100%">
                                         <Image
                                             src={
                                                 !project.projectLogoUrl || project.projectLogoUrl === ""
@@ -127,7 +138,25 @@ export default function ProjectPicker({
                                             w="25px"
                                             borderRadius="full"
                                         />
-                                        <Text>{project.displayName}</Text>
+                                        <HStack w="100%" minW={0} justifyContent="space-between" alignItems="center">
+                                            <Text flex={1} minW={0} truncate>
+                                                {project.displayName}
+                                            </Text>
+                                            <Text
+                                                fontSize="sm"
+                                                fontWeight="bold"
+                                                border="3px solid"
+                                                borderColor="green.500"
+                                                borderRadius="full"
+                                                px={2}
+                                                py={"2px"}
+                                                textAlign="center"
+                                                minW={"40px"}
+                                                flexShrink={0}
+                                            >
+                                                {project.averageScore?.toFixed(0)}
+                                            </Text>
+                                        </HStack>
                                     </HStack>
                                 </Box>
                             ))
