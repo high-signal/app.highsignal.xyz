@@ -21,43 +21,59 @@ export default function LandingContainer() {
         const [initiallyInViewport, setInitiallyInViewport] = useState<boolean>(false)
         const [revealed, setRevealed] = useState<boolean>(false)
         const [fadeIn, setFadeIn] = useState<boolean>(false)
+        const [hideSkeleton, setHideSkeleton] = useState<boolean>(false)
         const containerRef = useRef<HTMLDivElement | null>(null)
 
         useEffect(() => {
             if (!containerRef.current) return
             const el = containerRef.current
-            // Determine if this card is initially visible on first paint
+            // Determine if this card is initially visible or within 1 viewport distance
             const rect = el.getBoundingClientRect()
             const viewportHeight = window.innerHeight || document.documentElement.clientHeight
-            const inInitialView = rect.top < viewportHeight && rect.bottom > 0
+            // Card is "initially in viewport" if it's in view OR within 1 viewport distance
+            const inInitialView = rect.top < viewportHeight * 2 && rect.bottom > -viewportHeight
             setInitiallyInViewport(inInitialView)
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    entries.forEach((entry) => {
-                        if (entry.isIntersecting || entry.intersectionRatio > 0) {
-                            setIsNearViewport(true)
-                            observer.unobserve(entry.target)
-                        }
-                    })
-                },
-                {
-                    root: null,
-                    rootMargin: "100% 0px 100% 0px", // 1 viewport height above and below
-                    threshold: 0,
-                },
-            )
-            observer.observe(el)
-            return () => observer.disconnect()
+
+            // For cards beyond 1 viewport, use a tighter observer to detect when they actually come into view
+            if (!inInitialView) {
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting || entry.intersectionRatio > 0) {
+                                setIsNearViewport(true)
+                                observer.unobserve(entry.target)
+                            }
+                        })
+                    },
+                    {
+                        root: null,
+                        rootMargin: "100% 0px 100% 0px", // 1 viewport height above and below
+                        threshold: 0,
+                    },
+                )
+                observer.observe(el)
+                return () => observer.disconnect()
+            }
         }, [])
 
-        // Per-card staggered reveal based on its index
+        // Per-card staggered reveal based on its index - for cards within 1 viewport
         useEffect(() => {
-            const id = setTimeout(() => setRevealed(true), index * 100)
-            return () => clearTimeout(id)
-        }, [index])
+            if (initiallyInViewport) {
+                const id = setTimeout(() => setRevealed(true), index * 100)
+                return () => clearTimeout(id)
+            }
+        }, [index, initiallyInViewport])
 
-        // Keep staggered reveal for cards initially in view; for offscreen cards, render when near viewport (no stagger)
-        const shouldRenderContent = !!project && (initiallyInViewport ? revealed : isNearViewport)
+        // Staggered reveal for cards that enter viewport from beyond 1 viewport distance
+        useEffect(() => {
+            if (isNearViewport && !initiallyInViewport) {
+                const id = setTimeout(() => setRevealed(true), index * 100)
+                return () => clearTimeout(id)
+            }
+        }, [index, isNearViewport, initiallyInViewport])
+
+        // Cards within 1 viewport use staggered reveal; cards beyond 1 viewport wait until actually near viewport, then also stagger
+        const shouldRenderContent = !!project && (initiallyInViewport ? revealed : isNearViewport && revealed)
 
         useEffect(() => {
             if (shouldRenderContent) {
@@ -65,8 +81,17 @@ export default function LandingContainer() {
                 return () => cancelAnimationFrame(id)
             } else {
                 setFadeIn(false)
+                setHideSkeleton(false)
             }
         }, [shouldRenderContent])
+
+        // Hide skeleton after fade-in transition completes (1000ms)
+        useEffect(() => {
+            if (fadeIn && shouldRenderContent) {
+                const id = setTimeout(() => setHideSkeleton(true), 1000)
+                return () => clearTimeout(id)
+            }
+        }, [fadeIn, shouldRenderContent])
 
         return (
             <Box
@@ -78,19 +103,21 @@ export default function LandingContainer() {
                 borderRadius="32px"
                 overflow="hidden"
             >
-                <Skeleton
-                    defaultSkeleton
-                    position="absolute"
-                    top={0}
-                    left={0}
-                    right={0}
-                    bottom={0}
-                    w="100%"
-                    h="100%"
-                    borderRadius="32px"
-                    pointerEvents="none"
-                    opacity={0.8}
-                />
+                {!hideSkeleton && (
+                    <Skeleton
+                        defaultSkeleton
+                        position="absolute"
+                        top={0}
+                        left={0}
+                        right={0}
+                        bottom={0}
+                        w="100%"
+                        h="100%"
+                        borderRadius="32px"
+                        pointerEvents="none"
+                        opacity={0.8}
+                    />
+                )}
                 <Box
                     position="absolute"
                     top={0}
