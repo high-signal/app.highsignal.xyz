@@ -21,6 +21,7 @@ export default function LandingContainer() {
         const [initiallyInViewport, setInitiallyInViewport] = useState<boolean>(false)
         const [revealed, setRevealed] = useState<boolean>(false)
         const [fadeIn, setFadeIn] = useState<boolean>(false)
+        const [hideSkeleton, setHideSkeleton] = useState<boolean>(false)
         const containerRef = useRef<HTMLDivElement | null>(null)
 
         useEffect(() => {
@@ -80,8 +81,17 @@ export default function LandingContainer() {
                 return () => cancelAnimationFrame(id)
             } else {
                 setFadeIn(false)
+                setHideSkeleton(false)
             }
         }, [shouldRenderContent])
+
+        // Hide skeleton after fade-in transition completes (1000ms)
+        useEffect(() => {
+            if (fadeIn && shouldRenderContent) {
+                const id = setTimeout(() => setHideSkeleton(true), 1000)
+                return () => clearTimeout(id)
+            }
+        }, [fadeIn, shouldRenderContent])
 
         return (
             <Box
@@ -93,19 +103,21 @@ export default function LandingContainer() {
                 borderRadius="32px"
                 overflow="hidden"
             >
-                <Skeleton
-                    defaultSkeleton
-                    position="absolute"
-                    top={0}
-                    left={0}
-                    right={0}
-                    bottom={0}
-                    w="100%"
-                    h="100%"
-                    borderRadius="32px"
-                    pointerEvents="none"
-                    opacity={0.8}
-                />
+                {!hideSkeleton && (
+                    <Skeleton
+                        defaultSkeleton
+                        position="absolute"
+                        top={0}
+                        left={0}
+                        right={0}
+                        bottom={0}
+                        w="100%"
+                        h="100%"
+                        borderRadius="32px"
+                        pointerEvents="none"
+                        opacity={0.8}
+                    />
+                )}
                 <Box
                     position="absolute"
                     top={0}
