@@ -74,7 +74,7 @@ with
       uss.raw_value is not null
       and uss.test_requesting_user is null
       and pss.enabled = true
-      and uss.day >= (CURRENT_DATE - '360 days'::interval)
+      and uss.day >= (CURRENT_DATE - interval '360 days')
     group by
       uss.user_id,
       uss.project_id
@@ -87,7 +87,7 @@ select
   p.project_id,
   case
     when lea.latest_activity_day is null then 0::bigint
-    when lea.latest_activity_day < (CURRENT_DATE - '360 days'::interval) then 0::bigint
+    when lea.latest_activity_day < (CURRENT_DATE - interval '360 days') then 0::bigint
     else LEAST(
       COALESCE(ts.total_score_uncapped, 0::bigint),
       100::bigint
@@ -119,7 +119,13 @@ from
   left join latest_enabled_activity lea on lea.user_id = u.id
   and lea.project_id = p.project_id
   left join activity_counts ac on ac.user_id = u.id
-  and ac.project_id = p.project_id;
+  and ac.project_id = p.project_id
+where
+  case
+    when lea.latest_activity_day is null then 0
+    when lea.latest_activity_day < (CURRENT_DATE - interval '360 days') then 0
+    else LEAST(COALESCE(ts.total_score_uncapped, 0), 100)
+  end > 0;
 
 CREATE UNIQUE INDEX IF NOT EXISTS user_project_scores_user_project_idx
   ON public.user_project_scores (user_id, project_id);
@@ -127,9 +133,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS user_project_scores_user_project_idx
 grant select, insert, update, delete on table public.user_project_scores to service_role;
 grant usage, select on all sequences in schema public to service_role;
 
+-- --------------------------------------------------------
+-- View for comparing live vs materialized data consistency
+-- --------------------------------------------------------
+
 CREATE OR REPLACE VIEW public.user_project_scores_stale_data AS
 WITH
-  -- Recompute the “live” version of user_project_scores
   live AS (
     WITH
       latest_values AS (
@@ -173,7 +182,7 @@ WITH
         WHERE uss.raw_value IS NOT NULL
           AND uss.test_requesting_user IS NULL
           AND pss.enabled = TRUE
-          AND uss.day >= (CURRENT_DATE - INTERVAL '360 days')
+          AND uss.day >= (CURRENT_DATE - interval '360 days')
         GROUP BY uss.user_id, uss.project_id
       )
     SELECT
@@ -181,7 +190,7 @@ WITH
       p.project_id,
       CASE
         WHEN lea.latest_activity_day IS NULL THEN 0::bigint
-        WHEN lea.latest_activity_day < (CURRENT_DATE - INTERVAL '360 days') THEN 0::bigint
+        WHEN lea.latest_activity_day < (CURRENT_DATE - interval '360 days') THEN 0::bigint
         ELSE LEAST(COALESCE(ts.total_score_uncapped, 0::bigint), 100::bigint)
       END AS total_score,
       ROW_NUMBER() OVER (
@@ -204,9 +213,14 @@ WITH
       ON lea.user_id = u.id AND lea.project_id = p.project_id
     LEFT JOIN activity_counts ac
       ON ac.user_id = u.id AND ac.project_id = p.project_id
+    WHERE
+      CASE
+        WHEN lea.latest_activity_day IS NULL THEN 0
+        WHEN lea.latest_activity_day < (CURRENT_DATE - interval '360 days') THEN 0
+        ELSE LEAST(COALESCE(ts.total_score_uncapped, 0), 100)
+      END > 0
   )
 
--- Compare live vs. materialized results
 SELECT
   COALESCE(l.user_id, m.user_id) AS user_id,
   COALESCE(l.project_id, m.project_id) AS project_id,
@@ -228,11 +242,10 @@ FULL OUTER JOIN user_project_scores m
   ON l.user_id = m.user_id
  AND l.project_id = m.project_id
 WHERE
-  -- Only show rows that differ in any meaningful way
   l.user_id IS NULL
   OR m.user_id IS NULL
   OR l.total_score IS DISTINCT FROM m.total_score
   OR l.rank IS DISTINCT FROM m.rank;
-  
+
 grant select, insert, update, delete on table public.user_project_scores_stale_data to service_role;
 grant usage, select on all sequences in schema public to service_role;
