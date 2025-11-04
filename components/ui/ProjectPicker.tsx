@@ -123,6 +123,7 @@ export default function ProjectPicker({
                                         inputRef.current?.blur()
                                         onProjectSelect(project)
                                     }}
+                                    maxW="100%"
                                 >
                                     <HStack w="100%">
                                         <Image
@@ -137,8 +138,10 @@ export default function ProjectPicker({
                                             w="25px"
                                             borderRadius="full"
                                         />
-                                        <HStack w="100%" justifyContent="space-between">
-                                            <Text>{project.displayName}</Text>
+                                        <HStack w="100%" minW={0} justifyContent="space-between" alignItems="center">
+                                            <Text flex={1} minW={0} truncate>
+                                                {project.displayName}
+                                            </Text>
                                             <Text
                                                 fontSize="sm"
                                                 fontWeight="bold"
@@ -149,6 +152,7 @@ export default function ProjectPicker({
                                                 py={"2px"}
                                                 textAlign="center"
                                                 minW={"40px"}
+                                                flexShrink={0}
                                             >
                                                 {project.averageScore?.toFixed(0)}
                                             </Text>
