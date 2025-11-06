@@ -1,7 +1,17 @@
 const { LambdaClient, InvokeCommand } = require("@aws-sdk/client-lambda")
 
+// Reuse a single LambdaClient instance instead of creating a new one for each call
+let lambdaClient = null
+
+const getLambdaClient = () => {
+    if (!lambdaClient) {
+        lambdaClient = new LambdaClient({ region: process.env.AWS_REGION })
+    }
+    return lambdaClient
+}
+
 const selfInvokeAsynchronously = async (input) => {
-    const lambda = new LambdaClient({ region: process.env.AWS_REGION })
+    const lambda = getLambdaClient()
 
     let payloadObj
 
