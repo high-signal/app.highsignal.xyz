@@ -1,11 +1,23 @@
 const { LambdaClient, InvokeCommand } = require("@aws-sdk/client-lambda")
+const { NodeHttpHandler } = require("@smithy/node-http-handler")
 
 // Reuse a single LambdaClient instance instead of creating a new one for each call
+// Configure with larger connection pool to handle many concurrent requests
 let lambdaClient = null
 
 const getLambdaClient = () => {
     if (!lambdaClient) {
-        lambdaClient = new LambdaClient({ region: process.env.AWS_REGION })
+        const requestHandler = new NodeHttpHandler({
+            connectionTimeout: 1000,
+            requestTimeout: 1000,
+            // Increase maxSockets to allow more concurrent connections
+            maxSockets: 200, // Default is 50, increase to handle more concurrent requests
+        })
+
+        lambdaClient = new LambdaClient({
+            region: process.env.AWS_REGION,
+            requestHandler,
+        })
     }
     return lambdaClient
 }

@@ -64,16 +64,22 @@ async function runAiGovernor() {
         const pendingQueueItems = await getPriorityQueueItems(supabase, availableSpace)
 
         // Attempt to trigger the next x items that are pending.
-        // Process in batches to avoid overwhelming SDK, but don't wait for promises to complete
+        // Evenly space batches over 30 seconds to avoid overwhelming the database
         if (pendingQueueItems.length > 0) {
             const BATCH_SIZE = 10
+            const TARGET_DURATION_SECONDS = 30 // Spread batches over 30 seconds
             const totalBatches = Math.ceil(pendingQueueItems.length / BATCH_SIZE)
 
-            console.log(
-                `🚀 Triggering ${pendingQueueItems.length} AI queue items in ${totalBatches} batches of ${BATCH_SIZE} (fire and forget)...`,
-            )
+            // Calculate delay between batches to evenly space them over the target duration
+            // If we have N batches, we need N-1 delays between them
+            const delayBetweenBatchesMs = totalBatches > 1 ? (TARGET_DURATION_SECONDS * 1000) / (totalBatches - 1) : 0
 
-            // Process in batches, but don't wait for each batch to complete
+            console.log(
+                `🚀 Triggering ${pendingQueueItems.length} AI queue items in ${totalBatches} batches of ${BATCH_SIZE} over ${TARGET_DURATION_SECONDS} seconds...`,
+            )
+            console.log(`⏱️ Delay between batches: ${delayBetweenBatchesMs.toFixed(0)}ms`)
+
+            // Process in batches, evenly spaced over the target duration
             for (let i = 0; i < pendingQueueItems.length; i += BATCH_SIZE) {
                 const batch = pendingQueueItems.slice(i, i + BATCH_SIZE)
                 const batchNumber = Math.floor(i / BATCH_SIZE) + 1
@@ -92,11 +98,10 @@ async function runAiGovernor() {
 
                 invokedCounter += batch.length
 
-                // TODO: This does not seem to be needed. Remove if it works without it.
-                // Small delay between batches to avoid overwhelming SDK, but don't wait for batch completion
-                // if (i + BATCH_SIZE < pendingQueueItems.length) {
-                //     await new Promise((resolve) => setTimeout(resolve, 25))
-                // }
+                // Wait before next batch to evenly space them over the target duration
+                if (i + BATCH_SIZE < pendingQueueItems.length) {
+                    await new Promise((resolve) => setTimeout(resolve, delayBetweenBatchesMs))
+                }
             }
         }
 
