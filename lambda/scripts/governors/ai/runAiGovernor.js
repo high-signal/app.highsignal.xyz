@@ -64,21 +64,39 @@ async function runAiGovernor() {
         const pendingQueueItems = await getPriorityQueueItems(supabase, availableSpace)
 
         // Attempt to trigger the next x items that are pending.
-        // Fire off all triggers in parallel; each trigger is a fast async invoke.
+        // Process in batches to avoid overwhelming SDK, but don't wait for promises to complete
         if (pendingQueueItems.length > 0) {
-            const results = await Promise.allSettled(
-                pendingQueueItems.map(async (pendingQueueItem) => {
-                    return handleTriggerAiQueueItem({ queueItemId: pendingQueueItem.id })
-                }),
+            const BATCH_SIZE = 10
+            const totalBatches = Math.ceil(pendingQueueItems.length / BATCH_SIZE)
+
+            console.log(
+                `🚀 Triggering ${pendingQueueItems.length} AI queue items in ${totalBatches} batches of ${BATCH_SIZE} (fire and forget)...`,
             )
 
-            // Count successful invocations
-            invokedCounter = results.filter((r) => r.status === "fulfilled").length
+            // Process in batches, but don't wait for each batch to complete
+            for (let i = 0; i < pendingQueueItems.length; i += BATCH_SIZE) {
+                const batch = pendingQueueItems.slice(i, i + BATCH_SIZE)
+                const batchNumber = Math.floor(i / BATCH_SIZE) + 1
 
-            // Log any failures without throwing to avoid blocking other items
-            const failed = results.filter((r) => r.status === "rejected")
-            if (failed.length > 0) {
-                console.warn(`⚠️ ${failed.length} AI queue item(s) failed to trigger.`)
+                console.log(
+                    `🏁 Triggering batch ${batchNumber}/${totalBatches} (items ${i + 1}-${Math.min(i + BATCH_SIZE, pendingQueueItems.length)})`,
+                )
+
+                // Fire off all items in this batch in parallel without waiting
+                batch.forEach((pendingQueueItem) => {
+                    // Fire and forget - don't await, just trigger
+                    handleTriggerAiQueueItem({ queueItemId: pendingQueueItem.id }).catch((error) => {
+                        console.error(`Error triggering queue item ${pendingQueueItem.id}:`, error)
+                    })
+                })
+
+                invokedCounter += batch.length
+
+                // TODO: This does not seem to be needed. Remove if it works without it.
+                // Small delay between batches to avoid overwhelming SDK, but don't wait for batch completion
+                // if (i + BATCH_SIZE < pendingQueueItems.length) {
+                //     await new Promise((resolve) => setTimeout(resolve, 25))
+                // }
             }
         }
 
