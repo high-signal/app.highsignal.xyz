@@ -49,6 +49,7 @@ async function runAiQueueItem({ queueItemId }) {
 
             // Run the AI engine.
             const engineError = await runEngine({
+                supabase,
                 signalStrengthId: claimedQueueItem[0].signal_strength_id,
                 userId: claimedQueueItem[0].user_id,
                 projectId: claimedQueueItem[0].project_id,
