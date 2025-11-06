@@ -64,16 +64,27 @@ async function runAiGovernor() {
         const pendingQueueItems = await getPriorityQueueItems(supabase, availableSpace)
 
         // Attempt to trigger the next x items that are pending.
-        for (const pendingQueueItem of pendingQueueItems) {
-            console.log("\n**************************************************")
-            console.log(`🏁 Triggering AI queue item: ${pendingQueueItem.id}`)
-            await handleTriggerAiQueueItem({ queueItemId: pendingQueueItem.id })
-            invokedCounter++
+        // Fire off all triggers in parallel; each trigger is a fast async invoke.
+        if (pendingQueueItems.length > 0) {
+            const results = await Promise.allSettled(
+                pendingQueueItems.map(async (pendingQueueItem) => {
+                    return handleTriggerAiQueueItem({ queueItemId: pendingQueueItem.id })
+                }),
+            )
+
+            // Count successful invocations
+            invokedCounter = results.filter((r) => r.status === "fulfilled").length
+
+            // Log any failures without throwing to avoid blocking other items
+            const failed = results.filter((r) => r.status === "rejected")
+            if (failed.length > 0) {
+                console.warn(`⚠️ ${failed.length} AI queue item(s) failed to trigger.`)
+            }
         }
 
         console.log("--------------------------------")
         if (invokedCounter > 0) {
-            console.log(`☑️ Invoked ${invokedCounter} AI queue items.`)
+            console.log(`☑️ Triggered ${invokedCounter} AI queue items.`)
         } else {
             console.log("🚧 No AI queue items to trigger.")
         }
