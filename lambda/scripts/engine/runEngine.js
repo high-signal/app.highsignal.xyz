@@ -17,23 +17,25 @@ const adapterHandler = require("./platform_adapters/adapterHandler")
 const { createClient } = require("@supabase/supabase-js")
 
 // Function to run the engine
-async function runEngine({ signalStrengthId, userId, projectId, signalStrengthUsername, dayDate, type, testingData }) {
+async function runEngine({
+    supabase,
+    signalStrengthId,
+    userId,
+    projectId,
+    signalStrengthUsername,
+    dayDate,
+    type,
+    testingData,
+}) {
     console.log(
         `🏁 Running engine for signal strength: ${signalStrengthId}. userId: ${userId}. projectId: ${projectId}. signalStrengthUsername: ${signalStrengthUsername}. dayDate: ${dayDate}. type: ${type}.`,
     )
-
-    let supabase
 
     try {
         // ================
         // Initialize logs
         // ================
         let logs = `signalStrengthUsername: ${signalStrengthUsername}`
-
-        // ===========================
-        // Initialize Supabase client
-        // ===========================
-        supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
         // =================================
         // Get signal strength data from DB
