@@ -6,100 +6,122 @@ export async function GET() {
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
     // Get missing days
-    const { count: missingDays, error: missingDaysError } = await supabase
-        .from("user_signal_strengths_missing_ranges")
-        .select("user_id, project_id, signal_strength_id, missing_day", { count: "exact" })
-        .limit(0)
+    let missingDays = -1
+    {
+        const { count, error } = await supabase
+            .from("user_signal_strengths_missing_ranges")
+            .select("user_id, project_id, signal_strength_id, missing_day", { count: "exact" })
+            .limit(0)
 
-    if (missingDaysError) {
-        const errorMessage = "Error fetching missing days: " + (missingDaysError.message || "Unknown error")
-        console.error(errorMessage)
-        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+        if (error) {
+            const errorMessage = "Error fetching missing days: " + (error.message || "Unknown error")
+            console.error(errorMessage)
+        } else {
+            missingDays = count ?? 0
+        }
     }
 
     // Get AI raw score errors
-    const { count: aiRawScoreErrors, error: aiRawScoreErrorsError } = await supabase
-        .from("ai_request_queue")
-        .select("id, status, type", { count: "exact" })
-        .eq("status", "error")
-        .eq("type", "raw_score")
-        .limit(0)
+    let aiRawScoreErrors = -1
+    {
+        const { count, error } = await supabase
+            .from("ai_request_queue")
+            .select("id, status, type", { count: "exact" })
+            .eq("status", "error")
+            .eq("type", "raw_score")
+            .limit(0)
 
-    if (aiRawScoreErrorsError) {
-        const errorMessage = "Error fetching AI raw score errors: " + (aiRawScoreErrorsError.message || "Unknown error")
-        console.error(errorMessage)
-        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+        if (error) {
+            const errorMessage = "Error fetching AI raw score errors: " + (error.message || "Unknown error")
+            console.error(errorMessage)
+        } else {
+            aiRawScoreErrors = count ?? 0
+        }
     }
 
     // Get last checked not null
-    const { count: lastCheckedNotNull, error: lastCheckedNotNullError } = await supabase
-        .from("user_signal_strengths")
-        .select("id, last_checked", { count: "exact" })
-        .not("last_checked", "is", null)
-        .limit(0)
+    let lastCheckedNotNull = -1
+    {
+        const { count, error } = await supabase
+            .from("user_signal_strengths")
+            .select("id, last_checked", { count: "exact" })
+            .not("last_checked", "is", null)
+            .limit(0)
 
-    if (lastCheckedNotNullError) {
-        const errorMessage =
-            "Error fetching last checked not null: " + (lastCheckedNotNullError.message || "Unknown error")
-        console.error(errorMessage)
-        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+        if (error) {
+            const errorMessage = "Error fetching last checked not null: " + (error.message || "Unknown error")
+            console.error(errorMessage)
+        } else {
+            lastCheckedNotNull = count ?? 0
+        }
     }
 
     // Get stale user project scores
-    const { count: staleUserProjectScores, error: staleUserProjectScoresError } = await supabase
-        .from("user_project_scores_stale_data")
-        .select("user_id", { count: "exact" })
-        .limit(0)
+    let staleUserProjectScores = -1
+    {
+        const { count, error } = await supabase
+            .from("user_project_scores_stale_data")
+            .select("user_id", { count: "exact" })
+            .limit(0)
 
-    if (staleUserProjectScoresError) {
-        const errorMessage =
-            "Error fetching stale user project scores: " + (staleUserProjectScoresError.message || "Unknown error")
-        console.error(errorMessage)
-        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+        if (error) {
+            const errorMessage = "Error fetching stale user project scores: " + (error.message || "Unknown error")
+            console.error(errorMessage)
+        } else {
+            staleUserProjectScores = count ?? 0
+        }
     }
 
     // Get discord request queue errors
-    const { count: discordRequestQueueErrors, error: discordRequestQueueErrorsError } = await supabase
-        .from("discord_request_queue")
-        .select("id, status", { count: "exact" })
-        .eq("status", "error")
-        .limit(0)
+    let discordRequestQueueErrors = -1
+    {
+        const { count, error } = await supabase
+            .from("discord_request_queue")
+            .select("id, status", { count: "exact" })
+            .eq("status", "error")
+            .limit(0)
 
-    if (discordRequestQueueErrorsError) {
-        const errorMessage =
-            "Error fetching discord request queue errors: " +
-            (discordRequestQueueErrorsError.message || "Unknown error")
-        console.error(errorMessage)
-        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+        if (error) {
+            const errorMessage = "Error fetching discord request queue errors: " + (error.message || "Unknown error")
+            console.error(errorMessage)
+        } else {
+            discordRequestQueueErrors = count ?? 0
+        }
     }
 
     // Get duplicate user_signal_strengths rows
-    const { count: duplicateUserSignalStrengths, error: duplicateUserSignalStrengthsError } = await supabase
-        .from("user_signal_strengths_duplicates")
-        .select("id", { count: "exact" })
-        .limit(0)
+    let duplicateUserSignalStrengths = -1
+    {
+        const { count, error } = await supabase
+            .from("user_signal_strengths_duplicates")
+            .select("id", { count: "exact" })
+            .limit(0)
 
-    if (duplicateUserSignalStrengthsError) {
-        const errorMessage =
-            "Error fetching duplicate user signal strengths rows: " +
-            (duplicateUserSignalStrengthsError.message || "Unknown error")
-        console.error(errorMessage)
-        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+        if (error) {
+            const errorMessage =
+                "Error fetching duplicate user signal strengths rows: " + (error.message || "Unknown error")
+            console.error(errorMessage)
+        } else {
+            duplicateUserSignalStrengths = count ?? 0
+        }
     }
 
     // Get lambda stats null billed duration
-    const { count: lambdaStatsNullBilledDuration, error: lambdaStatsNullBilledDurationError } = await supabase
-        .from("lambda_stats")
-        .select("request_id, billed_duration", { count: "exact" })
-        .is("billed_duration", null)
-        .limit(0)
+    let lambdaStatsNullBilledDuration = -1
+    {
+        const { count, error } = await supabase
+            .from("lambda_stats")
+            .select("request_id, billed_duration", { count: "exact" })
+            .is("billed_duration", null)
+            .limit(0)
 
-    if (lambdaStatsNullBilledDurationError) {
-        const errorMessage =
-            "Error fetching lambda stats null billed duration: " +
-            (lambdaStatsNullBilledDurationError.message || "Unknown error")
-        console.error(errorMessage)
-        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+        if (error) {
+            const errorMessage =
+                "Error fetching lambda stats null billed duration: " + (error.message || "Unknown error")
+            console.error(errorMessage)
+        } else {
+            lambdaStatsNullBilledDuration = count ?? 0
+        }
     }
 
     // Get rows from user_signal_strengths without raw_value or value
@@ -108,20 +130,22 @@ export async function GET() {
     //      DELETE FROM user_signal_strengths
     //      WHERE value IS NULL
     //          AND raw_value IS NULL;
-    const { count: userSignalStrengthsWithoutRawValueOrValue, error: userSignalStrengthsWithoutRawValueOrValueError } =
-        await supabase
+    let userSignalStrengthsWithoutRawValueOrValue = -1
+    {
+        const { count, error } = await supabase
             .from("user_signal_strengths")
             .select("id, raw_value, value", { count: "exact" })
             .is("raw_value", null)
             .is("value", null)
             .limit(0)
 
-    if (userSignalStrengthsWithoutRawValueOrValueError) {
-        const errorMessage =
-            "Error fetching user signal strengths without raw value or value: " +
-            (userSignalStrengthsWithoutRawValueOrValueError.message || "Unknown error")
-        console.error(errorMessage)
-        return NextResponse.json({ status: "error", statusCode: 500, error: errorMessage })
+        if (error) {
+            const errorMessage =
+                "Error fetching user signal strengths without raw value or value: " + (error.message || "Unknown error")
+            console.error(errorMessage)
+        } else {
+            userSignalStrengthsWithoutRawValueOrValue = count ?? 0
+        }
     }
 
     return NextResponse.json({

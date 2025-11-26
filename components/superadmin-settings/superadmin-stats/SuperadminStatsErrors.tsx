@@ -50,6 +50,7 @@ export default function SuperadminStatsErrors() {
 
     const StatsRow = ({ label, value, minErrorValue }: { label: string; value: number; minErrorValue?: number }) => {
         const isError = value > 0 && (minErrorValue ? value >= minErrorValue : true)
+        const displayText = value === -1 ? "API error" : isError ? value : "-"
 
         return (
             <HStack
@@ -67,7 +68,7 @@ export default function SuperadminStatsErrors() {
                     <Spinner size="xs" />
                 ) : (
                     <Text bg={"contentBackground"} px={isError ? 2 : 0} borderRadius={"full"}>
-                        {isError ? value : "-"}
+                        {displayText}
                     </Text>
                 )}
             </HStack>
