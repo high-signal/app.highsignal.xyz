@@ -49,6 +49,20 @@ This section explains the available scripts in the `package.json` file and their
 - `yarn start`  
   This command first runs `yarn build` to generate an optimized build of the site and then starts the production server using the `next start` command. Use this command to test the site in a production-like environment locally.
 
+### .env Config
+
+DISCOURSE_FORUM_CLIENT_ID
+
+- `openssl rand -hex 16`
+
+DISCOURSE_FORUM_PRIVATE_KEY
+
+- `openssl genrsa -out private.pem 2048`
+
+DISCOURSE_FORUM_PUBLIC_KEY
+
+- `openssl rsa -in private.pem -pubout -out public.pem`
+
 ## Bugs and Feature Requests
 
 If you encounter any bugs or have a feature request, please open an issue on GitHub. To help us resolve the issue, please provide the following information:
