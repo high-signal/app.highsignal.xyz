@@ -103,34 +103,44 @@ export default function UserInfo({ currentUser }: { currentUser: UserData }) {
                             >
                                 This user was auto-generated
                             </Text>
-                            {authenticated && loggedInUser ? (
-                                <Link href={`/settings/u/${loggedInUser?.username}?tab=accounts`}>
-                                    <Button primaryButton px={3} py={"2px"} borderRadius="full">
-                                        <HStack gap={0}>
-                                            <Text>Claim this account</Text>
-                                        </HStack>
-                                    </Button>
-                                </Link>
-                            ) : (
-                                <Button
-                                    primaryButton
-                                    px={3}
-                                    py={"2px"}
-                                    borderRadius="full"
-                                    onClick={() => {
-                                        login()
-                                    }}
-                                >
-                                    <HStack gap={1} flexWrap={"wrap"} justifyContent={"center"}>
-                                        <Text>Login to claim</Text>
-                                        {showFullText ? <Text>this account</Text> : <Text>account</Text>}
-                                    </HStack>
-                                </Button>
+                            {process.env.NEXT_PUBLIC_SITE_TYPE !== "snapshot" && (
+                                <>
+                                    {authenticated && loggedInUser ? (
+                                        <Link href={`/settings/u/${loggedInUser?.username}?tab=accounts`}>
+                                            <Button primaryButton px={3} py={"2px"} borderRadius="full">
+                                                <HStack gap={0}>
+                                                    <Text>Claim this account</Text>
+                                                </HStack>
+                                            </Button>
+                                        </Link>
+                                    ) : (
+                                        <Button
+                                            primaryButton
+                                            px={3}
+                                            py={"2px"}
+                                            borderRadius="full"
+                                            onClick={() => {
+                                                login()
+                                            }}
+                                        >
+                                            <HStack gap={1} flexWrap={"wrap"} justifyContent={"center"}>
+                                                <Text>Login to claim</Text>
+                                                {showFullText ? <Text>this account</Text> : <Text>account</Text>}
+                                            </HStack>
+                                        </Button>
+                                    )}
+                                </>
                             )}
                         </VStack>
                     )}
 
-                    <Box pb={currentUser.username?.startsWith("~") ? 1 : "0px"}>
+                    <Box
+                        pb={
+                            currentUser.username?.startsWith("~") && process.env.NEXT_PUBLIC_SITE_TYPE !== "snapshot"
+                                ? 1
+                                : "0px"
+                        }
+                    >
                         <Link href={`/u/${currentUser.username}`}>
                             <Button secondaryButton px={3} py={1} borderRadius="full">
                                 <HStack gap={0}>

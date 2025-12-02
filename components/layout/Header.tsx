@@ -150,7 +150,7 @@ export default function Header({}) {
                             <IconLinkButton key={index} {...link} />
                         ))}
                     </HStack> */}
-                    <UserMenuButton />
+                    {process.env.NEXT_PUBLIC_SITE_TYPE !== "snapshot" && <UserMenuButton />}
                 </HStack>
             </HStack>
         </VStack>

@@ -117,41 +117,47 @@ export default function UserProfileContainer() {
                                             <Text
                                                 fontSize="sm"
                                                 color="textColorMuted"
-                                                mb={"-5px"}
+                                                mb={process.env.NEXT_PUBLIC_SITE_TYPE !== "snapshot" ? "-5px" : "0px"}
                                                 mt={1}
                                                 textWrap={"wrap"}
                                             >
                                                 This user was auto-generated
                                             </Text>
-                                            {authenticated && loggedInUser ? (
-                                                <Link href={`/settings/u/${loggedInUser?.username}?tab=accounts`}>
-                                                    <Button primaryButton px={3} py={"2px"} borderRadius="full">
-                                                        <HStack gap={0}>
-                                                            <Text>Claim this account</Text>
+                                            {process.env.NEXT_PUBLIC_SITE_TYPE !== "snapshot" && (
+                                                <>
+                                                    {authenticated && loggedInUser ? (
+                                                        <Link
+                                                            href={`/settings/u/${loggedInUser?.username}?tab=accounts`}
+                                                        >
+                                                            <Button primaryButton px={3} py={"2px"} borderRadius="full">
+                                                                <HStack gap={0}>
+                                                                    <Text>Claim this account</Text>
+                                                                </HStack>
+                                                            </Button>
+                                                        </Link>
+                                                    ) : (
+                                                        <HStack minH={"45px"}>
+                                                            <Button
+                                                                primaryButton
+                                                                px={2}
+                                                                py={"2px"}
+                                                                borderRadius="full"
+                                                                onClick={() => {
+                                                                    login()
+                                                                }}
+                                                            >
+                                                                <HStack gap={1}>
+                                                                    <Text>Login to claim</Text>
+                                                                    {showFullText ? (
+                                                                        <Text>this account</Text>
+                                                                    ) : (
+                                                                        <Text>account</Text>
+                                                                    )}
+                                                                </HStack>
+                                                            </Button>
                                                         </HStack>
-                                                    </Button>
-                                                </Link>
-                                            ) : (
-                                                <HStack minH={"45px"}>
-                                                    <Button
-                                                        primaryButton
-                                                        px={2}
-                                                        py={"2px"}
-                                                        borderRadius="full"
-                                                        onClick={() => {
-                                                            login()
-                                                        }}
-                                                    >
-                                                        <HStack gap={1}>
-                                                            <Text>Login to claim</Text>
-                                                            {showFullText ? (
-                                                                <Text>this account</Text>
-                                                            ) : (
-                                                                <Text>account</Text>
-                                                            )}
-                                                        </HStack>
-                                                    </Button>
-                                                </HStack>
+                                                    )}
+                                                </>
                                             )}
                                         </VStack>
                                     )}

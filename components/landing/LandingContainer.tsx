@@ -319,14 +319,16 @@ export default function LandingContainer() {
                     ))
                 })()}
             </HStack>
-            <Link href="/new-project">
-                <Button primaryButton pl={2} pr={3} py={2} borderRadius={"full"} mx={3}>
-                    <FontAwesomeIcon icon={faPlusCircle} size="xl" />
-                    <Text whiteSpace="normal" overflowWrap="break-word" wordBreak="break-word">
-                        Add your project or community to High Signal
-                    </Text>
-                </Button>
-            </Link>
+            {process.env.NEXT_PUBLIC_SITE_TYPE !== "snapshot" && (
+                <Link href="/new-project">
+                    <Button primaryButton pl={2} pr={3} py={2} borderRadius={"full"} mx={3}>
+                        <FontAwesomeIcon icon={faPlusCircle} size="xl" />
+                        <Text whiteSpace="normal" overflowWrap="break-word" wordBreak="break-word">
+                            Add your project or community to High Signal
+                        </Text>
+                    </Button>
+                </Link>
+            )}
         </VStack>
     )
 }
