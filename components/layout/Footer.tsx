@@ -33,8 +33,11 @@ export default function Footer() {
                 h={"28px"}
                 justifySelf={"center"}
             >
-                {process.env.NEXT_PUBLIC_FEEDBACK_FISH_PROJECT_ID && (
-                    <Box flexGrow={1}>
+                <Box
+                    flexGrow={1}
+                    w={{ base: "100%", md: process.env.NEXT_PUBLIC_FEEDBACK_FISH_PROJECT_ID ? "auto" : "166px" }}
+                >
+                    {process.env.NEXT_PUBLIC_FEEDBACK_FISH_PROJECT_ID && (
                         <FeedbackFish
                             projectId={process.env.NEXT_PUBLIC_FEEDBACK_FISH_PROJECT_ID}
                             userId={loggedInUser?.username || "anonymous"}
@@ -46,8 +49,8 @@ export default function Footer() {
                                 </HStack>
                             </Button>
                         </FeedbackFish>
-                    </Box>
-                )}
+                    )}
+                </Box>
             </HStack>
             <HStack fontWeight={"bold"} fontSize={"14px"} textAlign={"center"} gap={1}>
                 <Text color={"textColorMuted"}>Built with ❤️ by </Text>
