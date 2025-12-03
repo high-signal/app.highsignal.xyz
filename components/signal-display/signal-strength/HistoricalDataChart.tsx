@@ -51,15 +51,16 @@ export default function HistoricalDataChart({
         }
     }
 
-    // Yesterday
+    // Use snapshot date (if set) or real today to anchor the chart, then show up to "yesterday"
     const yesterday = useMemo(() => {
-        const date = new Date()
-        date.setHours(0, 0, 0, 0)
-        date.setDate(date.getDate() - 1)
-        return date
+        const snapshotDate = process.env.NEXT_PUBLIC_SNAPSHOT_DATE
+        const base = snapshotDate ? new Date(snapshotDate) : new Date()
+        base.setHours(0, 0, 0, 0)
+        base.setDate(base.getDate() - 1)
+        return base
     }, [])
 
-    // 360 days ago
+    // 360 days before the end of the range
     const pastDate = useMemo(() => {
         const date = new Date(yesterday)
         date.setDate(date.getDate() - 360)

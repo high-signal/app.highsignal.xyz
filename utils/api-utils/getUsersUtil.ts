@@ -4,6 +4,23 @@ import { calculateSignalFromScore } from "../calculateSignal"
 
 import { APP_CONFIG } from "../../config/constants"
 
+/**
+ * Gets the current date, or a snapshot date from environment variable if set.
+ * If NEXT_PUBLIC_SNAPSHOT_DATE is set (e.g., "2025-11-01"), that date is used as "today".
+ * Otherwise, returns the actual current date.
+ */
+function getToday(): Date {
+    const snapshotDate = process.env.NEXT_PUBLIC_SNAPSHOT_DATE
+    if (snapshotDate) {
+        const parsedDate = new Date(snapshotDate)
+        // Validate that the date is valid
+        if (!isNaN(parsedDate.getTime())) {
+            return parsedDate
+        }
+    }
+    return new Date()
+}
+
 type User = {
     id: string
     username: string
@@ -82,7 +99,7 @@ function fillSignalStrengthGaps(signalStrengthData: SignalStrengthData[]): Signa
     })
 
     // Calculate date range
-    const today = new Date()
+    const today = getToday()
     const yesterday = new Date(today)
     yesterday.setDate(yesterday.getDate() - 1)
     const twoDaysAgo = new Date(today)
@@ -230,7 +247,7 @@ function fillHistoricalScoreGaps(
 ): Array<{ day: string; totalScore: number }> {
     if (historicalScores.length === 0) {
         // If no historical scores, fill all 360 days with 0 (up to two days ago, exclude today and yesterday from gap-filling)
-        const today = new Date()
+        const today = getToday()
         const result: Array<{ day: string; totalScore: number }> = []
 
         for (let i = 2; i <= 361; i++) {
@@ -253,7 +270,7 @@ function fillHistoricalScoreGaps(
     })
 
     // Calculate 360 days ago from today
-    const today = new Date()
+    const today = getToday()
     const yesterday = new Date(today)
     yesterday.setDate(yesterday.getDate() - 1)
     const twoDaysAgo = new Date(today)
@@ -464,8 +481,19 @@ export async function getUsersUtil(
 
             const userIds = userProjectScores.map((score) => score.user_id)
 
-            // Calculate the date previousDaysMax base on the smart score max history
-            const previousDaysMax = new Date()
+            // Calculate the date previousDaysMax based on the smart score max history
+            const today = getToday()
+            const todayString = today.toISOString().split("T")[0]
+            const yesterday = new Date(today)
+            yesterday.setDate(yesterday.getDate() - 1)
+
+            // In snapshot mode, include the snapshot "today" in daily data; in live mode, stop at real yesterday
+            const endDateString =
+                process.env.NEXT_PUBLIC_SNAPSHOT_DATE && process.env.NEXT_PUBLIC_SNAPSHOT_DATE.length > 0
+                    ? todayString
+                    : yesterday.toISOString().split("T")[0]
+
+            const previousDaysMax = new Date(today)
             let smartScoreMaxHistory: number = APP_CONFIG.SMART_SCORE_MAX_HISTORY_PROJECT_RESULTS
             if (username && !fuzzy) {
                 smartScoreMaxHistory = APP_CONFIG.SMART_SCORE_MAX_HISTORY_SINGLE_USER_RESULTS
@@ -720,6 +748,7 @@ export async function getUsersUtil(
                     signalBatchCount++
                     const { data: signalStrengthsBatch, error: signalStrengthsError } = await signalStrengthsQuery
                         .gte("day", previousDaysMaxString)
+                        .lte("day", endDateString)
                         .order("day", { ascending: false })
                         .range(signalOffset, signalOffset + signalBatchSize - 1)
 
@@ -1108,7 +1137,7 @@ export async function getUsersUtil(
                                 ...(isSuperAdminRequesting || isUserDataVisible
                                     ? {
                                           dailyData: uss.data
-                                              .filter((d) => d.value == null)
+                                              .filter((d) => d.value == null && d.day <= endDateString)
                                               .reduce(
                                                   (acc, d) => {
                                                       // Only process records that have a raw_value

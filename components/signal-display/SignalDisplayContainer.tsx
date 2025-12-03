@@ -37,8 +37,8 @@ export default function SignalDisplayContainer({ project, username }: { project:
     // If lastChecked for any of the signals is less than X seconds ago, set isSignalStrengthLoading to true
     useEffect(() => {
         const isSignalStrengthLoading = (currentUser?.signalStrengths || [])
-            .map((signalStrength) => signalStrength.data[0].lastChecked)
-            .filter((lastChecked) => lastChecked !== undefined)
+            .map((signalStrength) => signalStrength.data[0]?.lastChecked)
+            .filter((lastChecked) => lastChecked !== undefined && lastChecked !== null)
             .map(Number)
             .reduce((min, current) => (current < min ? current : min), Infinity)
 
