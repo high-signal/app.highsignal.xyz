@@ -229,33 +229,54 @@ export async function GET(request: Request) {
             } else {
                 publicAccountError = initialPublicAccountError
                 // For Discord usernames, if not found, try again with #0 appended
-                // Retry if no error or if error is "not found" (PGRST116)
-                if (
-                    searchType === "discordUsername" &&
-                    (!initialPublicAccountError || initialPublicAccountError?.code === "PGRST116")
-                ) {
-                    const { data: retryPublicAccountData, error: retryPublicAccountError } = await supabase
-                        .from("user_accounts")
-                        .select(
-                            `
-                            user_id,
-                            users!inner(
-                                email,
-                                discord_username,
-                                x_username,
-                                farcaster_username
-                            )
-                        `,
+                if (searchType === "discordUsername") {
+                    // Only retry if it's a "not found" error (PGRST116), not a real database error
+                    const shouldRetry = !initialPublicAccountError || initialPublicAccountError?.code === "PGRST116"
+                    if (shouldRetry) {
+                        console.log(
+                            `[Discord retry] Retrying public account search for "${searchValue}" with "#0" appended (initial error: ${initialPublicAccountError?.code || "none"})`,
                         )
-                        .eq("is_public", true)
-                        .eq("users.discord_username", `${searchValue}#0`)
-                        .single()
+                        const { data: retryPublicAccountDataArray, error: retryPublicAccountError } = await supabase
+                            .from("user_accounts")
+                            .select(
+                                `
+                                user_id,
+                                users!inner(
+                                    email,
+                                    discord_username,
+                                    x_username,
+                                    farcaster_username
+                                )
+                            `,
+                            )
+                            .eq("is_public", true)
+                            .eq("type", "discord_username")
+                            .eq("users.discord_username", `${searchValue}#0`)
+                            .limit(1)
 
-                    if (retryPublicAccountData) {
-                        publicAccountData = retryPublicAccountData
-                        publicAccountError = null
-                    } else {
-                        publicAccountError = retryPublicAccountError
+                        // Handle multiple results by taking the first one
+                        const retryPublicAccountData =
+                            retryPublicAccountDataArray && retryPublicAccountDataArray.length > 0
+                                ? retryPublicAccountDataArray[0]
+                                : null
+
+                        if (retryPublicAccountData) {
+                            console.log(`[Discord retry] SUCCESS: Found public account with "${searchValue}#0"`)
+                            publicAccountData = retryPublicAccountData
+                            publicAccountError = null
+                        } else if (retryPublicAccountError) {
+                            console.log(
+                                `[Discord retry] FAILED: Retry query error for "${searchValue}#0": ${retryPublicAccountError.code} - ${retryPublicAccountError.message}`,
+                            )
+                            // Only update error if retry also failed and it's not just "not found"
+                            if (retryPublicAccountError.code !== "PGRST116") {
+                                publicAccountError = retryPublicAccountError
+                            }
+                        } else {
+                            console.log(
+                                `[Discord retry] FAILED: Retry query returned no data and no error for "${searchValue}#0"`,
+                            )
+                        }
                     }
                 }
             }
@@ -312,38 +333,61 @@ export async function GET(request: Request) {
                 } else {
                     sharedAccountError = initialSharedAccountError
                     // For Discord usernames, if not found, try again with #0 appended
-                    // Retry if no error or if error is "not found" (PGRST116)
-                    if (
-                        searchType === "discordUsername" &&
-                        (!initialSharedAccountError || initialSharedAccountError?.code === "PGRST116")
-                    ) {
-                        const { data: retrySharedAccountData, error: retrySharedAccountError } = await supabase
-                            .from("user_accounts")
-                            .select(
-                                `
-                                user_id,
-                                user_accounts_shared!inner(
-                                    projects!inner(
-                                        url_slug
-                                    )
-                                ),
-                                users!inner(
-                                    email,
-                                    discord_username,
-                                    x_username,
-                                    farcaster_username
-                                )
-                            `,
+                    if (searchType === "discordUsername") {
+                        // Only retry if it's a "not found" error (PGRST116), not a real database error
+                        const shouldRetry = !initialSharedAccountError || initialSharedAccountError?.code === "PGRST116"
+                        if (shouldRetry) {
+                            console.log(
+                                `[Discord retry] Retrying search for "${searchValue}" with "#0" appended (initial error: ${initialSharedAccountError?.code || "none"})`,
                             )
-                            .eq("users.discord_username", `${searchValue}#0`)
-                            .eq("user_accounts_shared.projects.url_slug", projectSlug)
-                            .single()
+                            const { data: retrySharedAccountDataArray, error: retrySharedAccountError } = await supabase
+                                .from("user_accounts")
+                                .select(
+                                    `
+                                    user_id,
+                                    user_accounts_shared!inner(
+                                        projects!inner(
+                                            url_slug
+                                        )
+                                    ),
+                                    users!inner(
+                                        email,
+                                        discord_username,
+                                        x_username,
+                                        farcaster_username
+                                    )
+                                `,
+                                )
+                                .eq("type", "discord_username")
+                                .eq("users.discord_username", `${searchValue}#0`)
+                                .eq("user_accounts_shared.projects.url_slug", projectSlug)
+                                .limit(1)
 
-                        if (retrySharedAccountData) {
-                            sharedAccountData = retrySharedAccountData
-                            sharedAccountError = null
-                        } else {
-                            sharedAccountError = retrySharedAccountError
+                            // Handle multiple results by taking the first one
+                            const retrySharedAccountData =
+                                retrySharedAccountDataArray && retrySharedAccountDataArray.length > 0
+                                    ? retrySharedAccountDataArray[0]
+                                    : null
+
+                            if (retrySharedAccountData) {
+                                console.log(
+                                    `[Discord retry] SUCCESS: Found shared account with "${searchValue}#0" for project "${projectSlug}"`,
+                                )
+                                sharedAccountData = retrySharedAccountData
+                                sharedAccountError = null
+                            } else if (retrySharedAccountError) {
+                                console.log(
+                                    `[Discord retry] FAILED: Retry query error for "${searchValue}#0" with project "${projectSlug}": ${retrySharedAccountError.code} - ${retrySharedAccountError.message}`,
+                                )
+                                // Only update error if retry also failed and it's not just "not found"
+                                if (retrySharedAccountError.code !== "PGRST116") {
+                                    sharedAccountError = retrySharedAccountError
+                                }
+                            } else {
+                                console.log(
+                                    `[Discord retry] FAILED: Retry query returned no data and no error for "${searchValue}#0" with project "${projectSlug}"`,
+                                )
+                            }
                         }
                     }
                 }
