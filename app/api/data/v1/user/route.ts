@@ -200,7 +200,11 @@ export async function GET(request: Request) {
             let foundUserId: string | null = null
 
             // First, try to find public accounts (always accessible)
-            const { data: publicAccountData, error: publicAccountError } = await supabase
+            let publicAccountData: any = null
+            let publicAccountError: any = null
+
+            // Try first with the search value as-is
+            const { data: initialPublicAccountData, error: initialPublicAccountError } = await supabase
                 .from("user_accounts")
                 .select(
                     `
@@ -220,6 +224,38 @@ export async function GET(request: Request) {
                 )
                 .single()
 
+            if (initialPublicAccountData) {
+                publicAccountData = initialPublicAccountData
+            } else {
+                publicAccountError = initialPublicAccountError
+                // For Discord usernames, if not found, try again with #0 appended
+                if (searchType === "discordUsername" && initialPublicAccountError?.code === "PGRST116") {
+                    const { data: retryPublicAccountData, error: retryPublicAccountError } = await supabase
+                        .from("user_accounts")
+                        .select(
+                            `
+                            user_id,
+                            users!inner(
+                                email,
+                                discord_username,
+                                x_username,
+                                farcaster_username
+                            )
+                        `,
+                        )
+                        .eq("is_public", true)
+                        .eq("users.discord_username", `${searchValue}#0`)
+                        .single()
+
+                    if (retryPublicAccountData) {
+                        publicAccountData = retryPublicAccountData
+                        publicAccountError = null
+                    } else {
+                        publicAccountError = retryPublicAccountError
+                    }
+                }
+            }
+
             if (publicAccountData) {
                 foundUserId = publicAccountData.user_id
             } else if (publicAccountError && publicAccountError.code !== "PGRST116") {
@@ -238,7 +274,11 @@ export async function GET(request: Request) {
                     )
                 }
 
-                const { data: sharedAccountData, error: sharedAccountError } = await supabase
+                // Try first with the search value as-is
+                let sharedAccountData: any = null
+                let sharedAccountError: any = null
+
+                const { data: initialSharedAccountData, error: initialSharedAccountError } = await supabase
                     .from("user_accounts")
                     .select(
                         `
@@ -262,6 +302,43 @@ export async function GET(request: Request) {
                     )
                     .eq("user_accounts_shared.projects.url_slug", projectSlug)
                     .single()
+
+                if (initialSharedAccountData) {
+                    sharedAccountData = initialSharedAccountData
+                } else {
+                    sharedAccountError = initialSharedAccountError
+                    // For Discord usernames, if not found, try again with #0 appended
+                    if (searchType === "discordUsername" && initialSharedAccountError?.code === "PGRST116") {
+                        const { data: retrySharedAccountData, error: retrySharedAccountError } = await supabase
+                            .from("user_accounts")
+                            .select(
+                                `
+                                user_id,
+                                user_accounts_shared!inner(
+                                    projects!inner(
+                                        url_slug
+                                    )
+                                ),
+                                users!inner(
+                                    email,
+                                    discord_username,
+                                    x_username,
+                                    farcaster_username
+                                )
+                            `,
+                            )
+                            .eq("users.discord_username", `${searchValue}#0`)
+                            .eq("user_accounts_shared.projects.url_slug", projectSlug)
+                            .single()
+
+                        if (retrySharedAccountData) {
+                            sharedAccountData = retrySharedAccountData
+                            sharedAccountError = null
+                        } else {
+                            sharedAccountError = retrySharedAccountError
+                        }
+                    }
+                }
 
                 if (sharedAccountData) {
                     foundUserId = sharedAccountData.user_id
