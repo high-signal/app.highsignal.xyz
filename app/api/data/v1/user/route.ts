@@ -229,7 +229,11 @@ export async function GET(request: Request) {
             } else {
                 publicAccountError = initialPublicAccountError
                 // For Discord usernames, if not found, try again with #0 appended
-                if (searchType === "discordUsername" && initialPublicAccountError?.code === "PGRST116") {
+                // Retry if no error or if error is "not found" (PGRST116)
+                if (
+                    searchType === "discordUsername" &&
+                    (!initialPublicAccountError || initialPublicAccountError?.code === "PGRST116")
+                ) {
                     const { data: retryPublicAccountData, error: retryPublicAccountError } = await supabase
                         .from("user_accounts")
                         .select(
@@ -308,7 +312,11 @@ export async function GET(request: Request) {
                 } else {
                     sharedAccountError = initialSharedAccountError
                     // For Discord usernames, if not found, try again with #0 appended
-                    if (searchType === "discordUsername" && initialSharedAccountError?.code === "PGRST116") {
+                    // Retry if no error or if error is "not found" (PGRST116)
+                    if (
+                        searchType === "discordUsername" &&
+                        (!initialSharedAccountError || initialSharedAccountError?.code === "PGRST116")
+                    ) {
                         const { data: retrySharedAccountData, error: retrySharedAccountError } = await supabase
                             .from("user_accounts")
                             .select(
